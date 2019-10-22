@@ -17,12 +17,12 @@ assignees: ''
 
 
 ## Tasks
--[ ] Pull Request open 
+- [ ] Pull Request open 
 
 
 
 ## Acceptance Criteria
--[ ] Documented
--[ ] on Master
--[ ] Code Review done
--[ ] Reviewed by PO
+- [ ] Documented
+- [ ] on Master
+- [ ] Code Review done
+- [ ] Reviewed by PO
