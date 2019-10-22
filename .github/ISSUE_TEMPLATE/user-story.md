@@ -7,19 +7,22 @@ assignees: ''
 
 ---
 
-# As a
+### As a
 
 
-# I want
+### I want
 
 
-# Because
+### Because
 
 
 ## Tasks
+-[ ] Pull Request open 
 
 
 
-
-## Definition of Done
-[] Documented
+## Acceptance Criteria
+-[ ] Documented
+-[ ] on Master
+-[ ] Code Review done
+-[ ] Reviewed by PO
