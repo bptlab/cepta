@@ -18,6 +18,8 @@ assignees: ''
 
 ## Tasks
 - [ ] Pull Request open 
+- [ ] gain knowledge about different best practices
+- [ ] generate a short presentation share you insights with the Team
 
 
 
