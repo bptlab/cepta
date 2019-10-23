@@ -26,5 +26,7 @@ assignees: ''
 ## Acceptance Criteria
 - [ ] Documented
 - [ ] on Master
+- [ ] Linter is okay
+- [ ] Tests are written and green
 - [ ] Code Review done
 - [ ] Reviewed by PO
