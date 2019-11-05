@@ -1,0 +1,14 @@
+<suite name="Parallel tests" parallel="tests" thread-count="2" >
+    <test name="Test One">
+        <parameter name="test-name" value="Test One"/>
+        <classes>
+            <class name="org.bptlab.cepta.ParallelSuiteTest" />
+        </classes>
+    </test>
+    <test name="Test Two">
+        <parameter name="test-name" value="Test Two"/>
+        <classes>
+            <class name="org.bptlab.cepta.ParallelSuiteTest" />
+        </classes>
+    </test>
+</suite>
