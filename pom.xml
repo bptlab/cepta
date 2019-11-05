@@ -67,6 +67,13 @@ under the License.
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- Rocks db state backend dependency -->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
 		<!-- Flink testing dependencies
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -126,6 +133,20 @@ under the License.
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
+			</plugin>
+
+			<!-- Automatic google checkstyle pre commit formatter -->
+			<plugin>
+				<groupId>com.coveo</groupId>
+				<artifactId>fmt-maven-plugin</artifactId>
+				<version>2.9</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
