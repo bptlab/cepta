@@ -1,6 +1,6 @@
 branches:
   only:
-    - *
+    - /^*$/
 language: java
 sudo: true
 script: mvn clean verify
