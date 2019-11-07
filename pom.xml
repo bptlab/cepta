@@ -60,22 +60,21 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
 			<version>${flink.version}</version>
-		<!--<scope>provided</scope>-->
-    </dependency>
-    <dependency>
-        <groupId>org.apache.flink</groupId>
-        <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-        <version>${flink.version}</version>
-        <!--<scope>provided</scope>-->
-    </dependency>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 
-    <!-- Rocks db state backend dependency -->
+    	<!-- Rocks db state backend dependency -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
+		<!-- Flink testing utils -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
@@ -83,6 +82,7 @@ under the License.
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Test mocking utils -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
@@ -90,16 +90,7 @@ under the License.
 			<scope>test</scope>
 		</dependency>
 
-		<!--
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<type>test-jar</type>
-		</dependency>
-		-->
-
+		<!-- Flink runtime for testing harnesses -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
@@ -108,6 +99,7 @@ under the License.
 			<type>test-jar</type>
 		</dependency>
 
+		<!-- Flink streaming dependency for testing harnesses -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
@@ -116,25 +108,7 @@ under the License.
 			<type>test-jar</type>
 		</dependency>
 
-		<!-- Flink testing dependencies
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-runtime_2.11</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<classifier>tests</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_2.11</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<classifier>tests</classifier>
-		</dependency>
-		-->
-
-
-		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
+		<!-- Kafka connector -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka-0.10_${scala.binary.version}</artifactId>
