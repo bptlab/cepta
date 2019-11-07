@@ -35,6 +35,8 @@ under the License.
 		<scala.binary.version>2.11</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<!-- This config allows the exec plugin to be used: mvn clean compile exec:java -->
+		<exec.mainClass>org.bptlab.cepta.StreamingJob</exec.mainClass>
 	</properties>
 
 	<repositories>
@@ -58,16 +60,16 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
 			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
+		<!--<scope>provided</scope>-->
+    </dependency>
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+        <version>${flink.version}</version>
+        <!--<scope>provided</scope>-->
+    </dependency>
 
-		<!-- Rocks db state backend dependency -->
+    <!-- Rocks db state backend dependency -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
@@ -143,6 +145,14 @@ under the License.
 			<version>1.2.17</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- TestNG as our test environment -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.10</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -167,7 +177,7 @@ under the License.
 				<executions>
 					<execution>
 						<goals>
-							<goal>check</goal>
+							<goal>format</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -216,6 +226,21 @@ under the License.
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Following plugin executes the testng tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<configuration>
+					<!-- Suite testng xml file to consider for test execution -->
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/testng.xml</suiteXmlFile>
+						<suiteXmlFile>src/test/suites-test-testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+				</configuration>
+			</plugin>
+
 		</plugins>
 
 		<pluginManagement>
