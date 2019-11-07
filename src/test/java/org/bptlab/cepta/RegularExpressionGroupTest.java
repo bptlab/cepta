@@ -1,5 +1,6 @@
 package org.bptlab.cepta;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class RegularExpressionGroupTest
@@ -22,5 +23,10 @@ public class RegularExpressionGroupTest
     @Test(groups = { "test-two-exclude" })
     public void testMethodFour() {
         System.out.println("Test method Four");
+    }
+
+    @Test
+    public void testMethodFive() {
+        Assert.assertEquals('stop', 'test');
     }
 }
