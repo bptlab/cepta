@@ -1,11 +1,10 @@
 package org.bptlab.cepta;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class RegularExpressionGroupTest {
+public class ExampleTests {
   @Test(groups = {"include-test-one"})
-  public void testMethodOne() {
+  public void printSomethingUnnecessary() {
     System.out.println("Test method one");
   }
 
@@ -19,12 +18,7 @@ public class RegularExpressionGroupTest {
   */
 
   @Test(groups = {"test-one-exclude"})
-  public void testMethodThree() {
-    System.out.println("Test method three");
-  }
-
-  @Test(groups = {"test-two-exclude"})
-  public void testMethodFour() {
-    System.out.println("Test method Four");
+  public void printSomethingUnnecessaryToo() {
+    System.out.println("Test method two");
   }
 }

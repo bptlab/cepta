@@ -228,7 +228,6 @@ under the License.
 					<!-- Suite testng xml file to consider for test execution -->
 					<suiteXmlFiles>
 						<suiteXmlFile>src/test/testng.xml</suiteXmlFile>
-						<suiteXmlFile>src/test/suites-test-testng.xml</suiteXmlFile>
 					</suiteXmlFiles>
 				</configuration>
 			</plugin>
