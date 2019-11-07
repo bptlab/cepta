@@ -18,7 +18,7 @@
             </run>
         </groups>
         <classes>
-            <class name="org.bptlab.cepta.RegularExpressionGroupTest" />
+            <class name="org.bptlab.cepta.ExampleTests" />
         </classes>
     </test>
 </suite>
