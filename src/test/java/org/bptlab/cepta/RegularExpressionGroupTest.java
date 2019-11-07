@@ -9,10 +9,14 @@ public class RegularExpressionGroupTest {
     System.out.println("Test method one");
   }
 
+  /*
+  / Failing test, is representable as a bad example and TravisCI will fail the build
+
   @Test(groups = {"include-test-two"})
   public void testMethodTwo() {
     Assert.assertEquals(1, 2);
   }
+  */
 
   @Test(groups = {"test-one-exclude"})
   public void testMethodThree() {
