@@ -15,7 +15,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 public class ProducerCreator {
     // this class can create a producer with the config stuff from the KafkaConstants file
     // more at https://dzone.com/articles/kafka-producer-and-consumer-example
-    public static Producer<Long, String> createProducer() {
+    public static Producer<Long, TrainData> createProducer() {
 
         Properties props = new Properties();
 

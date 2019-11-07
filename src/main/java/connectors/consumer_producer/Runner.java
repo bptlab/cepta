@@ -7,47 +7,38 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import java.util.concurrent.ExecutionException;
 
 public class Runner {
+
     public static void main(String[] args) {
         runProducer();
     }
 
-    static void runProducer() {
+    private static void runProducer() {
 
-        Producer<Long, String> producer = ProducerCreator.createProducer();
+        Producer<Long, TrainData> producer = ProducerCreator.createProducer();
 
         for (int index = 0; index < KafkaConstants.MESSAGE_COUNT; index++) {
-
-            ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(
+            TrainData trainData = new TrainData(2, "Tommy");
+            ProducerRecord<Long, TrainData> record
+                    = new ProducerRecord<Long, TrainData>(
                             KafkaConstants.TOPIC_NAME,
-                            "This is record " + index);
+                            trainData);
 
             try {
 
                 RecordMetadata metadata = producer.send(record).get();
 
-                System.out.println("Record sent with key " + index + " to partition " + metadata.partition()
-
-                        + " with offset " + metadata.offset());
-
+                System.out.println("Record sent with key "
+                        + index
+                        + " to partition "
+                        + metadata.partition()
+                        + " with offset "
+                        + metadata.offset());
             }
 
-            catch (ExecutionException e) {
-
+            catch (ExecutionException | InterruptedException e) {
                 System.out.println("Error in sending record");
-
                 System.out.println(e);
-
             }
-
-            catch (InterruptedException e) {
-
-                System.out.println("Error in sending record");
-
-                System.out.println(e);
-
-            }
-
         }
-
     }
 }
