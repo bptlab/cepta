@@ -2,5 +2,5 @@ branches:
   only:
     - /^*$/
 language: java
-sudo: true
+sudo: false
 script: mvn clean verify

@@ -60,22 +60,21 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
 			<version>${flink.version}</version>
-		<!--<scope>provided</scope>-->
-    </dependency>
-    <dependency>
-        <groupId>org.apache.flink</groupId>
-        <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-        <version>${flink.version}</version>
-        <!--<scope>provided</scope>-->
-    </dependency>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 
-    <!-- Rocks db state backend dependency -->
+    	<!-- Rocks db state backend dependency -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
+		<!-- Flink testing utils -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
@@ -83,30 +82,46 @@ under the License.
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Flink testing dependencies
+		<!-- Test mocking utils -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Flink runtime for testing harnesses -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-runtime_2.11</artifactId>
+			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<scope>test</scope>
-			<classifier>tests</classifier>
+			<type>test-jar</type>
 		</dependency>
+
+		<!-- Flink streaming dependency for testing harnesses -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_2.11</artifactId>
+			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<scope>test</scope>
-			<classifier>tests</classifier>
+			<type>test-jar</type>
 		</dependency>
-		-->
 
-
-		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
+		<!-- Kafka connector -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka-0.10_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
+
+		<!-- Influxdb connector
+		<dependency>
+			<groupId>org.influxdb</groupId>
+			<artifactId>influxdb-java</artifactId>
+			<version>2.3</version>
+		</dependency>
+		-->
 
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
