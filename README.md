@@ -1,4 +1,5 @@
-CEPTA - Complex Event Processing Transport Analysis
+# Example for reading from a txt to Flink
 
-[![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
-![GitHub](https://img.shields.io/github/license/bptlab/cepta)
+follow the kafka_setup from the drive
+
+the needed configs are in he configs directory
