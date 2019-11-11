@@ -8,37 +8,13 @@ import java.util.concurrent.ExecutionException;
 
 public class Runner {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         runProducer();
     }
 
-    private static void runProducer() {
+    private static void runProducer() throws Exception {
 
-        Producer<Long, TrainData> producer = ProducerCreator.createProducer();
-
-        for (int index = 0; index < KafkaConstants.MESSAGE_COUNT; index++) {
-            TrainData trainData = new TrainData(2, "Tommy");
-            ProducerRecord<Long, TrainData> record
-                    = new ProducerRecord<Long, TrainData>(
-                            KafkaConstants.TOPIC_NAME,
-                            trainData);
-
-            try {
-
-                RecordMetadata metadata = producer.send(record).get();
-
-                System.out.println("Record sent with key "
-                        + index
-                        + " to partition "
-                        + metadata.partition()
-                        + " with offset "
-                        + metadata.offset());
-            }
-
-            catch (ExecutionException | InterruptedException e) {
-                System.out.println("Error in sending record");
-                System.out.println(e);
-            }
-        }
+        Producer<Long, TrainData> producer = TrainDataProducer.createProducer();
+        TrainDataProducer.runProducer(10);
     }
 }

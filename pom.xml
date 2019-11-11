@@ -95,9 +95,14 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka-0.10_${scala.binary.version}</artifactId>
+			<scope>compile</scope>
 			<version>${flink.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.avro</groupId>
+			<artifactId>avro</artifactId>
+			<version>1.8.2</version>
+		</dependency>
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
 		<dependency>
@@ -175,7 +180,32 @@ under the License.
 
 		<pluginManagement>
 			<plugins>
-
+				<!-- for Avro code generation-->
+				<plugin>
+					<groupId>org.apache.avro</groupId>
+					<artifactId>avro-maven-plugin</artifactId>
+					<version>1.8.2</version>
+					<executions>
+						<execution>
+							<phase>generate-sources</phase>
+							<goals>
+								<goal>schema</goal>
+							</goals>
+							<configuration>
+								<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+								<outputDirectory>${project.basedir}/src/main/java/connectors.consumer_producer</outputDirectory>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+					</configuration>
+				</plugin>
 				<!-- This improves the out-of-the-box experience in Eclipse by resolving some warnings. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>

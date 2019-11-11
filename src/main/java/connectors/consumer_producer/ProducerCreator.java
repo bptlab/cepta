@@ -29,7 +29,7 @@ public class ProducerCreator {
 
         //props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
 
-        return new KafkaProducer<>(props);
+        return new KafkaProducer<Long, TrainData>(props);
 
     }
 

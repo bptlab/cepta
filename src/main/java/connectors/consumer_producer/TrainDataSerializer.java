@@ -2,8 +2,8 @@ package connectors.consumer_producer;
 
 import java.util.Map;
 
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serializer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class TrainDataSerializer implements Serializer<TrainData> {
     // serializes TrainData
