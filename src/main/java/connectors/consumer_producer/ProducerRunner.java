@@ -14,6 +14,6 @@ public class ProducerRunner {
     }
 
     private static void runProducer() throws Exception {
-        TrainDataProducer.runProducer(10);
+        TrainDataProducer.runProducer(5);
     }
 }

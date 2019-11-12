@@ -13,5 +13,5 @@ public interface DatabaseConstants {
 
     public static String CONNECTOR="jdbc";
 
-    public static String DATABASE_SYSTEM="POSTGRESQL";
+    public static String DATABASE_SYSTEM="postgresql";
 }
