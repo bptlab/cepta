@@ -1,9 +1,15 @@
 package connectors.consumer_producer;
 
+import java.io.IOException;
 import java.util.Map;
 
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.io.*;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.kafka.common.serialization.Deserializer;
+import com.google.gson.Gson;
 
 
 public class TrainDataDeserializer implements Deserializer<TrainData> {
@@ -15,23 +21,27 @@ public class TrainDataDeserializer implements Deserializer<TrainData> {
 
     @Override
     public TrainData deserialize(String topic, byte[] data) {
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        TrainData object = null;
-
         try {
-
-            object = mapper.readValue(data, TrainData.class);
-
-        } catch (Exception exception) {
-
-            System.out.println("Error in deserializing bytes "+ exception);
+            boolean pretty = false;
+            Schema schema = TrainData.SCHEMA$;
+            GenericDatumReader<Object> reader = new GenericDatumReader<>(schema);
+            DatumWriter<Object> writer = new GenericDatumWriter<>(schema);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            JsonEncoder encoder = EncoderFactory.get().jsonEncoder(schema, output, pretty);
+            Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
+            Object datum = reader.read(null, decoder);
+            writer.write(datum, encoder);
+            encoder.flush();
+            output.flush();
+            String stringData = new String(output.toByteArray(), "UTF-8");
+            Gson gson = new Gson();
+            TrainData trainData = gson.fromJson(stringData, TrainData.class);
+            return trainData;
+        } catch (IOException e){
 
         }
 
-        return object;
-
+        return null;
     }
 
     @Override

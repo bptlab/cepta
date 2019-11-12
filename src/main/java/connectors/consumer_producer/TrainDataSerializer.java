@@ -22,21 +22,8 @@ public class TrainDataSerializer implements Serializer<TrainData> {
 
     @Override
     public byte[] serialize(String arg0, TrainData data) {
-/*
-        byte[] retVal = null;
-        BinaryEncoder encoder = null;
-        ObjectMapper objectMapper = new ObjectMapper();
-
         try {
-            retVal = objectMapper.writeValueAsString(data).getBytes();
-        } catch (Exception exception) {
-            System.out.println("Error in serializing object"+ data);
-        }
-
-        return retVal;
-*/
-        try {
-            Schema schema = new Schema.Parser().parse(new File("/src/main/avro/trainData.avsc"));
+            Schema schema = TrainData.SCHEMA$;
             DatumReader<Object> reader = new GenericDatumReader<>(schema);
             GenericDatumWriter<Object> writer = new GenericDatumWriter<>(schema);
             ByteArrayOutputStream output = new ByteArrayOutputStream();

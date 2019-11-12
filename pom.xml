@@ -124,6 +124,13 @@ under the License.
 			<version>1.2.17</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- gson for converting json to object and vice versa -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -187,7 +194,9 @@ under the License.
 
 		<pluginManagement>
 			<plugins>
-				<!-- for Avro code generation-->
+				<!-- for Avro code generation
+				generate with mvn clean avro:schema
+				generated stuff lands in cepta -> src -> target -> generated-sources -> avro -->
 				<plugin>
 					<groupId>org.apache.avro</groupId>
 					<artifactId>avro-maven-plugin</artifactId>
@@ -200,7 +209,7 @@ under the License.
 							</goals>
 							<configuration>
 								<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-								<outputDirectory>${project.basedir}/src/main/java/connectors.consumer_producer</outputDirectory>
+								<outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
 							</configuration>
 						</execution>
 					</executions>
