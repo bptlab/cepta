@@ -1,15 +1,16 @@
 package connectors.consumer_producer;
 
-import java.io.IOException;
-import java.util.Map;
-
+import com.google.gson.Gson;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.*;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.kafka.common.serialization.Deserializer;
-import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 
 public class TrainDataDeserializer implements Deserializer<TrainData> {
@@ -33,11 +34,11 @@ public class TrainDataDeserializer implements Deserializer<TrainData> {
             writer.write(datum, encoder);
             encoder.flush();
             output.flush();
-            String stringData = new String(output.toByteArray(), "UTF-8");
+            String stringData = new String(output.toByteArray(), StandardCharsets.UTF_8);
             Gson gson = new Gson();
             TrainData trainData = gson.fromJson(stringData, TrainData.class);
             return trainData;
-        } catch (IOException e){
+        } catch (IOException e) {
 
         }
 

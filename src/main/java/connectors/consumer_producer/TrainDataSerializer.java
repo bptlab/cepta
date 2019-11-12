@@ -1,17 +1,14 @@
 package connectors.consumer_producer;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.*;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.kafka.common.serialization.Serializer;
-import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class TrainDataSerializer implements Serializer<TrainData> {
     // serializes TrainData
@@ -33,9 +30,9 @@ public class TrainDataSerializer implements Serializer<TrainData> {
             writer.write(datum, encoder);
             encoder.flush();
             return output.toByteArray();
-        } catch (IOException e){
+        } catch (IOException e) {
         }
-    return null;
+        return null;
     }
 
     @Override

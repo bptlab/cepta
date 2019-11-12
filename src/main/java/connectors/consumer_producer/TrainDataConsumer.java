@@ -1,14 +1,16 @@
 package connectors.consumer_producer;
 
-import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 
 import java.util.Collections;
 import java.util.Properties;
 
 public class TrainDataConsumer {
-    private static Consumer<Long, TrainData> createTrainDataConsumer(){
+    private static Consumer<Long, TrainData> createTrainDataConsumer() {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 KafkaConstants.KAFKA_BROKERS);
@@ -27,16 +29,18 @@ public class TrainDataConsumer {
         consumer.subscribe(Collections.singletonList(KafkaConstants.TOPIC_NAME));
         return consumer;
     }
-    static void runConsumer() throws InterruptedException {
+
+    static void runConsumer() {
         final Consumer<Long, TrainData> consumer = createTrainDataConsumer();
 
-        final int giveUp = 100;   int noRecordsCount = 0;
+        final int giveUp = 100;
+        int noRecordsCount = 0;
 
         while (true) {
             final ConsumerRecords<Long, TrainData> consumerRecords =
                     consumer.poll(1000);
 
-            if (consumerRecords.count()==0) {
+            if (consumerRecords.count() == 0) {
                 noRecordsCount++;
                 if (noRecordsCount > giveUp) break;
                 else continue;

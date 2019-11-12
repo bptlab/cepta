@@ -1,17 +1,17 @@
 package connectors.consumer_producer;
 
 public interface DatabaseConstants {
-    public static String SERVER = "localhost";
+    String SERVER = "localhost";
 
-    public static int PORT= 5432;
+    int PORT = 5432;
 
-    public static String DATABASE_NAME="bachelor_projekt";
+    String DATABASE_NAME = "bachelor_projekt";
 
-    public static String USER="testuser";
+    String USER = "testuser";
 
-    public static String PASSWORD="password";
+    String PASSWORD = "password";
 
-    public static String CONNECTOR="jdbc";
+    String CONNECTOR = "jdbc";
 
-    public static String DATABASE_SYSTEM="postgresql";
+    String DATABASE_SYSTEM = "postgresql";
 }
