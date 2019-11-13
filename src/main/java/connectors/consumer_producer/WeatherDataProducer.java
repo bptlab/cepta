@@ -4,11 +4,14 @@ import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.model.CurrentWeather;
+
 
 
 public class WeatherDataProducer {
@@ -25,9 +28,15 @@ public class WeatherDataProducer {
 
     public static void runProducer() throws Exception {
         final Producer<Long, String> producer = WeatherDataProducer.createProducer();
+        BufferedReader reader = new BufferedReader(new FileReader("cities.csv"));
+        List<String> cityList = new ArrayList<>();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            cityList.add(line);
+        }
         for (int index = 0; index < KafkaConstants.MESSAGE_COUNT; index++) {
             ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(KafkaConstants.TOPIC_NAME,
-                    WeatherAPI.makeCityApiCall("Berlin"));
+                    WeatherAPI.makeRandomAPICall(cityList));
 
             try {
                 RecordMetadata metadata = producer.send(record).get();

@@ -4,6 +4,7 @@ import net.aksingh.owmjapis.api.APIException;
 import net.aksingh.owmjapis.core.OWM;
 import net.aksingh.owmjapis.model.CurrentWeather;
 
+import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,9 +24,12 @@ public class WeatherAPI {
                 " Wind" +cwd.getWindData().getSpeed());
     }
 
-    public static String makeRandomAPICall() throws APIException, FileNotFoundException {
+    public static String makeRandomAPICall( List<String> cityList) throws APIException, FileNotFoundException {
 
-        String city = "";
+        int size = cityList.size() - 1;
+        int random = (int )(Math.random()* size + 0);
+
+        String city = cityList.get(size);
         // declaring object of "OWM" class
         OWM owm = new OWM("1f7e1c12a81f5e324869d671958bd985");
 
