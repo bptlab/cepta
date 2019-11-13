@@ -24,21 +24,30 @@ public class WeatherAPI {
                 " Wind" +cwd.getWindData().getSpeed());
     }
 
-    public static String makeRandomAPICall( List<String> cityList) throws APIException, FileNotFoundException {
+    public static String makeRandomAPICall( List<String> cityList) {
 
         int size = cityList.size() - 1;
         int random = (int )(Math.random()* size + 0);
 
-        String city = cityList.get(size);
+        String city = cityList.get(random);
+        String cleanCity = city.replace("\"" , "");
+        System.out.println(cleanCity);
         // declaring object of "OWM" class
         OWM owm = new OWM("1f7e1c12a81f5e324869d671958bd985");
 
         // getting current weather data for the "London" city
-        CurrentWeather cwd = owm.currentWeatherByCityName("");
+       try {
+           CurrentWeather cwd = owm.currentWeatherByCityName(cleanCity);
+           return (" City: " + cwd.getCityName() +
+                   "\n" + " Temperature: " + cwd.getMainData().getTempMax() + "/" + cwd.getMainData().getTempMin() + "\'K" +
+                   "\n" + " Windspeed: " +cwd.getWindData().getSpeed());
+       } catch (Exception e) {
+           System.out.println("Api error by city:" + cleanCity);
+           return "Error";
+       }
 
-        return ("City: " + cwd.getCityName() +
-                " Temperature: " + cwd.getMainData().getTempMax() + "/" + cwd.getMainData().getTempMin() + "\'K" +
-                " Wind" +cwd.getWindData().getSpeed());
+
+
     }
 
 }

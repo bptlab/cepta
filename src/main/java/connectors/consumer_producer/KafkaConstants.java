@@ -3,7 +3,7 @@ package connectors.consumer_producer;
 public interface KafkaConstants {
     String KAFKA_BROKERS = "localhost:9092";
 
-    Integer MESSAGE_COUNT = 10000;
+    Integer MESSAGE_COUNT = 100;
 
     String CLIENT_ID = "client1";
 

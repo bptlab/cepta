@@ -8,11 +8,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import net.aksingh.owmjapis.core.OWM;
-import net.aksingh.owmjapis.api.APIException;
-import net.aksingh.owmjapis.model.CurrentWeather;
-
-
 
 public class WeatherDataProducer {
 
