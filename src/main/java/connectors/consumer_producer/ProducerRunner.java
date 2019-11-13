@@ -7,6 +7,6 @@ public class ProducerRunner {
     }
 
     private static void runProducer() throws Exception {
-        TrainDataProducer.runProducer(5);
+        WeatherDataProducer.runProducer();
     }
 }

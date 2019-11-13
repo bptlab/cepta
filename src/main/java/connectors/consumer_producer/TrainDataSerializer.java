@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class TrainDataSerializer implements Serializer<TrainData> {
+public class TrainDataSerializer implements Serializer<WeatherData> {
     // serializes TrainData
 
     @Override
@@ -18,9 +18,9 @@ public class TrainDataSerializer implements Serializer<TrainData> {
     }
 
     @Override
-    public byte[] serialize(String arg0, TrainData data) {
+    public byte[] serialize(String arg0, WeatherData data) {
         try {
-            Schema schema = TrainData.SCHEMA$;
+            Schema schema = WeatherData.SCHEMA$;
             DatumReader<Object> reader = new GenericDatumReader<>(schema);
             GenericDatumWriter<Object> writer = new GenericDatumWriter<>(schema);
             ByteArrayOutputStream output = new ByteArrayOutputStream();

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 
-public class TrainDataDeserializer implements Deserializer<TrainData> {
+public class TrainDataDeserializer implements Deserializer<WeatherData> {
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
@@ -21,10 +21,10 @@ public class TrainDataDeserializer implements Deserializer<TrainData> {
     }
 
     @Override
-    public TrainData deserialize(String topic, byte[] data) {
+    public WeatherData deserialize(String topic, byte[] data) {
         try {
             boolean pretty = false;
-            Schema schema = TrainData.SCHEMA$;
+            Schema schema = WeatherData.SCHEMA$;
             GenericDatumReader<Object> reader = new GenericDatumReader<>(schema);
             DatumWriter<Object> writer = new GenericDatumWriter<>(schema);
             ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -36,8 +36,8 @@ public class TrainDataDeserializer implements Deserializer<TrainData> {
             output.flush();
             String stringData = new String(output.toByteArray(), StandardCharsets.UTF_8);
             Gson gson = new Gson();
-            TrainData trainData = gson.fromJson(stringData, TrainData.class);
-            return trainData;
+            WeatherData weatherData = gson.fromJson(stringData, WeatherData.class);
+            return weatherData;
         } catch (IOException e) {
 
         }
