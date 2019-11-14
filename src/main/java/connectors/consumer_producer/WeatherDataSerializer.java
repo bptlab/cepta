@@ -10,8 +10,8 @@ import org.apache.kafka.common.serialization.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class TrainDataSerializer implements Serializer<WeatherData> {
-    // serializes TrainData
+public class WeatherDataSerializer implements Serializer<WeatherData> {
+    // serializes WeatherData
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {

@@ -1,6 +1,7 @@
 package connectors.consumer_producer;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 
-public class TrainDataDeserializer implements Deserializer<WeatherData> {
+public class WeatherDataDeserializer implements Deserializer<WeatherData> {
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
@@ -36,8 +37,7 @@ public class TrainDataDeserializer implements Deserializer<WeatherData> {
             output.flush();
             String stringData = new String(output.toByteArray(), StandardCharsets.UTF_8);
             Gson gson = new Gson();
-            WeatherData weatherData = gson.fromJson(stringData, WeatherData.class);
-            return weatherData;
+            return gson.fromJson(stringData, WeatherData.class);
         } catch (IOException e) {
 
         }

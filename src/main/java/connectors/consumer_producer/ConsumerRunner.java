@@ -6,6 +6,6 @@ public class ConsumerRunner {
     }
 
     private static void runConsumer() throws InterruptedException {
-        TrainDataConsumer.runConsumer();
+        WeatherDataConsumer.runConsumer();
     }
 }

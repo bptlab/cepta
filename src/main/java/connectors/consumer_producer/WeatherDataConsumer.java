@@ -9,7 +9,7 @@ import org.apache.kafka.common.serialization.LongDeserializer;
 import java.util.Collections;
 import java.util.Properties;
 
-public class TrainDataConsumer {
+public class WeatherDataConsumer {
     private static Consumer<Long, WeatherData> createTrainDataConsumer() {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -19,7 +19,7 @@ public class TrainDataConsumer {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 LongDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                TrainDataDeserializer.class.getName());
+                WeatherDataDeserializer.class.getName());
 
         // Create the consumer using props.
         final Consumer<Long, WeatherData> consumer =

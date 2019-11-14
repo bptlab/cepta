@@ -1,8 +1,8 @@
 {"namespace": "connectors.consumer_producer",
  "type": "record",
- "name": "TrainData",
+ "name": "WeatherData",
  "fields": [
-    {"name": "id", "type": "int"},
-    {"name": "name", "type": "string"}
+    {"name": "City", "type": "string"},
+    {"name": "Temperature", "type": "int"}
     ]
 }
