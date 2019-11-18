@@ -6,19 +6,19 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.*;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.kafka.common.serialization.Serializer;
+import org.bptlab.cepta.TrainData;
 
 import java.io.IOException;
 import java.util.Map;
 
 public class TrainDataSerializer implements Serializer<TrainData> {
-    // serializes TrainData
-
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
     }
 
     @Override
     public byte[] serialize(String arg0, TrainData data) {
+        // serializes TrainData to byte[]
         try {
             Schema schema = TrainData.SCHEMA$;
             DatumReader<Object> reader = new GenericDatumReader<>(schema);
@@ -28,6 +28,8 @@ public class TrainDataSerializer implements Serializer<TrainData> {
             Encoder encoder = EncoderFactory.get().binaryEncoder(output, null);
             Object datum = reader.read(null, decoder);
             writer.write(datum, encoder);
+
+            // send record
             encoder.flush();
             return output.toByteArray();
         } catch (IOException e) {
