@@ -18,7 +18,15 @@
 
 package org.bptlab.cepta;
 
+import connectors.consumer_producer.KafkaConstants;
+import connectors.consumer_producer.TrainData;
+import org.apache.flink.formats.avro.AvroDeserializationSchema;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
+
+import java.util.Properties;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -37,28 +45,16 @@ public class StreamingJob {
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		Properties properties = new Properties();
+		properties.setProperty("bootstrap.servers", KafkaConstants.KAFKA_BROKERS);
+		properties.setProperty("group.id", KafkaConstants.GROUP_ID_CONFIG);
+		//AvroDeserializationSchema<TrainData> avroSchema = ;
+		FlinkKafkaConsumer011<TrainData> consumer;
+		consumer = new FlinkKafkaConsumer011<TrainData>(KafkaConstants.TOPIC_NAME, AvroDeserializationSchema.forSpecific(TrainData.class), properties);
+		DataStream<TrainData> inputStream = env.addSource(consumer);
 
-		/*
-		 * Here, you can start creating your execution plan for Flink.
-		 *
-		 * Start with getting some data from the environment, like
-		 * 	env.readTextFile(textPath);
-		 *
-		 * then, transform the resulting DataStream<String> using operations
-		 * like
-		 * 	.filter()
-		 * 	.flatMap()
-		 * 	.join()
-		 * 	.coGroup()
-		 *
-		 * and many more.
-		 * Have a look at the programming guide for the Java API:
-		 *
-		 * http://flink.apache.org/docs/latest/apis/streaming/index.html
-		 *
-		 */
+		inputStream.print();
 
-		// execute program
 		env.execute("Flink Streaming Java API Skeleton");
 	}
 }
