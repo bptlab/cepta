@@ -19,10 +19,8 @@
 package org.bptlab.cepta;
 
 import connectors.consumer_producer.KafkaConstants;
-import connectors.consumer_producer.TrainData;
 import org.apache.flink.formats.avro.AvroDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 
