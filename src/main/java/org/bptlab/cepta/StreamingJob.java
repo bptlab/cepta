@@ -43,12 +43,14 @@ public class StreamingJob {
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+		// set kafka consumer properties
 		Properties properties = new Properties();
 		properties.setProperty("bootstrap.servers", KafkaConstants.KAFKA_BROKERS);
 		properties.setProperty("group.id", KafkaConstants.GROUP_ID_CONFIG);
-		//AvroDeserializationSchema<TrainData> avroSchema = ;
-		FlinkKafkaConsumer011<TrainData> consumer;
-		consumer = new FlinkKafkaConsumer011<TrainData>(KafkaConstants.TOPIC_NAME, AvroDeserializationSchema.forSpecific(TrainData.class), properties);
+
+		// it's 011 because of the kafka connector version we use
+		FlinkKafkaConsumer011<TrainData>consumer = new FlinkKafkaConsumer011<TrainData>(KafkaConstants.TOPIC_NAME, AvroDeserializationSchema.forSpecific(TrainData.class), properties);
 		DataStream<TrainData> inputStream = env.addSource(consumer);
 
 		inputStream.print();

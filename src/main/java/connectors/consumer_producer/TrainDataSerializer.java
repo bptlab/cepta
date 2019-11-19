@@ -21,6 +21,8 @@ public class TrainDataSerializer implements Serializer<TrainData> {
         // serializes TrainData to byte[]
         try {
             Schema schema = TrainData.SCHEMA$;
+
+            // encode TrainData object to byte[]
             DatumReader<Object> reader = new GenericDatumReader<>(schema);
             GenericDatumWriter<Object> writer = new GenericDatumWriter<>(schema);
             ByteArrayOutputStream output = new ByteArrayOutputStream();
