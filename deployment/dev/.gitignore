@@ -1,0 +1,4 @@
+*.DS_STORE
+.idea/
+cockpit/node_modules
+package-lock.json
