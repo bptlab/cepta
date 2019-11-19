@@ -5,12 +5,10 @@
     <test name="Group of group Test">
         <groups>
             <define name="include-group">
-                <include name="include-test-one" />
-                <include name="include-test-two" />
+                <include name="active" />
             </define>
             <define name="exclude-group">
-                <include name="test-one-exclude" />
-                <include name="test-two-exclude" />
+                <include name="broken" />
             </define>
             <run>
                 <include name="include-group" />
@@ -22,3 +20,4 @@
         </classes>
     </test>
 </suite>
+
