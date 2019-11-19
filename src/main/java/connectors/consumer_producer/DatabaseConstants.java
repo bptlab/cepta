@@ -5,7 +5,7 @@ public interface DatabaseConstants {
 
     int PORT = 5432;
 
-    String DATABASE_NAME = "bachelor_projekt";
+    String DATABASE_NAME = "synfioo";
 
     String USER = "testuser";
 

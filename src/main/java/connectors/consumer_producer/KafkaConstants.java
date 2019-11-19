@@ -7,7 +7,7 @@ public interface KafkaConstants {
 
     String CLIENT_ID = "client1";
 
-    String TOPIC_NAME = "test";
+    String TOPIC_NAME = "TrainDataPlanned";
 
     String GROUP_ID_CONFIG = "consumerGroup1";
 

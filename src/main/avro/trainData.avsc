@@ -1,8 +1,0 @@
-{"namespace": "connectors.consumer_producer",
- "type": "record",
- "name": "TrainData",
- "fields": [
-    {"name": "id", "type": "int"},
-    {"name": "name", "type": "string"}
-    ]
-}
