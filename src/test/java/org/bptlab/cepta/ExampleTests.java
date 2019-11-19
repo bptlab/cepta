@@ -7,7 +7,6 @@ public class ExampleTests {
   public void printSomethingUnnecessary() {
     System.out.println("Test method one");
   }
-
   /*
   / Failing test, is representable as a bad example and TravisCI will fail the build
 
@@ -16,7 +15,6 @@ public class ExampleTests {
     Assert.assertEquals(1, 2);
   }
   */
-
   @Test(groups = {"test-one-exclude"})
   public void printSomethingUnnecessaryToo() {
     System.out.println("Test method two");

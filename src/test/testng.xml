@@ -7,6 +7,8 @@
             <define name="include-group">
                 <include name="include-test-one" />
                 <include name="include-test-two" />
+                <include name="include-test-wind" />
+                <include name="setUp" />
             </define>
             <define name="exclude-group">
                 <include name="test-one-exclude" />
@@ -19,6 +21,7 @@
         </groups>
         <classes>
             <class name="org.bptlab.cepta.ExampleTests" />
+            <class name="org.bptlab.cepta.DetectAgentTests" />
         </classes>
     </test>
 </suite>

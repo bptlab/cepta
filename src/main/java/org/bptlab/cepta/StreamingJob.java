@@ -18,6 +18,8 @@
 
 package org.bptlab.cepta;
 
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -57,8 +59,17 @@ public class StreamingJob {
      * http://flink.apache.org/docs/latest/apis/streaming/index.html
      *
      */
-
     // execute program
-    env.execute("Flink Streaming Java API Skeleton");
+    env.execute("Start Streaming");
+  }
+
+  public static DataStream<Integer> stormFilter(DataStream<Integer> windspeed) {
+    return windspeed.filter(
+        new FilterFunction<Integer>() {
+          @Override
+          public boolean filter(Integer speed) throws Exception {
+            return speed > 3;
+          }
+        });
   }
 }
