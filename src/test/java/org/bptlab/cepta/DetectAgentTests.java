@@ -21,15 +21,20 @@ public class DetectAgentTests {
     System.out.println("Env created");
   }
 
+  // tests our custom filter agent, which filters all integers larger than 3
   @Test(groups = {"include-test-wind"})
   public void testStormFilter() throws IOException {
-    ArrayList<Integer> testOutputList = new ArrayList<>();
+    // mock up Datasource - Stream of "speeds" = integers
     DataStream<Integer> windspeed = env.fromElements(1, 2, 3, 4, 5, 4, 3, 2, 1);
+    // initialize Outputlist
+    ArrayList<Integer> testOutputList = new ArrayList<>();
+    // call stormFilter with our Datasource and add results to Outputlist
     Iterator<Integer> testOutputIterator =
         DataStreamUtils.collect(StreamingJob.stormFilter(windspeed));
     while (testOutputIterator.hasNext()) {
       testOutputList.add(testOutputIterator.next());
     }
+    // test if Output matches expected results
     Assert.assertTrue(CollectionUtils.isEqualCollection(Arrays.asList(5, 4, 4), testOutputList));
   }
 }

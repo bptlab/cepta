@@ -22,6 +22,7 @@
         <classes>
             <class name="org.bptlab.cepta.ExampleTests" />
             <class name="org.bptlab.cepta.DetectAgentTests" />
+            <class name="org.bptlab.cepta.PatternTests" />
         </classes>
     </test>
 </suite>

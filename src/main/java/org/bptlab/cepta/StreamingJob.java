@@ -72,4 +72,14 @@ public class StreamingJob {
           }
         });
   }
+
+  public static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
+    return seaLevels.filter(
+        new FilterFunction<Integer>() {
+          @Override
+          public boolean filter(Integer speed) throws Exception {
+            return speed > 3;
+          }
+        });
+  }
 }
