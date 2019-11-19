@@ -1,0 +1,47 @@
+version: "3.6"
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: postgres
+      # Secrets might be a good option but the host value is problematic (must be localhost)
+      # POSTGRES_PASSWORD_FILE: /run/secrets/postgres-passwd
+    # Use volumes for persistence but avoid during changes of configuration
+    # volumes:
+      # - ./dbdata:/var/lib/postgresql/data
+    secrets:
+      - source: postgres_passwd
+        target: postgres-passwd
+    expose:
+      - 5432
+    ports:
+      - ${CEPTA_POSTGRES_PORT}:5432
+    logging:
+      # Disable logging
+      driver: none
+
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - postgres
+    restart: always
+    environment:
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - ${CEPTA_PGADMIN_PORT}:80
+    volumes:
+      - ./pgadmin/pgadmin-servers.json:/pgadmin4/servers.json
+      - ./pgadmin/pgadmin-entrypoint.sh:/entrypoint.sh
+      - ./pgadmin/pgpass.txt:/.pgpass
+    entrypoint: "/bin/sh /entrypoint.sh"
+    logging:
+      # Disable logging
+      driver: none
+
+secrets:
+  postgres_passwd:
+    file: ./pgadmin/pgpass.txt
