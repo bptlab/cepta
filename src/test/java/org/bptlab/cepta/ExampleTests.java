@@ -1,6 +1,5 @@
 package org.bptlab.cepta;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class ExampleTests {
@@ -16,7 +15,7 @@ public class ExampleTests {
     Assert.assertEquals(1, 2);
   }
   */
-  @Test(groups = {"test-one-exclude"})
+  @Test(groups = {"broken"})
   public void printSomethingUnnecessaryToo() {
     System.out.println("Test method two");
   }

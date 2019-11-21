@@ -19,7 +19,6 @@
 package org.bptlab.cepta;
 
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
