@@ -9,7 +9,7 @@
                 <include name="include-test-one" />
                 <include name="include-test-two" />
                 <include name="include-test-wind" />
-                <include name="setUp" />
+                <include name="setUp-global" />
             </define>
             <define name="exclude-group">
                 <include name="broken" />

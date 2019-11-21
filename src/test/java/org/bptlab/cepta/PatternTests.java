@@ -9,13 +9,13 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.junit.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class PatternTests {
   StreamExecutionEnvironment env;
 
-  @BeforeTest(groups = "setUp")
+  @BeforeClass(groups = "setUp-global")
   public void testSetUp() {
     env = StreamExecutionEnvironment.createLocalEnvironment();
     // set Parallelism to 1 so make sure the test data is transfered in the right order
