@@ -235,6 +235,12 @@ under the License.
 					<suiteXmlFiles>
 						<suiteXmlFile>src/test/testng.xml</suiteXmlFile>
 					</suiteXmlFiles>
+					<properties>
+						<property>
+							<name>listener</name>
+							<value>org.bptlab.cepta.DotTestListener</value>
+						</property>
+					</properties>
 				</configuration>
 			</plugin>
 

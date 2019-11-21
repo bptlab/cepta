@@ -1,9 +1,10 @@
 package org.bptlab.cepta;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class ExampleTests {
-  @Test(groups = {"include-test-one"})
+  @Test(groups = {"active"})
   public void printSomethingUnnecessary() {
     System.out.println("Test method one");
   }

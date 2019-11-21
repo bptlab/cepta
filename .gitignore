@@ -17,6 +17,7 @@ dependency-reduced-pom.xml
 .mtj.tmp/
 
 # Package Files #
+*.iml
 *.jar
 *.war
 *.nar
