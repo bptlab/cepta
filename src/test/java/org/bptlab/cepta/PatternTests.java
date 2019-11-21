@@ -20,7 +20,6 @@ public class PatternTests {
     env = StreamExecutionEnvironment.createLocalEnvironment();
     // set Parallelism to 1 so make sure the test data is transfered in the right order
     env.setParallelism(1);
-    System.out.println("Env created");
   }
 
   @Test(groups = {"include-test-one"})
@@ -32,8 +31,22 @@ public class PatternTests {
     while (testOutputIterator.hasNext()) {
       testOutputList.add(testOutputIterator.next());
     }
+    System.out.println("one rising" + testOutputList);
+    Assert.assertTrue(CollectionUtils.isEqualCollection(Arrays.asList("Gefahr!"), testOutputList));
+  }
+
+  @Test(groups = {"include-test-one"})
+  public void testTwoRisingSeaLevels() throws IOException {
+    DataStream<Integer> seaLevels = env.fromElements(1, 2, 6, 1, 4, 2, 3, 5, 2, 1);
+    ArrayList<String> testOutputList = new ArrayList<>();
+    Iterator<String> testOutputIterator =
+        DataStreamUtils.collect(StreamingJob.seaLevelDetector(seaLevels));
+    while (testOutputIterator.hasNext()) {
+      testOutputList.add(testOutputIterator.next());
+    }
+    System.out.println("Two Rising" + testOutputList);
     Assert.assertTrue(
-        CollectionUtils.isEqualCollection(Arrays.asList("Gefahr, Gefahr"), testOutputList));
+        CollectionUtils.isEqualCollection(Arrays.asList("Gefahr!", "Gefahr!"), testOutputList));
   }
 
   @Test(groups = {"test-one-exclude"})

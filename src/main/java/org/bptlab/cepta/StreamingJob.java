@@ -18,7 +18,16 @@
 
 package org.bptlab.cepta;
 
+import static org.apache.flink.cep.pattern.Pattern.*;
+
+import java.util.List;
+import java.util.Map;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.PatternSelectFunction;
+import org.apache.flink.cep.PatternStream;
+import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -75,6 +84,45 @@ public class StreamingJob {
 
   public static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
 
-    return null;
-  };
+    // this is a pattern of three consecutive(a, b, c) events where a < b < c
+    Pattern<Integer, ?> pattern =
+        Pattern.<Integer>begin("start")
+            .next("middle")
+            .where(
+                new IterativeCondition<Integer>() {
+                  @Override
+                  public boolean filter(Integer middle, Context<Integer> context) throws Exception {
+                    for (Integer first : context.getEventsForPattern("start")) {
+                      if (first > middle) {
+                        return false;
+                      }
+                    }
+                    return true;
+                  }
+                })
+            .next("last")
+            .where(
+                new IterativeCondition<Integer>() {
+                  @Override
+                  public boolean filter(Integer last, Context<Integer> context) throws Exception {
+                    for (Integer middle : context.getEventsForPattern("middle")) {
+                      if (middle > last) {
+                        return false;
+                      }
+                    }
+                    return true;
+                  }
+                });
+    PatternStream<Integer> patternStream = CEP.pattern(seaLevels, pattern);
+    DataStream<String> output =
+        patternStream.select(
+            new PatternSelectFunction<Integer, String>() {
+              @Override
+              public String select(Map<String, List<Integer>> map) throws Exception {
+                return "Gefahr!";
+              }
+            });
+
+    return output;
+  }
 }
