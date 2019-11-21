@@ -1,5 +1,6 @@
 package org.bptlab.cepta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -17,11 +18,13 @@ public class PatternTests {
   @BeforeTest(groups = "setUp")
   public void testSetUp() {
     env = StreamExecutionEnvironment.createLocalEnvironment();
+    // set Parallelism to 1 so make sure the test data is transfered in the right order
+    env.setParallelism(1);
     System.out.println("Env created");
   }
 
   @Test(groups = {"include-test-one"})
-  public void testRisingSeaLevels() {
+  public void testRisingSeaLevels() throws IOException {
     DataStream<Integer> seaLevels = env.fromElements(1, 2, 1, 4, 2, 3, 5, 2, 1);
     ArrayList<String> testOutputList = new ArrayList<>();
     Iterator<String> testOutputIterator =
@@ -29,11 +32,8 @@ public class PatternTests {
     while (testOutputIterator.hasNext()) {
       testOutputList.add(testOutputIterator.next());
     }
-    Assert.assertTrue(CollectionUtils.isEqualCollection(
-        Arrays.asList("Gefahr, Gefahr"), testOutputList));
-
-
-
+    Assert.assertTrue(
+        CollectionUtils.isEqualCollection(Arrays.asList("Gefahr, Gefahr"), testOutputList));
   }
 
   @Test(groups = {"test-one-exclude"})

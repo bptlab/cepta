@@ -18,6 +18,7 @@ public class DetectAgentTests {
   @BeforeTest(groups = "setUp")
   public void testSetUp() {
     env = StreamExecutionEnvironment.createLocalEnvironment();
+    env.setParallelism(1);
     System.out.println("Env created");
   }
 
@@ -26,6 +27,8 @@ public class DetectAgentTests {
   public void testStormFilter() throws IOException {
     // mock up Datasource - Stream of "speeds" = integers
     DataStream<Integer> windspeed = env.fromElements(1, 2, 3, 4, 5, 4, 3, 2, 1);
+    System.out.println("print windspeed");
+    windspeed.print();
     // initialize Outputlist
     ArrayList<Integer> testOutputList = new ArrayList<>();
     // call stormFilter with our Datasource and add results to Outputlist

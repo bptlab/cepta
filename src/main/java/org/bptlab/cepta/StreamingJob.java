@@ -19,6 +19,7 @@
 package org.bptlab.cepta;
 
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -74,12 +75,7 @@ public class StreamingJob {
   }
 
   public static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
-    return seaLevels.filter(
-        new FilterFunction<Integer>() {
-          @Override
-          public boolean filter(Integer speed) throws Exception {
-            return speed > 3;
-          }
-        });
-  }
+
+    return null;
+  };
 }
