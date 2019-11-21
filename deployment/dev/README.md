@@ -8,17 +8,17 @@ Provides a docker compose file for deploying a local development environment inc
 
 #### Start and stop the development cluster
 ```bash
-./start.sh
-./stop.sh
+deployment/dev/start.sh
+deployment/dev/stop.sh
 ```
 If any changes were made to the containers, rebuild with
 ```bash
-./start.sh --build
+deployment/dev/start.sh --build
 ```
 If any configurations are not applied you might need to delete 
 the docker volumes and force recreation
 ```
-/start.sh --force-recreate --always-recreate-deps --renew-anon-volumes
+deployment/dev/start.sh --force-recreate --always-recreate-deps --renew-anon-volumes
 ```
 
 This launches all the default services.

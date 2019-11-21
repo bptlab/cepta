@@ -3,6 +3,8 @@
 #### Installation
 Check out the guides for [windows](https://docs.docker.com/docker-for-windows/install/)
 and [ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/).
+Be aware that you can only access the docker deamon with `sudo` unless you run the
+[post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
 
 On macOS with `homebrew`, run
 ```
