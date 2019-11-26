@@ -42,15 +42,14 @@ public class StreamingJob {
     // set up the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    DataStream<Integer> events = env.fromElements(6462247, 6462242, 6462243, 6462245 , 6462246);
+    DataStream<Integer> events = env.fromElements(6462247, 6456914, 6457004, 6457367, 6457422, 6457432, 6459487, 6459856, 6460061, 6460705, 6460742, 6461804, 6461957, 6462022);
 
-    //
     DataStream<String> resultStream =
         AsyncDataStream.unorderedWait(events,
             new MapEventToActor(),
             10000,
             TimeUnit.MILLISECONDS,
-            5);
+            1);
 
     resultStream.print();
     // execute program

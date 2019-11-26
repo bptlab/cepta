@@ -81,9 +81,7 @@ public class MapEventToActor extends RichAsyncFunction<Integer, String> {
       @Override
       public String get() {
         try {
-          System.out.println("hier");
           QueryResult queryResult = future.get();
-          System.out.println("Result: " + queryResult.toString());
           return queryResult.getRows().get(0).getString(0);
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());
@@ -96,7 +94,6 @@ public class MapEventToActor extends RichAsyncFunction<Integer, String> {
               After the CompletableFuture is completed, the .thenAccept call will be made with the value from the CompletableFuture.
               We can use this value to set our return value into the function return (returnFuture).
                */
-              System.out.println("ERGEBNIS: " + dbResult.toString());
       resultFuture.complete(Collections.singleton(dbResult.toString()));
     });
   }
