@@ -18,7 +18,18 @@
 
 package org.bptlab.cepta;
 
+import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
+import com.github.jasync.sql.db.QueryResult;
+import com.github.jasync.sql.db.pool.ConnectionPool;
+import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
+import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.async.ResultFuture;
+import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 
 /**
  * Skeleton for a Flink Batch Job.
@@ -63,4 +74,5 @@ public class BatchJob {
     // execute program
     env.execute("Flink Batch Java API Skeleton");
   }
+
 }
