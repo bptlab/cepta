@@ -18,6 +18,10 @@
 
 package org.bptlab.cepta;
 
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
@@ -38,26 +42,17 @@ public class StreamingJob {
     // set up the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    /*
-     * Here, you can start creating your execution plan for Flink.
-     *
-     * Start with getting some data from the environment, like
-     * 	env.readTextFile(textPath);
-     *
-     * then, transform the resulting DataStream<String> using operations
-     * like
-     * 	.filter()
-     * 	.flatMap()
-     * 	.join()
-     * 	.coGroup()
-     *
-     * and many more.
-     * Have a look at the programming guide for the Java API:
-     *
-     * http://flink.apache.org/docs/latest/apis/streaming/index.html
-     *
-     */
+    DataStream<Integer> events = env.fromElements(6462247, 6462242, 6462243, 6462245 , 6462246);
 
+    //
+    DataStream<String> resultStream =
+        AsyncDataStream.unorderedWait(events,
+            new MapEventToActor(),
+            10000,
+            TimeUnit.MILLISECONDS,
+            5);
+
+    resultStream.print();
     // execute program
     env.execute("Flink Streaming Java API Skeleton");
   }
