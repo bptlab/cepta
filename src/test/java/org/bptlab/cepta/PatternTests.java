@@ -12,19 +12,24 @@ import org.junit.Assert;
 import org.testng.annotations.Test;
 
 public class PatternTests {
-  @Test(dataProvider = "data-provider", dataProviderClass = DataProviderSingleRisingDataStream.class)
-  public void testRisingSeaLevelsWithDataProvider(DataStream<Integer> seaLevels) throws IOException {
+  @Test(
+      dataProvider = "data-provider",
+      dataProviderClass = DataProviderSingleRisingDataStream.class)
+  public void testRisingSeaLevelsWithDataProvider(DataStream<Integer> seaLevels)
+      throws IOException {
     ArrayList<String> testOutputList = new ArrayList<>();
     Iterator<String> testOutputIterator =
         DataStreamUtils.collect(StreamingJob.seaLevelDetector(seaLevels));
     while (testOutputIterator.hasNext()) {
       testOutputList.add(testOutputIterator.next());
     }
-    Assert.assertTrue(CollectionUtils.isEqualCollection(Collections.singletonList("Gefahr!"), testOutputList));
+    Assert.assertTrue(
+        CollectionUtils.isEqualCollection(Collections.singletonList("Gefahr!"), testOutputList));
   }
 
-
-  @Test(dataProvider = "data-provider", dataProviderClass = DataProviderMultipleRisingDataStream.class)
+  @Test(
+      dataProvider = "data-provider",
+      dataProviderClass = DataProviderMultipleRisingDataStream.class)
   public void testTwoRisingSeaLevels(DataStream<Integer> seaLevels) throws IOException {
     ArrayList<String> testOutputList = new ArrayList<>();
     Iterator<String> testOutputIterator =
