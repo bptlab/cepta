@@ -14,7 +14,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class DetectAgentTests {
-
   // tests our custom filter agent, which filters all integers larger than 3
   @Test(groups = {"include-test-wind"}, dataProvider = "data-provider", dataProviderClass = DataProviderWindSpeedDataStream.class)
   public void testStormFilter(DataStream<Integer> windspeed) throws IOException {
