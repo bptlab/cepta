@@ -1,6 +1,5 @@
 package org.bptlab.cepta;
 
-import com.github.jasync.sql.db.Connection;
 import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
 import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
@@ -11,21 +10,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.flink.api.common.functions.MapFunction;
 
-public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<PlannedTrainData, PlannedTrainData> {
+public class DataToDatabase<Object> implements MapFunction<Object, Object> {
   static final String HOST = "localhost";
   static final String DATABASE = "dbs1_imdb";
   static final String USER = "tester";
   static final String PASSWORD = "password";
   static final Integer PORT = 5432;
-  static final String TABLE = "actor";
   static final String[] COLUMNS = {"id", "name"};
-
-  @Override
-  public PlannedTrainData map(PlannedTrainData plannedTrainDataSet) throws Exception {
-    insert(plannedTrainDataSet);
-    return plannedTrainDataSet;
+  private String table_name;
+  public DataToDatabase(String table){
+    this.table_name = table;
   }
-  public void insert(PlannedTrainData plannedTrainDataSet)
+  @Override
+  public Object map(Object ObjectSet) throws Exception {
+    insert(ObjectSet);
+    return ObjectSet;
+  }
+  public void insert(Object ObjectSet)
       throws NoSuchFieldException, IllegalAccessException {
 
     // Connection to PostgreSQL DB
@@ -40,10 +41,10 @@ public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<Plan
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    String[] colsAndVals = columnsAndValuesToString(plannedTrainDataSet, COLUMNS);
+    String[] colsAndVals = columnsAndValuesToString(ObjectSet, COLUMNS);
 
     // Create query
-    String query = "INSERT INTO " + TABLE + colsAndVals[0]
+    String query = "INSERT INTO " + table_name + colsAndVals[0]
         + " VALUES " + colsAndVals[1] + ";";
     System.out.println(query);
     CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
@@ -82,7 +83,7 @@ public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<Plan
     return colString;
   }
 
-  private String[] columnsAndValuesToString(PlannedTrainData plannedTrainDataSet, String[] cols)
+  private String[] columnsAndValuesToString(Object ObjectSet, String[] cols)
       throws NoSuchFieldException, IllegalAccessException {
     // takes the values matching to columns and converts them to
     // a (val1, val2, ...) String
@@ -90,7 +91,17 @@ public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<Plan
     // maybe we can put this into the data class where we can do this in a prettier way
 
     String valString = "(";
-    Class c = plannedTrainDataSet.getClass();
+    Class c = ObjectSet.getClass();
+    Field[] fields = c.getDeclaredFields();
+    String[] columns = new String[fields.length];
+    for(int i = 0; i < fields.length; ++i){
+      columns[i] = fields[i].getName();
+    }
+    System.out.println("COLUMNS");
+    for (String col : columns){
+      System.out.println(col);
+    }
+
     for(int i = 0; i < cols.length-1; i++){
       // get attribute-field of class for column-name
       Field f = c.getField(cols[i]);
@@ -101,19 +112,17 @@ public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<Plan
       try{
         if(f.getType().equals(" ".getClass())){
           // add ' ' around value if it's a string
-          valString += "'" + f.get(plannedTrainDataSet).toString() + "'" + ", ";
+          valString += "'" + f.get(ObjectSet).toString() + "'" + ", ";
         }else{
-          valString += f.get(plannedTrainDataSet).toString() + ", ";
+          valString += f.get(ObjectSet).toString() + ", ";
         }
       }catch (NullPointerException e){
         cols[i] = "NONE";
-        System.out.println("Col " + String.valueOf(i) + " is empty");
       }
     }
 
     // do the same for the last element but with ) instead of ,
     // for closing the brackets
-    System.out.println("Col " + String.valueOf(cols.length-1) + " is the last");
     Field f;
     try {
       f = c.getField(cols[cols.length-1]);
@@ -124,15 +133,13 @@ public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<Plan
     f.setAccessible(true);
     try{
       if(f.getType().equals(" ".getClass())){
-        valString += "'" + f.get(plannedTrainDataSet).toString() + "'" + ")";
+        valString += "'" + f.get(ObjectSet).toString() + "'" + ")";
       }else{
-        valString += f.get(plannedTrainDataSet).toString() + ")";
+        valString += f.get(ObjectSet).toString() + ")";
       }
     }catch (NullPointerException e){
       cols[cols.length-1] = "NONE";
-      System.out.println("Col " + String.valueOf(cols.length-1) + " is empty");
       valString = valString.substring(0, valString.length()-2) + ")";
-      System.out.println(valString);
     }
     String colString = columnsToString(cols);
     String[] result = {colString, valString};
