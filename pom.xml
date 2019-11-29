@@ -73,6 +73,12 @@ under the License.
 			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
+		<!-- for asynchronous querying postgres database from flink-->
+		<dependency>
+			<groupId>com.github.jasync-sql</groupId>
+			<artifactId>jasync-postgresql</artifactId>
+			<version>1.0.11</version>
+		</dependency>
 
 		<!-- Flink testing utils -->
 		<dependency>
