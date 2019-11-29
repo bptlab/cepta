@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.flink.api.common.functions.MapFunction;
 
-public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
+public class PlannedDataToDatabase<PlannedTrainData> implements MapFunction<PlannedTrainData, PlannedTrainData> {
   static final String HOST = "localhost";
   static final String DATABASE = "dbs1_imdb";
   static final String USER = "tester";
@@ -21,11 +21,11 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
   static final String[] COLUMNS = {"id", "name"};
 
   @Override
-  public Actor map(Actor actor) throws Exception {
-    insert(actor);
-    return actor;
+  public PlannedTrainData map(PlannedTrainData plannedTrainDataSet) throws Exception {
+    insert(plannedTrainDataSet);
+    return plannedTrainDataSet;
   }
-  public void insert(Actor plannedDataSet)
+  public void insert(PlannedTrainData plannedTrainDataSet)
       throws NoSuchFieldException, IllegalAccessException {
 
     // Connection to PostgreSQL DB
@@ -40,7 +40,7 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    String[] colsAndVals = columnsAndValuesToString(plannedDataSet, COLUMNS);
+    String[] colsAndVals = columnsAndValuesToString(plannedTrainDataSet, COLUMNS);
 
     // Create query
     String query = "INSERT INTO " + TABLE + colsAndVals[0]
@@ -82,7 +82,7 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
     return colString;
   }
 
-  private String[] columnsAndValuesToString(Actor obj, String[] cols)
+  private String[] columnsAndValuesToString(PlannedTrainData plannedTrainDataSet, String[] cols)
       throws NoSuchFieldException, IllegalAccessException {
     // takes the values matching to columns and converts them to
     // a (val1, val2, ...) String
@@ -90,7 +90,7 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
     // maybe we can put this into the data class where we can do this in a prettier way
 
     String valString = "(";
-    Class c = obj.getClass();
+    Class c = plannedTrainDataSet.getClass();
     for(int i = 0; i < cols.length-1; i++){
       // get attribute-field of class for column-name
       Field f = c.getField(cols[i]);
@@ -101,9 +101,9 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
       try{
         if(f.getType().equals(" ".getClass())){
           // add ' ' around value if it's a string
-          valString += "'" + f.get(obj).toString() + "'" + ", ";
+          valString += "'" + f.get(plannedTrainDataSet).toString() + "'" + ", ";
         }else{
-          valString += f.get(obj).toString() + ", ";
+          valString += f.get(plannedTrainDataSet).toString() + ", ";
         }
       }catch (NullPointerException e){
         cols[i] = "NONE";
@@ -124,9 +124,9 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
     f.setAccessible(true);
     try{
       if(f.getType().equals(" ".getClass())){
-        valString += "'" + f.get(obj).toString() + "'" + ")";
+        valString += "'" + f.get(plannedTrainDataSet).toString() + "'" + ")";
       }else{
-        valString += f.get(obj).toString() + ")";
+        valString += f.get(plannedTrainDataSet).toString() + ")";
       }
     }catch (NullPointerException e){
       cols[cols.length-1] = "NONE";
