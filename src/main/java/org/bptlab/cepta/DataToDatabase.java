@@ -16,7 +16,6 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
   static final String USER = "tester";
   static final String PASSWORD = "password";
   static final Integer PORT = 5432;
-  static final String[] COLUMNS = {"id", "name"};
   private String table_name;
   public DataToDatabase(String table){
     this.table_name = table;
@@ -41,7 +40,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    String[] colsAndVals = columnsAndValuesToString(ObjectSet, COLUMNS);
+    String[] colsAndVals = columnsAndValuesToString(ObjectSet);
 
     // Create query
     String query = "INSERT INTO " + table_name + colsAndVals[0]
@@ -83,7 +82,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     return colString;
   }
 
-  private String[] columnsAndValuesToString(Object ObjectSet, String[] cols)
+  private String[] columnsAndValuesToString(Object ObjectSet)
       throws NoSuchFieldException, IllegalAccessException {
     // takes the values matching to columns and converts them to
     // a (val1, val2, ...) String
@@ -102,9 +101,9 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
       System.out.println(col);
     }
 
-    for(int i = 0; i < cols.length-1; i++){
+    for(int i = 0; i < columns.length-1; i++){
       // get attribute-field of class for column-name
-      Field f = c.getField(cols[i]);
+      Field f = c.getField(columns[i]);
       f.setAccessible(true);
 
       // add object's value of attribute/column to string
@@ -117,7 +116,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
           valString += f.get(ObjectSet).toString() + ", ";
         }
       }catch (NullPointerException e){
-        cols[i] = "NONE";
+        columns[i] = "NONE";
       }
     }
 
@@ -125,7 +124,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     // for closing the brackets
     Field f;
     try {
-      f = c.getField(cols[cols.length-1]);
+      f = c.getField(columns[columns.length-1]);
     }catch (NoSuchFieldException e){
       throw e;
     }
@@ -138,10 +137,10 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
         valString += f.get(ObjectSet).toString() + ")";
       }
     }catch (NullPointerException e){
-      cols[cols.length-1] = "NONE";
+      columns[columns.length-1] = "NONE";
       valString = valString.substring(0, valString.length()-2) + ")";
     }
-    String colString = columnsToString(cols);
+    String colString = columnsToString(columns);
     String[] result = {colString, valString};
     return result;
   }
