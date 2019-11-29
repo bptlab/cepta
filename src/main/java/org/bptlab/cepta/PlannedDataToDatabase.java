@@ -27,12 +27,8 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
   }
   public void insert(Actor plannedDataSet)
       throws NoSuchFieldException, IllegalAccessException {
-/*
 
     // Connection to PostgreSQL DB
-    Connection connection = PostgreSQLConnectionBuilder.createConnectionPool(
-        "jdbc:postgresql://" + HOST + ":" + PORT.toString() + "/" + DATABASE + "?user=" + USER + "&password=" + PASSWORD);
-*/
     ConnectionPool<PostgreSQLConnection> connection;
 
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
@@ -44,10 +40,12 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    // Create query
-    String query = "INSERT INTO " + TABLE + columnsToString(COLUMNS)
-        + " VALUES " + valuesToString(plannedDataSet, COLUMNS) + ";";
+    String[] colsAndVals = columnsAndValuesToString(plannedDataSet, COLUMNS);
 
+    // Create query
+    String query = "INSERT INTO " + TABLE + colsAndVals[0]
+        + " VALUES " + colsAndVals[1] + ";";
+    System.out.println(query);
     CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     // execute query and check for result
@@ -66,39 +64,79 @@ public class PlannedDataToDatabase<Actor> implements MapFunction<Actor, Actor> {
   }
 
   private String columnsToString(String[] cols){
+    // takes the columns and converts them to a (col1, col2, ...) String
+    // necessary for usage in the sql statement
     String colString = "(";
     for(int i = 0; i < cols.length-1; ++i){
-      colString += cols[i] + ", ";
+      if(!cols[i].equals("NONE")){
+        colString += cols[i] + ", ";
+      }
     }
-    colString += cols[cols.length-1] + ")";
+    if (!cols[cols.length-1].equals("NONE")){
+      colString += cols[cols.length-1];
+    }else {
+      // crop last ' ' and ,
+      colString = colString.substring(0, colString.length()-2);
+    }
+    colString += ")";
     return colString;
   }
 
-  private String valuesToString(Actor obj, String[] cols)
+  private String[] columnsAndValuesToString(Actor obj, String[] cols)
       throws NoSuchFieldException, IllegalAccessException {
-    // get values of columns for object
+    // takes the values matching to columns and converts them to
+    // a (val1, val2, ...) String
+    // necessary for usage in the sql statement
     // maybe we can put this into the data class where we can do this in a prettier way
 
     String valString = "(";
     Class c = obj.getClass();
-    for(int i = 0; i < cols.length-1; ++i){
+    for(int i = 0; i < cols.length-1; i++){
+      // get attribute-field of class for column-name
       Field f = c.getField(cols[i]);
       f.setAccessible(true);
-      if(f.getType().equals(" ".getClass())){
-        valString += "'" + f.get(obj).toString() + "'" + ", ";
-      }else{
-        valString += f.get(obj).toString() + ", ";
+
+      // add object's value of attribute/column to string
+      // with , in between
+      try{
+        if(f.getType().equals(" ".getClass())){
+          // add ' ' around value if it's a string
+          valString += "'" + f.get(obj).toString() + "'" + ", ";
+        }else{
+          valString += f.get(obj).toString() + ", ";
+        }
+      }catch (NullPointerException e){
+        cols[i] = "NONE";
+        System.out.println("Col " + String.valueOf(i) + " is empty");
       }
     }
 
-    Field f = c.getField(cols[cols.length-1]);
-    f.setAccessible(true);
-    if(f.getType().equals(" ".getClass())){
-      valString += "'" + f.get(obj).toString() + "'" + ")";
-    }else{
-      valString += f.get(obj).toString() + ")";
+    // do the same for the last element but with ) instead of ,
+    // for closing the brackets
+    System.out.println("Col " + String.valueOf(cols.length-1) + " is the last");
+    Field f;
+    try {
+      f = c.getField(cols[cols.length-1]);
+    }catch (NoSuchFieldException e){
+      throw e;
     }
-    return valString;
+
+    f.setAccessible(true);
+    try{
+      if(f.getType().equals(" ".getClass())){
+        valString += "'" + f.get(obj).toString() + "'" + ")";
+      }else{
+        valString += f.get(obj).toString() + ")";
+      }
+    }catch (NullPointerException e){
+      cols[cols.length-1] = "NONE";
+      System.out.println("Col " + String.valueOf(cols.length-1) + " is empty");
+      valString = valString.substring(0, valString.length()-2) + ")";
+      System.out.println(valString);
+    }
+    String colString = columnsToString(cols);
+    String[] result = {colString, valString};
+    return result;
   }
 
 
