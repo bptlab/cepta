@@ -6,6 +6,9 @@ import org.testng.annotations.DataProvider;
 
 public class DataProviderMultipleRisingDataStream {
 
+  // in this context a risingDataStream means three directly followed increasing events
+  // multiple means that in every DataSteam provided there are more than one of these sequences
+
   @DataProvider(name = "data-provider")
   public static Object[][] dataProviderMethod() {
     StreamExecutionEnvironment env;
