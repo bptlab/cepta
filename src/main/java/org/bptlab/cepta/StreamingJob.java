@@ -72,17 +72,17 @@ public class StreamingJob {
     env.execute("Start Streaming");
   }
 
-  public static DataStream<Integer> stormFilter(DataStream<Integer> windspeed) {
+  static DataStream<Integer> stormFilter(DataStream<Integer> windspeed) {
     return windspeed.filter(
         new FilterFunction<Integer>() {
           @Override
-          public boolean filter(Integer speed) throws Exception {
+          public boolean filter(Integer speed) {
             return speed > 3;
           }
         });
   }
 
-  public static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
+  static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
 
     // this is a pattern of three consecutive(a, b, c) events where a < b < c
     Pattern<Integer, ?> pattern =
@@ -118,7 +118,7 @@ public class StreamingJob {
         patternStream.select(
             new PatternSelectFunction<Integer, String>() {
               @Override
-              public String select(Map<String, List<Integer>> map) throws Exception {
+              public String select(Map<String, List<Integer>> map) {
                 return "Gefahr!";
               }
             });

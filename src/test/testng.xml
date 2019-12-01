@@ -6,10 +6,8 @@
         <groups>
             <define name="include-group">
                 <include name="active" />
-                <include name="include-test-one" />
-                <include name="include-test-two" />
-                <include name="include-test-wind" />
                 <include name="setUp-global" />
+                <include name="include-test-seaLevel" />
             </define>
             <define name="exclude-group">
                 <include name="broken" />
