@@ -85,7 +85,7 @@ public class StreamingJob {
   static DataStream<String> seaLevelDetector(DataStream<Integer> seaLevels) {
 
     // this is a pattern of three consecutive(a, b, c) events where a < b < c
-    Pattern<Integer, ?> pattern =
+    Pattern<Integer, ?> increasingIntegersPattern =
         Pattern.<Integer>begin("start")
             .next("middle")
             .where(
@@ -113,7 +113,7 @@ public class StreamingJob {
                     return true;
                   }
                 });
-    PatternStream<Integer> patternStream = CEP.pattern(seaLevels, pattern);
+    PatternStream<Integer> patternStream = CEP.pattern(seaLevels, increasingIntegersPattern);
     DataStream<String> output =
         patternStream.select(
             new PatternSelectFunction<Integer, String>() {
