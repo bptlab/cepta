@@ -7,6 +7,9 @@ import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -18,14 +21,17 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
   static final String PASSWORD = "password";
   static final Integer PORT = 5432;
   private String table_name;
+
   public DataToDatabase(String table){
     this.table_name = table;
   }
+
   @Override
   public Object map(Object dataSet) throws Exception {
     insert(dataSet);
     return dataSet;
   }
+
   public void insert(Object dataSet)
       throws NoSuchFieldException, IllegalAccessException {
 
@@ -42,11 +48,11 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
     // stores strings of values and columns for sql query
-    String[] colsAndVals = columnsAndValuesToString(dataSet);
+    String[] columnsAndValues = columnsAndValuesToString(dataSet);
 
     // Create query
-    String query = "INSERT INTO " + table_name + colsAndVals[0]
-        + " VALUES " + colsAndVals[1] + ";";
+    String query = "INSERT INTO " + table_name + columnsAndValues[0]
+        + " VALUES " + columnsAndValues[1] + ";";
     System.out.println(query);
 
     // send query
@@ -73,34 +79,27 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     // a (val1, val2, ...) String
     // necessary for usage in the sql statement
 
-    String valString = "(";
     Class c = dataSet.getClass();
 
     // get attribute fields of dataSet's class and store them in fields
+    // it only gets the fields of the class and not its superclasses, too
     Field[] fields = c.getDeclaredFields();
 
     // stores names of attributes
     String[] columns = new String[fields.length];
-/*
-    String[] columns = new String[fields.length];
-    for(int i = 0; i < fields.length; ++i){
-      columns[i] = fields[i].getName();
-    }
-*/
-
-    for(int i = 0; i < fields.length-1; i++){
+    String[] values = new String[fields.length];
+    for(int i = 0; i < fields.length; i++){
       // get attribute-field of class for column-name
       Field f = fields[i];
-      f.setAccessible(true);
 
-      // add object's value of attribute/column to string
-      // with , in between
+      // add object's value of attribute/column to arrays
       try{
-        if(f.getType().equals(" ".getClass())){
+        java.lang.Object value = f.get(dataSet);
+        if(value instanceof String){
           // add ' ' around value if it's a string
-          valString += "'" + f.get(dataSet).toString() + "'" + ", ";
+          values[i] = String.format("'%s'", value.toString());
         }else{
-          valString += f.get(dataSet).toString() + ", ";
+          values[i] =value.toString();
         }
         columns[i] = f.getName();
       }catch (NullPointerException e){
@@ -112,48 +111,27 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
       }
     }
 
-    // do the same for the last element but with ) instead of ,
-    // for closing the brackets
-    Field f = fields[fields.length-1];
-    f.setAccessible(true);
-    try{
-      if(f.getType().equals(" ".getClass())){
-        valString += "'" + f.get(dataSet).toString() + "'" + ")";
-      }else{
-        valString += f.get(dataSet).toString() + ")";
-      }
-    }catch (NullPointerException e){
-      // crop last ', ' because we don't need it as we do not have another element
-      valString = valString.substring(0, valString.length()-2) + ")";
-    }
-
-    // generate string for columns
-    String colString = columnsToString(columns);
-    String[] result = {colString, valString};
+    // generate strings for columns and values
+    String valuesString = arrayToString(values);
+    String columnsString = arrayToString(columns);
+    String[] result = {columnsString, valuesString};
     return result;
   }
 
-  private String columnsToString(String[] cols){
-    // takes the columns and converts them to a "(col1, col2, ...)" String
+  private String arrayToString(String[] array){
+    // takes the array's elements and converts them to a "(val1, val2, ...)" String
     // necessary for usage in the sql statement
+    String string;
 
-    /*
-    * the null checks are necessary because we do not fill the columns array
-    * when there is no value belonging to this attribute
-    * */
-    String colString = "(";
-    for(int i = 0; i < cols.length-1; ++i){
-      if (cols[i] != null){
-        colString += cols[i] + ", ";
-      }
-    }
-    if(cols[cols.length-1] != null){
-      colString += cols[cols.length-1];
-    }else {
-      // crop the last ', ' because there is no next element
-      colString = colString.substring(0, colString.length()-2);
-    }
+    // remove null values
+    ArrayList<String> elements = new ArrayList<>(Arrays.asList(array));;
+    elements.removeIf(Objects::isNull);
 
-    return colString + ")";
+    // add , between elements
+    string = String.join(",", elements);
+
+    // surround it with brackets
+    string = String.format("(%s)", string);
+    return string;
   }
 }

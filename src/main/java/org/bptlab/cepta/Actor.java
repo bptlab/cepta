@@ -10,7 +10,5 @@ public class Actor{
     this.id = id;
     this.name = name;
   }
-  public String columnString(){
-    return "(id, name)";
-  }
+  
 }
