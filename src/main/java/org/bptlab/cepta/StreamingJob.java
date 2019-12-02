@@ -76,7 +76,7 @@ public class StreamingJob {
     return windspeed.filter(
         new FilterFunction<Integer>() {
           @Override
-          public boolean filter(Integer speed) {
+          public boolean filter(Integer speed) throws Exception {
             return speed > 3;
           }
         });
@@ -118,7 +118,7 @@ public class StreamingJob {
         patternStream.select(
             new PatternSelectFunction<Integer, String>() {
               @Override
-              public String select(Map<String, List<Integer>> map) {
+              public String select(Map<String, List<Integer>> map) throws Exception {
                 return "Gefahr!";
               }
             });
