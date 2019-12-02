@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 public class PatternTests {
   @Test(
-      groups = {"include-test-seaLevel"},
       dataProvider = "data-provider",
       dataProviderClass = DataProviderSingleRisingDataStream.class)
   public void testRisingSeaLevelsWithDataProvider(DataStream<Integer> seaLevels)
@@ -29,7 +28,6 @@ public class PatternTests {
   }
 
   @Test(
-      groups = {"include-test-seaLevel"},
       dataProvider = "data-provider",
       dataProviderClass = DataProviderMultipleRisingDataStream.class)
   public void testTwoRisingSeaLevels(DataStream<Integer> seaLevels) throws IOException {
