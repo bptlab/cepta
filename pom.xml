@@ -73,6 +73,36 @@ under the License.
 			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
+		<!-- for asynchronous querying postgres database from flink-->
+		<dependency>
+			<groupId>com.github.jasync-sql</groupId>
+			<artifactId>jasync-postgresql</artifactId>
+			<version>1.0.11</version>
+		</dependency>
+
+		<!-- avro deserialization schema-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-avro</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<!-- for avro kafka consumer-->
+		<dependency>
+			<groupId>org.apache.avro</groupId>
+			<artifactId>avro</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-core</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
 
 		<!-- Flink testing utils -->
 		<dependency>
@@ -110,9 +140,10 @@ under the License.
 
 		<!-- Kafka connector -->
 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka-0.10_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
+		<groupId>org.apache.flink</groupId>
+		<artifactId>flink-connector-kafka-0.11_2.11</artifactId>
+		<scope>compile</scope>
+		<version>${flink.version}</version>
 		</dependency>
 
 		<!-- Influxdb connector
@@ -149,6 +180,24 @@ under the License.
 
 	<build>
 		<plugins>
+			<!-- for Avro code generation -->
+			<plugin>
+				<groupId>org.apache.avro</groupId>
+				<artifactId>avro-maven-plugin</artifactId>
+				<version>1.8.2</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>schema</goal>
+						</goals>
+						<configuration>
+							<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+							<outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- Java Compiler -->
 			<plugin>
