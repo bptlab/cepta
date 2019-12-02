@@ -13,7 +13,7 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  public static final long serialVersionUID = 1515912763762445737L;
+  private static final long serialVersionUID = 1515912763762445737L;
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"PlannedTrainData\",\"namespace\":\"org.bptlab.cepta\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"train_id\",\"type\":\"int\"},{\"name\":\"location_id\",\"type\":\"int\"},{\"name\":\"planned_time\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"location_status\",\"type\":\"int\"},{\"name\":\"run_first_train_number\",\"type\":\"int\"},{\"name\":\"train_number\",\"type\":\"int\"},{\"name\":\"planned_departure_reference\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"planned_arrival_reference\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"train_operator_id\",\"type\":\"int\"},{\"name\":\"transfer_location_id\",\"type\":\"int\"},{\"name\":\"reporting_im_id\",\"type\":\"int\"},{\"name\":\"next_im_id\",\"type\":\"int\"},{\"name\":\"status\",\"type\":\"int\"},{\"name\":\"message_creation\",\"type\":\"int\",\"logicaltype\":\"date\"},{\"name\":\"original_train_number\",\"type\":\"int\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
@@ -51,22 +51,22 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
     return DECODER.decode(b);
   }
 
-  @Deprecated public int id;
-  @Deprecated public int train_id;
-  @Deprecated public int location_id;
-  @Deprecated public long planned_time;
-  @Deprecated public int location_status;
-  @Deprecated public int run_first_train_number;
-  @Deprecated public int train_number;
-  @Deprecated public long planned_departure_reference;
-  @Deprecated public long planned_arrival_reference;
-  @Deprecated public int train_operator_id;
-  @Deprecated public int transfer_location_id;
-  @Deprecated public int reporting_im_id;
-  @Deprecated public int next_im_id;
-  @Deprecated public int status;
-  @Deprecated public int message_creation;
-  @Deprecated public int original_train_number;
+  @Deprecated private int id;
+  @Deprecated private int train_id;
+  @Deprecated private int location_id;
+  @Deprecated private long planned_time;
+  @Deprecated private int location_status;
+  @Deprecated private int run_first_train_number;
+  @Deprecated private int train_number;
+  @Deprecated private long planned_departure_reference;
+  @Deprecated private long planned_arrival_reference;
+  @Deprecated private int train_operator_id;
+  @Deprecated private int transfer_location_id;
+  @Deprecated private int reporting_im_id;
+  @Deprecated private int next_im_id;
+  @Deprecated private int status;
+  @Deprecated private int message_creation;
+  @Deprecated private int original_train_number;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -449,22 +449,22 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<PlannedTrainData>
     implements org.apache.avro.data.RecordBuilder<PlannedTrainData> {
 
-    public int id;
-    public int train_id;
-    public int location_id;
-    public long planned_time;
-    public int location_status;
-    public int run_first_train_number;
-    public int train_number;
-    public long planned_departure_reference;
-    public long planned_arrival_reference;
-    public int train_operator_id;
-    public int transfer_location_id;
-    public int reporting_im_id;
-    public int next_im_id;
-    public int status;
-    public int message_creation;
-    public int original_train_number;
+    private int id;
+    private int train_id;
+    private int location_id;
+    private long planned_time;
+    private int location_status;
+    private int run_first_train_number;
+    private int train_number;
+    private long planned_departure_reference;
+    private long planned_arrival_reference;
+    private int train_operator_id;
+    private int transfer_location_id;
+    private int reporting_im_id;
+    private int next_im_id;
+    private int status;
+    private int message_creation;
+    private int original_train_number;
 
     /** Creates a new Builder */
     public Builder() {

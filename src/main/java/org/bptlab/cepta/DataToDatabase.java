@@ -5,22 +5,19 @@ import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.avro.Schema;
-import org.apache.avro.file.DataFileReader;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumReader;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.avro.specific.SpecificRecord;
 
-public class DataToDatabase<Object> implements MapFunction<Object, Object> {
+public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, T> {
   static final String HOST = "localhost";
   static final String DATABASE = "dbs1_imdb";
   static final String USER = "tester";
@@ -33,13 +30,13 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
   }
 
   @Override
-  public Object map(Object dataSet) throws Exception {
+  public T map(T dataSet) throws Exception {
     insert(dataSet);
     return dataSet;
   }
 
-  public void insert(Object dataSet)
-      throws NoSuchFieldException, IllegalAccessException, IOException {
+  public void insert(T dataSet)
+      throws NoSuchFieldException, IllegalAccessException {
 
     // Connection to PostgreSQL DB
     ConnectionPool<PostgreSQLConnection> connection;
@@ -53,18 +50,21 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    String avroSchemaFileName = String.format("//avro/%s.avsc", dataSet.getClass().getName());
-    DatumReader<GenericRecord> datumReader = new GenericDatumReader<>();
-    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(new File(avroSchemaFileName), datumReader);
-    Schema schema = dataFileReader.getSchema();
-    System.out.println(schema);
+    // get column names from avro schema of data class
+    Schema avroSchema = dataSet.getSchema();
+    List<Schema.Field> fields = avroSchema.getFields();
+    String[] columnNames = new String[fields.size()];
+    for(int i = 0; i < fields.size(); i++){
+      columnNames[i] = fields.get(i).name();
+    }
 
-    // stores strings of values and columns for sql query
-    String[] columnsAndValues = columnsAndValuesToString(dataSet);
+    // store strings of values and columns for sql query
+    String valuesString = valuesToQueryString(dataSet, columnNames);
+    String columnsString = arrayToQueryString(columnNames);
 
     // Create query
-    String query = "INSERT INTO " + table_name + columnsAndValues[0]
-        + " VALUES " + columnsAndValues[1] + ";";
+    String query = "INSERT INTO " + table_name + columnsString
+        + " VALUES " + valuesString + ";";
     System.out.println(query);
 
     // send query
@@ -85,53 +85,47 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     }
   }
 
-  private String[] columnsAndValuesToString(Object dataSet)
+  private String valuesToQueryString(T dataSet, String[] columns)
       throws NoSuchFieldException, IllegalAccessException {
-    // returns two strings
-    // result[0] contains the query part string for columns
-    // result[1] contains the query part string for the values
+    // returns the query part string for the values
     // necessary for usage in the sql statement
 
     Class c = dataSet.getClass();
 
     // get attribute fields of dataSet's class and store them in fields
     // it only gets the fields of the class and not its superclasses, too
-    Field[] fields = c.getDeclaredFields();
 
     // stores names of attributes
-    String[] columns = new String[fields.length];
-    String[] values = new String[fields.length];
-    for(int i = 0; i < fields.length; i++){
+    String[] values = new String[columns.length];
+    for(int i = 0; i < columns.length; i++){
+      String column = columns[i];
+
       // get attribute-field of class for column-name
-      Field f = fields[i];
+      Field f = c.getDeclaredField(column);
+      // set accessible so we can access private attributes
+      f.setAccessible(true);
 
       // add object's value of attribute/column to arrays
       try{
-        java.lang.Object value = f.get(dataSet);
+        Object value = f.get(dataSet);
         if(value instanceof String){
           // add ' ' around value if it's a string
           values[i] = String.format("'%s'", value.toString());
         }else{
           values[i] = value.toString();
         }
-        columns[i] = f.getName();
       }catch (NullPointerException e){
-        /*
-         just go on with the for loop because there is no value (it's null)
-         we want to add to the database and so we don't need he column and
-         the value in our sql statement
-        */
+        // set null so we do not have this column in the query because there is no value to add there
+        columns[i] = null;
       }
     }
 
-    // generate strings for columns and values
-    String valuesString = arrayToString(values);
-    String columnsString = arrayToString(columns);
-    String[] result = {columnsString, valuesString};
-    return result;
+    // generate string for values
+    String valuesString = arrayToQueryString(values);
+    return valuesString;
   }
 
-  private String arrayToString(String[] array){
+  private String arrayToQueryString(String[] array){
     // takes the array's elements and converts them to a "(val1, val2, ...)" String
     // necessary for usage in the sql statement
     String string;
