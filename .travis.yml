@@ -2,5 +2,7 @@ branches:
   only:
     - /^*$/
 language: java
+jdk:
+  - openjdk8
 sudo: false
 script: mvn clean verify
