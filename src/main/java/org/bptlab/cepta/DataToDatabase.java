@@ -5,12 +5,19 @@ import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileReader;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumReader;
 import org.apache.flink.api.common.functions.MapFunction;
 
 public class DataToDatabase<Object> implements MapFunction<Object, Object> {
@@ -32,7 +39,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
   }
 
   public void insert(Object dataSet)
-      throws NoSuchFieldException, IllegalAccessException {
+      throws NoSuchFieldException, IllegalAccessException, IOException {
 
     // Connection to PostgreSQL DB
     ConnectionPool<PostgreSQLConnection> connection;
@@ -45,6 +52,12 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
     config.setDatabase(DATABASE);
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
+
+    String avroSchemaFileName = String.format("//avro/%s.avsc", dataSet.getClass().getName());
+    DatumReader<GenericRecord> datumReader = new GenericDatumReader<>();
+    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(new File(avroSchemaFileName), datumReader);
+    Schema schema = dataFileReader.getSchema();
+    System.out.println(schema);
 
     // stores strings of values and columns for sql query
     String[] columnsAndValues = columnsAndValuesToString(dataSet);

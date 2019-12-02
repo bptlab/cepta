@@ -40,10 +40,10 @@ public class StreamingJob {
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
     // create mock data stream
-    DataStream<Actor> actors = env.fromElements(new Actor(1, null));//, new Actor(2, "Aaaron"));
+    DataStream<PlannedTrainData> actors = env.fromElements(new PlannedTrainData(1, 1,1, new Long(1), 1, 1, 1, new Long(1), new Long(1), 1, 1, 1, 1, 1, 1, 1));//, new Actor(2, "Aaaron"));
 
     // insert every event into database table with name actor
-    DataStream<Actor> actorsStream = actors.map(new DataToDatabase<Actor>("actor"));
+    DataStream<PlannedTrainData> actorsStream = actors.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
 
     env.execute("Flink Streaming Java API Skeleton");
   }

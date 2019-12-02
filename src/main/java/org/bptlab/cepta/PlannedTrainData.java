@@ -13,16 +13,16 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 1515912763762445737L;
+  public static final long serialVersionUID = 1515912763762445737L;
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"PlannedTrainData\",\"namespace\":\"org.bptlab.cepta\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"train_id\",\"type\":\"int\"},{\"name\":\"location_id\",\"type\":\"int\"},{\"name\":\"planned_time\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"location_status\",\"type\":\"int\"},{\"name\":\"run_first_train_number\",\"type\":\"int\"},{\"name\":\"train_number\",\"type\":\"int\"},{\"name\":\"planned_departure_reference\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"planned_arrival_reference\",\"type\":\"long\",\"logicaltype\":\"timestamp-millis\"},{\"name\":\"train_operator_id\",\"type\":\"int\"},{\"name\":\"transfer_location_id\",\"type\":\"int\"},{\"name\":\"reporting_im_id\",\"type\":\"int\"},{\"name\":\"next_im_id\",\"type\":\"int\"},{\"name\":\"status\",\"type\":\"int\"},{\"name\":\"message_creation\",\"type\":\"int\",\"logicaltype\":\"date\"},{\"name\":\"original_train_number\",\"type\":\"int\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
-  private static SpecificData MODEL$ = new SpecificData();
+  public static SpecificData MODEL$ = new SpecificData();
 
-  private static final BinaryMessageEncoder<PlannedTrainData> ENCODER =
+  public static final BinaryMessageEncoder<PlannedTrainData> ENCODER =
       new BinaryMessageEncoder<PlannedTrainData>(MODEL$, SCHEMA$);
 
-  private static final BinaryMessageDecoder<PlannedTrainData> DECODER =
+  public static final BinaryMessageDecoder<PlannedTrainData> DECODER =
       new BinaryMessageDecoder<PlannedTrainData>(MODEL$, SCHEMA$);
 
   /**
@@ -449,25 +449,25 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<PlannedTrainData>
     implements org.apache.avro.data.RecordBuilder<PlannedTrainData> {
 
-    private int id;
-    private int train_id;
-    private int location_id;
-    private long planned_time;
-    private int location_status;
-    private int run_first_train_number;
-    private int train_number;
-    private long planned_departure_reference;
-    private long planned_arrival_reference;
-    private int train_operator_id;
-    private int transfer_location_id;
-    private int reporting_im_id;
-    private int next_im_id;
-    private int status;
-    private int message_creation;
-    private int original_train_number;
+    public int id;
+    public int train_id;
+    public int location_id;
+    public long planned_time;
+    public int location_status;
+    public int run_first_train_number;
+    public int train_number;
+    public long planned_departure_reference;
+    public long planned_arrival_reference;
+    public int train_operator_id;
+    public int transfer_location_id;
+    public int reporting_im_id;
+    public int next_im_id;
+    public int status;
+    public int message_creation;
+    public int original_train_number;
 
     /** Creates a new Builder */
-    private Builder() {
+    public Builder() {
       super(SCHEMA$);
     }
 
@@ -475,7 +475,7 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.bptlab.cepta.PlannedTrainData.Builder other) {
+    public Builder(org.bptlab.cepta.PlannedTrainData.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.id)) {
         this.id = data().deepCopy(fields()[0].schema(), other.id);
@@ -547,7 +547,7 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
      * Creates a Builder by copying an existing PlannedTrainData instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.bptlab.cepta.PlannedTrainData other) {
+    public Builder(org.bptlab.cepta.PlannedTrainData other) {
             super(SCHEMA$);
       if (isValidValue(fields()[0], other.id)) {
         this.id = data().deepCopy(fields()[0].schema(), other.id);
@@ -1252,7 +1252,7 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumWriter<PlannedTrainData>
+  public static final org.apache.avro.io.DatumWriter<PlannedTrainData>
     WRITER$ = (org.apache.avro.io.DatumWriter<PlannedTrainData>)MODEL$.createDatumWriter(SCHEMA$);
 
   @Override public void writeExternal(java.io.ObjectOutput out)
@@ -1261,7 +1261,7 @@ public class PlannedTrainData extends org.apache.avro.specific.SpecificRecordBas
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumReader<PlannedTrainData>
+  public static final org.apache.avro.io.DatumReader<PlannedTrainData>
     READER$ = (org.apache.avro.io.DatumReader<PlannedTrainData>)MODEL$.createDatumReader(SCHEMA$);
 
   @Override public void readExternal(java.io.ObjectInput in)
