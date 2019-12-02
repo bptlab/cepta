@@ -18,8 +18,11 @@
 
 package org.bptlab.cepta;
 
+import java.util.Properties;
+import org.apache.flink.formats.avro.AvroDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -39,11 +42,24 @@ public class StreamingJob {
     // set up the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // create mock data stream
-    DataStream<PlannedTrainData> actors = env.fromElements(new PlannedTrainData(1, 1,1, new Long(1), 1, 1, 1, new Long(1), new Long(1), 1, 1, 1, 1, 1, 1, 1));//, new Actor(2, "Aaaron"));
+    // set properties of the consumer
+    Properties properties = new Properties();
+    properties.setProperty("bootstrap.servers", KafkaConstants.KAFKA_BROKERS);
+    properties.setProperty("group.id", KafkaConstants.GROUP_ID_CONFIG);
 
+    // create consumer that reads avro data as TrainData objects from topic "test"
+    FlinkKafkaConsumer011<PlannedTrainData> consumer = new FlinkKafkaConsumer011<PlannedTrainData>(KafkaConstants.TOPIC_NAME, AvroDeserializationSchema
+        .forSpecific(PlannedTrainData.class), properties);
+
+    // add consumer as source for data stream
+    DataStream<PlannedTrainData> inputStream = env.addSource(consumer);
+
+    // print stream to console
+    inputStream.print();
+
+    env.execute("Flink Streaming Java API Skeleton");
     // insert every event into database table with name actor
-    DataStream<PlannedTrainData> actorsStream = actors.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
+    DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
 
     env.execute("Flink Streaming Java API Skeleton");
   }
