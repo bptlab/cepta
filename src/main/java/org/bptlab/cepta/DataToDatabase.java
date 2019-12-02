@@ -8,7 +8,6 @@ import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -75,8 +74,9 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
 
   private String[] columnsAndValuesToString(Object dataSet)
       throws NoSuchFieldException, IllegalAccessException {
-    // takes the values matching to columns and converts them to
-    // a (val1, val2, ...) String
+    // returns two strings
+    // result[0] contains the query part string for columns
+    // result[1] contains the query part string for the values
     // necessary for usage in the sql statement
 
     Class c = dataSet.getClass();
@@ -99,7 +99,7 @@ public class DataToDatabase<Object> implements MapFunction<Object, Object> {
           // add ' ' around value if it's a string
           values[i] = String.format("'%s'", value.toString());
         }else{
-          values[i] =value.toString();
+          values[i] = value.toString();
         }
         columns[i] = f.getName();
       }catch (NullPointerException e){
