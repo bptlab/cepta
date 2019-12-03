@@ -1,0 +1,275 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.bptlab.cepta</groupId>
+    <artifactId>cepta</artifactId>
+    <version>1.0</version>
+  </parent>
+
+  <artifactId>cepta-frontend</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+  <name>cepta-frontend</name>
+  <description>Webpack based frontend for the cepta web interface</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <flink.version>1.9.0</flink.version>
+    <java.version>1.8</java.version>
+    <scala.binary.version>2.11</scala.binary.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <!-- This config allows the exec plugin to be used: mvn clean compile exec:java -->
+    <exec.mainClass>org.bptlab.cepta.Main</exec.mainClass>
+
+    <grpc.version>1.25.0</grpc.version>
+    <protobuf.version>3.10.0</protobuf.version>
+    <protoc.version>3.10.0</protoc.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-bom</artifactId>
+        <version>${grpc.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Cepta modules -->
+    <dependency>
+      <groupId>org.bptlab.cepta</groupId>
+      <artifactId>cepta-schemas</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <!-- gRPC dependencies -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <version>1.25.0</version>
+      <!--<scope>runtime</scope>-->
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>1.25.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>1.25.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java-util</artifactId>
+      <version>${protobuf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+      <version>2.3.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+
+    <!-- avro deserialization schema-->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-avro</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!-- This build extension exposes various information about the current operating architecture -->
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.1</version>
+      </extension>
+    </extensions>
+
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.8.0</version>
+        <executions>
+
+          <execution>
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
+              <nodeVersion>v8.11.1</nodeVersion>
+              <npmVersion>5.6.0</npmVersion>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <!-- Optional configuration which provides for running any npm command
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>-->
+          </execution>
+
+          <!--
+          <execution>
+            <id>npm run build</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>run build</arguments>
+            </configuration>
+          </execution>-->
+        </executions>
+      </plugin>
+
+      <!-- Java Compiler -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+
+      <!-- Protobuf gRPC compiler -->
+      <!-- We need
+      protoc -I=$DIR echo.proto \
+        js_out=import_style=commonjs:$OUT_DIR \
+        grpc-web_out=import_style=commonjs,mode=grpcwebtext:$OUT_DIR
+      -->
+      <!-- Generated stubs can be found in generated-sources and normally imported -->
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>0.6.1</version>
+        <configuration>
+          <forceMojoExecution>true</forceMojoExecution>
+      <protocArtifact>
+        com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
+      </protocArtifact>
+      <pluginId>grpc-java</pluginId>
+      <pluginArtifact>
+        io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+      </pluginArtifact>
+      <protoSourceRoot>
+        ${project.parent.basedir}/schemas/src/main/proto
+      </protoSourceRoot>
+      <outputDirectory>
+        ${project.basedir}/generated/protobuf/js
+      </outputDirectory>
+      <!--
+      <javaScriptOptions></javaScriptOptions>
+      <nativePluginParameter>import_style=commonjs</nativePluginParameter>
+      <nativePluginId>grpc-web</nativePluginId>
+      -->
+    </configuration>
+    <executions>
+      <execution>
+        <goals>
+          <goal>compile-js</goal>
+        </goals>
+      </execution>
+    </executions>
+  </plugin>
+
+  <!-- Automatically generate avro stubs from json definition -->
+      <!-- Generated stubs can be found in generated-sources and normally imported
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>1.8.2</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+							<goal>protocol</goal>
+							<goal>idl-protocol</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>../schemas/avro/</sourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

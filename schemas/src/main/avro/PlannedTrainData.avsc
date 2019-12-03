@@ -1,0 +1,23 @@
+{
+ "namespace": "org.bptlab.cepta",
+ "type": "record",
+ "name": "PlannedTrainData",
+ "fields": [
+    {"name": "id", "type": "int"},
+    {"name": "train_id", "type": "int"},
+    {"name": "location_id", "type": "int"},
+    {"name": "planned_time", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "status", "type": "int"},
+    {"name": "first_train_number", "type": "int"},
+    {"name": "train_number_reference", "type": "int"},
+    {"name": "planned_departure_reference", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "planned_arrival_reference", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "train_operator_id", "type": "int"},
+    {"name": "transfer_location_id", "type": "int"},
+    {"name": "reporting_im_id", "type": "int"},
+    {"name": "next_im_id", "type": "int"},
+    {"name": "message_status", "type": "int"},
+    {"name": "message_creation", "type": "int", "logicaltype": "date"},
+    {"name": "original_train_number", "type": "int"}
+    ]
+}

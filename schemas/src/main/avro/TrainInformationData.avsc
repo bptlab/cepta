@@ -1,0 +1,22 @@
+{
+ "namespace": "org.bptlab.cepta",
+ "type": "record",
+ "name": "TrainInformationData",
+ "fields": [
+    {"name": "id", "type": "int"},
+    {"name": "train_number_reference", "type": "int"},
+    {"name": "planned_departure_reference", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "planned_arrival_reference", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "start_location_id", "type": "int"},
+    {"name": "planned_departure", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "planned_departure_deviation", "type": "int"},
+    {"name": "end_location_id", "type": "int"},
+    {"name": "planned_arrival", "type": "long", "logicaltype": "timestamp-millis"},
+    {"name": "planned_arrival_deviation", "type": "int"},
+    {"name": "euro_rail_run_id", "type": "int"},
+    {"name": "train_production_date", "type": "int", "logicaltype": "date"},
+    {"name": "first_train_number", "type": "int"},
+    {"name": "original_train_number", "type": "int"},
+    {"name": "im_id", "type": "int", "logicaltype": "date"}
+ ]
+}

@@ -1,0 +1,13 @@
+version: "3.6"
+services:
+  traindatareplayer:
+    build:
+      context: ../../../
+      dockerfile: deployment/common/java.exec.dockerfile
+      args:
+        MODULE: producers/train-replayer
+    command:
+      - --grpc-port 9000
+    # network_mode: host
+    ports:
+      - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000

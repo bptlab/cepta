@@ -1,0 +1,11 @@
+version: "3.6"
+services:
+  anubis:
+    build:
+      context: ../../../
+      dockerfile: deployment/common/java.exec.dockerfile
+      args:
+        MODULE: anubis
+    # network_mode: host
+    ports:
+      - ${CEPTA_WEBUI_BACKEND_PORT}:8082
