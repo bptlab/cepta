@@ -16,353 +16,359 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.bptlab.cepta</groupId>
-	<artifactId>cepta</artifactId>
-	<version>1.0</version>
-	<packaging>jar</packaging>
+  <groupId>org.bptlab.cepta</groupId>
+  <artifactId>cepta</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+  <name>cepta</name>
+  <url>https://github.com/bptlab/cepta</url>
 
-	<name>Cepta Build</name>
-	<url>https://github.com/bptlab/cepta</url>
+  <!-- Cepta maven submodules -->
+  <modules>
+    <module>anubis</module>
+    <module>core</module>
+    <module>utils</module>
+    <module>schemas</module>
+    <module>producers</module>
+    <module>osiris</module>
+    <module>config</module>
+  </modules>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.9.0</flink.version>
-		<java.version>1.8</java.version>
-		<scala.binary.version>2.11</scala.binary.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<!-- This config allows the exec plugin to be used: mvn clean compile exec:java -->
-		<exec.mainClass>org.bptlab.cepta.StreamingJob</exec.mainClass>
-	</properties>
+  <properties>
+    <!-- Flink version -->
+    <flink.version>1.9.0</flink.version>
 
-	<repositories>
-		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Development Snapshot Repository</name>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+    <!-- Avro version -->
+    <avro.version>1.9.0</avro.version>
+    <avro.maven.plugin.version>1.8.2</avro.maven.plugin.version>
 
-	<dependencies>
-		<!-- Apache Flink dependencies -->
-		<!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-java</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
+    <!-- Java versions -->
+    <java.version>1.8</java.version>
+    <scala.binary.version>2.11</scala.binary.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
 
-    	<!-- Rocks db state backend dependency -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<!-- for asynchronous querying postgres database from flink-->
-		<dependency>
-			<groupId>com.github.jasync-sql</groupId>
-			<artifactId>jasync-postgresql</artifactId>
-			<version>1.0.11</version>
-		</dependency>
+    <!-- gRPC versions -->
+    <grpc.version>1.25.0</grpc.version>
+    <protobuf.version>3.10.0</protobuf.version>
+    <protoc.version>3.10.0</protoc.version>
 
-		<!-- avro deserialization schema-->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-avro</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
+    <!-- Build settings -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- This config allows the exec plugin to be used: mvn clean compile exec:java -->
+    <!-- Set this property for all maven modules that need to provide a jar entrypoint -->
+    <exec.mainClass>org.bptlab.cepta.Main</exec.mainClass>
+  </properties>
 
-		<!-- for avro kafka consumer-->
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-core</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.6</version>
-		</dependency>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-bom</artifactId>
+        <version>${grpc.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
-		<!-- Flink testing utils -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-		</dependency>
+      <!-- JDBC database connector -->
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.2.0</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-		<!-- Test mocking utils -->
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.10.19</version>
-			<scope>test</scope>
-		</dependency>
+  <dependencies>
 
-		<!-- Flink runtime for testing harnesses -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-runtime_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<type>test-jar</type>
-		</dependency>
+    <!-- gRPC dependencies -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java-util</artifactId>
+      <version>${protobuf.version}</version>
+    </dependency>
 
-		<!-- Flink streaming dependency for testing harnesses -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>test</scope>
-			<type>test-jar</type>
-		</dependency>
+    <!-- Avro dependencies -->
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
 
-		<!-- Kafka connector -->
-		<dependency>
-		<groupId>org.apache.flink</groupId>
-		<artifactId>flink-connector-kafka-0.11_2.11</artifactId>
-		<scope>compile</scope>
-		<version>${flink.version}</version>
-		</dependency>
+    <!-- CLI parser -->
+    <dependency>
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+      <version>4.1.0</version>
+    </dependency>
 
-		<!-- Influxdb connector
-		<dependency>
-			<groupId>org.influxdb</groupId>
-			<artifactId>influxdb-java</artifactId>
-			<version>2.3</version>
-		</dependency>
-		-->
+    <!-- Add logging framework, to produce console output when running in the IDE. -->
+    <!-- These dependencies are excluded from the application JAR by default. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.7</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>runtime</scope>
+    </dependency>
 
-		<!-- Add logging framework, to produce console output when running in the IDE. -->
-		<!-- These dependencies are excluded from the application JAR by default. -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.7</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-			<scope>runtime</scope>
-		</dependency>
+    <!-- TestNG as our test environment -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
 
-		<!-- TestNG as our test environment -->
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>6.10</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <!-- gson for converting json to object and vice versa -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.6</version>
+    </dependency>
+  </dependencies>
 
-	<build>
-		<plugins>
-			<!-- for Avro code generation -->
-			<plugin>
-				<groupId>org.apache.avro</groupId>
-				<artifactId>avro-maven-plugin</artifactId>
-				<version>1.8.2</version>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>schema</goal>
-						</goals>
-						<configuration>
-							<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-							<outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+  <build>
+    <!-- This build extension exposes various information about the current operating architecture -->
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.1</version>
+      </extension>
+    </extensions>
 
-			<!-- Java Compiler -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
-			</plugin>
+    <plugins>
 
-			<!-- Automatic google checkstyle pre commit formatter -->
-			<plugin>
-				<groupId>com.coveo</groupId>
-				<artifactId>fmt-maven-plugin</artifactId>
-				<version>2.9</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>format</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+      </plugin>
 
-			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
-			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<!-- Run shade goal on package phase -->
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<exclude>org.apache.flink:force-shading</exclude>
-									<exclude>com.google.code.findbugs:jsr305</exclude>
-									<exclude>org.slf4j:*</exclude>
-									<exclude>log4j:*</exclude>
-								</excludes>
-							</artifactSet>
-							<filters>
-								<filter>
-									<!-- Do not copy the signatures in the META-INF folder.
-									Otherwise, this might cause SecurityExceptions when using the JAR. -->
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.bptlab.cepta.StreamingJob</mainClass>
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <configuration>
+          <forceMojoExecution>true</forceMojoExecution>
+          <protoSourceRoot>
+            ${project.basedir}/schemas/src/main/proto
+          </protoSourceRoot>
+        </configuration>
+      </plugin>
 
-			<!-- Following plugin executes the testng tests -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M3</version>
-				<configuration>
-					<!-- Suite testng xml file to consider for test execution -->
-					<suiteXmlFiles>
-						<suiteXmlFile>src/test/testng.xml</suiteXmlFile>
-					</suiteXmlFiles>
-					<properties>
-						<property>
-							<name>listener</name>
-							<value>org.bptlab.cepta.DotTestListener</value>
-						</property>
-					</properties>
-				</configuration>
-			</plugin>
+      <!-- Automatically generate avro stubs from json definition -->
+      <!-- Generated stubs can be found in generated-sources and normally imported -->
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>1.8.2</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+              <goal>protocol</goal>
+              <goal>idl-protocol</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${project.basedir}/schemas/src/main/avro/</sourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
 
-		</plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.1</version>
+          <configuration>
+            <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
+          </configuration>
+          <executions>
+            <!-- Run shade goal on package phase -->
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+              <configuration>
+                <artifactSet>
+                  <excludes>
+                    <!--
+                    <exclude>org.slf4j:*</exclude>
+                    <exclude>log4j:*</exclude>
+                    <exclude>org.apache.flink:force-shading</exclude>
+                    <exclude>com.google.code.findbugs:jsr305</exclude>-->
+                  </excludes>
+                </artifactSet>
+                <filters>
+                  <filter>
+                    <!-- Do not copy the signatures in the META-INF folder.
+                    Otherwise, this might cause SecurityExceptions when using the JAR. -->
+                    <artifact>*:*</artifact>
+                    <excludes>
+                      <exclude>META-INF/*.SF</exclude>
+                      <exclude>META-INF/*.DSA</exclude>
+                      <exclude>META-INF/*.RSA</exclude>
+                    </excludes>
+                  </filter>
+                </filters>
+                <transformers>
+                  <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <mainClass>${exec.mainClass}</mainClass>
+                  </transformer>
+                  <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                    <resource>reference.conf</resource>
+                  </transformer>
+                </transformers>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
 
-		<pluginManagement>
-			<plugins>
+        <!-- Protobuf gRPC compiler -->
+        <!-- Generated stubs can be found in generated-sources and normally imported -->
+        <plugin>
+          <groupId>org.xolstice.maven.plugins</groupId>
+          <artifactId>protobuf-maven-plugin</artifactId>
+          <version>0.6.1</version>
+          <configuration>
+            <forceMojoExecution>true</forceMojoExecution>
+            <protocArtifact>
+              com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
+            </protocArtifact>
+            <pluginId>grpc-java</pluginId>
+            <pluginArtifact>
+              io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
+            </pluginArtifact>
+            <protoSourceRoot>
+              ${project.basedir}/schemas/src/main/proto
+            </protoSourceRoot>
+          </configuration>
+          <executions>
+          </executions>
+        </plugin>
 
-				<!-- This improves the out-of-the-box experience in Eclipse by resolving some warnings. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-shade-plugin</artifactId>
-										<versionRange>[3.2.0,)</versionRange>
-										<goals>
-											<goal>shade</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore/>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-compiler-plugin</artifactId>
-										<versionRange>[3.8,)</versionRange>
-										<goals>
-											<goal>testCompile</goal>
-											<goal>compile</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore/>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <source>${java.version}</source>
+            <target>${java.version}</target>
+          </configuration>
+        </plugin>
 
-	<!-- This profile helps to make things run out of the box in IntelliJ -->
-	<!-- Its adds Flink's core classes to the runtime class path. -->
-	<!-- Otherwise they are missing in IntelliJ, because the dependency is 'provided' -->
-	<profiles>
-		<profile>
-			<id>add-dependencies-for-IDEA</id>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.6.0</version>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
 
-			<activation>
-				<property>
-					<name>idea.version</name>
-				</property>
-			</activation>
+        <!-- Automatic google checkstyle pre commit formatter -->
+        <plugin>
+          <groupId>com.coveo</groupId>
+          <artifactId>fmt-maven-plugin</artifactId>
+          <version>2.9</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>format</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
 
-			<dependencies>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-java</artifactId>
-					<version>${flink.version}</version>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-					<version>${flink.version}</version>
-					<scope>compile</scope>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
+        <!-- Following plugin executes the testng tests -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M3</version>
+          <configuration>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <!-- This profile helps to make things run out of the box in IntelliJ -->
+  <!-- Its adds Flink's core classes to the runtime class path. -->
+  <!-- Otherwise they are missing in IntelliJ, because the dependency is 'provided' -->
+  <profiles>
+    <profile>
+      <id>add-dependencies-for-IDEA</id>
+
+      <activation>
+        <property>
+          <name>idea.version</name>
+        </property>
+      </activation>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-java</artifactId>
+          <version>${flink.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+          <version>${flink.version}</version>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
