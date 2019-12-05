@@ -1,11 +1,8 @@
 ### Ignore DS_Store for mac users
 *.DS_Store
 
-# Ignore avro sources
-*.avsc
-
 ### Ignore java (build) artifacts
-dependency-reduced-pom.xml
+**/dependency-reduced-pom.xml
 
 # Compiled class file
 *.class
@@ -20,6 +17,7 @@ dependency-reduced-pom.xml
 .mtj.tmp/
 
 # Package Files #
+**/.mvn
 *.iml
 *.jar
 *.war
