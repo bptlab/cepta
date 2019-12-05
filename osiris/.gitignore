@@ -2,7 +2,7 @@
 *.DS_Store
 
 ### Ignore java (build) artifacts
-**/dependency-reduced-pom.xml
+dependency-reduced-pom.xml
 
 # Compiled class file
 *.class
@@ -17,7 +17,6 @@
 .mtj.tmp/
 
 # Package Files #
-**/.mvn
 *.iml
 *.jar
 *.war
