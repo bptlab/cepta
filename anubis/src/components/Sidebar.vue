@@ -116,6 +116,7 @@
 import SidebarElement from "./SidebarElement";
 import SidebarDropdown from "./SidebarDropdown";
 import SidebarDropdownElement from "./SidebarDropdownElement";
+import {AppModule} from "../store/modules/app";
 
 export default {
   name: "Sidebar",
@@ -134,10 +135,12 @@ export default {
       default: "@/assets/images/logo.png"
     }
   },
-  data() {},
+  data() {
+    return {}
+  },
   methods: {
     toggleSidebar() {
-      this.$store.commit("TOGGLE_COLLAPSE");
+      AppModule.toggleCollapse();
     }
   },
   mounted() {}

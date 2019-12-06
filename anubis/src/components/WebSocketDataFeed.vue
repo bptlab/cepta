@@ -2,7 +2,7 @@
   <div>
     <div id="main-content" class="container">
       <div class="row">
-        <button id="replayBtn" @click="send" class="btn btn-danger">Replay Data!</button>
+        <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
         <basic-table
             :data-table="true"
             :showIndices="false"
@@ -21,6 +21,7 @@ import Stomp from "webstomp-client";
 import RowLayout from "../components/RowLayout";
 import RowLayoutRow from "../components/RowLayoutRow";
 import BasicTable from "../components/BasicTable";
+import {GrpcModule} from "../store/modules/grpc";
 
 export default {
   name: "WebSocketDataFeed",
@@ -56,13 +57,8 @@ export default {
     };
   },
   methods: {
-    send() {
-      while (true){
-        if (this.stompClient && this.stompClient.connected) {
-          const msg = { update: "I would like to receive Data" };
-          this.stompClient.send("/app/updates", JSON.stringify(msg), {});
-        }
-      }
+    replay() {
+      GrpcModule.replayData().then()
     },
     connect(socket, url = "/queue/updates"){
       this.stompClient = Stomp.over(socket);

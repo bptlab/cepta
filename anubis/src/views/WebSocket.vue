@@ -39,7 +39,7 @@ export default {
     }
   },
   mounted() {
-    this.connect();
+    // this.connect();
   },
   destroyed() {
     this.disconnect();
