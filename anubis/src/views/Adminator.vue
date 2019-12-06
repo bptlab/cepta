@@ -31,6 +31,7 @@
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import NavigationBar from "../components/Navbar";
+import {AppModule} from "../store/modules/app";
 
 export default {
   name: "Adminator",
@@ -45,7 +46,7 @@ export default {
   },
   computed: {
     isCollapsed() {
-      return this.$store.state.isCollapsed;
+      return AppModule.isCollapsed;
     }
   },
   mounted() {

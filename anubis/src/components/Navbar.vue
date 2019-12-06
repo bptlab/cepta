@@ -32,7 +32,7 @@
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
-        <button id="replayBtn" @click="callAPI" class="btn btn-danger">Replay Data!</button>
+        <!--<button id="replayBtn" @click="replayData" class="btn btn-danger">Replay Data!</button>-->
         <notifications-dropdown
           title="Notifications"
           :number="3"
@@ -102,6 +102,8 @@ import NotificationsDropdown from "@/components/NotificationsDropdown";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement";
 import EmailDropdownElement from "@/components/EmailDropdownElement";
 import AccountDropdown from "@/components/AccountDropdown";
+import { GrpcModule } from "@/store/modules/grpc";
+import {AppModule} from "../store/modules/app";
 
 export default {
   name: "NavigationBar",
@@ -127,15 +129,11 @@ export default {
       }, 0);
     },
     toggleSidebar() {
-      this.$store.commit("TOGGLE_COLLAPSE");
+      AppModule.toggleCollapse();
       this.$redrawVueMasonry();
       setTimeout(() => {
         this.$redrawVueMasonry();
       }, 0.2 * 500);
-    },
-    callAPI(){
-      console.log("API call");
-      alert("Dangerzone");
     }
   },
   mounted() {}
