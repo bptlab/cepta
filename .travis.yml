@@ -42,6 +42,7 @@ before_script:
 
 script:
   # Test docker compose regressions
-  - (exit $(docker inspect -f "{{.State.ExitCode}}" test_pgadmin_1))
+  # - (exit $(docker inspect -f "{{.State.ExitCode}}" test_pgadmin_1))
+  - docker ps | grep -q pgadmin
   # Check if the project builds successfully
   - mvn clean verify
