@@ -1,4 +1,4 @@
-package org.bptlab.cepta.anubis;
+package org.bptlab.cepta.osiris;
 /*
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

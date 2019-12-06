@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  core:
+    build:
+      context: ../../../
+      dockerfile: deployment/common/java.exec.dockerfile
+      args:
+        MODULE: core
+    depends_on:
+      - flink
+      - kafka
+
+    # network_mode: host
+    # ports:
+    #  - ${CEPTA_WEBUI_BACKEND_PORT}:8082

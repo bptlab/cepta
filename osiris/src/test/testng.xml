@@ -16,7 +16,7 @@
       </run>
     </groups>
     <classes>
-      <class name="org.bptlab.cepta.anubis.GreetingIntegrationTests" />
+      <!-- <class name="org.bptlab.cepta.osiris.GreetingIntegrationTests" /> -->
     </classes>
   </test>
 </suite>

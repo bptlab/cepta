@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  osiris:
+    build:
+      context: ../../../
+      dockerfile: deployment2/common/java.exec.dockerfile
+      args:
+        MODULE: osiris
+    # network_mode: host
+    depends_on:
+      - kafka
+    command:
+      - --server.port=8082
+    ports:
+      - ${CEPTA_WEBUI_BACKEND_PORT}:8082

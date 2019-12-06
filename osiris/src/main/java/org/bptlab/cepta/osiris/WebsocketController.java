@@ -1,9 +1,12 @@
-package org.bptlab.cepta.anubis;
+package org.bptlab.cepta.osiris;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.concurrent.TimeUnit;
+import org.bptlab.cepta.osiris.Greeting;
+import org.bptlab.cepta.osiris.HelloMessage;
 import org.bptlab.cepta.producers.replayer.Empty;
 import org.bptlab.cepta.producers.replayer.ReplayerGrpc;
 import org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerBlockingStub;
@@ -18,7 +21,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
+/*
 class ReplayerClient {
 
 	private final ManagedChannel channel;
@@ -44,18 +49,17 @@ class ReplayerClient {
 	}
 
 }
+*/
 
 @Controller
 public class WebsocketController {
+	@MessageMapping("/updates")
+	public Object provideNotifications() throws IOException {
+		Object feed = new DataFeedStub().nextFeed();
+		return feed;
+	}
 
 	/*
-	@MessageMapping("/hello")
-	@SendTo("/topic/greetings")
-	public Greeting greeting(HelloMessage message) throws Exception {
-		Thread.sleep(500); // simulated delay
-		return new Greeting("Hello, " + HtmlUtils.htmlEscape(message.getName()) + "!");
-	}*/
-
 	@RequestMapping(value = "/test", method = RequestMethod.GET,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
@@ -80,4 +84,11 @@ public class WebsocketController {
 		return "Hello" + message;
 	}
 
+	@MessageMapping("/hello")
+	@SendTo("/topic/greetings")
+	public Greeting greeting(HelloMessage message) throws Exception {
+		Thread.sleep(500); // simulated delay
+		return new Greeting("Hello, " + HtmlUtils.htmlEscape(message.getName()) + "!");
+	}
+	 */
 }

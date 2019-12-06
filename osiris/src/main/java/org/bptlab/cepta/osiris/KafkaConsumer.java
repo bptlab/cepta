@@ -1,4 +1,4 @@
-package org.bptlab.cepta.anubis;
+package org.bptlab.cepta.osiris;
 
 import java.io.IOException;
 import org.bptlab.cepta.config.constants.KafkaConstants;

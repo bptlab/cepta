@@ -1,0 +1,30 @@
+version: "3.6"
+services:
+  flink-jobmanager:
+    image: flink:latest
+    # network_mode: host
+    expose:
+      - 6123
+    ports:
+      - ${CEPTA_FLINK_JOBMANAGER_PORT}:6123
+      - ${CEPTA_FLINK_JOBMANAGER_UI_PORT}:8081
+    command: jobmanager
+    environment:
+      # Use "flink-jobmanager" for bridged networks, "localhost" for network mode
+      JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
+
+  flink-taskmanager:
+    image: flink:latest
+    # network_mode: host
+    expose:
+      - 6121
+      - 6122
+    #ports:
+    #  - ${CEPTA_FLINK_TASKMANAGER_PORT_1}:6121
+    #  - ${CEPTA_FLINK_TASKMANAGER_PORT_2}:6122
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    environment:
+      # Use "flink-jobmanager" for bridged networks, "localhost" for network mode
+      JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
