@@ -1,8 +1,24 @@
 branches:
   only:
     - /^*$/
+cache:
+  directories:
+  - $HOME/.m2
+jobs:
+  include:
+   - os: linux
+     arch: amd64
+   - os: linux
+     arch: arm64
+   - os: osx
+   - os: windows
+     language: shell
+
 language: java
 jdk:
   - openjdk8
-sudo: false
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install openjdk8 maven ; fi
+
 script: mvn clean verify
