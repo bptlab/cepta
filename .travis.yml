@@ -10,15 +10,22 @@ jobs:
      arch: amd64
    - os: linux
      arch: arm64
+     addons:
+       apt:
+         packages:
+           - maven
    - os: osx
+     jdk: openjdk11
    - os: windows
      language: shell
 
 language: java
 jdk:
   - openjdk8
+  - openjdk11
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install openjdk8 maven ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then refreshenv ; fi
 
 script: mvn clean verify
