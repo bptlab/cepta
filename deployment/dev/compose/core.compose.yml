@@ -77,6 +77,11 @@ services:
       # Use volumes for persistence but avoid during changes of configuration
       # volumes:
       # - ./dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     secrets:
       - source: postgres_passwd
         target: postgres-passwd
@@ -92,7 +97,7 @@ services:
     image: dpage/pgadmin4
     depends_on:
       - postgres
-    restart: always
+    restart: "no"
     environment:
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
       PGADMIN_CONFIG_SERVER_MODE: "False"
@@ -103,11 +108,15 @@ services:
       - ../../common/exec-win-compat.sh:/exec-win-compat.sh
       - ./pgadmin/pgadmin-entrypoint.sh:/entrypoint.sh
       - ./pgadmin/pgpass.txt:/.pgpass
-    # entrypoint: "dos2unix /entrypoint.sh && /bin/sh /entrypoint.sh"
     entrypoint: "/bin/sh /exec-win-compat.sh /entrypoint.sh"
-    #logging:
+    healthcheck:
+      test: ["CMD", "curl -f 'http://localhost:8070'"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+    logging:
       # Disable logging
-    #  driver: none
+      driver: none
 
   osiris:
     build:
