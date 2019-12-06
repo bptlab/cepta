@@ -58,13 +58,13 @@ const routes = [
   },
   {
     path: "/dashboard",
-    redirect: "/dashboard/start",
+    redirect: "/dashboard/websockets",
     meta: { requiresAuth: true },
     beforeEnter: ifAuthenticated,
     component: Adminator,
     children: [
       {
-        path: "start",
+        path: "dashboard",
         name: "dashboard",
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,

@@ -2,7 +2,7 @@
   <div>
     <div id="main-content" class="container">
       <div class="row">
-        <button id="replayBtn" @click="send" class="btn btn-danger">Replay Data!</button>
+        <button id="replayBtn" class="btn btn-danger">Replay Data!</button>
         <basic-table
             :data-table="true"
             :showIndices="false"
@@ -28,52 +28,22 @@ export default {
   data() {
     return {
       receivedUpdates:
-        [
-        [
-          "TrainID",
-          "old ETA",
-          "Delay",
-          "new ETA",
-          "cause"
+        [["TrainID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
         ],
-        [
-          1111,
-          '10:15',
-          30,
-          '10:45',
-          'snow'
-        ],
-        [
-          1112,
-          '12:30',
-          30,
-          '13:00',
-          'wind'
-        ],
-
-      ],
-      stompClient: null
     };
   },
   methods: {
-    send() {
-      while (true){
-        if (this.stompClient && this.stompClient.connected) {
-          const msg = { update: "I would like to receive Data" };
-          this.stompClient.send("/app/updates", JSON.stringify(msg), {});
-        }
+    connect(stomp, url = "/topic/updates"){
+      if(this.stompClient){
+        this.disconnect();
       }
-    },
-    connect(socket, url = "/queue/updates"){
-      this.stompClient = Stomp.over(socket);
 
+      this.stompClient = stomp;
       this.stompClient.connect(
           {},
-          frame => {
-            console.log(frame);
+          () => {
             this.stompClient.subscribe(url, update => {
-              console.log(update);
-              this.receivedUpdates.push(update);
+              this.pushUpdate(update);
             });
           },
           error => {
@@ -81,8 +51,19 @@ export default {
           }
       );
     },
-  },
-  mounted () {
+    pushUpdate(update){
+      let obj = JSON.parse(update.body);
+      let newInput =  new Array();
+
+      for (let value of Object.entries(obj)) {
+        newInput.push(value[1]);
+      }
+
+      this.receivedUpdates.push(newInput);
+    },
+    disconnect(){
+      this.stompClient.disconnect();
+    }
   }
 };
 </script>

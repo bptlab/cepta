@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import SockJS from "sockjs-client";
 import Stomp from "webstomp-client";
 
 export default {
@@ -40,20 +41,20 @@ export default {
   data() {
     return {
       receivedMessages: [],
-      sendMessage: null,
-      stompClient: null
+      sendMessage: null
     };
   },
   methods: {
     send() {
       console.log("Send message:" + this.sendMessage);
       if (this.stompClient && this.stompClient.connected) {
-        const msg = { name: this.sendMessage };
+        const msg = {name: this.sendMessage};
+        console.log(JSON.stringify(msg));
         this.stompClient.send("/app/hello", JSON.stringify(msg), {});
       }
     },
-    connect(socket){
-      this.stompClient = Stomp.over(socket);
+    connect(stomp) {
+      this.stompClient = stomp;
       this.stompClient.connect(
           {},
           frame => {
@@ -67,7 +68,7 @@ export default {
             console.log(error);
           }
       );
-    },
+    }
   }
 };
 </script>

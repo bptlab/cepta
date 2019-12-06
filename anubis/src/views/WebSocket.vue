@@ -16,7 +16,8 @@
 import WebSocketGreeting from "@/components/WebSocketGreeting.vue";
 import WebSocketDataFeed from "@/components/WebSocketDataFeed.vue";
 import MasonryLayout from "@/components/MasonryLayout";
-import MasonryLayoutTile from "@/components/MasonryLayoutTile";
+import MasonryLayoutTile from "@/components/MasonryLayoutTile"
+import Stomp from "webstomp-client";
 import SockJS from "sockjs-client";
 
 export default {
@@ -27,15 +28,17 @@ export default {
     MasonryLayout,
     MasonryLayoutTile
   },
+
   methods: {
     connect() {
-      this.socket = new SockJS("http://localhost:8082/ws");
-      this.$refs.greeting.connect(this.socket);
-      this.$refs.feed.connect(this.socket);
+      this.socket = new SockJS("http://localhost:8087/ws");
+      this.stompClient = Stomp.over(this.socket);
+      //this.$refs.greeting.connect(this.stompClient);
+      this.$refs.feed.connect(this.stompClient);
     },
     disconnect() {
-      this.$refs.greeting.stompClient.disconnect();
-      this.$refs.feed.stompClient.disconnect();
+      //this.$refs.greeting.stompClient.disconnect();
+      this.$refs.feed.disconnect();
     }
   },
   mounted() {
@@ -44,6 +47,7 @@ export default {
   destroyed() {
     this.disconnect();
   }
+
 };
 </script>
 
