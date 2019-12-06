@@ -38,7 +38,7 @@ before_install:
 
 before_script:
   # Try to start pgadmin via docker
-  - deployment/dev/devenv.sh -p test up pgadmin
+  - deployment/dev/devenv.sh -p test up -d pgadmin
 
 script:
   # Test docker compose regressions
