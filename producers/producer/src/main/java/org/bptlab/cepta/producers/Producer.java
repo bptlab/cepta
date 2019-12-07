@@ -15,7 +15,8 @@ public abstract class Producer<K, V> {
   ProducerBackgroundRunner runner;
   Thread runnerThread;
 
-  public Producer(Properties props) {
+  public Producer(Properties props, String topicName) {
+    topic = topicName;
     this.producer = new KafkaProducer<>(props);
   }
 

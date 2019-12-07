@@ -9,8 +9,8 @@ public abstract class Replayer<K, V> extends Producer<K, V> {
   public Optional<Integer> limit = Optional.empty();
   public int offset = 0;
 
-  public Replayer(Properties props) {
-    super(props);
+  public Replayer(Properties props, String topicName) {
+    super(props, topicName);
   }
 
   public abstract void reset() throws Exception;
