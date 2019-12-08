@@ -4,13 +4,14 @@ import tempfile
 import shutil
 import glob
 import os
+import subprocess
 
 protoc_version = "3.11.1"
 grpc_web_plugin_version = "1.0.7"
-protoc_release_base_url = \
+protoc_release_base_url = (
     "https://github.com/protocolbuffers/protobuf/releases/download"
-grpc_web_plugin_release_base_url = \
-    "https://github.com/grpc/grpc-web/releases/download"
+)
+grpc_web_plugin_release_base_url = "https://github.com/grpc/grpc-web/releases/download"
 
 
 def valid_dir(_parser, arg):
@@ -19,17 +20,29 @@ def valid_dir(_parser, arg):
     _parser.error('Directory "' + arg + '" does not exist.')
 
 
-def proto_compile(proto_source_dir, output_dir, js_out_options=None,
-                  grpc_web_out_options=None, clear_output_dir=False):
+def print_command(cmd):
+    print(cmd.decode("utf-8"))
 
+
+def quote(s):
+    return '"' + s + '"'
+
+
+def proto_compile(
+    proto_source_dir,
+    output_dir,
+    js_out_options=None,
+    grpc_web_out_options=None,
+    clear_output_dir=False,
+):
     abs_source = os.path.abspath(proto_source_dir)
     abs_output = os.path.abspath(output_dir)
-    proto_files = glob.glob(abs_source + '/*.proto')
+    proto_files = glob.glob(abs_source + "/*.proto")
     if not len(proto_files) > 0:
         raise AssertionError(
-            "Source directory " + abs_source + " must contain .proto file(s)")
+            "Source directory " + abs_source + " must contain .proto file(s)"
+        )
 
-    # with tempfile.TemporaryDirectory() as tmp_dirname:
     tmp_dir = tempfile.mkdtemp()
     try:
         # Download correct files
@@ -39,53 +52,91 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
 
         protoc_release_url = protoc_release_base_url
         protoc_release_url += "/v" + protoc_version
-        protoc_release_url += "/protoc-" + protoc_version + \
-            "-" + system_alias + "-" + machine_arch + ".zip"
+        protoc_release_url += (
+            "/protoc-"
+            + protoc_version
+            + "-"
+            + system_alias
+            + "-"
+            + machine_arch
+            + ".zip"
+        )
 
         grpc_web_plugin_release_url = grpc_web_plugin_release_base_url
         grpc_web_plugin_release_url += "/" + grpc_web_plugin_version
-        grpc_web_plugin_release_url += "/protoc-gen-grpc-web-" + \
-            grpc_web_plugin_version + "-" + system + "-" + machine_arch
+        grpc_web_plugin_release_url += (
+            "/protoc-gen-grpc-web-"
+            + grpc_web_plugin_version
+            + "-"
+            + system
+            + "-"
+            + machine_arch
+        )
 
         download = dict(
-            protoc=protoc_release_url,
-            protoc_gen_grpc_web=grpc_web_plugin_release_url)
+            protoc=protoc_release_url, protoc_gen_grpc_web=grpc_web_plugin_release_url
+        )
 
         for executable, url in download.items():
-            is_zip = os.path.splitext(url)[1].lower() == "zip"
-            print(
-                os.popen(
-                    "wget -O " +
-                    tmp_dir +
-                    "/" +
-                    executable +
-                    " " +
-                    url).read())
+            filename = os.path.basename(url)
+            is_zip = os.path.splitext(filename)[1].lower() == ".zip"
+            download_command = str(" ").join(
+                [
+                    "wget",
+                    "-O",
+                    tmp_dir + "/" + (filename if is_zip else executable),
+                    quote(url),
+                ]
+            )
+            print(download_command)
+            print_command(
+                subprocess.check_output(
+                    download_command, stderr=subprocess.STDOUT, shell=True
+                )
+            )
             if is_zip:
-                print(
-                    os.popen(
-                        "unzip " +
-                        tmp_dir +
-                        "/" +
-                        executable).read())
-            print(os.popen("ls -la " + tmp_dir).read())
+                unzip_command = str(" ").join(
+                    [
+                        "unzip",
+                        tmp_dir + "/" + filename,
+                        "-d",
+                        tmp_dir + "/" + executable,
+                    ]
+                )
+                print(unzip_command)
+                print_command(
+                    subprocess.check_output(
+                        unzip_command, stderr=subprocess.STDOUT, shell=True
+                    )
+                )
 
-        # Construct command
+        print_command(
+            subprocess.check_output(
+                "ls -la " + tmp_dir, stderr=subprocess.STDOUT, shell=True
+            )
+        )
+
+        # Construct protoc compiler command
         # See: https://github.com/grpc/grpc-web
-        proto_command = "protoc -I=" + abs_source + \
-            " " + str(" ").join(proto_files)
+        proto_command = [
+            tmp_dir + "/protoc/bin/protoc",
+            "-I=" + abs_source,
+        ] + proto_files
+        proto_command.append(
+            "--plugin=protoc-gen-grpc_web=" + tmp_dir + "/protoc_gen_grpc_web"
+        )
 
-        proto_command += " --plugin=protoc-gen-grpc_web=protoc_gen_grpc_web"
+        proto_command.append(
+            "--js_out="
+            + ((js_out_options + ":") if js_out_options else "")
+            + abs_output
+        )
 
-        proto_command += " --js_out="
-        if js_out_options:
-            proto_command += js_out_options + ":"
-        proto_command += abs_output
-
-        proto_command += " --grpc-web_out="
-        if grpc_web_out_options:
-            proto_command += grpc_web_out_options + ":"
-        proto_command += abs_output
+        proto_command.append(
+            "--grpc-web_out="
+            + ((grpc_web_out_options + ":") if grpc_web_out_options else "")
+            + abs_output
+        )
 
         # Eventually clear the output dir
         if os.path.exists(abs_output) and clear_output_dir:
@@ -95,7 +146,8 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
         if not os.path.exists(abs_output):
             os.makedirs(abs_output)
 
-        print(os.popen(proto_command).read())
+        print(str(" ").join(proto_command))
+        print_command(subprocess.check_output(proto_command, stderr=subprocess.STDOUT))
 
     finally:
         # Remove temporary directory
@@ -107,24 +159,22 @@ if __name__ == "__main__":
     parser.add_argument(
         "proto_source_dir",
         type=lambda x: valid_dir(parser, x),
-        help="directory containing the .proto sources to be compiled"
+        help="directory containing the .proto sources to be compiled",
     )
     parser.add_argument(
-        "output_dir",
-        type=str,
-        help="output directory for the compiled stubs"
+        "output_dir", type=str, help="output directory for the compiled stubs"
     )
     parser.add_argument(
         "--js_out_options",
         dest="js_out_options",
         default="import_style=commonjs,binary",
-        help="options for the javascript proto compiler"
+        help="options for the javascript proto compiler",
     )
     parser.add_argument(
         "--grpc_web_out_options",
         dest="grpc_web_out_options",
         default="import_style=typescript,mode=grpcwebtext",
-        help="options for the grpc web proto compiler"
+        help="options for the grpc web proto compiler",
     )
     parser.add_argument(
         "--clear_output_dir",
