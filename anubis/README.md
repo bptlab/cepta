@@ -1,34 +1,15 @@
-# frontend
+## Anubis web frontend
 
-## Project setup
-```
-npm install
-```
+## Get started
+|Command | Description
+|--------|------------
+| `npm install` | Installs all dependencies
+| `npm run serve` | Run a local dev version with hot reload
+| `npm run build` | Compile optimized static files
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Run your end-to-end tests
-```
-npm run test:e2e
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Testing
+|Command | Description
+|--------|------------
+| `npm run lint` | Lint and check for errors
+| `npm run test:unit` | Run unittests
+| `npm run test:e2e` | Run end to end tests
