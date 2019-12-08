@@ -153,7 +153,7 @@ def proto_compile(
             os.makedirs(abs_output)
 
         print(str(" ").join(proto_command))
-        print_command(proto_command, stderr=subprocess.STDOUT)
+        print_command(str(" ").join(proto_command), stderr=subprocess.STDOUT, shell=True)
 
     finally:
         # Remove temporary directory
