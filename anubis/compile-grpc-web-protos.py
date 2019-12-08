@@ -111,6 +111,15 @@ def proto_compile(
                 print(unzip_command)
                 print_command(unzip_command, stderr=subprocess.STDOUT, shell=True)
 
+        # Make executables
+        for executable in [tmp_dir + "/protoc/bin/protoc", tmp_dir + "/protoc_gen_grpc_web"]:
+            chmod_command = str(" ").join(
+                ["chmod", "+x", executable]
+            )
+            print(chmod_command)
+            print_command(chmod_command, stderr=subprocess.STDOUT,
+                          shell=True)
+
         print_command("ls -la " + tmp_dir, stderr=subprocess.STDOUT, shell=True)
 
         # Construct protoc compiler command
