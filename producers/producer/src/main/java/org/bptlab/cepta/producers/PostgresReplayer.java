@@ -6,10 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
+import jdk.internal.jline.internal.Nullable;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.bptlab.cepta.producers.exceptions.NoDatabaseConnectionException;
@@ -19,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
-  private static final Logger logger =
+  protected static final Logger logger =
       LoggerFactory.getLogger(PostgresReplayer.class.getName());
 
   public String tableName;
@@ -77,6 +82,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     try {
       connection = DriverManager.getConnection(config.getUrl(), config.getUser(), config.getPassword());
       connected = true;
+      logger.info("Successfully connected to database");
     } catch (SQLException e) {
       logger.error("SQLException: database connection could not be established.");
       logger.error(String.format("database connection parameters: %s", config.getUrl()));
@@ -84,7 +90,12 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     }
   }
 
-  public String buildReplayQuery() {
+  protected  <T extends Date> void convertTimestamp(@Nullable T ts, Function<Long, ?> resultHandler) {
+    Optional.ofNullable(ts).map(T::toInstant).map(
+        Instant::toEpochMilli).map(resultHandler);
+  }
+
+  private String buildReplayQuery() {
     List<String> parts = new ArrayList<String>();
     // Datasource
     parts.add(String.format("SELECT * FROM %s", this.tableName));
@@ -127,7 +138,6 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
 
       while (result.next()) {
         try {
-          logger.debug(result.getString("pointtime"));
           V event = convertToEvent(result);
           ProducerRecord<K, V> record =
               new ProducerRecord<K, V>(topic, event);
@@ -137,8 +147,10 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
                   record.key(), (V) record.value(), metadata.partition(), metadata.offset()));
           producer.flush();
           Thread.sleep(this.frequency);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
+          logger.warn("Failed to process database entry. Will continue with the next entry.");
           e.printStackTrace();
+          throw e;
         }
       }
       logger.info("There is no more live train data left in the database. Exiting.");
@@ -149,7 +161,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     }
   }
 
-  public abstract V convertToEvent(ResultSet result);
+  public abstract V convertToEvent(ResultSet result) throws Exception;
 
   public void reset() throws Exception {
     stop();

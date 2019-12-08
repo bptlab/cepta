@@ -1,34 +1,27 @@
 package org.bptlab.cepta.producers.trainreplayer;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Function;
-import jdk.internal.jline.internal.Nullable;
-import org.bptlab.cepta.LiveTrainData;
+import org.bptlab.cepta.PlannedTrainData;
+import org.bptlab.cepta.PredictedTrainData;
 import org.bptlab.cepta.producers.PostgresReplayer;
 
-public class LiveTrainDataReplayer extends PostgresReplayer<Long, LiveTrainData> {
+public class PredictedTrainDataReplayer extends PostgresReplayer<Long, PredictedTrainData> {
 
-  LiveTrainDataReplayer(Properties props, String topicName) {
+  PredictedTrainDataReplayer(Properties props, String topicName) {
     super(props, topicName);
-    setSortColumn("ACTUAL_TIME");
-    setTableName("public.live");
+    setSortColumn("PREDICTED_TIME");
+    setTableName("public.predictions");
   }
 
   @Override
-  public LiveTrainData convertToEvent(ResultSet result) throws Exception {
-    LiveTrainData.Builder event = LiveTrainData.newBuilder();
+  public PredictedTrainData convertToEvent(ResultSet result) throws Exception {
+    PredictedTrainData.Builder event = PredictedTrainData.newBuilder();
     try {
       event.setId(result.getInt("id"));
       event.setTrainId(result.getInt("train_id"));
       event.setLocationId(result.getInt("location_id"));
-      convertTimestamp(result.getTimestamp("actual_time"), event::setActualTime);
+      convertTimestamp(result.getTimestamp("predicted_time"), event::setPredictedTime);
       event.setStatus(result.getInt("status"));
       event.setFirstTrainNumber(result.getInt("first_train_number"));
       event.setTrainNumberReference(result.getInt("train_number_reference"));
@@ -40,7 +33,7 @@ public class LiveTrainDataReplayer extends PostgresReplayer<Long, LiveTrainData>
       event.setMessageStatus(result.getInt("message_status"));
       convertTimestamp(result.getTimestamp("message_creation"), event::setMessageCreation);
     } catch (Exception e) {
-      logger.error("Failed to convert database entry to live train data event");
+      logger.error("Failed to convert database entry to predicted train data event");
       throw e;
     }
     logger.info(event.build().toString());

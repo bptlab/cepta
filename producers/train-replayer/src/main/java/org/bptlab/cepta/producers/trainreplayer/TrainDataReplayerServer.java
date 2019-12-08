@@ -6,11 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
 import org.bptlab.cepta.producers.PostgresReplayer;
 import org.bptlab.cepta.producers.exceptions.NoDatabaseConnectionException;
 import org.bptlab.cepta.producers.replayer.Success;
-import org.bptlab.cepta.utils.grpc.GrpcServer;
+import org.bptlab.cepta.schemas.grpc.GrpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,25 +20,28 @@ import org.slf4j.LoggerFactory;
 
 public class TrainDataReplayerServer
     extends GrpcServer<org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerImplBase> {
+
   private static final Logger logger =
       LoggerFactory.getLogger(TrainDataReplayerServer.class.getName());
 
   public static final class Builder {
+
     private int servicePort;
-    private Properties kafkaConfig = new Properties();
+    private KafkaConfig kafkaConfig = new KafkaConfig();
     private PostgresConfig databaseConfig = new PostgresConfig();
     private long frequency = 5000;
     private Optional<Timestamp> startTimestamp;
     private Optional<Timestamp> endTimestamp;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     public Builder withDatabaseConfig(PostgresConfig config) {
       databaseConfig = config;
       return this;
     }
 
-    public Builder withKafkaConfig(Properties config) {
+    public Builder withKafkaConfig(KafkaConfig config) {
       kafkaConfig = config;
       return this;
     }
@@ -57,12 +62,24 @@ public class TrainDataReplayerServer
     }
 
     public TrainDataReplayerServer build(int servicePort) {
-      LiveTrainDataReplayer liveTrainDataReplayer = new LiveTrainDataReplayer(kafkaConfig, "Test");
-      PlannedTrainDataReplayer plannedTrainDataReplayer = new PlannedTrainDataReplayer(kafkaConfig, "Test");
+      LiveTrainDataReplayer liveTrainDataReplayer = new LiveTrainDataReplayer(
+          kafkaConfig.withClientId("liveTrainDataReplayerClient").getProperties(),
+          Topics.LIVE_TRAIN_DATA);
+      PlannedTrainDataReplayer plannedTrainDataReplayer = new PlannedTrainDataReplayer(
+          kafkaConfig.withClientId("plannedTrainDataReplayerClient").getProperties(),
+          Topics.PLANNED_TRAIN_DATA);
+      PredictedTrainDataReplayer predictedTrainDataReplayer = new PredictedTrainDataReplayer(
+          kafkaConfig.withClientId("predictedTrainDataReplayerClient").getProperties(),
+          Topics.PREDICTED_TRAIN_DATA);
+      TrainInformationDataReplayer trainInformationDataReplayer = new TrainInformationDataReplayer(
+          kafkaConfig.withClientId("trainInformationDataReplayerClient").getProperties(),
+          Topics.TRAIN_INFO_DATA);
 
       PostgresReplayer[] replayers = new PostgresReplayer[]{
           liveTrainDataReplayer,
-          plannedTrainDataReplayer
+          plannedTrainDataReplayer,
+          predictedTrainDataReplayer,
+          trainInformationDataReplayer
       };
 
       for (PostgresReplayer replayer : replayers) {
@@ -87,41 +104,14 @@ public class TrainDataReplayerServer
     super(new TrainDataReplayerService(replayers), servicePort);
   }
 
-  /*
-  public static TrainDataReplayerServer build(Properties properties, int servicePort) {
-    LiveTrainDataReplayer liveTrainDataReplayer = new LiveTrainDataReplayer(properties);
-    liveTrainDataReplayer.setTopic("Test");
-    PlannedTrainDataReplayer plannedTrainDataReplayer = new PlannedTrainDataReplayer(properties);
-    plannedTrainDataReplayer.setTopic("Test");
-
-    PostgresReplayer[] replayers = new PostgresReplayer[]{
-        liveTrainDataReplayer,
-        plannedTrainDataReplayer
-    };
-
-    for (PostgresReplayer replayer : replayers) {
-      replayer.connect(
-          databaseConnector,
-          databaseProtocol,
-          databaseHost,
-          databasePort,
-          databaseName,
-          databaseUser,
-          databasePassword);
-      startTimestamp.ifPresent(replayer::setStartTime);
-      endTimestamp.ifPresent(replayer::setEndTime);
-      replayer.setFrequency(frequency);
-    }
-
-    return new TrainDataReplayerServer(replayers, servicePort);
-  }*/
-
   private static class TrainDataReplayerService
       extends org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerImplBase {
+
     private PostgresReplayer[] replayers;
 
     @FunctionalInterface
     public interface UnsafeFunction<T, R> {
+
       R apply(T t) throws Exception;
     }
 
@@ -129,7 +119,8 @@ public class TrainDataReplayerServer
       this.replayers = replayers;
     }
 
-    private Success forEachReplayer(UnsafeFunction<PostgresReplayer, Optional<? extends Success>> routine) {
+    private Success forEachReplayer(
+        UnsafeFunction<PostgresReplayer, Optional<? extends Success>> routine) {
       List<Success> received = new ArrayList<>();
       for (PostgresReplayer replayer : replayers) {
         try {
@@ -139,7 +130,8 @@ public class TrainDataReplayerServer
           received.add(Success.newBuilder().setSuccess(false).build());
         }
       }
-      return Success.newBuilder().setSuccess(received.stream().allMatch(Success::getSuccess)).build();
+      return Success.newBuilder().setSuccess(received.stream().allMatch(Success::getSuccess))
+          .build();
     }
 
     @Override
@@ -148,7 +140,9 @@ public class TrainDataReplayerServer
         StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
       logger.info(String.format("Seeking train data replayer to %s", timestamp.toString()));
       Success successful = forEachReplayer(replayer -> {
-        replayer.reset(); return Optional.of(Success.newBuilder().setSuccess(true).build());});
+        replayer.reset();
+        return Optional.of(Success.newBuilder().setSuccess(true).build());
+      });
       responseObserver.onNext(successful);
       responseObserver.onCompleted();
     }
@@ -159,7 +153,9 @@ public class TrainDataReplayerServer
         StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
       logger.info("Resetting train data replayer server");
       Success successful = forEachReplayer(replayer -> {
-        replayer.reset(); return Optional.of(Success.newBuilder().setSuccess(true).build());});
+        replayer.reset();
+        return Optional.of(Success.newBuilder().setSuccess(true).build());
+      });
       responseObserver.onNext(successful);
       responseObserver.onCompleted();
     }
@@ -188,7 +184,9 @@ public class TrainDataReplayerServer
         StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
       logger.info("Stopping train data replayer server");
       Success successful = forEachReplayer(replayer -> {
-        replayer.stop(); return Optional.of(Success.newBuilder().setSuccess(true).build());});
+        replayer.stop();
+        return Optional.of(Success.newBuilder().setSuccess(true).build());
+      });
       responseObserver.onNext(successful);
       responseObserver.onCompleted();
     }

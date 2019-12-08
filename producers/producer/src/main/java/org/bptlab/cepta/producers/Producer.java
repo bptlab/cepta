@@ -25,7 +25,8 @@ public abstract class Producer<K, V> {
       try {
         produce();
       } catch (Exception exception) {
-        logger.error("");
+        exception.printStackTrace();
+        logger.error("Exiting producer thread now.");
       }
     }
   }
