@@ -19,9 +19,10 @@ jobs:
    - os: osx
      # osx does not support openjdk<9
      jdk: openjdk11
-   - os: windows
-     # windows does not support building java out of the box
-     language: shell
+   # Disable windows completely because it does not make sense
+   #- os: windows
+   #  # windows does not support building java out of the box
+   #  language: shell
 
 services:
   - docker
@@ -35,8 +36,6 @@ before_install:
   # Manually install openjdk and maven when on windows
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install openjdk8 maven docker-desktop docker-compose ; fi
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then cmd.exe //c "RefreshEnv.cmd" ; fi
-  # - if [ "$TRAVIS_OS_NAME" = "windows" ]; then ci/RefreshEnv.sh ; fi
-  # - if [ "$TRAVIS_OS_NAME" = "windows" ]; then RefreshEnv ; fi
 
 before_script:
   # Try to start pgadmin via docker
@@ -45,7 +44,6 @@ before_script:
 
 script:
   # Test docker compose regressions
-  # - (exit $(docker inspect -f "{{.State.ExitCode}}" test_pgadmin_1))
   - if [ ! "$TRAVIS_OS_NAME" = "windows" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
   - mvn clean verify
