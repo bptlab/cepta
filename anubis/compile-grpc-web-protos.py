@@ -29,8 +29,7 @@ def print_command(*cmd_args, **cmd_kwargs):
         print(subprocess.check_output(*cmd_args, **cmd_kwargs).decode("utf-8"))
     except subprocess.CalledProcessError as e:
         print(e.returncode)
-        print(e.stdout)
-        print(e.stderr)
+        print(e.output)
         raise
 
 
