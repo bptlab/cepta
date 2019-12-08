@@ -7,8 +7,9 @@ import os
 import subprocess
 import sys
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
+if sys.version_info <= (2, 7):
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
 
 protoc_version = "3.11.1"
 grpc_web_plugin_version = "1.0.7"
