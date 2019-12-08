@@ -17,8 +17,8 @@ public class ConsumerRunner extends KafkaServiceRunner {
 
   @Override
   public Integer call() throws Exception {
-    TrainDataRunningConsumer consumer = new TrainDataRunningConsumer(getDefaultProperties());
-    consumer.setTopic(kafkaTopic);
+    TrainDataRunningConsumer consumer = new TrainDataRunningConsumer(kafkaConfig.getProperties());
+    consumer.setTopic(kafkaConfig.getTopic());
     consumer.setTimeout(timeout);
     Runtime.getRuntime()
         .addShutdownHook(

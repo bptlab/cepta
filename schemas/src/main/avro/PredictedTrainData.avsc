@@ -4,18 +4,18 @@
  "name": "PredictedTrainData",
  "fields": [
     {"name": "id", "type": "int"},
-    {"name": "train_id", "type": "int"},
-    {"name": "location_id", "type": "int"},
-    {"name": "predicted_time", "type": "long", "logicaltype": "timestamp-millis"},
-    {"name": "status", "type": "int"},
-    {"name": "first_train_number", "type": "int"},
-    {"name": "train_number_reference", "type": "int"},
-    {"name": "arrival_time_reference", "type": "long", "logicaltype": "timestamp-millis"},
-    {"name": "planned_arrival_deviation", "type": "int"},
-    {"name": "transfer_location_id", "type": "int"},
-    {"name": "reporting_im_id", "type": "int"},
-    {"name": "next_im_id", "type": "int"},
-    {"name": "message_status", "type": "int"},
-    {"name": "message_creation", "type": "int", "logicaltype": "date"}
+    {"name": "train_id", "type": ["null", "int"], "default": null},
+    {"name": "location_id", "type": ["null", "int"], "default": null},
+    {"name": "predicted_time", "type": ["null", "long"], "default": null, "logicaltype": "timestamp-millis"},
+    {"name": "status", "type": ["null", "int"], "default": null},
+    {"name": "first_train_number", "type": ["null", "int"], "default": null},
+    {"name": "train_number_reference", "type": ["null", "int"], "default": null},
+    {"name": "arrival_time_reference", "type": ["null", "long"], "default": null, "logicaltype": "timestamp-millis"},
+    {"name": "planned_arrival_deviation", "type": ["null", "int"], "default": null},
+    {"name": "transfer_location_id", "type": ["null", "int"], "default": null},
+    {"name": "reporting_im_id", "type": ["null", "int"], "default": null},
+    {"name": "next_im_id", "type": ["null", "int"], "default": null},
+    {"name": "message_status", "type": ["null", "int"], "default": null},
+    {"name": "message_creation", "type": ["null", "long"], "default": null, "logicaltype": "timestamp-millis"}
  ]
 }

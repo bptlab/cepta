@@ -51,7 +51,8 @@ under the License.
         <executions>
           <execution>
             <configuration>
-              <sourceDirectory>${project.parent.basedir}/schemas/src/main/avro/
+              <sourceDirectory>
+                ${project.basedir}/src/main/avro/
               </sourceDirectory>
             </configuration>
           </execution>
@@ -61,9 +62,18 @@ under the License.
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>compile</goal>
+              <goal>compile-custom</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <protoSourceRoot>
-            ${project.parent.basedir}/schemas/src/main/proto
+            ${project.basedir}/src/main/proto
           </protoSourceRoot>
         </configuration>
       </plugin>
