@@ -1,0 +1,11 @@
+version: "3.6"
+services:
+  envoy:
+    image: envoyproxy/envoy
+    ports:
+      - ${CEPTA_ENVOY_ADMIN_PORT}:9901
+      - ${CEPTA_ENVOY_INGRESS_PORT}:8080
+    volumes:
+      - ../envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command:
+      - -c /etc/envoy/envoy.yaml

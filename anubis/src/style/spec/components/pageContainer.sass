@@ -1,0 +1,90 @@
+// ---------------------------------------------------------
+// @TOC
+// ---------------------------------------------------------
+
+// + @Page Container
+// + @Main Content
+// + @Full Container
+// + @Collapsed State
+
+// ---------------------------------------------------------
+// @Page Container
+// ---------------------------------------------------------
+
+.page-container
+  min-height: 100vh
+  // ROMAN
+  // background-color: #0c0d0d
+  transition: all 0.2s ease
+
+  +between($breakpoint-md, $breakpoint-xl)
+    padding-left: $collapsed-size
+
+
+  +to($breakpoint-md)
+    padding-left: 0
+
+// ---------------------------------------------------------
+// @Main Content
+// ---------------------------------------------------------
+
+.main-content
+  padding: 85px 20px 20px 300px
+  transition: all 0.2s ease
+  // min-height: calc(100vh - 61px)
+  min-height: 100vh
+
+  +between($breakpoint-md, $breakpoint-xl)
+    padding: 85px 20px 20px
+
+  +to($breakpoint-md)
+    padding: 85px 5px 5px
+
+.remain-height
+  height: calc(100vh - 126px)
+
+// ---------------------------------------------------------
+// @Full Container
+// ---------------------------------------------------------
+
+.full-container
+  left: $offscreen-size
+  min-height: calc(100vh - #{$header-height})
+  position: absolute
+  right: 0
+  top: $header-height
+  transition: all 0.2s ease
+
+  +between($breakpoint-md, $breakpoint-xl)
+    left: 0
+    padding-left: $collapsed-size
+
+
+  +to($breakpoint-md)
+    left: 0
+
+// ---------------------------------------------------------
+// @Collapsed State
+// ---------------------------------------------------------
+
+.is-collapsed
+  .page-container
+    padding-left: $collapsed-size
+
+    +to($breakpoint-md)
+      padding-left: 0
+
+
+    +between($breakpoint-md, $breakpoint-xl)
+      padding-left: $offscreen-size
+
+  .full-container
+    left: $collapsed-size
+
+    +to($breakpoint-md)
+      left: 0
+
+
+    +between($breakpoint-md, $breakpoint-xl)
+      left: $offscreen-size
+      padding-left: 0

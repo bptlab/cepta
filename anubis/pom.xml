@@ -48,176 +48,88 @@ under the License.
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.avro</groupId>
-        <artifactId>avro-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <configuration>
-              <sourceDirectory>${project.parent.basedir}/schemas/src/main/avro/</sourceDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.8.0</version>
-        <executions>
-          <execution>
-            <id>install node and npm</id>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <!-- See https://nodejs.org/en/download/ for latest versions -->
-            <configuration>
-              <nodeVersion>v12.13.1</nodeVersion>
-              <npmVersion>6.12.1</npmVersion>
-            </configuration>
-          </execution>
+    <plugin>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-maven-plugin</artifactId>
+      <executions>
+        <execution>
+          <configuration>
+            <sourceDirectory>${project.parent.basedir}/schemas/src/main/avro/</sourceDirectory>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+    <plugin>
+      <groupId>com.github.eirslett</groupId>
+      <artifactId>frontend-maven-plugin</artifactId>
+      <version>1.8.0</version>
+      <executions>
+        <execution>
+          <id>install node and npm</id>
+          <goals>
+            <goal>install-node-and-npm</goal>
+          </goals>
+          <!-- See https://nodejs.org/en/download/ for latest versions -->
+          <configuration>
+            <nodeVersion>v12.13.1</nodeVersion>
+            <npmVersion>6.12.1</npmVersion>
+          </configuration>
+        </execution>
 
-          <execution>
-            <id>npm install</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-          </execution>
+        <execution>
+          <id>npm install</id>
+          <goals>
+            <goal>npm</goal>
+          </goals>
+        </execution>
 
-          <!-- This is currently disabled because it does not yet make sense and takes forever
-          <execution>
-            <id>npm run build</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>run build</arguments>
-            </configuration>
-          </execution>
-          -->
-        </executions>
-      </plugin>
-
-      <!-- Download the suitable grpc-web protoc plugin release -->
-      <!-- The executable is saved in the current build folder for the next stages -->
-      <plugin>
-        <groupId>com.googlecode.maven-download-plugin</groupId>
-        <artifactId>download-maven-plugin</artifactId>
-        <version>1.3.0</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>wget</goal>
-            </goals>
-            <configuration>
-              <skipCache>true</skipCache>
-              <url>
-                https://github.com/grpc/grpc-web/releases/download/${grpc-web.version}/protoc-gen-grpc-web-${grpc-web.version}-${os.detected.classifier}
-              </url>
-              <outputFileName>protoc-gen-grpc-web</outputFileName>
-              <outputDirectory>${project.build.directory}</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Make the downloaded grpc-web protoc plugin executable -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>chmod</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>chmod</executable>
-              <arguments>
-                <argument>+x</argument>
-                <argument>${project.build.directory}/protoc-gen-grpc-web</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Use the grpc-web protoc plugin to compile proto files to javascript/typescript -->
-      <plugin>
-        <groupId>org.xolstice.maven.plugins</groupId>
-        <artifactId>protobuf-maven-plugin</artifactId>
-        <configuration>
-          <forceMojoExecution>true</forceMojoExecution>
-          <protoSourceRoot>
-            ${project.parent.basedir}/schemas/src/main/proto
-          </protoSourceRoot>
-        </configuration>
-        <executions>
-          <execution>
-            <id>grpc-ts</id>
-            <goals>
-              <goal>compile-custom</goal>
-            </goals>
-            <configuration>
-              <protocArtifact>
-                com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
-              </protocArtifact>
-              <pluginId>grpc-web</pluginId>
-              <pluginExecutable>
-                ${project.build.directory}/protoc-gen-grpc-web
-              </pluginExecutable>
-              <outputDirectory>
-                generated/protobuf
-              </outputDirectory>
-              <pluginParameter>import_style=typescript,mode=grpcwebtext</pluginParameter>
-            </configuration>
-          </execution>
-          <execution>
-            <id>grpc-js</id>
-            <goals>
-              <goal>compile-js</goal>
-            </goals>
-            <configuration>
-              <clearOutputDirectory>false</clearOutputDirectory>
-              <protocArtifact>
-                com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
-              </protocArtifact>
-              <pluginParameter>import_style=commonjs</pluginParameter>
-              <outputDirectory>
-                generated/protobuf
-              </outputDirectory>
-            </configuration>
-          </execution>
-          <!--
-          <execution>
-            <id>grpc-js</id>
-            <goals>
-              <goal>compile-custom</goal>
-            </goals>
-            <configuration>
-              <protocArtifact>
-                com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
-              </protocArtifact>
-              <pluginId>js</pluginId>
-              <pluginParameter>import_style=commonjs</pluginParameter>
-              <outputDirectory>
-                generated/protobuf
-              </outputDirectory>
-            </configuration>
-          </execution>-->
-        </executions>
-      </plugin>
-    </plugins>
-
-    <pluginManagement>
-    <plugins>
+        <!-- This is currently disabled because it does not yet make sense and takes forever
+        <execution>
+          <id>npm run build</id>
+          <goals>
+            <goal>npm</goal>
+          </goals>
+          <configuration>
+            <arguments>run build</arguments>
+          </configuration>
+        </execution>
+        -->
+      </executions>
+    </plugin>
     <plugin>
       <groupId>org.codehaus.mojo</groupId>
       <artifactId>exec-maven-plugin</artifactId>
-      <configuration>
-        <skip>false</skip>
-      </configuration>
-    </plugin></plugins></pluginManagement>
+      <executions>
+        <execution>
+          <id>compile-protos</id>
+          <phase>generate-sources</phase>
+          <goals>
+            <goal>exec</goal>
+          </goals>
+          <configuration>
+            <executable>python</executable>
+            <arguments>
+              <argument>compile-grpc-web-protos.py</argument>
+              <argument>--clear_output_dir</argument>
+              <argument>${project.parent.basedir}/schemas/src/main/proto</argument>
+              <argument>${project.basedir}/src/generated/protobuf</argument>
+            </arguments>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <configuration>
+            <skip>false</skip>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 </project>

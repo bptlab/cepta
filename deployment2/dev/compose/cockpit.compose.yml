@@ -1,0 +1,8 @@
+version: "3.6"
+services:
+  cockpit:
+    build:
+      context: ../cockpit
+    ports:
+      - ${CEPTA_COCKPIT_PORT}:3000
+    env_file: .env
