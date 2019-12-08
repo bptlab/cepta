@@ -83,7 +83,7 @@ def proto_compile(
         )
 
         download = dict(
-            protoc=protoc_release_url, protoc_gen_grpc_web=grpc_web_plugin_release_url
+            protoc=protoc_release_url, myprotoc=grpc_web_plugin_release_url
         )
 
         for executable, url in download.items():
@@ -112,7 +112,7 @@ def proto_compile(
                 print_command(unzip_command, stderr=subprocess.STDOUT, shell=True)
 
         # Make executables
-        for executable in [tmp_dir + "/protoc/bin/protoc", tmp_dir + "/protoc_gen_grpc_web"]:
+        for executable in [tmp_dir + "/protoc/bin/protoc", tmp_dir + "/myprotoc"]:
             chmod_command = str(" ").join(
                 ["chmod", "+x", executable]
             )
@@ -129,7 +129,7 @@ def proto_compile(
             "-I=" + abs_source,
         ] + proto_files
         proto_command.append(
-            "--plugin=protoc-gen-grpc_web=" + tmp_dir + "/protoc_gen_grpc_web"
+            "--plugin=protoc-gen-grpc_web=" + tmp_dir + "/myprotoc"
         )
 
         proto_command.append(
