@@ -12,9 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
-import jdk.internal.jline.internal.Nullable;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.bptlab.cepta.producers.exceptions.NoDatabaseConnectionException;
@@ -90,7 +88,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     }
   }
 
-  protected  <T extends Date> void convertTimestamp(@Nullable T ts, Function<Long, ?> resultHandler) {
+  protected  <T extends Date> void convertTimestamp(T ts, Function<Long, ?> resultHandler) {
     Optional.ofNullable(ts).map(T::toInstant).map(
         Instant::toEpochMilli).map(resultHandler);
   }
