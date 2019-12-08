@@ -18,38 +18,21 @@
 
 package org.bptlab.cepta;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import java.util.Properties;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.formats.avro.AvroDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
-import org.apache.flink.streaming.connectors.kafka.internal.FlinkKafkaProducer;
 import org.bptlab.cepta.config.KafkaConfig;
-import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
-import org.bptlab.cepta.producers.replayer.Empty;
-import org.bptlab.cepta.producers.replayer.ReplayerGrpc;
-import org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerBlockingStub;
-import org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerStub;
 import org.bptlab.cepta.producers.replayer.Success;
-import org.bptlab.cepta.schemas.grpc.GrpcServer;
 import org.bptlab.cepta.schemas.grpc.ReplayerClient;
-import org.bptlab.cepta.serialization.AvroBinaryDeserializer;
-import org.bptlab.cepta.serialization.AvroBinarySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Option;
 
 @SuppressWarnings("FieldCanBeLocal")
 

@@ -2,10 +2,7 @@ package org.bptlab.cepta.producers.trainreplayer;
 
 import java.sql.Timestamp;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.config.constants.DatabaseConstants;
 import org.bptlab.cepta.producers.KafkaServiceRunner;
 import org.bptlab.cepta.utils.converters.TimestampTypeConverter;
 import org.slf4j.Logger;

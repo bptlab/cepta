@@ -1,15 +1,7 @@
 package org.bptlab.cepta.producers.trainreplayer;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Function;
-import jdk.internal.jline.internal.Nullable;
 import org.bptlab.cepta.LiveTrainData;
 import org.bptlab.cepta.producers.PostgresReplayer;
 

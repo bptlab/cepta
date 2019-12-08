@@ -5,7 +5,6 @@ import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,8 +13,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.apache.avro.Schema;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.flink.api.common.functions.MapFunction;
 
 public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, T> {
   static final String HOST = "localhost";

@@ -2,7 +2,6 @@ package org.bptlab.cepta.producers.trainreplayer;
 
 import java.sql.ResultSet;
 import java.util.Properties;
-import org.bptlab.cepta.PlannedTrainData;
 import org.bptlab.cepta.PredictedTrainData;
 import org.bptlab.cepta.producers.PostgresReplayer;
 

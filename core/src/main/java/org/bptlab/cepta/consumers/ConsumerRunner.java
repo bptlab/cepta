@@ -1,6 +1,5 @@
 package org.bptlab.cepta.consumers;
 
-import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.producers.KafkaServiceRunner;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
