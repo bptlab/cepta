@@ -1,5 +1,6 @@
 package org.bptlab.cepta.consumers;
 
+import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.producers.KafkaServiceRunner;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -17,8 +18,8 @@ public class ConsumerRunner extends KafkaServiceRunner {
 
   @Override
   public Integer call() throws Exception {
-    TrainDataRunningConsumer consumer = new TrainDataRunningConsumer(getDefaultProperties());
-    consumer.setTopic(kafkaTopic);
+    TrainDataRunningConsumer consumer = new TrainDataRunningConsumer(kafkaConfig.getProperties());
+    consumer.setTopic(kafkaConfig.getTopic());
     consumer.setTimeout(timeout);
     Runtime.getRuntime()
         .addShutdownHook(
