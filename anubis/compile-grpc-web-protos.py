@@ -5,6 +5,10 @@ import shutil
 import glob
 import os
 import subprocess
+import sys
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 protoc_version = "3.11.1"
 grpc_web_plugin_version = "1.0.7"
