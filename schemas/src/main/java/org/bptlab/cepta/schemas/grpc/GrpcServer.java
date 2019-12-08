@@ -1,4 +1,4 @@
-package org.bptlab.cepta.utils.grpc;
+package org.bptlab.cepta.schemas.grpc;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;

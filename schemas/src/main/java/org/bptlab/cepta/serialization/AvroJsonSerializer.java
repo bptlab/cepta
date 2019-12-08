@@ -5,10 +5,10 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
-public class AvroBinarySerializer<T extends org.apache.avro.specific.SpecificRecordBase>
+public class AvroJsonSerializer<T extends org.apache.avro.specific.SpecificRecordBase>
     extends AbstractAvroSerializer<T> {
   @Override
   public Encoder getEncoder(T data, ByteArrayOutputStream outputStream) throws IOException {
-    return EncoderFactory.get().binaryEncoder(outputStream, null);
+    return EncoderFactory.get().jsonEncoder(data.getSchema(), outputStream, false);
   }
 }

@@ -10,12 +10,12 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.kafka.common.errors.SerializationException;
 
-public abstract class AvroDeserializer<T extends org.apache.avro.specific.SpecificRecordBase>
+public abstract class AvroBinaryDeserializer<T extends org.apache.avro.specific.SpecificRecordBase>
     implements org.apache.kafka.common.serialization.Deserializer<T> {
 
   protected final Supplier<? extends T> targetType;
 
-  public AvroDeserializer(Supplier<? extends T> targetType) {
+  public AvroBinaryDeserializer(Supplier<? extends T> targetType) {
     this.targetType = targetType;
   }
 
