@@ -40,10 +40,10 @@ before_install:
 before_script:
   # Try to start pgadmin via docker
   # As windows server cannot run linux docker containers we can only test this on linux
-  - if [ ! "$TRAVIS_OS_NAME" = "windows" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
 
 script:
   # Test docker compose regressions
-  - if [ ! "$TRAVIS_OS_NAME" = "windows" ]; then docker ps | grep -q pgadmin ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
   - mvn clean verify
