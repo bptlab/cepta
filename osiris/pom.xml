@@ -12,10 +12,10 @@
 	<artifactId>osiris</artifactId>
 	<version>1.0</version>
 	<name>osiris</name>
-	<description>Backend for the cepta web interface</description>
+	<description>Backend for CEPTA</description>
 
 	<properties>
-		<exec.mainClass>org.bptlab.cepta.anubis.Application</exec.mainClass>
+		<exec.mainClass>org.bptlab.cepta.osiris.Application</exec.mainClass>
 		<org.springframework.version>2.2.1.RELEASE</org.springframework.version>
 	</properties>
 
@@ -48,18 +48,36 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<version>${org.springframework.version}</version>
-			<!--<exclusions>
+			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
-			</exclusions>-->
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 			<version>${org.springframework.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

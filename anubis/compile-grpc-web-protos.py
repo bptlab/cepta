@@ -82,9 +82,7 @@ def proto_compile(
             + machine_arch
         )
 
-        download = dict(
-            protoc=protoc_release_url, myprotoc=grpc_web_plugin_release_url
-        )
+        download = dict(protoc=protoc_release_url, protoc_gen_grpc_web=grpc_web_plugin_release_url)
 
         for executable, url in download.items():
             filename = os.path.basename(url)
@@ -112,13 +110,10 @@ def proto_compile(
                 print_command(unzip_command, stderr=subprocess.STDOUT, shell=True)
 
         # Make executables
-        for executable in [tmp_dir + "/protoc/bin/protoc", tmp_dir + "/myprotoc"]:
-            chmod_command = str(" ").join(
-                ["chmod", "+x", executable]
-            )
+        for executable in [tmp_dir + "/protoc/bin/protoc", tmp_dir + "/protoc_gen_grpc_web"]:
+            chmod_command = str(" ").join(["chmod", "+x", executable])
             print(chmod_command)
-            print_command(chmod_command, stderr=subprocess.STDOUT,
-                          shell=True)
+            print_command(chmod_command, stderr=subprocess.STDOUT, shell=True)
 
         print_command("ls -la " + tmp_dir, stderr=subprocess.STDOUT, shell=True)
 
@@ -128,9 +123,7 @@ def proto_compile(
             tmp_dir + "/protoc/bin/protoc",
             "-I=" + abs_source,
         ] + proto_files
-        proto_command.append(
-            "--plugin=protoc-gen-grpc-web=" + tmp_dir + "/myprotoc"
-        )
+        proto_command.append("--plugin=protoc-gen-grpc-web=" + tmp_dir + "/protoc_gen_grpc_web")
 
         proto_command.append(
             "--js_out="
@@ -153,7 +146,9 @@ def proto_compile(
             os.makedirs(abs_output)
 
         print(str(" ").join(proto_command))
-        print_command(str(" ").join(proto_command), stderr=subprocess.STDOUT, shell=True)
+        print_command(
+            str(" ").join(proto_command), stderr=subprocess.STDOUT, shell=True
+        )
 
     finally:
         # Remove temporary directory
