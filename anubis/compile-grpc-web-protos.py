@@ -129,7 +129,7 @@ def proto_compile(
             "-I=" + abs_source,
         ] + proto_files
         proto_command.append(
-            "--plugin=protoc-gen-grpc_web=" + tmp_dir + "/myprotoc"
+            "--plugin=protoc-gen-grpc-web=" + tmp_dir + "/myprotoc"
         )
 
         proto_command.append(
