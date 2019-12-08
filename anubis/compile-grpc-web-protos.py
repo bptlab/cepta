@@ -29,8 +29,9 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
         raise AssertionError(
             "Source directory " + abs_source + " must contain .proto file(s)")
 
-    with tempfile.TemporaryDirectory() as tmp_dirname:
-
+    # with tempfile.TemporaryDirectory() as tmp_dirname:
+    tmp_dir = tempfile.mkdtemp()
+    try:
         # Download correct files
         system = platform.system().lower()  # darwin
         system_alias = "osx" if system == "darwin" else system  # osx for darwin
@@ -55,7 +56,7 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
             print(
                 os.popen(
                     "wget -O " +
-                    tmp_dirname +
+                    tmp_dir +
                     "/" +
                     executable +
                     " " +
@@ -64,10 +65,10 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
                 print(
                     os.popen(
                         "unzip " +
-                        tmp_dirname +
+                        tmp_dir +
                         "/" +
                         executable).read())
-            print(os.popen("ls -la " + tmp_dirname).read())
+            print(os.popen("ls -la " + tmp_dir).read())
 
         # Construct command
         # See: https://github.com/grpc/grpc-web
@@ -95,6 +96,10 @@ def proto_compile(proto_source_dir, output_dir, js_out_options=None,
             os.makedirs(abs_output)
 
         print(os.popen(proto_command).read())
+
+    finally:
+        # Remove temporary directory
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
