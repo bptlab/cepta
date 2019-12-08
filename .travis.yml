@@ -34,8 +34,9 @@ jdk:
 before_install:
   # Manually install openjdk and maven when on windows
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install openjdk8 maven ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then ci/RefreshEnv.sh ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then RefreshEnv ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then cmd.exe //c "RefreshEnv.cmd & iisexpress.exe" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "windows" ]; then ci/RefreshEnv.sh ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "windows" ]; then RefreshEnv ; fi
 
 before_script:
   # Try to start pgadmin via docker
