@@ -1,4 +1,4 @@
-package org.bptlab.cepta.anubis;
+package org.bptlab.cepta.osiris;
 
 public class HelloMessage {
 

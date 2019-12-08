@@ -1,4 +1,4 @@
-package org.bptlab.cepta.anubis;
+package org.bptlab.cepta.osiris;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
