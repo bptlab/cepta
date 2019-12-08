@@ -5,4 +5,12 @@ public interface KafkaConstants {
   String CLIENT_ID = "client1";
   String TOPIC_NAME = "test";
   String GROUP_ID_CONFIG = "consumerGroup1";
+
+  public interface Topics {
+    String LIVE_TRAIN_DATA = "LIVE_TRAIN_DATA";
+    String PLANNED_TRAIN_DATA = "PLANNED_TRAIN_DATA";
+    String PREDICTED_TRAIN_DATA = "PREDICTED_TRAIN_DATA";
+    String TRAIN_INFO_DATA = "TRAIN_INFO_DATA";
+  }
+
 }

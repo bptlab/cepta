@@ -4,15 +4,7 @@ import org.bptlab.cepta.config.constants.DatabaseConstants;
 import picocli.CommandLine.Option;
 
 public class PostgresConfig {
-  /*
-  private String connector = DatabaseConstants.CONNECTOR;
-  private String protocol = DatabaseConstants.PROTOCOL;
-  private String host = DatabaseConstants.HOST;
-  private int port = DatabaseConstants.PORT;
-  private String name = DatabaseConstants.DATABASE_NAME;
-  private String user = DatabaseConstants.USER;
-  private String password  = DatabaseConstants.PASSWORD;
-  */
+
   @Option(
       names = {"--host"},
       description = "Specifies the Database Host (ex. postgres).")
@@ -48,47 +40,45 @@ public class PostgresConfig {
       description = "Specifies the protocol of the Database (ex. postgresql).")
   static String protocol = DatabaseConstants.PROTOCOL;
 
-  public PostgresConfig() {}
+  public PostgresConfig() {
+  }
 
   public String getUrl() {
     return String.format("%s:%s://%s:%d/%s", connector, protocol, host, port, name);
   }
 
   public PostgresConfig withConnector(String connector) {
-    this.connector = connector;
+    PostgresConfig.connector = connector;
     return this;
   }
 
   public PostgresConfig withProtocol(String protocol) {
-    this.protocol = protocol;
+    PostgresConfig.protocol = protocol;
     return this;
   }
 
   public PostgresConfig withHost(String host) {
-    this.host = host;
+    PostgresConfig.host = host;
     return this;
   }
 
   public PostgresConfig withPort(int port) {
-    this.port = port;
+    PostgresConfig.port = port;
     return this;
   }
-
 
   public PostgresConfig withName(String name) {
-    this.name = name;
+    PostgresConfig.name = name;
     return this;
   }
-
 
   public PostgresConfig withUser(String user) {
-    this.user = user;
+    PostgresConfig.user = user;
     return this;
   }
 
-
   public PostgresConfig withPassword(String password) {
-    this.password = password;
+    PostgresConfig.password = password;
     return this;
   }
 
@@ -108,16 +98,13 @@ public class PostgresConfig {
     return port;
   }
 
-
   public String getName() {
     return name;
   }
 
-
   public String getUser() {
     return user;
   }
-
 
   public String getPassword() {
     return password;
