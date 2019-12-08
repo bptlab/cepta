@@ -24,8 +24,13 @@ def valid_dir(_parser, arg):
     _parser.error('Directory "' + arg + '" does not exist.')
 
 
-def print_command(cmd):
-    print(cmd.decode("utf-8"))
+def print_command(*cmd_args, **cmd_kwargs):
+    try:
+        print(subprocess.check_output(*cmd_args, **cmd_kwargs).decode("utf-8"))
+    except subprocess.CalledProcessError as e:
+        print(e.retcode)
+        print(e.output)
+        raise
 
 
 def quote(s):
@@ -93,11 +98,7 @@ def proto_compile(
                 ]
             )
             print(download_command)
-            print_command(
-                subprocess.check_output(
-                    download_command, stderr=subprocess.STDOUT, shell=True
-                )
-            )
+            print_command(download_command, stderr=subprocess.STDOUT, shell=True)
             if is_zip:
                 unzip_command = str(" ").join(
                     [
@@ -108,17 +109,9 @@ def proto_compile(
                     ]
                 )
                 print(unzip_command)
-                print_command(
-                    subprocess.check_output(
-                        unzip_command, stderr=subprocess.STDOUT, shell=True
-                    )
-                )
+                print_command(unzip_command, stderr=subprocess.STDOUT, shell=True)
 
-        print_command(
-            subprocess.check_output(
-                "ls -la " + tmp_dir, stderr=subprocess.STDOUT, shell=True
-            )
-        )
+        print_command("ls -la " + tmp_dir, stderr=subprocess.STDOUT, shell=True)
 
         # Construct protoc compiler command
         # See: https://github.com/grpc/grpc-web
@@ -151,7 +144,7 @@ def proto_compile(
             os.makedirs(abs_output)
 
         print(str(" ").join(proto_command))
-        print_command(subprocess.check_output(proto_command, stderr=subprocess.STDOUT))
+        print_command(proto_command, stderr=subprocess.STDOUT)
 
     finally:
         # Remove temporary directory
