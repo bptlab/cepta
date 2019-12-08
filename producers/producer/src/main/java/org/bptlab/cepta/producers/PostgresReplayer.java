@@ -150,7 +150,6 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
         } catch (Exception e) {
           logger.warn("Failed to process database entry. Will continue with the next entry.");
           e.printStackTrace();
-          throw e;
         }
       }
       logger.info("There is no more live train data left in the database. Exiting.");
