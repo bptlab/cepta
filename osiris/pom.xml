@@ -129,6 +129,7 @@
 				<targetPath>${project.build.outputDirectory}</targetPath>
 				<includes>
 					<include>application.properties</include>
+					<include>log4j.properties</include>
 				</includes>
 			</resource>
 		</resources>
