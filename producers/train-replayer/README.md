@@ -6,7 +6,7 @@ simulate a real time event stream at varying frequencies.
 
 ```bash
 cd cepta
-./run.sh producers/train-replayer/ --grpc-port=9005 --host=localhost
+./run.sh producers/train-replayer/ --grpc-port=9005 --db-host=localhost
 ```
 
 __Note__: The service expects to find data in the database.
