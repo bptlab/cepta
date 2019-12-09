@@ -1,13 +1,16 @@
 package org.bptlab.cepta.config;
 
+import java.io.Serializable;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.Serializer;
 import org.bptlab.cepta.config.constants.KafkaConstants;
-import org.bptlab.cepta.serialization.AvroBinarySerializer;
 import picocli.CommandLine.Option;
 
-public class KafkaConfig {
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+public class KafkaConfig implements Serializable {
 
   @Option(
       names = {"-b", "--broker"},
@@ -28,6 +31,9 @@ public class KafkaConfig {
       names = {"-gid", "--group-id"},
       description = "Specifies the Kafka group ID.")
   static String kafkaGroupID = KafkaConstants.GROUP_ID_CONFIG;
+
+  static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty(); // LongSerializer::new;
+  static Optional<Supplier<? extends Serializer<?>>> valueSerializer =  Optional.empty();
 
   public KafkaConfig() {
   }
@@ -52,6 +58,16 @@ public class KafkaConfig {
     return this;
   }
 
+  public KafkaConfig withKeySerializer(Optional<Supplier<? extends Serializer<?>>> serializer) {
+    KafkaConfig.keySerializer = serializer;
+    return this;
+  }
+
+  public KafkaConfig withValueSerializer(Optional<Supplier<? extends Serializer<?>>> serializer) {
+    KafkaConfig.valueSerializer = serializer;
+    return this;
+  }
+
   public String getBroker() {
     return kafkaBroker;
   }
@@ -64,6 +80,14 @@ public class KafkaConfig {
     return kafkaTopic;
   }
 
+  public Optional<Supplier<? extends Serializer<?>>> getKeySerializer() {
+    return keySerializer;
+  }
+
+  public Optional<Supplier<? extends Serializer<?>>> getValueSerializer() {
+    return valueSerializer;
+  }
+
   public String getGroupID() {
     return kafkaGroupID;
   }
@@ -72,8 +96,9 @@ public class KafkaConfig {
     Properties props = new Properties();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getBroker());
     props.put(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroBinarySerializer.class.getName());
+    getKeySerializer().map(s -> props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
+    getValueSerializer().map(s -> props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
+    // props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, new AvroFlinkSerializationSchema<>().getClass().getName());
     return props;
   }
 }

@@ -1,12 +1,13 @@
 package org.bptlab.cepta.config;
 
+import java.io.Serializable;
 import org.bptlab.cepta.config.constants.DatabaseConstants;
 import picocli.CommandLine.Option;
 
-public class PostgresConfig {
+public class PostgresConfig implements Serializable {
 
   @Option(
-      names = {"--host"},
+      names = {"--db-host"},
       description = "Specifies the Database Host (ex. postgres).")
   static String host = DatabaseConstants.HOST;
 
