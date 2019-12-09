@@ -163,7 +163,7 @@ public class TrainDataReplayerServer
     public void start(
         org.bptlab.cepta.producers.replayer.Empty request,
         StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
-      logger.info("Starting train data replayer server");
+      logger.info("Starting train data replayers");
       Success successful = forEachReplayer(replayer -> {
         try {
           replayer.start();

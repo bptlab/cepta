@@ -35,7 +35,7 @@ public class LiveTrainDataReplayer extends PostgresReplayer<Long, LiveTrainData>
       logger.error("Failed to convert database entry to live train data event");
       throw e;
     }
-    logger.info(event.build().toString());
+    logger.debug(event.build().toString());
     return event.build();
   }
 }

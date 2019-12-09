@@ -35,7 +35,7 @@ public class PredictedTrainDataReplayer extends PostgresReplayer<Long, Predicted
       logger.error("Failed to convert database entry to predicted train data event");
       throw e;
     }
-    logger.info(event.build().toString());
+    logger.debug(event.build().toString());
     return event.build();
   }
 }

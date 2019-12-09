@@ -36,7 +36,7 @@ public class TrainInformationDataReplayer extends PostgresReplayer<Long, TrainIn
       logger.error("Failed to convert database entry to train information event");
       throw e;
     }
-    logger.info(event.build().toString());
+    logger.debug(event.build().toString());
     return event.build();
   }
 }
