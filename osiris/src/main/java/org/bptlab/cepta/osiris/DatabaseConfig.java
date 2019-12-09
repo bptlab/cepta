@@ -10,6 +10,7 @@ import java.util.List;
 import org.bptlab.cepta.PlannedTrainData;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.DatabaseConstants;
+import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -22,7 +23,7 @@ public class DatabaseConfig {
       LoggerFactory.getLogger(DatabaseConfig.class.getName());
 
   private String plannedTableName;
-  private int trainId;
+  private int id;
   public boolean connected = false;
   public Connection connection;
 
@@ -30,9 +31,9 @@ public class DatabaseConfig {
     this.plannedTableName = "public.planned";
   }
 
-  public DatabaseConfig(int trainId){
+  public DatabaseConfig(int id){
     this.plannedTableName = "public.planned";
-    this.trainId = trainId;
+    this.id = id;
   };
 
   public void connect(PostgresConfig config) {
@@ -50,7 +51,7 @@ public class DatabaseConfig {
   private String showPlannedTrainDataQuery() {
     List<String> parts = new ArrayList<String>();
     parts.add(String.format("SELECT * FROM %s", this.plannedTableName));
-    parts.add(String.format("WHERE id = %s", this.trainId));
+    parts.add(String.format("WHERE id = %d", this.id));
 
     return String.join(" ", parts);
   }
@@ -60,7 +61,7 @@ public class DatabaseConfig {
       connect(new PostgresConfig()
           .withConnector(DatabaseConstants.CONNECTOR)
           .withProtocol(DatabaseConstants.PROTOCOL)
-          .withHost(DatabaseConstants.HOST)
+          .withHost("localhost")
           .withPort(DatabaseConstants.PORT)
           .withName(DatabaseConstants.DATABASE_NAME)
           .withUser(DatabaseConstants.USER)
@@ -69,7 +70,11 @@ public class DatabaseConfig {
       String query = showPlannedTrainDataQuery();
       Statement stmt = connection.createStatement();
       ResultSet result = stmt.executeQuery(query);
-      PlannedTrainData event = new PlannedTrainDataDatabaseConverter().fromResult(result);
+
+      while (result.next()){
+        PlannedTrainData event = new PlannedTrainDataDatabaseConverter().fromResult(result);
+        // do something with an API calls
+      }
 
      } catch (SQLException e) {
       e.printStackTrace();
