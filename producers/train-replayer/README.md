@@ -5,6 +5,7 @@ from the database ordered by their time of creation to
 simulate a real time event stream at varying frequencies.
 
 ```bash
+cd cepta
 ./run.sh producers/train-replayer/ --grpc-port=9005 --host=localhost
 ```
 
