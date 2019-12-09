@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-if sys.version_info <= (2, 7):
+if not sys.version_info >= (3,):
     reload(sys)
     sys.setdefaultencoding("utf-8")
 
