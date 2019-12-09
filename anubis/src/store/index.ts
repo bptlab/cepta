@@ -3,7 +3,6 @@ import Vuex, {StoreOptions} from 'vuex'
 import { IAppState } from './modules/app'
 import { IAuthState } from './modules/auth'
 import { IGrpcState } from './modules/grpc'
-import {state, mutations} '../profile/index.ts'
 
 Vue.use(Vuex);
 
@@ -11,20 +10,17 @@ export interface IRootState {
   app: IAppState;
   auth: IAuthState;
   grpc: IGrpcState;
-  websocket: string;
 }
 
-const store: StoreOptions<IRootState> = {
+// Declare empty store first, dynamically register all modules later.
+// export default new Vuex.Store<IRootState>({
+export default new Vuex.Store({
   state: {
     websocket: ""
   },
   mutations: {
-    setWebsocket (websocket) {
+    setWebsocket(state: { websocket: String; }, websocket: String) {
       state.websocket = websocket;
     }
   }
-};
-
-
-// Declare empty store first, dynamically register all modules later.
-export default new Vuex.Store<IRootState>({store})
+})

@@ -27,7 +27,7 @@ export default {
       this.$redrawVueMasonry();
     },
     connectWebsocket() {
-      this.socket = new SockJS("http://192.168.1.7:8087/ws");
+      this.socket = new SockJS("http://localhost:8087/ws");
       this.stompClient = Stomp.over(this.socket);
 
       this.$store.commit('setWebsocket', this.stompClient);
