@@ -88,6 +88,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     }
   }
 
+  // TODO: Replace with converter classes in util!
   protected  <T extends Date> void convertTimestamp(T ts, Function<Long, ?> resultHandler) {
     Optional.ofNullable(ts).map(T::toInstant).map(
         Instant::toEpochMilli).map(resultHandler);
@@ -140,8 +141,8 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
           ProducerRecord<K, V> record =
               new ProducerRecord<K, V>(topic, event);
           RecordMetadata metadata = producer.send(record).get();
-          logger.debug(
-              String.format("sent record(key=%s value=%s) meta(partition=%d, offset=%d)\n",
+          logger.info(
+              String.format("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)\n",
                   record.key(), (V) record.value(), metadata.partition(), metadata.offset()));
           producer.flush();
           Thread.sleep(this.frequency);

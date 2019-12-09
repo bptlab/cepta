@@ -19,22 +19,28 @@
 package org.bptlab.cepta;
 
 import java.util.concurrent.Callable;
-import org.apache.flink.api.common.functions.MapFunction;
+import java.util.concurrent.TimeUnit;
+import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.formats.avro.AvroDeserializationSchema;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
+import org.apache.flink.util.Collector;
 import org.bptlab.cepta.config.KafkaConfig;
+import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
-import org.bptlab.cepta.producers.replayer.Success;
-import org.bptlab.cepta.schemas.grpc.ReplayerClient;
+import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
+import org.bptlab.cepta.serialization.AvroBinarySerializer;
+import org.bptlab.cepta.serialization.AvroBinaryFlinkSerializationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
-
-@SuppressWarnings("FieldCanBeLocal")
 
 @Command(
     name = "cepta core",
@@ -42,46 +48,75 @@ import picocli.CommandLine.Mixin;
     version = "1.0",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
+
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
   @Mixin
   KafkaConfig kafkaConfig = new KafkaConfig();
 
+  @Mixin
+  PostgresConfig postgresConfig = new PostgresConfig();
+
   @Override
   public Integer call() throws Exception {
-    logger.info("Staring cepta core...");
-
-    // Start the replayer
-    ReplayerClient test = new ReplayerClient("localhost", 9005);
-    Success success = test.start();
+    logger.info("Starting cepta core...");
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // Create consumer that reads avro data as TrainData objects from topic "test"
-    FlinkKafkaConsumer011<PlannedTrainData> consumer =
-        new FlinkKafkaConsumer011<PlannedTrainData>(
-            Topics.PLANNED_TRAIN_DATA, AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
+    FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
+            kafkaConfig.withClientId("LiveTrainDataMainConsumer").getProperties());
+
+    FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.PLANNED_TRAIN_DATA,
+            AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
             kafkaConfig.withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
-    DataStream<PlannedTrainData> inputStream = env.addSource(consumer);
-    DataStream<String> trainIDStream = inputStream.map(new MapFunction<PlannedTrainData, String>() {
-      @Override
-      public String map(PlannedTrainData value) throws Exception {
-        return String.format("Train with ID: %d", value.getId());
-      }
-    });
+    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
+    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
 
-    /* Add consumer for our train id messages
-    FlinkKafkaProducer011<String> myProducer = new FlinkKafkaProducer011<>(
-        "mytestTopic", new SimpleStringSchema(), kafkaConfig.withClientId("myProducer").getProperties());
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
+        AsyncDataStream
+            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig),
+                100000, TimeUnit.MILLISECONDS, 12);
 
-    myProducer.setWriteTimestampToKafka(true);
-    trainIDStream.addSink(myProducer);*/
+    DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
+        .flatMap(
+            new FlatMapFunction<Tuple2<LiveTrainData, PlannedTrainData>, TrainDelayNotification>() {
+              @Override
+              public void flatMap(
+                  Tuple2<LiveTrainData, PlannedTrainData> liveTrainDataPlannedTrainDataTuple2,
+                  Collector<TrainDelayNotification> collector) throws Exception {
+                LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
+                PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
+        /*
+          Delay is defined as the difference between the observed time of a train id at a location id.
+          delay > 0 is bad, the train might arrive later than planned
+          delay < 0 is good, the train might arrive earlier than planned
+         */
+                long delay = observed.getActualTime() - expected.getPlannedTime();
+                // Only send a delay notification if some threshold is exceeded
+                if (Math.abs(delay) > 10) {
+                  collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
+                      .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
+                      .build());
+                }
+              }
+            });
+
+    // Produce delay notifications into new queue
+    FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
+        KafkaConstants.Topics.DELAY_NOTIFICATIONS, new AvroBinaryFlinkSerializationSchema<>(),
+        kafkaConfig.withClientId("TrainDelayNotificationProducer").getProperties());
+    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
+    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
 
     // Print stream to console
-    inputStream.print();
+    trainDelayNotificationDataStream.print();
 
     // insert every event into database table with name actor
     // DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));

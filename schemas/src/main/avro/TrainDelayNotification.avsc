@@ -1,0 +1,10 @@
+{
+ "namespace": "org.bptlab.cepta",
+ "type": "record",
+ "name": "TrainDelayNotification",
+ "fields": [
+    {"name": "train_id", "type": "int"},
+    {"name": "location_id", "type": "int"},
+    {"name": "delay", "type": "long", "logicaltype": "timestamp-millis"}
+    ]
+}
