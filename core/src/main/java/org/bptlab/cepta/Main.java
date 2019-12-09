@@ -28,6 +28,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.bptlab.cepta.config.KafkaConfig;
+import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
 import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
 import org.bptlab.cepta.producers.replayer.Success;
@@ -51,9 +52,12 @@ public class Main implements Callable<Integer> {
   @Mixin
   KafkaConfig kafkaConfig = new KafkaConfig();
 
+  @Mixin
+  PostgresConfig postgresConfig = new PostgresConfig();
+
   @Override
   public Integer call() throws Exception {
-    logger.info("Staring cepta core...");
+    logger.info("Starting cepta core...");
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -74,16 +78,7 @@ public class Main implements Callable<Integer> {
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> resultStream =
         AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(), 1000, TimeUnit.MILLISECONDS, 100);
-
-    /*
-    DataStream<String> trainIDStream = inputStream.map(new MapFunction<PlannedTrainData, String>() {
-      @Override
-      public String map(PlannedTrainData value) throws Exception {
-        return String.format("Train with ID: %d", value.getId());
-      }
-    });
-    */
+            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig), 100000, TimeUnit.MILLISECONDS, 12);
 
     /* Add consumer for our train id messages
     FlinkKafkaProducer011<String> myProducer = new FlinkKafkaProducer011<>(
