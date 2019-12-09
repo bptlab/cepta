@@ -4,7 +4,6 @@
       <div class="row">
         <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
         <basic-table
-            :data-table="true"
             :showIndices="false"
             :striped="true"
             :bordered="true"
@@ -17,7 +16,6 @@
 </template>
 
 <script>
-import Stomp from "webstomp-client";
 import RowLayout from "../components/RowLayout";
 import RowLayoutRow from "../components/RowLayoutRow";
 import BasicTable from "../components/BasicTable";
@@ -34,24 +32,24 @@ export default {
     };
   },
   methods: {
-    connect(stomp, url = "/topic/updates"){
-      this.stompClient = stomp;
+    connect(url = "/topic/updates"){
+      this.stompClient = this.$store.state.websocket;
       this.stompClient.connect(
           {},
-          () => {
+          () =>
             this.stompClient.subscribe(url, update => {
               console.log(update);
-              // this.pushUpdate(update);
-            });
+              this.updateTableHeader(update);
+              this.pushUpdate(update);
           },
           error => {
             console.log(error);
-          }
-      );
+          })
+      )
     },
     pushUpdate(update){
       let obj = JSON.parse(update.body);
-      let newInput =  new Array();
+      let newInput =  [];
 
       for (let value of Object.entries(obj)) {
         newInput.push(value[1]);
@@ -59,11 +57,19 @@ export default {
 
       this.receivedUpdates.push(newInput);
     },
-    replay() {
-      GrpcModule.replayData().then()
+    updateTableHeader(update){
+      let obj = JSON.parse(update.body);
+      let newInput =  [];
+
+      for (let value of Object.entries(obj)) {
+        newInput.push(value[0]);
+      }
+
+      this.receivedUpdates.push(newInput);
     },
-    disconnect(){
-      this.stompClient.disconnect();
+    replay() {
+      this.connect();
+      // GrpcModule.replayData().then()
     }
   }
 };
