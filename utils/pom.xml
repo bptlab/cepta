@@ -33,6 +33,20 @@ under the License.
   <name>utils</name>
   <description>Common utility functions used by cepta services</description>
 
+  <dependencies>
+   <!-- <dependency>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-common</artifactId>
+      <version>1.0.11</version>
+      <scope>compile</scope>
+    </dependency>-->
+    <dependency>
+      <groupId>com.github.jasync-sql</groupId>
+      <artifactId>jasync-postgresql</artifactId>
+      <version>1.0.12</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
