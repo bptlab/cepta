@@ -14,6 +14,7 @@ import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.LiveTrainData;
 import org.bptlab.cepta.PlannedTrainData;
+import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.converters.LiveTrainDataDatabaseConverter;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 // import org.bptlab.cepta.utils.DatabaseObjectToJavaObjectConverter;
@@ -21,7 +22,12 @@ import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 public class PlannedLiveCorrelationFunction extends
     RichAsyncFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>> {
 
+  private PostgresConfig postgresConfig = new PostgresConfig();
   private transient ConnectionPool<PostgreSQLConnection> connection;
+
+  public PlannedLiveCorrelationFunction(PostgresConfig postgresConfig) {
+    this.postgresConfig = postgresConfig;
+  }
 
   public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
     /*
@@ -30,14 +36,15 @@ public class PlannedLiveCorrelationFunction extends
       this must be set to transient, as flink will otherwise try to serialize it which it is not
      */
     super.open(parameters);
+    System.out.println(parameters.toString());
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
-    config.setUsername("postgres");
-    config.setPassword("examole");
-    config.setHost("postgres");
-    config.setPort(5432);
-    config.setDatabase("postgres");
+    config.setUsername(postgresConfig.getUser());
+    config.setPassword(postgresConfig.getPassword());
+    config.setHost(postgresConfig.getHost());
+    config.setPort(postgresConfig.getPort());
+    config.setDatabase(postgresConfig.getName());
     // Having the same maximum amount of connections as concurrent asynchronous requests seems to work
-    config.setMaxActiveConnections(100);
+    config.setMaxActiveConnections(12);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
   }
 
@@ -55,12 +62,12 @@ public class PlannedLiveCorrelationFunction extends
        the resultFuture is where the outgoing element will be
     */
     String query = String
-        .format("select * from livetraindata where train_id = %d and location_id = %d;",
+        .format("select * from public.planned where train_id = %d and location_id = %d;",
             liveEvent.getTrainId(), liveEvent.getLocationId());
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     /*
-      We create a new CompletableFuture which will be automatically and asynchronly done with the value
+      We create a new CompletableFuture which will be automatically and asynchronously done with the value
       from the given supplier.
     */
     CompletableFuture.supplyAsync(new Supplier<PlannedTrainData>() {
