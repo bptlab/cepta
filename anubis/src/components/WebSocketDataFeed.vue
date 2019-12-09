@@ -40,7 +40,8 @@ export default {
           {},
           () => {
             this.stompClient.subscribe(url, update => {
-              this.pushUpdate(update);
+              console.log(update);
+              // this.pushUpdate(update);
             });
           },
           error => {
