@@ -19,13 +19,17 @@
 package org.bptlab.cepta;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.formats.avro.AvroDeserializationSchema;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
+import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
 import org.bptlab.cepta.producers.replayer.Success;
 import org.bptlab.cepta.schemas.grpc.ReplayerClient;
 import org.slf4j.Logger;
@@ -51,27 +55,35 @@ public class Main implements Callable<Integer> {
   public Integer call() throws Exception {
     logger.info("Staring cepta core...");
 
-    // Start the replayer
-    ReplayerClient test = new ReplayerClient("localhost", 9005);
-    Success success = test.start();
-
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // Create consumer that reads avro data as TrainData objects from topic "test"
-    FlinkKafkaConsumer011<PlannedTrainData> consumer =
-        new FlinkKafkaConsumer011<PlannedTrainData>(
+    FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
+            kafkaConfig.withClientId("LiveTrainDataMainConsumer").getProperties());
+
+    FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
+        new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA, AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
             kafkaConfig.withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
-    DataStream<PlannedTrainData> inputStream = env.addSource(consumer);
+    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
+    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
+
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> resultStream =
+        AsyncDataStream
+            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(), 1000, TimeUnit.MILLISECONDS, 100);
+
+    /*
     DataStream<String> trainIDStream = inputStream.map(new MapFunction<PlannedTrainData, String>() {
       @Override
       public String map(PlannedTrainData value) throws Exception {
         return String.format("Train with ID: %d", value.getId());
       }
     });
+    */
 
     /* Add consumer for our train id messages
     FlinkKafkaProducer011<String> myProducer = new FlinkKafkaProducer011<>(
@@ -81,7 +93,7 @@ public class Main implements Callable<Integer> {
     trainIDStream.addSink(myProducer);*/
 
     // Print stream to console
-    inputStream.print();
+    resultStream.print();
 
     // insert every event into database table with name actor
     // DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
