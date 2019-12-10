@@ -19,7 +19,7 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" :class="{ active: searchToggled }">
+        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
           <input
             class="form-control"
             ref="searchInput"
@@ -134,6 +134,14 @@ export default {
       setTimeout(() => {
         this.$redrawVueMasonry();
       }, 0.2 * 500);
+    },
+    checkForUpdate() {
+      let search = this.$refs.searchInput.value;
+      let reg = new RegExp("^[0-9]*$");
+
+      //only Numbers update our list of train data
+      if (reg.test(search))
+        this.$router.push('/dashboard/traindata/' + search);
     }
   },
   mounted() {}
