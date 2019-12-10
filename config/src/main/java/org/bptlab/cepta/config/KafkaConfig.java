@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.bptlab.cepta.config.constants.KafkaConstants;
 import picocli.CommandLine.Option;
@@ -32,8 +33,8 @@ public class KafkaConfig implements Serializable {
       description = "Specifies the Kafka group ID.")
   static String kafkaGroupID = KafkaConstants.GROUP_ID_CONFIG;
 
-  static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty(); // LongSerializer::new;
-  static Optional<Supplier<? extends Serializer<?>>> valueSerializer =  Optional.empty();
+  static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty();
+  static Optional<Supplier<? extends Serializer<?>>> valueSerializer = Optional.empty();
 
   public KafkaConfig() {
   }
