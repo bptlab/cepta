@@ -8,4 +8,5 @@ docker-compose \
   -f cockpit.compose.yml \
   -f envoy.compose.yml \
   -f rabbitmq.compose.yml \
+  -f monitoring.compose.yml \
   "$@"

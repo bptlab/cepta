@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+- name: "Cepta Monitoring"
+  orgId: 1
+  folder: ""
+  folderUid: ""
+  type: file
+  disableDeletion: true
+  editable: true
+  # How often grafana will scan for changed dashboards
+  updateIntervalSeconds: 60
+  options:
+    path: /var/lib/grafana/dashboards

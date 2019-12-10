@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    monitor: "my-monitor"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+# - alertmanager:9093
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  # Postgres exporter
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres_exporter:9187"]
+        labels:
+          alias: "postgres"
+
+  # JMX exporter that runs on each kafka broker
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka:7072"]
+        labels:
+          alias: "kafka"
