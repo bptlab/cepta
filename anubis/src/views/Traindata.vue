@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1><!-- TODO: Train Number --> {{id}}</h1>
+    <h1>{{id}}</h1>
     <basic-table
         :data-table="false"
         :showIndices="false"
@@ -33,26 +33,10 @@ export default {
     };
   },
   methods: {
-    connect(url = "/topic/updates") {
-      this.stompClient = this.$store.state.websocket;
-      this.stompClient.connect(
-          {},
-          () =>
-              this.stompClient.subscribe(url, update => {
-                    console.log(update);
-                  },
-                  error => {
-                    console.log(error);
-                  })
-      )
-    },
   },
   mounted() {
-    this.connect();
-
-    if(!this.id){
+    if(!this.id)
       this.$router.path(error);
-    }
   }
 };
 </script>
