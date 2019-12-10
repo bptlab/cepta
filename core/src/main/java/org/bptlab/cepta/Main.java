@@ -18,6 +18,7 @@
 
 package org.bptlab.cepta;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
@@ -29,6 +30,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants;
@@ -109,9 +111,13 @@ public class Main implements Callable<Integer> {
             });
 
     // Produce delay notifications into new queue
+    KafkaConfig delaySenderConfig = kafkaConfig.withClientId("TrainDelayNotificationProducer")
+        .withKeySerializer(Optional.of(LongSerializer::new)).withValueSerializer(Optional.of(
+        AvroBinarySerializer<TrainDelayNotification>::new));
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
         KafkaConstants.Topics.DELAY_NOTIFICATIONS, new AvroBinaryFlinkSerializationSchema<>(),
-        kafkaConfig.withClientId("TrainDelayNotificationProducer").getProperties());
+        delaySenderConfig.getProperties());
+
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
 
