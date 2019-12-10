@@ -2,11 +2,12 @@
 
 cd $(dirname $0)
 cd compose
-# -f postgresimporter.compose.yml -f frontend.compose.yml \
+# -f postgresimporter.compose.yml
 docker-compose \
   -f core.compose.yml \
   -f cockpit.compose.yml \
   -f envoy.compose.yml \
+  -f anubis.compose.yml \
   -f rabbitmq.compose.yml \
   -f monitoring.compose.yml \
   "$@"

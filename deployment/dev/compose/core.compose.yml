@@ -135,7 +135,7 @@ services:
       context: ../../../
       dockerfile: deployment/common/java.exec.dockerfile
       args:
-        MODULE: anubis
+        MODULE: osiris
     depends_on:
       - kafka
     command:
@@ -166,7 +166,6 @@ services:
     depends_on:
       - kafka
       - postgres
-    network_mode: host
     command:
       - --broker localhost:29092
       - --grpc-port 9000

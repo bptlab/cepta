@@ -5,6 +5,8 @@ import org.bptlab.cepta.config.KafkaConfig;
 import picocli.CommandLine.Mixin;
 
 public abstract class KafkaServiceRunner implements Callable<Integer> {
+
   @Mixin
   protected KafkaConfig kafkaConfig = new KafkaConfig();
+
 }
