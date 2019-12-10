@@ -9,4 +9,5 @@ docker-compose \
   -f envoy.compose.yml \
   -f anubis.compose.yml \
   -f rabbitmq.compose.yml \
+  -f monitoring.compose.yml \
   "$@"

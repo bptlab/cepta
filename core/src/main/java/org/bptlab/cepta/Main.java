@@ -69,13 +69,13 @@ public class Main implements Callable<Integer> {
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
-            kafkaConfig.withClientId("LiveTrainDataMainConsumer").getProperties());
+            new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
             AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
-            kafkaConfig.withClientId("PlannedTrainDataMainConsumer").getProperties());
+            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
@@ -111,9 +111,8 @@ public class Main implements Callable<Integer> {
             });
 
     // Produce delay notifications into new queue
-    KafkaConfig delaySenderConfig = kafkaConfig.withClientId("TrainDelayNotificationProducer")
-        .withKeySerializer(Optional.of(LongSerializer::new)).withValueSerializer(Optional.of(
-        AvroBinarySerializer<TrainDelayNotification>::new));
+    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+        .withKeySerializer(Optional.of(LongSerializer::new));
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
         KafkaConstants.Topics.DELAY_NOTIFICATIONS, new AvroBinaryFlinkSerializationSchema<>(),
         delaySenderConfig.getProperties());
