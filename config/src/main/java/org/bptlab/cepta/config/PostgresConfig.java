@@ -4,7 +4,7 @@ import java.io.Serializable;
 import org.bptlab.cepta.config.constants.DatabaseConstants;
 import picocli.CommandLine.Option;
 
-public class PostgresConfig implements Serializable {
+public class PostgresConfig implements Serializable, Cloneable {
 
   @Option(
       names = {"--db-host"},

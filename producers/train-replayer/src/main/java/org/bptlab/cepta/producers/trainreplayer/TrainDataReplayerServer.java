@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.apache.kafka.common.serialization.LongSerializer;
+import org.bptlab.cepta.LiveTrainData;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
@@ -12,6 +14,7 @@ import org.bptlab.cepta.producers.PostgresReplayer;
 import org.bptlab.cepta.producers.exceptions.NoDatabaseConnectionException;
 import org.bptlab.cepta.producers.replayer.Success;
 import org.bptlab.cepta.schemas.grpc.GrpcServer;
+import org.bptlab.cepta.serialization.AvroBinarySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +32,7 @@ public class TrainDataReplayerServer
     private KafkaConfig kafkaConfig = new KafkaConfig();
     private PostgresConfig databaseConfig = new PostgresConfig();
     private long frequency = 5000;
+    private Optional<String> mustMatch;
     private Optional<Timestamp> startTimestamp;
     private Optional<Timestamp> endTimestamp;
 
@@ -41,7 +45,8 @@ public class TrainDataReplayerServer
     }
 
     public Builder withKafkaConfig(KafkaConfig config) {
-      kafkaConfig = config;
+      kafkaConfig = config.withKeySerializer(Optional.of(LongSerializer::new)).withValueSerializer(Optional.of(
+          AvroBinarySerializer<LiveTrainData>::new));
       return this;
     }
 
@@ -57,6 +62,11 @@ public class TrainDataReplayerServer
 
     public Builder withFrequency(long frequency) {
       this.frequency = frequency;
+      return this;
+    }
+
+    public Builder mustMatch(Optional<String> condition) {
+      this.mustMatch = condition;
       return this;
     }
 
@@ -84,6 +94,7 @@ public class TrainDataReplayerServer
       for (PostgresReplayer replayer : replayers) {
         replayer.connect(databaseConfig);
         replayer.setFrequency(frequency);
+        replayer.setMustMatch(this.mustMatch);
         startTimestamp.ifPresent(replayer::setStartTime);
         endTimestamp.ifPresent(replayer::setEndTime);
       }

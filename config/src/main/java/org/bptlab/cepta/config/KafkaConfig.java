@@ -5,12 +5,13 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.bptlab.cepta.config.constants.KafkaConstants;
 import picocli.CommandLine.Option;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class KafkaConfig implements Serializable {
+public class KafkaConfig implements Serializable, Cloneable {
 
   @Option(
       names = {"-b", "--broker"},
@@ -32,8 +33,8 @@ public class KafkaConfig implements Serializable {
       description = "Specifies the Kafka group ID.")
   static String kafkaGroupID = KafkaConstants.GROUP_ID_CONFIG;
 
-  static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty(); // LongSerializer::new;
-  static Optional<Supplier<? extends Serializer<?>>> valueSerializer =  Optional.empty();
+  static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty();
+  static Optional<Supplier<? extends Serializer<?>>> valueSerializer = Optional.empty();
 
   public KafkaConfig() {
   }
@@ -98,7 +99,6 @@ public class KafkaConfig implements Serializable {
     props.put(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
     getKeySerializer().map(s -> props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
     getValueSerializer().map(s -> props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
-    // props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, new AvroFlinkSerializationSchema<>().getClass().getName());
     return props;
   }
 }
