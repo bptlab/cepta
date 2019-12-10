@@ -4,7 +4,9 @@ import java.sql.Timestamp;
 import java.util.Optional;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.producers.KafkaServiceRunner;
+import org.bptlab.cepta.utils.converters.OptionalTypeConverter;
 import org.bptlab.cepta.utils.converters.TimestampTypeConverter;
+import org.graalvm.compiler.nodes.calc.IntegerDivRemNode.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -31,6 +33,12 @@ public class TrainDataReplayerRunner extends KafkaServiceRunner {
       names = {"--log-level"},
       description = "Sets the output log level.")
   private long logLevel = 2000;
+
+  @Option(
+      names = {"--must-match"},
+      description = "Will be included in database query to narrow down events",
+      converter = OptionalTypeConverter.class)
+  private Optional<String> mustMatch = Optional.empty();
 
   @Option(
       names = {"-f", "--frequency"},
@@ -60,6 +68,7 @@ public class TrainDataReplayerRunner extends KafkaServiceRunner {
     TrainDataReplayerServer trainDataReplayerServer = TrainDataReplayerServer.newBuilder()
         .withKafkaConfig(kafkaConfig).withDatabaseConfig(databaseConfig)
         .withStartTime(startTimestamp).withEndTime(endTimestamp).withFrequency(frequency)
+        .mustMatch(mustMatch)
         .build(grpcPort);
     trainDataReplayerServer.startGrpcServer();
     trainDataReplayerServer.blockUntilShutdown();
