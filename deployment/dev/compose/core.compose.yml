@@ -123,7 +123,7 @@ services:
       context: ../../../
       dockerfile: deployment/common/java.exec.dockerfile
       args:
-        MODULE: anubis
+        MODULE: osiris
     depends_on:
       - kafka
     command:
@@ -154,12 +154,11 @@ services:
     depends_on:
       - kafka
       - postgres
-    network_mode: host
     command:
-      - --broker localhost:29092
-      - --grpc-port 9000
-      - --host localhost
-      - --db-port ${CEPTA_POSTGRES_PORT}
+      - --broker=localhost:29092
+      - --grpc-port=9000
+      - --db-host=postgres
+      - --db-port=${CEPTA_POSTGRES_PORT}
       # - --broker kafka:9092 --grpc-port 9000
     ports:
       - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000

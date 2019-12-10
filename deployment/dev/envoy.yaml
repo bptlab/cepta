@@ -48,6 +48,9 @@ static_resources:
                         - match: { prefix: "/api/" }
                           route:
                             cluster: osiris_service
+                        - match: { prefix: "/ws/" }
+                          route:
+                            cluster: osiris_service
                         - match: { prefix: "/" }
                           route:
                             cluster: anubis_service
