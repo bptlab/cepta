@@ -20,6 +20,7 @@ import org.bptlab.cepta.utils.types.TimeRange;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine.Option;
 
 public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
   protected static final Logger logger =
@@ -27,6 +28,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
 
   public String tableName;
   public String sortColumn;
+  public Optional<String> mustMatch = Optional.empty();
   public TimeRange timeRange = TimeRange.unconfined();
 
   public boolean connected = false;
@@ -98,6 +100,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     List<String> parts = new ArrayList<String>();
     // Datasource
     parts.add(String.format("SELECT * FROM %s", this.tableName));
+    mustMatch.map(mustMatch -> parts.add(String.format("WHERE %s", mustMatch)));
 
     // Confine time range if either a start or end timestamp were specified
     parts.add(this.timeRange.getQuery(this.sortColumn));
@@ -109,6 +112,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     this.limit.map(limit -> parts.add(String.format("LIMIT %d", limit)));
     parts.add(String.format("OFFSET %d", this.offset));
 
+    logger.info(String.join(" ", parts));
     return String.join(" ", parts);
   }
 
@@ -144,7 +148,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
           logger.info(
               String.format("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)\n",
                   record.key(), (V) record.value(), metadata.partition(), metadata.offset()));
-          producer.flush();
+          // producer.flush();
           Thread.sleep(this.frequency);
         } catch (Exception e) {
           logger.warn("Failed to process database entry. Will continue with the next entry.");
@@ -152,8 +156,9 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
         }
       }
       logger.info("There is no more live train data left in the database. Exiting.");
-    } catch (SQLException e) {
+    } catch (Exception e) {
       e.printStackTrace();
+      logger.error(String.format("Error while executing database query. Closing the %s producer.", this.getClass().getName()));
     } finally {
       producer.close();
     }
@@ -170,6 +175,10 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
     stop();
     setOffset(offset);
     start();
+  }
+
+  public void setMustMatch(Optional<String> mustMatch) {
+    this.mustMatch = mustMatch;
   }
 
   public void setTableName(String tableName) {

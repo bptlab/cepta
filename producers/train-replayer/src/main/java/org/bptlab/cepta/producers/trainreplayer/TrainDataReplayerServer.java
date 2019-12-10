@@ -32,6 +32,7 @@ public class TrainDataReplayerServer
     private KafkaConfig kafkaConfig = new KafkaConfig();
     private PostgresConfig databaseConfig = new PostgresConfig();
     private long frequency = 5000;
+    private Optional<String> mustMatch;
     private Optional<Timestamp> startTimestamp;
     private Optional<Timestamp> endTimestamp;
 
@@ -64,6 +65,11 @@ public class TrainDataReplayerServer
       return this;
     }
 
+    public Builder mustMatch(Optional<String> condition) {
+      this.mustMatch = condition;
+      return this;
+    }
+
     public TrainDataReplayerServer build(int servicePort) {
       LiveTrainDataReplayer liveTrainDataReplayer = new LiveTrainDataReplayer(
           kafkaConfig.withClientId("liveTrainDataReplayerClient").getProperties(),
@@ -88,6 +94,7 @@ public class TrainDataReplayerServer
       for (PostgresReplayer replayer : replayers) {
         replayer.connect(databaseConfig);
         replayer.setFrequency(frequency);
+        replayer.setMustMatch(this.mustMatch);
         startTimestamp.ifPresent(replayer::setStartTime);
         endTimestamp.ifPresent(replayer::setEndTime);
       }
