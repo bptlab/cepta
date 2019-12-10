@@ -15,7 +15,7 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		/* Start the replayer
+		/* Start the replayer */
 		ReplayerClient test = new ReplayerClient("localhost", 9005);
 		try {
 			Success success = test.start();
