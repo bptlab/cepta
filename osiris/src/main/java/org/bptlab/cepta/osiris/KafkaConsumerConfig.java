@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.bptlab.cepta.LiveTrainData;
+import org.bptlab.cepta.TrainDelayNotification;
 import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.serialization.AvroBinaryDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 public class KafkaConsumerConfig {
 
   @Bean
-  public ConsumerFactory<Long, LiveTrainData> consumerFactory() {
+  public ConsumerFactory<Long, TrainDelayNotification> consumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(
         ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -34,13 +35,13 @@ public class KafkaConsumerConfig {
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
         AvroBinaryDeserializer.class);
     return new DefaultKafkaConsumerFactory<>(
-        props, new LongDeserializer(), new AvroBinaryDeserializer<>(LiveTrainData::new));
+        props, new LongDeserializer(), new AvroBinaryDeserializer<>(TrainDelayNotification::new));
   }
 
   @Bean
-  public ConcurrentKafkaListenerContainerFactory<Long, LiveTrainData>
+  public ConcurrentKafkaListenerContainerFactory<Long, TrainDelayNotification>
   kafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<Long, LiveTrainData> factory =
+    ConcurrentKafkaListenerContainerFactory<Long, TrainDelayNotification> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setMissingTopicsFatal(false);
     factory.setConsumerFactory(consumerFactory());
