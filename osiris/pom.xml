@@ -163,7 +163,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-reactor-netty</artifactId>
 			<version>${org.springframework.version}</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.bptlab.cepta</groupId>
 			<artifactId>utils</artifactId>
@@ -176,7 +176,6 @@
 			<artifactId>postgresql</artifactId>
 			<version>9.4-1206-jdbc42</version>
 		</dependency>
-		</dependency>-->
 	</dependencies>
 
 	<dependencyManagement>
