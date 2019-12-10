@@ -130,19 +130,6 @@ services:
       # Disable logging
       driver: none
 
-  osiris:
-    build:
-      context: ../../../
-      dockerfile: deployment/common/java.exec.dockerfile
-      args:
-        MODULE: osiris
-    depends_on:
-      - kafka
-    command:
-      - --server.port=8082
-    ports:
-      - ${CEPTA_WEBUI_BACKEND_PORT}:8082
-
   core:
     build:
       context: ../../../
