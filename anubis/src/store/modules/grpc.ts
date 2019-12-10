@@ -10,7 +10,7 @@ export interface IGrpcState {
 
 @Module({ dynamic: true, store, name: 'grpc' })
 class Grpc extends VuexModule implements IGrpcState {
-  public replayer = new ReplayerClient('http://localhost:8080', null, null);
+  public replayer = new ReplayerClient('/grpc/replayer', null, null);
 
   @Mutation
   private CHANGE_SETTING(payload: { key: string, value: any }) {
