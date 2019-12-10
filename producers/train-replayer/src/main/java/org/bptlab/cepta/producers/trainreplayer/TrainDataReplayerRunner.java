@@ -6,7 +6,6 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.producers.KafkaServiceRunner;
 import org.bptlab.cepta.utils.converters.OptionalTypeConverter;
 import org.bptlab.cepta.utils.converters.TimestampTypeConverter;
-import org.graalvm.compiler.nodes.calc.IntegerDivRemNode.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
