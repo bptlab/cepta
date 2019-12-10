@@ -146,13 +146,13 @@ export default {
       if (reg.test(search))
         this.$router.push('/dashboard/traindata/' + search);
     },
+    /*
     send(message) {
       console.log('Sehen')
       axios.post('/api/trainid', message)
         .then(response => {console.log(response)});
     }
 
-    /*
     send(message){
       console.log("Sending message: " + message);
       if (this.stompClient) {
@@ -171,10 +171,10 @@ export default {
                     console.log(error);
                   })
       )
-    }, */
+    },
   },
   mounted() {
-    // this.connect();
+    // this.connect();*/
   }
 };
 </script>
