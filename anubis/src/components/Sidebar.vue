@@ -42,6 +42,13 @@
           </template>
         </sidebar-element>
 
+        <!-- Traindata -->
+        <sidebar-element title="Traindata" :route="{ path: '/dashboard/traindata/1' }">
+          <template v-slot:icon>
+            <i class="c-green-500 icon-book"></i>
+          </template>
+        </sidebar-element>
+
 
         <!-- Multiple Levels -->
         <sidebar-dropdown title="Examples">

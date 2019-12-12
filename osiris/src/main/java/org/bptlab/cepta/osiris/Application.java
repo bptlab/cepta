@@ -15,13 +15,20 @@ public class Application {
 
 	public static void main(String[] args) {
 
-		// Start the replayer
+		/* Start the replayer */
 		ReplayerClient test = new ReplayerClient("localhost", 9005);
 		try {
 			Success success = test.start();
 		} catch (InterruptedException | io.grpc.StatusRuntimeException ex) {
 			logger.error("Failed to start the gRPC replayer service");
 		}
+
+		/* Connect to Postgres DB for access to public.planned
+		try {
+			DatabaseConfig database = new DatabaseConfig(12);
+			database.showPlannedTrainData();
+		} catch (Exception e) {};
+		 */
 
 		SpringApplication.run(Application.class, args);
 	}
