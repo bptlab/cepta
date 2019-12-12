@@ -1,6 +1,8 @@
 ### Ignore DS_Store for mac users
 *.DS_Store
 
+node_modules/
+
 ### Ignore java (build) artifacts
 **/dependency-reduced-pom.xml
 
