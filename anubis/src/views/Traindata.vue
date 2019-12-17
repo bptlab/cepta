@@ -18,6 +18,7 @@ import MasonryLayoutTile from "@/components/MasonryLayoutTile";
 import RowLayout from "../components/RowLayout";
 import RowLayoutRow from "../components/RowLayoutRow";
 import BasicTable from "../components/BasicTable";
+import Stomp from "webstomp-client";
 
 export default {
   name: "Traindata",
@@ -27,16 +28,26 @@ export default {
     return {
       receivedUpdates:
           [["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
-            [1, "Berlin", "10:30", "00:30", "Storm", "11:00"],
-            [2, "Hamburg", "13:30", "00:25", "Wind", "13:55"]
-          ],
+            ],
     };
   },
   methods: {
+    connect(url = "/topic/updates"){
+      this.websocket = this.$store.state.websocket
+      this.stompClient = Stomp.over(this.websocket);
+      this.stompClient.connect(
+          {},
+          () =>
+              this.stompClient.subscribe(url, update => {
+                    console.log(update);
+                  },
+                  error => {
+                    console.log(error);
+                  }))
+    },
   },
   mounted() {
-    if(!this.id)
-      this.$router.path(error);
+    this.connect();
   }
 };
 </script>

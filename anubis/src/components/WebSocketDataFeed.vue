@@ -2,7 +2,7 @@
   <div>
     <div id="main-content" class="container">
       <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
-      <input @keyup="filter" ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
+      <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <div class="row">
         <basic-table ref="table"
             :showIndices="false"
@@ -16,35 +16,34 @@
   </div>
 </template>
 
-<script>
+<script lang="js">
 import RowLayout from "../components/RowLayout";
 import RowLayoutRow from "../components/RowLayoutRow";
 import BasicTable from "../components/BasicTable";
 import {GrpcModule} from "../store/modules/grpc";
+import Stomp from "webstomp-client";
 
 export default {
   name: "WebSocketDataFeed",
   components: { BasicTable, RowLayoutRow, RowLayout },
   data() {
     return {
-      receivedUpdates: [],
-      filteredTableData: []
+      search: "",
+      receivedUpdates: []
     };
   },
   methods: {
     connect(url = "/topic/updates"){
-      this.stompClient = this.$store.state.websocket;
+      this.websocket = this.$store.state.websocket;
+      this.stompClient = Stomp.over(this.websocket);
       this.stompClient.connect(
           {},
           () =>
             this.stompClient.subscribe(url, update => {
               console.log(update);
-              this.filter();
-              if (this.receivedUpdates.length < 1){
+              if (this.receivedUpdates.length < 1)
                 this.pushUpdate(update, true);
-              } else {
-                this.pushUpdate(update, false);
-              }
+              this.pushUpdate(update, false);
           },
           error => {
             console.log(error);
@@ -63,13 +62,13 @@ export default {
       this.receivedUpdates.push(newInput);
     },
     replay() {
-      // this.connect();
       GrpcModule.replayData().then()
-    },
-    filter(){
-      let search = this.$refs.search.value;
-
-      this.filteredTableData = this.receivedUpdates.filter((tableArray) => {
+    }
+  },
+  computed: {
+    filteredTableData() {
+      this.search;
+      this.receivedUpdates.filter((tableArray) => {
         for (let key in tableArray) {
           if (String(tableArray[key]).includes(search) || String(tableArray[key]).includes("id"))
             return tableArray;
@@ -79,6 +78,7 @@ export default {
   },
   mounted() {
     this.connect();
+    this.search = this.$refs.search.value;
   }
 };
 </script>
