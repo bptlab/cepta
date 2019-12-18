@@ -138,13 +138,14 @@ export default {
       }, 0.2 * 500);
     },
     checkForUpdate() {
-      let search = this.$refs.searchInput.value;
-      this.send(search)
+      let id = this.$refs.searchInput.value;
+      // this.send(id)
       let reg = new RegExp("^[0-9]*$");
+      debugger;
 
       //only Numbers update our list of train data
-      if (reg.test(search))
-        this.$router.push('/dashboard/traindata/' + search);
+      if (reg.test(id))
+        this.$router.push({ name: 'traindata', params: { id }});
     },
     /*
     send(message) {
