@@ -26,7 +26,7 @@ export default {
       this.$redrawVueMasonry();
     },
     connectWebsocket() {
-      this.socket = new SockJS("http://localhost:5000/ws");
+      this.socket = new SockJS("/ws");
       this.$store.commit('setWebsocket', this.socket);
     }
   },
