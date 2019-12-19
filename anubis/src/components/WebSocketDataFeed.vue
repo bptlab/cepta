@@ -1,70 +1,84 @@
 <template>
   <div>
     <div id="main-content" class="container">
+      <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
+      <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <div class="row">
-        <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
-        <basic-table
-            :data-table="true"
+        <basic-table ref="table"
             :showIndices="false"
             :striped="true"
             :bordered="true"
             cellspacing="0"
-            :table-data="receivedUpdates"
+            :table-data="filteredTableData"
         ></basic-table>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import Stomp from "webstomp-client";
+<script lang="js">
 import RowLayout from "../components/RowLayout";
 import RowLayoutRow from "../components/RowLayoutRow";
 import BasicTable from "../components/BasicTable";
 import {GrpcModule} from "../store/modules/grpc";
+import Stomp from "webstomp-client";
 
 export default {
   name: "WebSocketDataFeed",
   components: { BasicTable, RowLayoutRow, RowLayout },
   data() {
     return {
-      receivedUpdates:
-        [["TrainID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
-        ],
+      search: "",
+      receivedUpdates: []
     };
   },
   methods: {
-    connect(stomp, url = "/topic/updates"){
-      this.stompClient = stomp;
+    connect(url = "/topic/updates"){
+      this.websocket = this.$store.state.websocket;
+      this.stompClient = Stomp.over(this.websocket);
       this.stompClient.connect(
           {},
-          () => {
+          () =>
             this.stompClient.subscribe(url, update => {
               console.log(update);
-              // this.pushUpdate(update);
-            });
+              if (this.receivedUpdates.length < 1)
+                this.pushUpdate(update, true);
+              this.pushUpdate(update, false);
           },
           error => {
             console.log(error);
-          }
-      );
+          })
+      )
     },
-    pushUpdate(update){
+    pushUpdate(update, header){
       let obj = JSON.parse(update.body);
-      let newInput =  new Array();
+      let newInput =  [];
 
       for (let value of Object.entries(obj)) {
-        newInput.push(value[1]);
+        if (header) newInput.push(value[0]);
+        else newInput.push(value[1]);
       }
 
       this.receivedUpdates.push(newInput);
     },
     replay() {
       GrpcModule.replayData().then()
-    },
-    disconnect(){
-      this.stompClient.disconnect();
     }
+  },
+  computed: {
+    filteredTableData() {
+      this.search;
+      this.receivedUpdates.filter((tableArray) => {
+        for (let key in tableArray) {
+          if (String(tableArray[key]).includes(search) || String(tableArray[key]).includes("id"))
+            return tableArray;
+        };
+      })
+    }
+  },
+  mounted() {
+    this.connect();
+    this.search = this.$refs.search.value;
   }
 };
 </script>

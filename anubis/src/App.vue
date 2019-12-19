@@ -9,6 +9,8 @@
 
 <script>
 import NprogressContainer from "vue-nprogress/src/NprogressContainer";
+import SockJS from "sockjs-client";
+
 export default {
   name: "App",
   components: {
@@ -22,6 +24,10 @@ export default {
   methods: {
     reDraw: function() {
       this.$redrawVueMasonry();
+    },
+    connectWebsocket() {
+      this.socket = new SockJS("http://localhost:5000/ws");
+      this.$store.commit('setWebsocket', this.socket);
     }
   },
   created() {
@@ -39,7 +45,12 @@ export default {
   },
   mounted() {
     this.$redrawVueMasonry();
+    this.connectWebsocket();
+  },
+  destroyed() {
+    this.socket.close();
   }
+
 };
 </script>
 

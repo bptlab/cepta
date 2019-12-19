@@ -19,7 +19,7 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" :class="{ active: searchToggled }">
+        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
           <input
             class="form-control"
             ref="searchInput"
@@ -104,6 +104,7 @@ import EmailDropdownElement from "@/components/EmailDropdownElement";
 import AccountDropdown from "@/components/AccountDropdown";
 import { GrpcModule } from "@/store/modules/grpc";
 import {AppModule} from "../store/modules/app";
+import axios from 'axios';
 
 export default {
   name: "NavigationBar",
@@ -117,7 +118,8 @@ export default {
   data() {
     return {
       searchToggled: false,
-      search: null
+      search: null,
+      stompClient: null
     };
   },
   methods: {
@@ -134,9 +136,47 @@ export default {
       setTimeout(() => {
         this.$redrawVueMasonry();
       }, 0.2 * 500);
+    },
+    checkForUpdate() {
+      let id = this.$refs.searchInput.value;
+      // this.send(id)
+      let reg = new RegExp("^[0-9]*$");
+      debugger;
+
+      //only Numbers update our list of train data
+      if (reg.test(id))
+        this.$router.push({ name: 'traindata', params: { id }});
+    },
+    /*
+    send(message) {
+      console.log('Sehen')
+      axios.post('/api/trainid', message)
+        .then(response => {console.log(response)});
     }
+
+    send(message){
+      console.log("Sending message: " + message);
+      if (this.stompClient) {
+        this.stompClient.send("/app/id", message, {});
+      }
+    },
+    connect(url = "/topic/traindata") {
+      this.stompClient = this.$store.state.websocket;
+      this.stompClient.connect(
+          {},
+          () =>
+              this.stompClient.subscribe(url, update => {
+                    console.log(update);
+                  },
+                  error => {
+                    console.log(error);
+                  })
+      )
+    },
   },
-  mounted() {}
+  mounted() {
+    // this.connect();*/
+  }
 };
 </script>
 
