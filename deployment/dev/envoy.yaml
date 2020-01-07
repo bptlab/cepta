@@ -25,14 +25,13 @@ static_resources:
                             cluster: osiris_service
                         - match: { prefix: "/ws" }
                           route:
-                            # use_websocket: true
                             upgrade_configs:
                               - upgrade_type: websocket
                             cluster: osiris_service
                         - match: { prefix: "/sockjs-node/" }
-                          upgrade_configs:
-                            - upgrade_type: websocket
                           route:
+                            upgrade_configs:
+                              - upgrade_type: websocket
                             cluster: osiris_service
                         - match: { prefix: "/" }
                           route:
