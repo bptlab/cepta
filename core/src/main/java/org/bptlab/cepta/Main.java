@@ -94,7 +94,7 @@ public class Main implements Callable<Integer> {
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 12);
+                100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .flatMap(
@@ -111,14 +111,19 @@ public class Main implements Callable<Integer> {
           delay > 0 is bad, the train might arrive later than planned
           delay < 0 is good, the train might arrive earlier than planned
          */
+                try {
+                  long delay = observed.getActualTime() - expected.getPlannedTime();
 
-                long delay = observed.getActualTime() - expected.getPlannedTime();
-                // Only send a delay notification if some threshold is exceeded
-                if (Math.abs(delay) > 10) {
-                  collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                      .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
-                      .build());
+                  // Only send a delay notification if some threshold is exceeded
+                  if (Math.abs(delay) > 10) {
+                    collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
+                        .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
+                        .build());
+                  }
+                } catch ( NullPointerException e ) {
+                  // Do not send a delay event
                 }
+
               }
             });
 
