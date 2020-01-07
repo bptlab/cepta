@@ -12,3 +12,4 @@ cd cepta
 __Note__: The service expects to find data in the database.
 Please make sure to import data as described in the [deployment
 guide](https://github.com/bptlab/cepta/blob/master/deployment/dev/README.md).
+

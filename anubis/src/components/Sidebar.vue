@@ -43,7 +43,7 @@
         </sidebar-element>
 
         <!-- Traindata -->
-        <sidebar-element title="Traindata" :route="{ path: '/dashboard/traindata/1' }">
+        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo'}">
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
           </template>

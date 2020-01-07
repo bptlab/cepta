@@ -9,7 +9,6 @@
 
 <script>
 import NprogressContainer from "vue-nprogress/src/NprogressContainer";
-import Stomp from "webstomp-client";
 import SockJS from "sockjs-client";
 
 export default {
@@ -28,9 +27,7 @@ export default {
     },
     connectWebsocket() {
       this.socket = new SockJS("http://localhost:5000/ws");
-      this.stompClient = Stomp.over(this.socket);
-
-      this.$store.commit('setWebsocket', this.stompClient);
+      this.$store.commit('setWebsocket', this.socket);
     }
   },
   created() {
