@@ -57,8 +57,6 @@ def proto_compile(
     try:
         # Download correct files
         system = platform.system().lower()  # darwin
-        print(system)
-        print("HERE IS THE SYSTEM")
         system_alias = "osx" if system == "darwin" else system  # osx for darwin
         #url configs for windows
         if system == "windows":
