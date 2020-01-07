@@ -31,8 +31,6 @@ static_resources:
                             cluster: osiris_service
                         - match: { prefix: "/sockjs-node/" }
                           route:
-                            upgrade_configs:
-                              - upgrade_type: websocket
                             cluster: osiris_service
                             upgrade_configs:
                               - upgrade_type: websocket
