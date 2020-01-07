@@ -126,9 +126,9 @@ services:
       interval: 3s
       timeout: 2s
       retries: 20
-      # logging:
-       Disable logging
-        driver: none
+    logging:
+      # Disable logging
+      driver: none
 
   osiris:
     build:
