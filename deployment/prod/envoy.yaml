@@ -1,8 +1,8 @@
 static_resources:
   listeners:
-    - name: grpc_listener
+    - name: ingress_listener
       address:
-        socket_address: { address: 0.0.0.0, port_value: 81 }
+        socket_address: { address: 0.0.0.0, port_value: ${CEPTA_ENVOY_INGRESS_PORT} }
       filter_chains:
         - filters:
             - name: envoy.http_connection_manager
@@ -12,44 +12,26 @@ static_resources:
                 route_config:
                   name: local_route
                   virtual_hosts:
-                    - name: local_service
+                    - name: grpc_services
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/grpc/replayer" }
+                        - match: { prefix: "/grpc/replayer/" }
                           route:
+                            prefix_rewrite: "/"
                             cluster: traindatareplayer_service
                             # max_grpc_timeout: 0s
-                      cors:
-                        allow_origin:
-                          - "*"
-                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
-                        max_age: "1728000"
-                        expose_headers: grpc-status,grpc-message
-                http_filters:
-                  - name: envoy.grpc_web
-                  - name: envoy.cors
-                  - name: envoy.router
-    - name: web_listener
-      address:
-        socket_address: { address: 0.0.0.0, port_value: 80 }
-      filter_chains:
-        - filters:
-            - name: envoy.http_connection_manager
-              config:
-                codec_type: auto
-                stat_prefix: ingress_http
-                route_config:
-                  name: local_route
-                  virtual_hosts:
-                    - name: local_service
-                      domains: ["*"]
-                      routes:
                         - match: { prefix: "/api" }
                           route:
                             cluster: osiris_service
                         - match: { prefix: "/ws" }
                           route:
+                            upgrade_configs:
+                              - upgrade_type: websocket
+                            cluster: osiris_service
+                        - match: { prefix: "/sockjs-node/" }
+                          route:
+                            upgrade_configs:
+                              - upgrade_type: websocket
                             cluster: osiris_service
                         - match: { prefix: "/" }
                           route:
@@ -58,9 +40,11 @@ static_resources:
                         allow_origin:
                           - "*"
                         allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent
+                        # allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
                         max_age: "1728000"
+                        expose_headers: grpc-status,grpc-message
                 http_filters:
+                  - name: envoy.grpc_web
                   - name: envoy.cors
                   - name: envoy.router
   clusters:
@@ -69,19 +53,17 @@ static_resources:
       type: logical_dns
       http2_protocol_options: {}
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: traindatareplayer, port_value: 80 }}]
+      hosts: [{ socket_address: { address: traindatareplayer, port_value: 9000 }}]
 
     - name: osiris_service
       connect_timeout: 15.0s
       type: logical_dns
-      http2_protocol_options: {}
       lb_policy: round_robin
       hosts: [{ socket_address: { address: osiris, port_value: 80 }}]
 
     - name: anubis_service
       connect_timeout: 15.0s
       type: logical_dns
-      http2_protocol_options: {}
       upstream_connection_options:
         tcp_keepalive:
           keepalive_time: 300

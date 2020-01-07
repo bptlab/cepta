@@ -1,13 +1,11 @@
-## CEPTA development deployment
+## CEPTA production deployment
 
-Provides a docker compose file for deploying a local development environment including flink, kafka and other components.
+Provides a docker compose file for deploying *CEPTA*.
 
 #### Overview
-The deployment is configured in a modular fashion to aid 
-understanding and allow simple starting and stopping of independent sets
-of services during development. Additionally, the configuration
-is intended to be ubiquitous for the client host running it, so one 
-can interact with all services without the need for proxies.
+The deployment is configured to provide a single point of entry for the CEPTA application.
+It intentionally exposes only the main ingress port and uses reverse proxying and 
+container internal communication only.
 
 #### Prerequisites
 - `docker` (see the cheat sheet)
@@ -21,30 +19,25 @@ your own running instances or see _Modularization_ down below.
 
 Start and stop the local cluster using the convenience scripts:
 ```bash
-cd deployment/dev
-./devenv.sh up
-./devenv.sh down
+deployment/prod/prodenv.sh up
+deployment/prod/prodenv.sh down
 ```
 
 If any changes were made to the containers, rebuild with
 ```bash
-cd deployment/dev
-./devenv.sh down
-./devenv.sh build --parallel
-./devenv.sh up
+deployment/prod/prodenv.sh down
+deployment/prod/prodenv.sh build --parallel
+deployment/prod/prodenv.sh up
 ```
 If any configurations are not applied you might need to delete 
 the docker volumes and force recreation
 ```
-cd deployment/dev
-/devenv.sh up --force-recreate --always-recreate-deps --renew-anon-volumes
+deployment/prod/prodenv.sh up --force-recreate --always-recreate-deps --renew-anon-volumes
 ```
 
 #### What to do now?
-After starting the dev environment, visit 
-[http://localhost:8080](http://localhost:8080) to see an overview 
-of all the services and their ports. (*Note*: The ports are meant for 
-reference. Not every service exposes a web interface.)
+After starting the production environment, visit the application at 
+[http://localhost:8080](http://localhost:80).
 
 #### Starting with data
 Some of the data is not meant for public distribution and is kept private.
@@ -56,17 +49,16 @@ and [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
 
 #### Import train data into the database
 1. Clone [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
-2. Start postgres and pgadmin: `/devenv.sh up postgres pgadmin`
+2. Start postgres and pgadmin: `/prodenv.sh up postgres pgadmin`
 3. Wait for `./bp.sh $(realpath ./selected-data/) $(realpath ./hooks/metaschema-post-load)` to finish importing
 4. After import, the `postgres` database should persist the imported data.
-5. Stop postgres and start the entire cluster: `/devenv.sh down && /devenv.sh up`
+5. Stop postgres and start the entire cluster: `/prodenv.sh down && /prodenv.sh up`
 6. Optional: Explore the data using `pgadmin` (check the [dev cockpit](http://localhost:8080))
 
 #### Modularization
 This launches all the default services.
 If you want to start only some services, pass the names of the services 
-to the `./devenv.sh up` command. For example:
+to the `./prodenv.sh up` command. For example:
 ```bash
-cd deployment/dev
-./devenv.sh up osiris, anubis, envoy
+deployment/prod/prodenv.sh up osiris, anubis, envoy
 ```
