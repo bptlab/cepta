@@ -106,7 +106,7 @@ services:
       driver: none
 
   pgadmin:
-    image: dpage/pgadmin4:4.15
+    image: dpage/pgadmin4
     depends_on:
       - postgres
     restart: "no"
