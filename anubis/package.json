@@ -39,7 +39,9 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.6",
+    "@types/jquery": "^3.3.31",
     "@types/mocha": "^5.2.7",
+    "@types/sockjs-client": "^1.1.1",
     "@vue/cli-plugin-babel": "^4.1.1",
     "@vue/cli-plugin-e2e-cypress": "^4.1.1",
     "@vue/cli-plugin-eslint": "^4.1.1",

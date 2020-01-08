@@ -9,16 +9,20 @@
 
 <script>
 import WebSocketDataFeed from "@/components/WebSocketDataFeed.vue";
+import { Component, Vue } from 'vue-property-decorator';
 import MasonryLayout from "@/components/MasonryLayout";
 import MasonryLayoutTile from "@/components/MasonryLayoutTile";
 
-export default {
+@Component({
   name: "WebSocket",
   components: {
     WebSocketDataFeed,
     MasonryLayout,
     MasonryLayoutTile
   }
+})
+export default class Websocket extends Vue {
+
 };
 </script>
 

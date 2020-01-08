@@ -55,11 +55,12 @@
   </table>
 </template>
 
-<script>
-  import * as $ from "jquery";
+<script lang="ts">
+  import $ from "jquery";
   import "datatables";
+  import { Component, Vue } from 'vue-property-decorator';
 
-  export default {
+  @Component({
     name: "BasicTable",
     props: {
       tableData: {
@@ -96,40 +97,44 @@
         type: String,
         default: ""
       }
-    },
-    computed: {
-      firstRow() {
-        return this.tableData.length > 0 ? this.tableData[0] : [];
-      },
-      dataIsArray() {
-        return Array.isArray(this.firstRow);
-      },
-      tableHeadClasses() {
-        return this.thead.toLowerCase() === "dark"
-            ? "thead-dark"
-            : this.thead.toLowerCase() === "light"
-                ? "thead-light"
-                : "";
-      },
-      sortedTableData() {
-        return this.tableData.slice(1,).sort((a, b) => {
-          return a[this.sortKey] > b[this.sortKey]
-              ? 1
-              : b[this.sortKey] > a[this.sortKey]
-                  ? -1
-                  : 0;
-        });
-      },
-      tableCategories() {
-        return this.dataIsArray
-            ? this.firstRow
-            : Object.keys(this.firstRow).filter(key => {
-              return key.toLowerCase().substr(0, 1) !== "_";
-            });
-      }
-    },
+    }
+  })
+  export default class BasicTable extends Vue {
+    get firstRow() : Array<Number>{
+      return this.$props.tableData.length > 0 ? this.$props.tableData[0] : [];
+    };
+
+    get dataIsArray() : boolean {
+      return Array.isArray(this.firstRow);
+    };
+
+    get tableHeadClasses() : string {
+      return this.$props.thead.toLowerCase() === "dark"
+          ? "thead-dark"
+          : this.$props.thead.toLowerCase() === "light"
+              ? "thead-light"
+              : "";
+    };
+
+    get sortedTableData() {
+      return this.$props.tableData.slice(1,).sort((a : string, b : string) => {
+        return a[this.$props.sortKey] > b[this.$props.sortKey]
+            ? 1
+            : b[this.$props.sortKey] > a[this.$props.sortKey]
+                ? -1
+                : 0;
+      });
+    };
+
+    get tableCategories() {
+      return this.dataIsArray
+          ? this.firstRow
+          : Object.keys(this.firstRow).filter(key => {
+            return key.toLowerCase().substr(0, 1) !== "_";
+          });
+    }
     mounted() {
-      if (this.dataTable) {
+      if (this.$props.dataTable) {
         // Initialize datatable
         $(".dataTable").DataTable({
           scrollX: true

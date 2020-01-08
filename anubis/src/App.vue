@@ -7,29 +7,29 @@
   </div>
 </template>
 
-<script>
-import NprogressContainer from "vue-nprogress/src/NprogressContainer";
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import SockJS from "sockjs-client";
 
-export default {
+
+@Component({
   name: "App",
   components: {
     NprogressContainer
-  },
-  props: {},
-  data() {
-    return {};
-  },
-  computed: {},
-  methods: {
-    reDraw: function() {
-      this.$redrawVueMasonry();
-    },
-    connectWebsocket() {
-      this.socket = new SockJS("http://localhost:5000/ws");
-      this.$store.commit('setWebsocket', this.socket);
-    }
-  },
+  }
+})
+export default class App extends Vue {
+  socket = new SockJS("http://localhost:5000/ws");
+
+  redraw() {
+    this.$redrawVueMasonry();
+  }
+
+  connectWebsocket() {
+    this.$store.commit('setWebsocket', this.socket);
+  }
+
   created() {
     this.axios.interceptors.response.use(undefined, function(err) {
       return new Promise(function(resolve, reject) {
@@ -42,16 +42,17 @@ export default {
         throw err;
       });
     });
-  },
+  }
+
   mounted() {
-    this.$redrawVueMasonry();
+    this.redraw();
     this.connectWebsocket();
-  },
+  }
+
   destroyed() {
     this.socket.close();
   }
-
-};
+}
 </script>
 
 <style lang="scss">
