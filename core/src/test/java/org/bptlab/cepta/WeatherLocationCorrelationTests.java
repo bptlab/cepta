@@ -11,6 +11,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.testng.Assert;
+import java.util.TreeSet;
 import org.testng.annotations.Test;
 
 public class WeatherLocationCorrelationTests {
@@ -20,12 +21,12 @@ public class WeatherLocationCorrelationTests {
       dataProvider = "weather-at-direct-location",
       dataProviderClass = WeatherDataProvider.class)
   public void testDirectLocationMatch(DataStream<WeatherData> weatherStream) throws IOException {
-    DataStream<Tuple2<WeatherData, List<Integer>>> correlatedWeatherStream = AsyncDataStream
+    DataStream<Tuple2<WeatherData, TreeSet<Integer>>> correlatedWeatherStream = AsyncDataStream
         .unorderedWait(weatherStream, new WeatherLocationCorrelationFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
 
     correlatedWeatherStream.print();
-    Iterator<Tuple2<WeatherData, List<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
+    Iterator<Tuple2<WeatherData, TreeSet<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
     Assert.assertTrue(iterator.next().f1.contains(4012656));
   }
 
@@ -33,12 +34,12 @@ public class WeatherLocationCorrelationTests {
       dataProvider = "weather-inside-box-location",
       dataProviderClass = WeatherDataProvider.class)
   public void testInsideBoxMatch(DataStream<WeatherData> weatherStream) throws IOException {
-    DataStream<Tuple2<WeatherData, List<Integer>>> correlatedWeatherStream = AsyncDataStream
+    DataStream<Tuple2<WeatherData, TreeSet<Integer>>> correlatedWeatherStream = AsyncDataStream
         .unorderedWait(weatherStream, new WeatherLocationCorrelationFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
 
     correlatedWeatherStream.print();
-    Iterator<Tuple2<WeatherData, List<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
+    Iterator<Tuple2<WeatherData, TreeSet<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
     while(iterator.hasNext()){
       Assert.assertTrue(iterator.next().f1.contains(4012656));
     }
@@ -47,12 +48,12 @@ public class WeatherLocationCorrelationTests {
       dataProvider = "weather-outside-box-location",
       dataProviderClass = WeatherDataProvider.class)
   public void testOutsideBoxMatch(DataStream<WeatherData> weatherStream) throws IOException {
-    DataStream<Tuple2<WeatherData, List<Integer>>> correlatedWeatherStream = AsyncDataStream
+    DataStream<Tuple2<WeatherData, TreeSet<Integer>>> correlatedWeatherStream = AsyncDataStream
         .unorderedWait(weatherStream, new WeatherLocationCorrelationFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
 
     correlatedWeatherStream.print();
-    Iterator<Tuple2<WeatherData, List<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
+    Iterator<Tuple2<WeatherData, TreeSet<Integer>>> iterator = DataStreamUtils.collect(correlatedWeatherStream);
     while(iterator.hasNext()){
       Assert.assertFalse(iterator.next().f1.contains(4012656));
     }

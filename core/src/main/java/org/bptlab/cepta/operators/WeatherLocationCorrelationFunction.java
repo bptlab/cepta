@@ -9,6 +9,7 @@ import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
@@ -19,7 +20,7 @@ import org.bptlab.cepta.WeatherData;
 import org.bptlab.cepta.config.PostgresConfig;
 
 public class WeatherLocationCorrelationFunction extends
-    RichAsyncFunction<WeatherData, Tuple2<WeatherData, List<Integer> >> {
+    RichAsyncFunction<WeatherData, Tuple2<WeatherData, TreeSet<Integer> >> {
 
   private PostgresConfig postgresConfig = new PostgresConfig();
 
@@ -56,7 +57,7 @@ public class WeatherLocationCorrelationFunction extends
 
   @Override
   public void asyncInvoke(WeatherData weatherEvent,
-      final ResultFuture<Tuple2<WeatherData, List<Integer>>> resultFuture) throws Exception {
+      final ResultFuture<Tuple2<WeatherData, TreeSet<Integer>>> resultFuture) throws Exception {
 
     /*
        0.02 is about 2 kilometers
@@ -70,12 +71,12 @@ public class WeatherLocationCorrelationFunction extends
     System.out.println(query);
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
-    CompletableFuture.supplyAsync(new Supplier<List<Integer>>() {
+    CompletableFuture.supplyAsync(new Supplier<TreeSet<Integer>>() {
       @Override
-      public List<Integer> get() {
+      public TreeSet<Integer> get() {
         try {
           QueryResult queryResult = future.get();
-          List<Integer> nearLocations = new ArrayList<Integer>();
+          TreeSet<Integer> nearLocations = new TreeSet<>();
           for (RowData row : queryResult.getRows()){
             nearLocations.add(Integer.valueOf(row.getString("id")));
           }
@@ -85,8 +86,8 @@ public class WeatherLocationCorrelationFunction extends
           return null;
         }
       }
-    }).thenAccept((List<Integer> dbResult) -> {
-      resultFuture.complete(Collections.singleton(new Tuple2<>(weatherEvent, dbResult)));
+    }).thenAccept((TreeSet<Integer> dbResult) -> {
+      resultFuture.complete(Collections.singleton(new Tuple2<WeatherData, TreeSet<Integer>>(weatherEvent, dbResult)));
     });
   }
 }
