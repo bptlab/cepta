@@ -20,7 +20,7 @@ import org.bptlab.cepta.WeatherData;
 import org.bptlab.cepta.config.PostgresConfig;
 
 public class WeatherLocationCorrelationFunction extends
-    RichAsyncFunction<WeatherData, Tuple2<WeatherData, TreeSet<Integer> >> {
+    RichAsyncFunction<WeatherData, Tuple2<WeatherData, Integer> > {
 
   private PostgresConfig postgresConfig = new PostgresConfig();
 
@@ -57,7 +57,7 @@ public class WeatherLocationCorrelationFunction extends
 
   @Override
   public void asyncInvoke(WeatherData weatherEvent,
-      final ResultFuture<Tuple2<WeatherData, TreeSet<Integer>>> resultFuture) throws Exception {
+      final ResultFuture<Tuple2<WeatherData, Integer>> resultFuture) throws Exception {
 
     /*
        0.02 is about 2 kilometers
@@ -68,26 +68,23 @@ public class WeatherLocationCorrelationFunction extends
                 + "%f - 0.02 < CAST(lng AS float)  and CAST(lng AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
             weatherEvent.getLongitude(), weatherEvent.getLongitude());
-    System.out.println(query);
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
-    CompletableFuture.supplyAsync(new Supplier<TreeSet<Integer>>() {
+    CompletableFuture.supplyAsync(new Supplier<ArrayList<Tuple2<WeatherData, Integer>>>() {
       @Override
-      public TreeSet<Integer> get() {
+      public ArrayList<Tuple2<WeatherData, Integer>> get() {
         try {
           QueryResult queryResult = future.get();
-          TreeSet<Integer> nearLocations = new TreeSet<>();
+          ArrayList<Tuple2<WeatherData, Integer>> notifications = new ArrayList<>();
           for (RowData row : queryResult.getRows()){
-            nearLocations.add(Integer.valueOf(row.getString("id")));
+            notifications.add(new Tuple2<>(weatherEvent, Integer.valueOf(row.getString("id"))));
           }
-          return nearLocations;
+          return notifications;
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());
           return null;
         }
       }
-    }).thenAccept((TreeSet<Integer> dbResult) -> {
-      resultFuture.complete(Collections.singleton(new Tuple2<WeatherData, TreeSet<Integer>>(weatherEvent, dbResult)));
-    });
+    }).thenAccept(resultFuture::complete);
   }
 }
