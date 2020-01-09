@@ -14,10 +14,14 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+  import { Component, Vue } from 'vue-property-decorator'
+
+@Component({
   name: "Error404",
   components: {},
+})
+export default class ErrorPage extends Vue {
   mounted() {}
 };
 </script>
