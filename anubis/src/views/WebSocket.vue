@@ -7,11 +7,11 @@
   </masonry-layout>
 </template>
 
-<script>
+<script lang="ts">
 import WebSocketDataFeed from "@/components/WebSocketDataFeed.vue";
 import { Component, Vue } from 'vue-property-decorator';
-import MasonryLayout from "@/components/MasonryLayout";
-import MasonryLayoutTile from "@/components/MasonryLayoutTile";
+import MasonryLayout from "../components/MasonryLayout.vue";
+import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 
 @Component({
   name: "WebSocket",
