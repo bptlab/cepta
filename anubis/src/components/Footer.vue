@@ -6,14 +6,15 @@
   </footer>
 </template>
 
-<script>
-export default {
-  name: "Footer",
-  components: {},
-  props: {},
-  data() {
-    return {};
-  },
+<script lang="ts">
+  import { Component, Vue } from 'vue-property-decorator'
+  @Component({
+    name: "Footer",
+    components: {},
+    props: {},
+  })
+
+export default class Footer extends Vue{
   mounted() {}
 };
 </script>
