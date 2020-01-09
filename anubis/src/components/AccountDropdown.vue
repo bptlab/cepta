@@ -37,10 +37,11 @@
   </li>
 </template>
 
-<script>
-import AccountDropdownElement from "@/components/AccountDropdownElement";
+<script lang="ts">
+import AccountDropdownElement from "../components/AccountDropdownElement.vue";
+import { Component, Vue } from 'vue-property-decorator'
 
-export default {
+@Component({
   name: "AccountDropdown",
   components: {
     AccountDropdownElement
@@ -54,20 +55,16 @@ export default {
       type: String,
       default: null
     }
-  },
-  data() {
-    return {
-      open: false
-    };
-  },
-  methods: {
+  }
+})
+
+export default class AccountDropdown extends Vue{
+  open : boolean = false
     logout() {
       this.$store.dispatch("AUTH_LOGOUT").then(() => {
         this.$router.push("/login");
       });
     }
-  },
-  computed: {},
   mounted() {}
 };
 </script>
