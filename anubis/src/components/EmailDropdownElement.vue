@@ -21,10 +21,11 @@
   </navigation-dropdown-element>
 </template>
 
-<script>
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+<script lang="ts">
+import NavigationBarDropdownElement from "../components/NavbarDropdownElement.vue";
+import { Component, Vue } from 'vue-property-decorator'
 
-export default {
+@Component({
   name: "EmailDropdownElement",
   components: {
     "navigation-dropdown-element": NavigationBarDropdownElement
@@ -47,6 +48,9 @@ export default {
       default: "This is an email sub-headline"
     }
   }
+})
+
+export default class EmailDropdownElement extends Vue{
 };
 </script>
 
