@@ -16,10 +16,15 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Error",
-  components: {},
+<script lang="ts" >
+  import { Component, Vue } from 'vue-property-decorator'
+
+  @Component({
+    name: "Error",
+    components: {},
+  })
+export default class Error extends Vue {
+
   mounted() {}
 };
 </script>

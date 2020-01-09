@@ -21,7 +21,7 @@
   name: "Error404",
   components: {},
 })
-export default class ErrorPage extends Vue {
+export default class ErrorPage404 extends Vue {
   mounted() {}
 };
 </script>
