@@ -6,6 +6,7 @@
         <groups>
             <define name="include-group">
                 <include name="active" />
+                <include name="integration-tests-db" />
             </define>
             <define name="exclude-group">
                 <include name="broken" />
@@ -17,6 +18,7 @@
         </groups>
         <classes>
             <class name="org.bptlab.cepta.ExampleTests" />
+            <class name="org.bptlab.cepta.WeatherLocationCorrelationTests" />
         </classes>
     </test>
 </suite>

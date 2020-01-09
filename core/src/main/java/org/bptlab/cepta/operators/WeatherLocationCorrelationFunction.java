@@ -2,30 +2,31 @@ package org.bptlab.cepta.operators;
 
 import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
 import com.github.jasync.sql.db.QueryResult;
+import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
-import org.bptlab.cepta.LiveTrainData;
-import org.bptlab.cepta.PlannedTrainData;
+import org.bptlab.cepta.WeatherData;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.utils.converters.LiveTrainDataDatabaseConverter;
-import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
-// import org.bptlab.cepta.utils.DatabaseObjectToJavaObjectConverter;
 
-public class PlannedLiveCorrelationFunction extends
-    RichAsyncFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>> {
+public class WeatherLocationCorrelationFunction extends
+    RichAsyncFunction<WeatherData, Tuple2<WeatherData, List<Integer> >> {
 
   private PostgresConfig postgresConfig = new PostgresConfig();
+
+
   private transient ConnectionPool<PostgreSQLConnection> connection;
 
-  public PlannedLiveCorrelationFunction(PostgresConfig postgresConfig) {
+  public WeatherLocationCorrelationFunction(PostgresConfig postgresConfig) {
     this.postgresConfig = postgresConfig;
   }
 
@@ -44,7 +45,7 @@ public class PlannedLiveCorrelationFunction extends
     config.setPort(postgresConfig.getPort());
     config.setDatabase(postgresConfig.getName());
     // Having the same maximum amount of connections as concurrent asynchronous requests seems to work
-    config.setMaxActiveConnections(12);
+    config.setMaxActiveConnections(1);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
   }
 
@@ -54,40 +55,38 @@ public class PlannedLiveCorrelationFunction extends
   }
 
   @Override
-  public void asyncInvoke(LiveTrainData liveEvent,
-      final ResultFuture<Tuple2<LiveTrainData, PlannedTrainData>> resultFuture) throws Exception {
+  public void asyncInvoke(WeatherData weatherEvent,
+      final ResultFuture<Tuple2<WeatherData, List<Integer>>> resultFuture) throws Exception {
 
     /*
-       asyncInvoke will be called for each incoming element
-       the resultFuture is where the outgoing element will be
+       0.02 is about 2 kilometers
     */
     String query = String
-        .format("select * from public.planned where train_id = %d and location_id = %d;",
-            liveEvent.getTrainId(), liveEvent.getLocationId());
+        .format("select id from import.locations where "
+                + "%f - 0.02 < CAST(lat AS float)  and CAST(lat AS float) < %f + 0.02 and "
+                + "%f - 0.02 < CAST(lng AS float)  and CAST(lng AS float) < %f + 0.02;",
+            weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
+            weatherEvent.getLongitude(), weatherEvent.getLongitude());
+    System.out.println(query);
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
-    /*
-      We create a new CompletableFuture which will be automatically and asynchronously done with the value
-      from the given supplier.
-    */
-    CompletableFuture.supplyAsync(new Supplier<PlannedTrainData>() {
+    CompletableFuture.supplyAsync(new Supplier<List<Integer>>() {
       @Override
-      public PlannedTrainData get() {
+      public List<Integer> get() {
         try {
           QueryResult queryResult = future.get();
-          // return DatabaseObjectToJavaObjectConverter.toPlannedTrainData(queryResult.getRows().get(0));
-          return new PlannedTrainDataDatabaseConverter().fromRowData(queryResult.getRows().get(0));
+          List<Integer> nearLocations = new ArrayList<Integer>();
+          for (RowData row : queryResult.getRows()){
+            nearLocations.add(Integer.valueOf(row.getString("id")));
+          }
+          return nearLocations;
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());
           return null;
         }
       }
-    }).thenAccept((PlannedTrainData dbResult) -> {
-      /*
-        After the CompletableFuture is completed, the .thenAccept call will be made with the value from the CompletableFuture.
-        We can use this value to set our return value into the function return (returnFuture).
-      */
-      resultFuture.complete(Collections.singleton(new Tuple2<>(liveEvent, dbResult)));
+    }).thenAccept((List<Integer> dbResult) -> {
+      resultFuture.complete(Collections.singleton(new Tuple2<>(weatherEvent, dbResult)));
     });
   }
 }
