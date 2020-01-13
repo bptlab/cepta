@@ -11,7 +11,7 @@ if not sys.version_info >= (3,):
     reload(sys)
     sys.setdefaultencoding("utf-8")
 
-protoc_version = "3.11.1"
+protoc_version = "3.11.2"
 grpc_web_plugin_version = "1.0.7"
 protoc_release_base_url = (
     "https://github.com/protocolbuffers/protobuf/releases/download"
@@ -58,29 +58,38 @@ def proto_compile(
         # Download correct files
         system = platform.system().lower()  # darwin
         system_alias = "osx" if system == "darwin" else system  # osx for darwin
-        machine_arch = platform.machine()
+        #url configs for windows
+        if system == "windows":
+          system_alias = "win64"
+          machine_arch = ""
+          machine_arch_grpc = "x86_64"
+        else:
+          machine_arch = platform.machine()
+          machine_arch_grpc = platform.machine()
 
+        print(system_alias)
         protoc_release_url = protoc_release_base_url
         protoc_release_url += "/v" + protoc_version
         protoc_release_url += (
-            "/protoc-"
-            + protoc_version
-            + "-"
-            + system_alias
-            + "-"
-            + machine_arch
-            + ".zip"
+              "/protoc-"
+              + protoc_version
+              + "-"
+              + system_alias
+              + ("" if system == "windows" else "-")
+              + machine_arch
+              + ".zip"
         )
 
         grpc_web_plugin_release_url = grpc_web_plugin_release_base_url
         grpc_web_plugin_release_url += "/" + grpc_web_plugin_version
         grpc_web_plugin_release_url += (
-            "/protoc-gen-grpc-web-"
-            + grpc_web_plugin_version
-            + "-"
-            + system
-            + "-"
-            + machine_arch
+              "/protoc-gen-grpc-web-"
+              + grpc_web_plugin_version
+              + "-"
+              + system
+              + "-"
+              + machine_arch_grpc
+              + (".exe" if system == "windows" else "")
         )
 
         download = dict(protoc=protoc_release_url, protoc_gen_grpc_web=grpc_web_plugin_release_url)
