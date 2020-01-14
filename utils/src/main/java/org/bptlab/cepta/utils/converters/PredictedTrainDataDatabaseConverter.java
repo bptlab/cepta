@@ -1,21 +1,21 @@
 package org.bptlab.cepta.utils.converters;
 
-import com.github.jasync.sql.db.RowData;
 import java.sql.ResultSet;
-import org.bptlab.cepta.LiveTrainData;
+import com.github.jasync.sql.db.RowData;
+import org.bptlab.cepta.PredictedTrainData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LiveTrainDataDatabaseConverter extends DatabaseConverter<LiveTrainData> {
-  private static final Logger logger = LoggerFactory.getLogger(LiveTrainDataDatabaseConverter.class.getName());
+public class PredictedTrainDataDatabaseConverter extends DatabaseConverter<PredictedTrainData> {
+  private static final Logger logger = LoggerFactory.getLogger(PredictedTrainDataDatabaseConverter.class.getName());
 
-  public LiveTrainData fromResult(ResultSet result) throws Exception {
-    LiveTrainData.Builder event = LiveTrainData.newBuilder();
+  public PredictedTrainData fromResult(ResultSet result) throws Exception {
+    PredictedTrainData.Builder event = PredictedTrainData.newBuilder();
     try {
       event.setId(result.getInt("id"));
       event.setTrainId(result.getInt("train_id"));
       event.setLocationId(result.getInt("location_id"));
-      convertTimestamp(result.getTimestamp("actual_time"), event::setActualTime);
+      convertTimestamp(result.getTimestamp("predicted_time"), event::setPredictedTime);
       event.setStatus(result.getInt("status"));
       event.setFirstTrainNumber(result.getInt("first_train_number"));
       event.setTrainNumberReference(result.getInt("train_number_reference"));
@@ -27,21 +27,19 @@ public class LiveTrainDataDatabaseConverter extends DatabaseConverter<LiveTrainD
       event.setMessageStatus(result.getInt("message_status"));
       convertTimestamp(result.getTimestamp("message_creation"), event::setMessageCreation);
     } catch (Exception e) {
-      logger.error(e.toString());
-      logger.error("Failed to convert database entry to planned train data event");
+      logger.error("Failed to convert database entry to predicted train data event");
       throw e;
     }
     logger.debug(event.build().toString());
     return event.build();
   }
-
-  public LiveTrainData fromRowData(RowData result) throws Exception {
-    LiveTrainData.Builder event = LiveTrainData.newBuilder();
+  public PredictedTrainData fromRowData(RowData result) {
+    PredictedTrainData.Builder event = PredictedTrainData.newBuilder();
     try {
       event.setId(result.getInt("id"));
       event.setTrainId(result.getInt("train_id"));
       event.setLocationId(result.getInt("location_id"));
-      convertLocalDateTime(result.getDate("actual_time"), event::setActualTime);
+      convertLocalDateTime(result.getDate("predicted_time"), event::setPredictedTime);
       event.setStatus(result.getInt("status"));
       event.setFirstTrainNumber(result.getInt("first_train_number"));
       event.setTrainNumberReference(result.getInt("train_number_reference"));
@@ -53,11 +51,11 @@ public class LiveTrainDataDatabaseConverter extends DatabaseConverter<LiveTrainD
       event.setMessageStatus(result.getInt("message_status"));
       convertLocalDateTime(result.getDate("message_creation"), event::setMessageCreation);
     } catch (Exception e) {
-      logger.error(e.toString());
-      logger.error("Failed to convert database entry to planned train data event");
+      logger.error("Failed to convert database entry to predicted train data event");
       throw e;
     }
     logger.debug(event.build().toString());
     return event.build();
   }
 }
+
