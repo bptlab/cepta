@@ -27,30 +27,35 @@
   </li>
 </template>
 
-<script>
-export default {
-  name: "SidebarDropdown",
-  props: {
-    title: {
-      type: String,
-      default: "Sidebar Dropdown Element"
+<script lang="ts">
+
+  import { Component, Vue } from 'vue-property-decorator'
+
+  @Component({
+    name: "SidebarDropdown",
+    props: {
+      title: {
+        type: String,
+        default: "Sidebar Dropdown Element"
+      },
+      active: {
+        type: Boolean,
+        default: false
+      }
     },
-    active: {
-      type: Boolean,
-      default: false
+  })
+
+export default class SidebarDropdown extends Vue {
+
+  open:boolean = false;
+
+  watch:any = {};
+
+  uuid: string = this.getuuID();
+
+  getuuID() {
+      return this.$props.title.replace(/\s+/g, "");
     }
-  },
-  data() {
-    return {
-      open: false
-    };
-  },
-  watch: {},
-  computed: {
-    uuid: function() {
-      return this.title.replace(/\s+/g, "");
-    }
-  },
   mounted() {}
 };
 </script>
