@@ -58,7 +58,6 @@ public class WeatherLocationCorrelationFunction extends
   @Override
   public void asyncInvoke(WeatherData weatherEvent,
       final ResultFuture<Tuple2<WeatherData, Integer>> resultFuture) throws Exception {
-
     /*
        0.02 is about 2 kilometers
     */
