@@ -119,13 +119,14 @@
   </div>
 </template>
 
-<script>
-import SidebarElement from "./SidebarElement";
-import SidebarDropdown from "./SidebarDropdown";
-import SidebarDropdownElement from "./SidebarDropdownElement";
-import {AppModule} from "../store/modules/app";
+<script lang="ts">
+import SidebarElement from "./SidebarElement.vue";
+import SidebarDropdown from "./SidebarDropdown.vue";
+import SidebarDropdownElement from "./SidebarDropdownElement.vue";
+import {AppModule} from "@/store/modules/app";
+import { Component, Vue } from 'vue-property-decorator'
 
-export default {
+@Component({
   name: "Sidebar",
   components: {
     SidebarElement,
@@ -142,14 +143,13 @@ export default {
       default: "@/assets/images/logo.png"
     }
   },
-  data() {
-    return {}
-  },
-  methods: {
-    toggleSidebar() {
-      AppModule.toggleCollapse();
-    }
-  },
+})
+
+export default class Sidebar extends Vue {
+
+  toggleSidebar() {
+    AppModule.toggleCollapse();
+  }
   mounted() {}
 };
 </script>
