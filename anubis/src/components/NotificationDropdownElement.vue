@@ -1,7 +1,7 @@
 <template>
   <navigation-dropdown-element>
     <template v-slot:icon>
-      <img class="w-3r bdrs-50p" :src="image" />
+      <img class="w-3r bdrs-50p" :src="image" alt="DropDownElement Image" />
     </template>
     <template v-slot:content>
       <span>
@@ -16,10 +16,11 @@
   </navigation-dropdown-element>
 </template>
 
-<script>
-import NavigationBarDropdownElement from "./NavbarDropdownElement";
+<script lang="ts">
+import NavigationBarDropdownElement from "./NavbarDropdownElement.vue";
+import {Component, Vue} from "vue-property-decorator";
 
-export default {
+@Component({
   name: "NotificationDropdownElement",
   components: {
     "navigation-dropdown-element": NavigationBarDropdownElement
@@ -38,6 +39,9 @@ export default {
       default: "This is a notification sub-headline!"
     }
   }
+})
+
+export default class NotificationDropdownElement extends Vue{
 };
 </script>
 

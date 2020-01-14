@@ -28,34 +28,42 @@
   </li>
 </template>
 
-<script>
-export default {
-  name: "NotificationDropdown",
-  props: {
-    title: {
-      type: String,
-      default: "Notification Dropdown"
+<script lang="ts">
+
+  import {Component, Vue} from "vue-property-decorator";
+
+  @Component({
+    name: "NotificationDropdown",
+    props: {
+      title: {
+        type: String,
+        default: "Notification Dropdown"
+      },
+      more: {
+        type: String,
+        default: null
+      },
+      number: {
+        type: Number,
+        default: 0
+      }
     },
-    more: {
-      type: String,
-      default: null
-    },
-    number: {
-      type: Number,
-      default: 0
-    }
-  },
-  data() {
-    return {
-      open: false
-    };
-  },
-  watch: {},
-  computed: {
-    uuid: function() {
+  })
+
+@Component
+export default class NotificationsDropdown extends Vue{
+
+  title :string =  "Notification Dropdown";
+
+  open : boolean = false;
+
+  watch : any = {};
+
+  uuid : string = this.getuuId();
+
+  getuuId() {
       return this.title.replace(/\s+/g, "");
     }
-  },
   mounted() {}
 };
 </script>
