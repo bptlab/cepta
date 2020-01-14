@@ -9,23 +9,29 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MasonryLayoutTile",
-  props: {
-    section: {},
-    layoutStyle: {
-      type: Object,
-      default: function() {
-        return { "col-md-6": true };
+<script lang="ts">
+  import { Component, Vue } from 'vue-property-decorator'
+
+
+  @Component({
+    name: "MasonryLayoutTile",
+    props: {
+      section: {},
+      layoutStyle: {
+        type: Object,
+        default: function() {
+          return { "col-md-6": true }
+        }
+      },
+      wrap: {
+        type: Boolean,
+        default: true
       }
     },
-    wrap: {
-      type: Boolean,
-      default: true
-    }
-  },
-  computed: {},
+  })
+
+  export default class MasonryLayoutTile extends Vue {
+  computed:any = {};
   mounted() {}
 };
 </script>

@@ -9,13 +9,19 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "RowLayoutRow",
-  props: {
-    section: {}
-  },
-  components: {},
+<script lang="ts">
+
+  import { Component, Vue } from 'vue-property-decorator'
+
+  @Component({
+    name: "RowLayoutRow",
+    props: {
+      section: {}
+    },
+    components: {},
+  })
+
+export default class RowLayoutRow extends Vue {
   mounted() {}
 };
 </script>
