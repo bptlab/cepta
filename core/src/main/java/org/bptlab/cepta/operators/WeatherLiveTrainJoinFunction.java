@@ -25,7 +25,7 @@ public class WeatherLiveTrainJoinFunction {
             return liveTrainData.getLocationId();
           }
         })
-        .window(SlidingEventTimeWindows.of(Time.seconds(60), Time.seconds(2)))
+        .window(SlidingEventTimeWindows.of(Time.seconds(60), Time.seconds(60)))
         .apply(new RichJoinFunction<Tuple2<WeatherData, Integer>, LiveTrainData, TrainDelayNotification>() {
           @Override
           public TrainDelayNotification join(Tuple2<WeatherData, Integer> weatherDataIntegerTuple2,
