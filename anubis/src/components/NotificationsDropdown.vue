@@ -53,7 +53,6 @@
 @Component
 export default class NotificationsDropdown extends Vue{
 
-  title :string =  "Notification Dropdown";
 
   open : boolean = false;
 
@@ -62,7 +61,7 @@ export default class NotificationsDropdown extends Vue{
   uuid : string = this.getuuId();
 
   getuuId() {
-      return this.title.replace(/\s+/g, "");
+      return this.$props.title.replace(/\s+/g, "");
     }
   mounted() {}
 };
