@@ -1,10 +1,12 @@
 package org.bptlab.cepta;
 
 import java.util.ArrayList;
+import javax.xml.crypto.Data;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.IngestionTimeExtractor;
 import org.apache.flink.streaming.api.functions.TimestampAssigner;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.watermark.Watermark;
@@ -15,34 +17,32 @@ public class LiveTrainDataProvider {
   @DataProvider(name = "one-matching-live-train-weather-data-provider")
   public  static Object[][] weatherCorrelationTrainData(){
     StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.createLocalEnvironment();
+    env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
     ArrayList<LiveTrainData>  oneMatchingTrain = new ArrayList<>();
 
     oneMatchingTrain.add(trainEventWithLocationID(1));
-    DataStream<LiveTrainData> liveTrainStream= env.fromCollection(oneMatchingTrain);
+    DataStream<LiveTrainData> liveTrainStream= env.fromCollection(oneMatchingTrain)
+        .assignTimestampsAndWatermarks(
+            new AscendingTimestampExtractor<LiveTrainData>() {
+              @Override
+              public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
+                return liveTrainData.getMessageCreation();
+              }
+        });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
 
     weather.add(correlatedWeatherEventWithLocationIDDescription(1, "weather1"));
-    env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
-    DataStream<Tuple2<WeatherData, Integer>> weatherStream = env.fromCollection(weather);
-    weatherStream.assignTimestampsAndWatermarks(
-        new AscendingTimestampExtractor<Tuple2<WeatherData, Integer>>() {
-          @Override
-          public long extractAscendingTimestamp(
-              Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-            return weatherDataIntegerTuple2.f0.getStarttimestamp();
-          }
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    DataStream<Tuple2<WeatherData, Integer>> weatherStream = env.fromCollection(weather)
+        .assignTimestampsAndWatermarks(
+          new AscendingTimestampExtractor<Tuple2<WeatherData, Integer>>() {
+            @Override
+            public long extractAscendingTimestamp(
+                Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
+              return weatherDataIntegerTuple2.f0.getStarttimestamp();
+            }
         });
-
-
-    liveTrainStream.assignTimestampsAndWatermarks(new AscendingTimestampExtractor<LiveTrainData>() {
-      @Override
-      public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-        return liveTrainData.getMessageCreation();
-      }
-    });
-
     return new Object[][] { {liveTrainStream, weatherStream} };
   }
 
