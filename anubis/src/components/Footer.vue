@@ -18,4 +18,8 @@ export default {
 };
 </script>
 
-<style scoped lang="sass"></style>
+<style scoped lang="sass">
+   footer
+     z-index: 1
+     position: relative
+</style>

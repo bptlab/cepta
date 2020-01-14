@@ -568,9 +568,6 @@
 
 <script>
 import { COLORS } from "@/colors";
-import TachometerChart from "@/components/TachoChart";
-import LineChart from "@/components/LineChart";
-import Glance from "@/components/Glance";
 
 import MasonryLayout from "@/components/MasonryLayout";
 import MasonryLayoutTile from "@/components/MasonryLayoutTile";
@@ -580,9 +577,7 @@ export default {
   components: {
     MasonryLayoutTile,
     MasonryLayout,
-    Glance,
-    LineChart,
-    TachometerChart
+
   },
   data() {
     return {
