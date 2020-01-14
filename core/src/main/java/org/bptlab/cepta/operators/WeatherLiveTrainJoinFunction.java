@@ -30,11 +30,23 @@ public class WeatherLiveTrainJoinFunction {
           @Override
           public TrainDelayNotification join(Tuple2<WeatherData, Integer> weatherDataIntegerTuple2,
               LiveTrainData liveTrainData) throws Exception {
-            TrainDelayNotification adelheit = TrainDelayNotification.newBuilder().setDelay(9000)
-                .setTrainId(liveTrainData.getTrainId()).setLocationId(liveTrainData.getLocationId())
+            return TrainDelayNotification.newBuilder()
+                .setDelay(delayFromWeather(weatherDataIntegerTuple2.f0))
+                .setTrainId(liveTrainData.getTrainId())
+                .setLocationId(liveTrainData.getLocationId())
                 .build();
-            return adelheit;
           }
         });
+  }
+
+  private static int delayFromWeather(WeatherData weather){
+    String $class = weather.getClass$().toString();
+    int delay;
+    switch ($class){
+      case "Clear_night": delay = 0; break;
+      case "rain": delay = 10; break;
+      default: delay = 0;
+    }
+    return delay;
   }
 }
