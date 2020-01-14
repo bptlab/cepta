@@ -72,14 +72,19 @@ public class Main implements Callable<Integer> {
             Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
             new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
+    /*
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
             AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+            new KafkaConfig().getProperties());
+    */
+
+    // .withClientId("PlannedTrainDataMainConsumer")
+    // System.out.print(liveTrainDataConsumer.client.id);
 
     // Add consumer as source for data stream
-    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
+    // DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
@@ -96,11 +101,11 @@ public class Main implements Callable<Integer> {
                   Collector<TrainDelayNotification> collector) throws Exception {
                 LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
-        /*
-          Delay is defined as the difference between the observed time of a train id at a location id.
-          delay > 0 is bad, the train might arrive later than planned
-          delay < 0 is good, the train might arrive earlier than planned
-         */
+
+          // Delay is defined as the difference between the observed time of a train id at a location id.
+          // delay > 0 is bad, the train might arrive later than planned
+          // delay < 0 is good, the train might arrive earlier than planned
+
                 long delay = observed.getActualTime() - expected.getPlannedTime();
                 // Only send a delay notification if some threshold is exceeded
                 if (Math.abs(delay) > 10) {

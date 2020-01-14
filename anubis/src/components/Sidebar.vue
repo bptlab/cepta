@@ -34,7 +34,6 @@
 
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu pos-r">
-
         <!-- Websockets -->
         <sidebar-element title="Websockets" :route="{ name: 'websockets' }">
           <template v-slot:icon>
@@ -43,12 +42,11 @@
         </sidebar-element>
 
         <!-- Traindata -->
-        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo'}">
+        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
           </template>
         </sidebar-element>
-
 
         <!-- Multiple Levels -->
         <sidebar-dropdown title="Examples">
@@ -75,12 +73,12 @@
               </template>
               <template v-slot:entries>
                 <sidebar-dropdown-element
-                    title="Basic Tables"
-                    :route="{ name: 'basictables' }"
+                  title="Basic Tables"
+                  :route="{ name: 'basictables' }"
                 />
                 <sidebar-dropdown-element
-                    title="Data Tables"
-                    :route="{ name: 'datatables' }"
+                  title="Data Tables"
+                  :route="{ name: 'datatables' }"
                 />
               </template>
             </sidebar-dropdown>
@@ -91,24 +89,24 @@
               </template>
               <template v-slot:entries>
                 <sidebar-dropdown-element
-                    title="Blank"
-                    :route="{ name: 'blank' }"
+                  title="Blank"
+                  :route="{ name: 'blank' }"
                 />
                 <sidebar-dropdown-element
-                    title="404 Error"
-                    :route="{ name: 'error404' }"
+                  title="404 Error"
+                  :route="{ name: 'error404' }"
                 />
                 <sidebar-dropdown-element
-                    title="500 Error"
-                    :route="{ name: 'error500' }"
+                  title="500 Error"
+                  :route="{ name: 'error500' }"
                 />
                 <sidebar-dropdown-element
-                    title="Log In"
-                    :route="{ name: 'login' }"
+                  title="Log In"
+                  :route="{ name: 'login' }"
                 />
                 <sidebar-dropdown-element
-                    title="Sign Up"
-                    :route="{ name: 'signup' }"
+                  title="Sign Up"
+                  :route="{ name: 'signup' }"
                 />
               </template>
             </sidebar-dropdown>
@@ -123,7 +121,7 @@
 import SidebarElement from "./SidebarElement";
 import SidebarDropdown from "./SidebarDropdown";
 import SidebarDropdownElement from "./SidebarDropdownElement";
-import {AppModule} from "../store/modules/app";
+import { AppModule } from "../store/modules/app";
 
 export default {
   name: "Sidebar",
@@ -143,7 +141,7 @@ export default {
     }
   },
   data() {
-    return {}
+    return {};
   },
   methods: {
     toggleSidebar() {

@@ -3,7 +3,6 @@
     <masonry-layout-tile section="Data Feed">
       <web-socket-data-feed ref="feed"></web-socket-data-feed>
     </masonry-layout-tile>
-
   </masonry-layout>
 </template>
 

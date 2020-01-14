@@ -33,10 +33,21 @@ public class KafkaConfig implements Serializable, Cloneable {
       description = "Specifies the Kafka group ID.")
   static String kafkaGroupID = KafkaConstants.GROUP_ID_CONFIG;
 
+  String broker;
+  String clientId;
+
   static Optional<Supplier<? extends Serializer<?>>> keySerializer = Optional.empty();
   static Optional<Supplier<? extends Serializer<?>>> valueSerializer = Optional.empty();
 
-  public KafkaConfig() {
+  public KafkaConfig() {}
+
+  public KafkaConfig(String broker, String clientId) {
+    this.broker = broker;
+    this.clientId = clientId;
+  }
+
+  public KafkaConfig build() {
+    return new KafkaConfig(this.broker, this.clientId);
   }
 
   public KafkaConfig withBroker(String broker) {

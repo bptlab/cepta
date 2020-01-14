@@ -8,18 +8,18 @@
 </template>
 
 <script>
-  export default {
-    name: "Blank",
-    components: {},
-    props: {},
-    computed: {},
-    data() {
-      return {
-        example: "Test"
-      };
-    },
-    mounted() {}
-  };
+export default {
+  name: "Blank",
+  components: {},
+  props: {},
+  computed: {},
+  data() {
+    return {
+      example: "Test"
+    };
+  },
+  mounted() {}
+};
 </script>
 
 <style lang="sass"></style>

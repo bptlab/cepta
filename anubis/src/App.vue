@@ -27,7 +27,7 @@ export default {
     },
     connectWebsocket() {
       this.socket = new SockJS("/ws");
-      this.$store.commit('setWebsocket', this.socket);
+      this.$store.commit("setWebsocket", this.socket);
     }
   },
   created() {
@@ -50,7 +50,6 @@ export default {
   destroyed() {
     this.socket.close();
   }
-
 };
 </script>
 
@@ -60,12 +59,12 @@ export default {
   font-family: "themify";
   src: url(~themify-icons/themify-icons/fonts/themify.eot?-fvbane);
   src: url(~themify-icons/themify-icons/fonts/themify.eot?#iefix-fvbane)
-  format("embedded-opentype"),
-  url(~themify-icons/themify-icons/fonts/themify.woff?-fvbane) format("woff"),
-  url(~themify-icons/themify-icons/fonts/themify.ttf?-fvbane)
-  format("truetype"),
-  url(~themify-icons/themify-icons/fonts/themify.svg?-fvbane#themify)
-  format("svg");
+      format("embedded-opentype"),
+    url(~themify-icons/themify-icons/fonts/themify.woff?-fvbane) format("woff"),
+    url(~themify-icons/themify-icons/fonts/themify.ttf?-fvbane)
+      format("truetype"),
+    url(~themify-icons/themify-icons/fonts/themify.svg?-fvbane#themify)
+      format("svg");
   font-weight: normal;
   font-style: normal;
 }

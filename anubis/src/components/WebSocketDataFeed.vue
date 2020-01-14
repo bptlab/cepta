@@ -1,15 +1,24 @@
 <template>
   <div>
     <div id="main-content" class="container">
-      <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
-      <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
+      <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">
+        Replay Data!
+      </button>
+      <input
+        ref="search"
+        class="form-control"
+        id="myInput"
+        type="text"
+        placeholder="Search.."
+      />
       <div class="row">
-        <basic-table ref="table"
-            :showIndices="false"
-            :striped="true"
-            :bordered="true"
-            cellspacing="0"
-            :table-data="filteredTableData"
+        <basic-table
+          ref="table"
+          :showIndices="false"
+          :striped="true"
+          :bordered="true"
+          cellspacing="0"
+          :table-data="filteredTableData"
         ></basic-table>
       </div>
     </div>
@@ -100,6 +109,4 @@ export default {
 
 .dataTables_scroll
   margin-bottom: 10px
-
-
 </style>

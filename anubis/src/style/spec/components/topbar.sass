@@ -41,13 +41,14 @@
 
       > li
         float: left
+        padding-left: 10px
 
         > a
           color: $default-text-color
           display: block
           line-height: $header-height
           min-height: $header-height
-          padding: 0 15px
+          margin: 0 15px
           transition: all 0.2s ease-in-out
 
           i
@@ -114,6 +115,29 @@
 
         > li
           width: 100%
+          .generic-dropdown
+  position: relative
+  padding: 7px
+
+  .counter
+    background-color: $default-danger
+    border-radius: 50px
+    color: $default-white
+    font-size: 10px
+    line-height: 1
+    padding: 3px 5.5px
+    position: absolute
+    right: 16px
+    top: 16px
+    opacity: 0.8
+
+  .dropdown-menu
+    min-width: 350px
+    padding: 0
+
+    +to($breakpoint-sm)
+      max-width: 300px
+
 
           > a
             line-height: 1.5

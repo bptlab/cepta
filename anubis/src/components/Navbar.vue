@@ -19,7 +19,11 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
+        <li
+          class="search-input"
+          @keyup.enter="checkForUpdate()"
+          :class="{ active: searchToggled }"
+        >
           <input
             class="form-control"
             ref="searchInput"
@@ -32,7 +36,34 @@
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
-        <!--<button id="replayBtn" @click="replayData" class="btn btn-danger">Replay Data!</button>-->
+        <navbar-dropdown>
+          <template v-slot:icon>
+            <span id="replayBtn" class="btn btn-danger">
+              {{ replayStatus }} <beat-loader class="inline-spinner" v-show="isReplaying" :color="'#ffffff'" :size="'8px'"></beat-loader>
+            </span>
+          </template>
+          <template v-slot:content>
+            <form>
+              <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+              </div>
+              <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+              </div>
+              <button @click="replayData" class="btn btn-primary">Replay</button>
+            </form>
+            <button id="replayBtn2" @click="toggleReplay" class="btn">
+              Replay Data! <beat-loader :loading="isReplaying" :color="'#ffffff'" :size="'10px'"></beat-loader>
+            </button>
+          </template>
+        </navbar-dropdown>
         <notifications-dropdown
           title="Notifications"
           :number="3"
@@ -42,56 +73,27 @@
             <i class="icon-bell"></i>
           </template>
           <template v-slot:entries>
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/1.jpg"
               headline="John Doe liked your post"
               sub-headline="5 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/women/60.jpg"
               headline="Moo Doe liked your cover image"
               sub-headline="7 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/3.jpg"
               headline="Lee Doe commented on your video"
               sub-headline="10 mins ago"
             />
           </template>
         </notifications-dropdown>
-        <!-- Email alerts
-        <notifications-dropdown title="Emails" :number="3" more="mails">
-          <template v-slot:icon>
-            <i class="icon-email"></i>
-          </template>
-          <template v-slot:entries>
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/1.jpg"
-              headline="John Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="5 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/2.jpg"
-              headline="Moo Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="15 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/3.jpg"
-              headline="Lee Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="25 mins ago"
-            />
-          </template>
-        </notifications-dropdown>
-        -->
-        <!-- User account -->
         <account-dropdown
           username="Admin"
           picture="https://randomuser.me/api/portraits/lego/5.jpg"
         />
-
       </ul>
     </div>
   </div>
@@ -102,27 +104,43 @@ import NotificationsDropdown from "@/components/NotificationsDropdown";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement";
 import EmailDropdownElement from "@/components/EmailDropdownElement";
 import AccountDropdown from "@/components/AccountDropdown";
+import NavbarDropdown from "@/components/NavbarDropdown";
 import { GrpcModule } from "@/store/modules/grpc";
-import {AppModule} from "../store/modules/app";
-import axios from 'axios';
+import { AppModule } from "../store/modules/app";
+import axios from "axios";
+import BeatLoader from 'vue-spinner/src/BeatLoader.vue';
+import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
 
 export default {
   name: "NavigationBar",
   components: {
-    "notifications-dropdown": NotificationsDropdown,
-    "notifications-dropdown-element": NotificationDropdownElement,
-    "email-dropdown-element": EmailDropdownElement,
-    "account-dropdown": AccountDropdown
+    NavbarDropdown: NavbarDropdown,
+    BeatLoader: BeatLoader,
+    NotificationsDropdown: NotificationsDropdown,
+    NotificationDropdownElement: NotificationDropdownElement,
+    EmailDropdownElement: EmailDropdownElement,
+    AccountDropdown: AccountDropdown
   },
   props: {},
   data() {
     return {
       searchToggled: false,
       search: null,
-      stompClient: null
+      stompClient: null,
+      isReplaying: true,
+      replayStatus: "Replaying..."
     };
   },
   methods: {
+    toggleReplay() {
+      this.isReplaying ? this.stopReplay() : this.startReplay();
+    },
+    stopReplay() {
+      debugger;
+    },
+    startReplay() {
+      debugger;
+    },
     toggleSearch() {
       this.searchToggled = !this.searchToggled;
       window.setTimeout(() => {
@@ -145,8 +163,8 @@ export default {
 
       //only Numbers update our list of train data
       if (reg.test(id))
-        this.$router.push({ name: 'traindata', params: { id }});
-    },
+        this.$router.push({ name: "traindata", params: { id } });
+    }
     /*
     send(message) {
       console.log('Sehen')
@@ -193,6 +211,10 @@ export default {
 // ---------------------------------------------------------
 // @Topbar
 // ---------------------------------------------------------
+
+.inline-spinner
+  display: inline-block
+  position: relative
 
 .header
   background-color: $default-white
@@ -263,7 +285,9 @@ export default {
 
       #replayBtn
         float: left
-        margin-right: 20px
+        height: calc(#{$header-height} / 2)
+        margin: 0
+        // margin-right: 20px
 
   .search-box
     .search-icon-close
