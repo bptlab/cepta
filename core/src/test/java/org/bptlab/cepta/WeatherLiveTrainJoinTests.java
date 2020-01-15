@@ -27,7 +27,9 @@ public class WeatherLiveTrainJoinTests {
 
   private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
 
-  @Test(dataProvider = "one-matching-live-train-weather-data-provider", dataProviderClass = LiveTrainDataProvider.class)
+  @Test(groups = {"unit-tests"},
+      dataProvider = "one-matching-live-train-weather-data-provider",
+      dataProviderClass = LiveTrainDataProvider.class)
   public void testOneMatching(Object[] input) throws Exception {
     DataStream<LiveTrainData> liveTrainStream = (DataStream<LiveTrainData>) input[0];
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = (DataStream<Tuple2<WeatherData, Integer>>) input[1];
@@ -44,7 +46,9 @@ public class WeatherLiveTrainJoinTests {
     Assert.assertEquals(count, 1);
   }
 
-  @Test(dataProvider = "several-matching-live-train-weather-data-provider", dataProviderClass = LiveTrainDataProvider.class)
+  @Test(groups = {"unit-tests"},
+      dataProvider = "several-matching-live-train-weather-data-provider",
+      dataProviderClass = LiveTrainDataProvider.class)
   public void testMoreMatching(Object[] input) throws Exception {
     DataStream<LiveTrainData> liveTrainStream = (DataStream<LiveTrainData>) input[0];
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = (DataStream<Tuple2<WeatherData, Integer>>) input[1];
@@ -61,7 +65,9 @@ public class WeatherLiveTrainJoinTests {
     Assert.assertEquals(count, 4);
   }
 
-  @Test(dataProvider = "not-matching-live-train-weather-data-provider", dataProviderClass = LiveTrainDataProvider.class)
+  @Test(groups = {"unit-tests"},
+      dataProvider = "not-matching-live-train-weather-data-provider",
+      dataProviderClass = LiveTrainDataProvider.class)
   public void testNotMatching(Object[] input) throws Exception {
     DataStream<LiveTrainData> liveTrainStream = (DataStream<LiveTrainData>) input[0];
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = (DataStream<Tuple2<WeatherData, Integer>>) input[1];

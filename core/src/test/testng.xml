@@ -6,10 +6,11 @@
         <groups>
             <define name="include-group">
                 <include name="active" />
-                <include name="integration-tests-db" />
+                <include name="unit-tests" />
             </define>
             <define name="exclude-group">
                 <include name="broken" />
+                <include name="integration-tests-db" />
             </define>
             <run>
                 <include name="include-group" />
