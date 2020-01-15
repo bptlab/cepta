@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Choose a TrainId</h1>
-    <h3>Either in the input field below  or the in the navbar</h3>
+    <h3>Either in the input field below  or in the navbar</h3>
     <form class="form-inline">
       <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <button @click="search">Search</button>

@@ -28,12 +28,13 @@ export default {
     return {
       receivedUpdates:
           [["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
+              ["4202153","Mockava","2019-08-02 13:28:00", "+00:31:00", "Faulty Signal","2019-08-02 13:59:00"],
             ],
     };
   },
   methods: {
     connect(url = "/topic/updates"){
-      this.websocket = this.$store.state.websocket
+      this.websocket = this.$store.state.websocket;
       this.stompClient = Stomp.over(this.websocket);
       this.stompClient.connect(
           {},
