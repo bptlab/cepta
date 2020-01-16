@@ -1,8 +1,8 @@
-import Vue from 'vue'
-import Vuex, {StoreOptions} from 'vuex'
-import { IAppState } from './modules/app'
-import { IAuthState } from './modules/auth'
-import { IGrpcState } from './modules/grpc'
+import Vue from "vue";
+import Vuex, { StoreOptions } from "vuex";
+import { IAppState } from "./modules/app";
+import { IAuthState } from "./modules/auth";
+import { IGrpcState } from "./modules/grpc";
 
 Vue.use(Vuex);
 
@@ -19,8 +19,8 @@ export default new Vuex.Store({
     websocket: ""
   },
   mutations: {
-    setWebsocket(state: { websocket: String; }, websocket: String) {
+    setWebsocket(state: { websocket: String }, websocket: String) {
       state.websocket = websocket;
     }
   }
-})
+});

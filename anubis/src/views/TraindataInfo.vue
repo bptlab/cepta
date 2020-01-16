@@ -1,29 +1,33 @@
 <template>
   <div>
     <h1>Choose a TrainId</h1>
-    <h3>Either in the input field below  or the in the navbar</h3>
+    <h3>Either in the input field below or the in the navbar</h3>
     <form class="form-inline">
-      <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
+      <input
+        ref="search"
+        class="form-control"
+        id="myInput"
+        type="text"
+        placeholder="Search.."
+      />
       <button @click="search">Search</button>
     </form>
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "TraindataInfo",
-  components: {},
-  data() {
-    return {
-    };
-  },
-  methods: {
-    search(){
-      let id = this.$refs.search.value;
-      this.$router.push({ name: 'traindata', params: { id }});
-    }
+  components: {}
+})
+export default class TraindataInfo extends Vue {
+  search() {
+    let id = (this.$refs["search"] as HTMLInputElement).value;
+    this.$router.push({ name: "traindata", params: { id } });
   }
-};
+}
 </script>
 
 <style lang="sass">

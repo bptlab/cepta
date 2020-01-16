@@ -7,24 +7,17 @@
   </li>
 </template>
 
-<script>
-export default {
-  name: "SidebarDropdownElement",
-  props: {
-    title: {
-      type: String,
-      default: "Sidebar Dropdown Element"
-    },
-    route: {
-      type: [String, Object],
-      default: "/"
-    },
-    active: {
-      type: Boolean,
-      default: false
-    }
-  }
-};
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "SidebarDropdownElement"
+})
+export default class SidebarDropdownElement extends Vue {
+  @Prop({ default: "Sidebar Dropdown Element" }) private title!: string;
+  @Prop({ default: "/" }) private route!: string | object;
+  @Prop({ default: false }) private active!: boolean;
+}
 </script>
 
 <style scoped lang="sass"></style>

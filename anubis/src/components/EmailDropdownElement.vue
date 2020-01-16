@@ -21,33 +21,23 @@
   </navigation-dropdown-element>
 </template>
 
-<script>
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+<script lang="ts">
+import NavigationBarDropdownElement from "../components/NavbarDropdownElement.vue";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "EmailDropdownElement",
   components: {
     "navigation-dropdown-element": NavigationBarDropdownElement
-  },
-  props: {
-    image: {
-      type: String,
-      default: "../../assets/images/logo.png"
-    },
-    status: {
-      type: String,
-      default: "This is an email status"
-    },
-    headline: {
-      type: String,
-      default: "This is an email headline"
-    },
-    subHeadline: {
-      type: String,
-      default: "This is an email sub-headline"
-    }
   }
-};
+})
+export default class EmailDropdownElement extends Vue {
+  @Prop({ default: "../../assets/images/logo.png" }) private image!: string;
+  @Prop({ default: "This is an email status" }) private status!: string;
+  @Prop({ default: "This is an email headline" }) private headline!: string;
+  @Prop({ default: "This is an email sub-headline" })
+  private subHeadline!: string;
+}
 </script>
 
 <style scoped lang="sass"></style>

@@ -7,21 +7,17 @@
   </li>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+
+@Component({
   name: "AccountDropdownElement",
-  components: {},
-  props: {
-    route: {
-      type: String,
-      default: ""
-    },
-    title: {
-      type: String,
-      default: "I provide account details"
-    }
-  }
-};
+  components: {}
+})
+export default class extends Vue {
+  @Prop({ default: "" }) private route!: string;
+  @Prop({ default: "I provide account details" }) private title!: string;
+}
 </script>
 
 <style scoped lang="sass"></style>

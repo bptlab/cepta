@@ -42,26 +42,24 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+@Component({
   name: "Signup",
-  components: {},
-  data() {
-    return {
-      isRedirecting: false
-    };
-  },
-  computed: {
-    appAllowsRegister() {
-      return this.$store.state.appAllowsRegister;
-    }
-  },
-  methods: {
-    signup() {
-      // If success
-      this.isRedirecting = true;
-    }
-  },
+  components: {}
+})
+export default class SignUp extends Vue {
+  isRedirecting: boolean = false;
+
+  //computed
+  get appAllowsRegister() {
+    return this.$store.state.appAllowsRegister;
+  }
+
+  signup() {
+    // If success
+    this.isRedirecting = true;
+  }
   mounted() {}
-};
+}
 </script>

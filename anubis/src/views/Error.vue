@@ -16,12 +16,16 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "Error",
-  components: {},
+  components: {}
+})
+export default class Error extends Vue {
   mounted() {}
-};
+}
 </script>
 
 <style lang="sass">

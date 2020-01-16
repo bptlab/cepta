@@ -64,22 +64,6 @@ const routes = [
     component: Adminator,
     children: [
       {
-        path: "dashboard",
-        name: "dashboard",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
-      },
-      {
-        path: "charts",
-        name: "charts",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Charts.vue")
-      },
-      {
         path: "websockets",
         name: "websockets",
         meta: { requiresAuth: true },
@@ -95,22 +79,7 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
       },
-      {
-        path: "tables/basictables",
-        name: "basictables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/BasicTables.vue")
-      },
-      {
-        path: "tables/datatables",
-        name: "datatables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Datatables.vue")
-      },
+
       {
         path: "traindata/:id",
         name: "traindata",
@@ -118,7 +87,7 @@ const routes = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-            import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
+          import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
       },
       {
         path: "traindatainfo",
@@ -126,7 +95,7 @@ const routes = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-            import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
+          import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
       }
     ]
   },
