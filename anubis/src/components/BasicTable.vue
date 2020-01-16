@@ -72,7 +72,7 @@ export default class BasicTable extends Vue {
   @Prop({ default: "" }) private thead!: string;
 
   get firstRow(): Array<Number> {
-    return this.$props.tableData.length > 0 ? this.$props.tableData[0] : [];
+    return this.tableData.length > 0 ? this.tableData[0] : [];
   }
 
   get dataIsArray(): boolean {
@@ -80,18 +80,18 @@ export default class BasicTable extends Vue {
   }
 
   get tableHeadClasses(): string {
-    return this.$props.thead.toLowerCase() === "dark"
+    return this.thead.toLowerCase() === "dark"
       ? "thead-dark"
-      : this.$props.thead.toLowerCase() === "light"
+      : this.thead.toLowerCase() === "light"
       ? "thead-light"
       : "";
   }
 
   get sortedTableData() {
-    return this.$props.tableData.slice(1).sort((a: string, b: string) => {
-      return a[this.$props.sortKey] > b[this.$props.sortKey]
+    return this.tableData.slice(1).sort((a: {[key: string]: any }, b: {[key: string]: any }) => {
+      return a[this.sortKey] > b[this.sortKey]
         ? 1
-        : b[this.$props.sortKey] > a[this.$props.sortKey]
+        : b[this.sortKey] > a[this.sortKey]
         ? -1
         : 0;
     });
@@ -105,9 +105,9 @@ export default class BasicTable extends Vue {
         });
   }
   mounted() {
-    if (this.$props.dataTable) {
+    if (this.dataTable) {
       // Initialize datatable
-      $(".dataTable").DataTable({
+      ($(".dataTable") as any).DataTable({
         scrollX: true
       });
     }

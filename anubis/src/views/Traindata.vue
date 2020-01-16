@@ -33,29 +33,7 @@ import { Component, Vue } from "vue-property-decorator";
   }
 })
 export default class TrainData extends Vue {
-  receivedUpdates: Array<Array<string>> = [
-    ["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"]
-  ];
-  websocket: WebSocket = this.$store.state.websocket;
-  stompClient = Stomp.over(this.websocket);
 
-  connect(url = "/topic/updates") {
-    this.stompClient.connect({}, () =>
-      this.stompClient.subscribe(
-        url,
-        update => {
-          console.log(update);
-        },
-        error => {
-          console.log(error);
-        }
-      )
-    );
-  }
-
-  mounted() {
-    this.connect();
-  }
 }
 </script>
 

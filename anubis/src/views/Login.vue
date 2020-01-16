@@ -64,6 +64,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import {AuthModule} from "@/store/modules/auth";
 
 @Component({
   name: "Login",
@@ -88,26 +89,20 @@ export default class Login extends Vue {
   }
   login() {
     this.hasError = false;
-    this.$store
-      .dispatch(
-        "AUTH_REQUEST",
-        { email: this.email, password: this.password },
-        this.shouldRemember
-      )
-      .then(
-        () => {
-          this.isRedirecting = true;
-          setTimeout(() => {
-            this.$router.push("/");
-          }, 1000);
-        },
-        ({ error, message }) => {
-          this.hasError = true;
-          this.errorTitle = error;
-          this.errorMessage = message;
-          this.clearForm();
-        }
-      );
+    AuthModule.authRequest({ email: this.email, password: this.password }).then(
+      () => {
+        this.isRedirecting = true;
+        setTimeout(() => {
+          this.$router.push("/");
+        }, 1000);
+      },
+      ({ error, message }) => {
+        this.hasError = true;
+        this.errorTitle = error;
+        this.errorMessage = message;
+        this.clearForm();
+      }
+    );
   }
 
   mounted() {}
