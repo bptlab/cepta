@@ -5,15 +5,13 @@ import {
   Module,
   Mutation,
   Action,
-  getModule
+  getModule, MutationAction
 } from "vuex-module-decorators";
 import store from "@/store";
 import {
   Empty,
   Frequency,
-  IDSet,
   ReplayOptions,
-  Success,
   Timestamp
 } from "@/generated/protobuf/replayer_pb";
 import * as grpcWeb from "grpc-web";
@@ -21,8 +19,6 @@ import * as grpcWeb from "grpc-web";
 export interface IGrpcState {
   replayer: ReplayerClient;
   isReplaying: boolean;
-  // replayingERRID?: string;
-  // replayingSpeed?: number;
   replayingOptions?: ReplayOptions;
   replayStatus: String;
 }
@@ -31,18 +27,8 @@ export interface IGrpcState {
 class Grpc extends VuexModule implements IGrpcState {
   public replayer = new ReplayerClient("/grpc/replayer", null, null);
   public isReplaying = false;
-  // public replayingERRID = "";
-  // public replayingSpeed = 0;
   public replayingOptions = new ReplayOptions();
   public replayStatus = "Replay inactive";
-
-  @Mutation
-  private CHANGE_SETTING(payload: { key: string; value: any }) {
-    const { key, value } = payload;
-    if (Object.prototype.hasOwnProperty.call(this, key)) {
-      (this as any)[key] = value;
-    }
-  }
 
   @Mutation
   public async seekReplayer(timestamp: string) {
@@ -58,14 +44,14 @@ class Grpc extends VuexModule implements IGrpcState {
   }
 
   @Mutation
-  public async queryReplayer() {
+  public queryReplayer() {
     this.replayer.status(new Empty(), null, (err, response) => {
       this.isReplaying = response?.getActive() || false;
     });
   }
 
   @Mutation
-  public async setReplayerSpeed(speed: number) {
+  public setReplayerSpeed(speed: number) {
     let freq = new Frequency();
     freq.setFrequency(speed);
     this.replayer.setSpeed(freq, null, (err, response) => {
@@ -78,19 +64,19 @@ class Grpc extends VuexModule implements IGrpcState {
   }
 
   @Mutation
-  public async setReplaying(isReplaying: boolean) {
+  public setReplaying(isReplaying: boolean) {
     this.isReplaying = isReplaying;
     this.replayStatus = isReplaying ? "Replaying..." : "Replay inactive";
   }
 
   @Mutation
-  public async setReplayingOptions(options: ReplayOptions) {
+  public setReplayingOptions(options: ReplayOptions) {
     this.replayingOptions = options;
   }
 
   @Action
-  public async toggleReplayer() {
-    this.isReplaying ? this.stopReplayer() : this.startReplayer();
+  public async toggleReplayer(options?: ReplayOptions) {
+    this.isReplaying ? this.stopReplayer() : this.startReplayer(options);
   }
 
   @Action
@@ -100,29 +86,17 @@ class Grpc extends VuexModule implements IGrpcState {
     });
   }
 
-  @Action
+  @MutationAction({ mutate: ['setReplaying', 'setReplayingOptions']})
   public async startReplayer(
-    errid?: string,
-    timestamp?: string,
-    frequency?: number
+    options?: ReplayOptions
   ) {
-    let options = new ReplayOptions();
-    let errids = errid?.trim().split(",") || new Array<string>();
-    options.setIdsList(errids);
-    if (timestamp) {
-      let ts = new Timestamp();
-      ts.setTimestamp(timestamp);
-      options.setTimestamp(ts);
-    }
-    if (frequency) {
-      let freq = new Frequency();
-      freq.setFrequency(frequency);
-      options.setFrequency(freq);
-    }
-    this.replayer.start(options, {}, (err, response) => {
+    let newOptions = options || new ReplayOptions();
+    // debugger;
+    this.replayer.start(newOptions, null, (err, response) => {
       if (!err && response.getSuccess()) {
-        this.setReplaying(true);
-        this.setReplayingOptions(options);
+        // this.setReplaying(true);
+        // this.setReplayingOptions(newOptions);
+        // return ({ 'setReplaying': true, 'setReplayingOptions': newOptions })
       } else {
         alert("Operation failed");
       }

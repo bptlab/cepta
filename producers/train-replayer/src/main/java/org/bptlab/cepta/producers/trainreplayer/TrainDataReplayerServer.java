@@ -1,6 +1,7 @@
 package org.bptlab.cepta.producers.trainreplayer;
 
 import io.grpc.stub.StreamObserver;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +13,11 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
 import org.bptlab.cepta.producers.PostgresReplayer;
 import org.bptlab.cepta.producers.exceptions.NoDatabaseConnectionException;
+import org.bptlab.cepta.producers.replayer.ReplayStatus;
 import org.bptlab.cepta.producers.replayer.Success;
 import org.bptlab.cepta.schemas.grpc.GrpcServer;
 import org.bptlab.cepta.serialization.AvroBinarySerializer;
+import org.bptlab.cepta.utils.converters.TimestampTypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +121,7 @@ public class TrainDataReplayerServer
       extends org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerImplBase {
 
     private PostgresReplayer[] replayers;
+    private boolean running = false;
 
     @FunctionalInterface
     public interface UnsafeFunction<T, R> {
@@ -158,6 +162,18 @@ public class TrainDataReplayerServer
     }
 
     @Override
+    public void setSpeed(org.bptlab.cepta.producers.replayer.Frequency request,
+        io.grpc.stub.StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
+      logger.info(String.format("Setting speed of train data replayer to %d", request.getFrequency()));
+      Success successful = forEachReplayer(replayer -> {
+        replayer.setFrequency(request.getFrequency());
+        return Optional.of(Success.newBuilder().setSuccess(true).build());
+      });
+      responseObserver.onNext(successful);
+      responseObserver.onCompleted();
+    }
+
+    @Override
     public void reset(
         org.bptlab.cepta.producers.replayer.Empty request,
         StreamObserver<org.bptlab.cepta.producers.replayer.Success> responseObserver) {
@@ -177,7 +193,15 @@ public class TrainDataReplayerServer
       logger.info("Starting train data replayers");
       Success successful = forEachReplayer(replayer -> {
         try {
+          // Apply initial config before starting
+          replayer.setFrequency(request.getFrequency().getFrequency());
+          try {
+            new TimestampTypeConverter().convert(request.getTimestamp().getTimestamp())
+                .ifPresent(replayer::setStartTime);
+          } catch (java.text.ParseException ignored) {}
+
           replayer.start();
+          this.running = true;
         } catch (NoDatabaseConnectionException exception) {
           logger.error("Could not connect to the database");
           throw exception;
@@ -195,9 +219,18 @@ public class TrainDataReplayerServer
       logger.info("Stopping train data replayer server");
       Success successful = forEachReplayer(replayer -> {
         replayer.stop();
+        this.running = false;
         return Optional.of(Success.newBuilder().setSuccess(true).build());
       });
       responseObserver.onNext(successful);
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void status(org.bptlab.cepta.producers.replayer.Empty request,
+    io.grpc.stub.StreamObserver<org.bptlab.cepta.producers.replayer.ReplayStatus> responseObserver) {
+      ReplayStatus status = ReplayStatus.newBuilder().setActive(this.running).build();
+      responseObserver.onNext(status);
       responseObserver.onCompleted();
     }
   }

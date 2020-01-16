@@ -68,7 +68,7 @@
               </div>
               <div class="form-group">
                 <label for="formControlRange"
-                  >Frequency ({{ scaledReplaySpeed
+                  >Frequency ({{ scaledReplaySpeed.toFixed(isConstantReplay ? 2 : 0)
                   }}{{ isConstantReplay ? "sec" : "x" }})</label
                 >
                 <input
@@ -184,6 +184,7 @@ import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
 import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+import {Frequency, ReplayOptions} from "@/generated/protobuf/replayer_pb";
 
 @Component({
   name: "NavigationBar",
@@ -243,15 +244,21 @@ export default class NavigationBar extends Vue {
   }
 
   get scaledReplaySpeed() {
-    return (
-      this.replayFrequencyMin +
+    return this.replayFrequencyMin +
       (this.replaySpeed / 100) *
-        (this.replayFrequencyMax - this.replayFrequencyMin)
-    ).toFixed(this.isConstantReplay ? 2 : 0);
+        (this.replayFrequencyMax - this.replayFrequencyMin);
   }
 
   toggleReplay() {
-    GrpcModule.toggleReplayer();
+    let options = new ReplayOptions();
+    let errids = this.replayERRID?.trim().split(",") || new Array<string>();
+    options.setIdsList(errids);
+    if (this.scaledReplaySpeed) {
+      let freq = new Frequency();
+      freq.setFrequency(this.scaledReplaySpeed);
+      options.setFrequency(freq);
+    }
+    GrpcModule.toggleReplayer(options);
   }
 
   toggleSearch() {

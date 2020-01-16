@@ -5,7 +5,8 @@ import java.util.Properties;
 import org.bptlab.cepta.producers.Producer;
 
 public abstract class Replayer<K, V> extends Producer<K, V> {
-  public long frequency = 1000;
+  // Use volatile here as we may want to change the frequency while running and therefore want this variable shared
+  public volatile long frequency = 1000_0;
   public Optional<Integer> limit = Optional.empty();
   public int offset = 0;
 
