@@ -34,6 +34,9 @@ export default {
   },
   methods: {
     connect(url = "/topic/updates"){
+
+
+      /*
       this.websocket = this.$store.state.websocket;
       this.stompClient = Stomp.over(this.websocket);
       this.stompClient.connect(
@@ -49,6 +52,7 @@ export default {
             console.log(error);
           })
       )
+      */
     },
     pushUpdate(update, header){
       let obj = JSON.parse(update.body);

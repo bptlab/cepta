@@ -22,12 +22,34 @@ export default {
   },
   computed: {},
   methods: {
-    reDraw: function() {
-      this.$redrawVueMasonry();
-    },
     connectWebsocket() {
+      /*
       this.socket = new SockJS("http://localhost:5000/ws");
       this.$store.commit('setWebsocket', this.socket);
+       */
+
+      let socket = new WebSocket("ws://localhost:5555/ws");
+      console.log("Attempting Connection...");
+
+      socket.onopen = () => {
+        console.log("Successfully Connected");
+        socket.send("Client Connected")
+      };
+
+      socket.onmessage = function (evt) {
+        var messages = evt.data;
+        console.log(JSON.parse(messages).next);
+      }
+
+      socket.onclose = event => {
+        console.log("Socket Closed Connection: ", event);
+        socket.send("Client Closed!")
+      };
+
+      socket.onerror = error => {
+        console.log("Socket Error: ", error);
+      };
+
     }
   },
   created() {
@@ -47,10 +69,11 @@ export default {
     this.$redrawVueMasonry();
     this.connectWebsocket();
   },
+  /*
   destroyed() {
     this.socket.close();
   }
-
+  */
 };
 </script>
 
