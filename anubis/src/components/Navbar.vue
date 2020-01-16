@@ -54,16 +54,17 @@
   </div>
 </template>
 
-<script>
-import NotificationsDropdown from "@/components/NotificationsDropdown";
-import NotificationDropdownElement from "@/components/NotificationDropdownElement";
-import EmailDropdownElement from "@/components/EmailDropdownElement";
-import AccountDropdown from "@/components/AccountDropdown";
+<script lang="ts">
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+import AccountDropdown from "@/components/AccountDropdown.vue";
 import { GrpcModule } from "@/store/modules/grpc";
 import {AppModule} from "../store/modules/app";
 import axios from 'axios';
+import { Component, Vue } from 'vue-property-decorator'
 
-export default {
+@Component({
   name: "NavigationBar",
   components: {
     "notifications-dropdown": NotificationsDropdown,
@@ -72,30 +73,32 @@ export default {
     "account-dropdown": AccountDropdown
   },
   props: {},
-  data() {
-    return {
-      searchToggled: false,
-      search: null,
-      stompClient: null
-    };
-  },
-  methods: {
+})
+
+export default class Navbar extends Vue {
+
+
+  searchToggled:boolean = false;
+  search:any = null;
+  stompClient:any = null;
+
+
     toggleSearch() {
       this.searchToggled = !this.searchToggled;
       window.setTimeout(() => {
         // Focus the input
-        this.$refs.searchInput.focus();
+        (this.$refs["searchInput"] as HTMLElement).focus();
       }, 0);
-    },
+    }
     toggleSidebar() {
       AppModule.toggleCollapse();
       this.$redrawVueMasonry();
       setTimeout(() => {
         this.$redrawVueMasonry();
       }, 0.2 * 500);
-    },
+    }
     checkForUpdate() {
-      let id = this.$refs.searchInput.value;
+      let id = (this.$refs["searchInput"] as HTMLInputElement).value;
       // this.send(id)
       let reg = new RegExp("^[0-9]*$");
       debugger;
@@ -103,7 +106,7 @@ export default {
       //only Numbers update our list of train data
       if (reg.test(id))
         this.$router.push({ name: 'traindata', params: { id }});
-    },
+    }
     /*
     send(message) {
       console.log('Sehen')
@@ -133,7 +136,7 @@ export default {
   },
   mounted() {
     // this.connect();*/
-  }
+
 };
 </script>
 
