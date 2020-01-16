@@ -71,14 +71,7 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
       },
-      {
-        path: "charts",
-        name: "charts",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Charts.vue")
-      },
+
       {
         path: "websockets",
         name: "websockets",
@@ -95,22 +88,8 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
       },
-      {
-        path: "tables/basictables",
-        name: "basictables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/BasicTables.vue")
-      },
-      {
-        path: "tables/datatables",
-        name: "datatables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Datatables.vue")
-      },
+
+
       {
         path: "traindata/:id",
         name: "traindata",

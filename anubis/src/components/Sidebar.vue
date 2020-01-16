@@ -62,28 +62,7 @@
                 <i class="c-blue-500 icon-home"></i>
               </template>
             </sidebar-element>
-            <!-- Charts -->
-            <sidebar-element title="Charts" :route="{ name: 'charts' }">
-              <template v-slot:icon>
-                <i class="c-indigo-500 icon-bar-chart"></i>
-              </template>
-            </sidebar-element>
-            <!-- Tables -->
-            <sidebar-dropdown title="Tables">
-              <template v-slot:icon>
-                <i class="c-pink-500 icon-palette"></i>
-              </template>
-              <template v-slot:entries>
-                <sidebar-dropdown-element
-                    title="Basic Tables"
-                    :route="{ name: 'basictables' }"
-                />
-                <sidebar-dropdown-element
-                    title="Data Tables"
-                    :route="{ name: 'datatables' }"
-                />
-              </template>
-            </sidebar-dropdown>
+
             <!-- Pages -->
             <sidebar-dropdown title="Pages">
               <template v-slot:icon>
