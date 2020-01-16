@@ -1,6 +1,6 @@
 package org.bptlab.cepta.schemas.grpc;
 
-import org.bptlab.cepta.producers.replayer.Empty;
+import org.bptlab.cepta.producers.replayer.ReplayOptions;
 import org.bptlab.cepta.producers.replayer.ReplayerGrpc;
 import org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerBlockingStub;
 import org.bptlab.cepta.producers.replayer.ReplayerGrpc.ReplayerStub;
@@ -31,7 +31,7 @@ public class ReplayerClient {
   }
 
   public Success start() throws InterruptedException {
-    return blockingStub.start(Empty.newBuilder().build());
+    return blockingStub.start(ReplayOptions.newBuilder().build());
   }
 
 }

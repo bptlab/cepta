@@ -61,6 +61,9 @@ export default {
 </script>
 
 <style scoped lang="sass">
+.dropdown
+  margin-left: 15px
+
 .dropdown-menu
   left: auto
   right: 0

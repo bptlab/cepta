@@ -5,10 +5,7 @@
     <!--<a class="dropdown-toggle no-after" data-toggle="dropdown">
       <slot name="icon"></slot>
     </a>-->
-    <a
-      class="dropdown-toggle no-after fxw-nw ai-c lh-1"
-      data-toggle="dropdown"
-    >
+    <a class="dropdown-toggle no-after fxw-nw ai-c lh-1" data-toggle="dropdown">
       <slot name="icon"></slot>
     </a>
     <!-- Dropdown menu -->
@@ -53,6 +50,9 @@ export default {
 </script>
 
 <style scoped lang="sass">
+.dropdown
+  margin-left: 15px
+
 .dropdown-menu
   left: auto
   right: 0
@@ -69,6 +69,7 @@ export default {
   .dropdown-menu
     min-width: 350px
     padding: 0
+    transform: scale(0, 0)
 
     +to($breakpoint-sm)
       max-width: 300px
