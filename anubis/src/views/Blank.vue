@@ -7,19 +7,18 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "Blank",
   components: {},
-  props: {},
-  computed: {},
-  data() {
-    return {
-      example: "Test"
-    };
-  },
+  props: {}
+})
+export default class Blank extends Vue {
+  example: string = "Test";
   mounted() {}
-};
+}
 </script>
 
 <style lang="sass"></style>

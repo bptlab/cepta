@@ -1,4 +1,4 @@
-package org.bptlab.cepta;
+package org.bptlab.cepta.operators;
 
 import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
 import com.github.jasync.sql.db.QueryResult;

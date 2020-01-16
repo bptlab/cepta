@@ -12,15 +12,16 @@
   </div>
 </template>
 
-<script>
-import MasonryLayout from "@/components/MasonryLayout";
-import MasonryLayoutTile from "@/components/MasonryLayoutTile";
-import RowLayout from "../components/RowLayout";
-import RowLayoutRow from "../components/RowLayoutRow";
-import BasicTable from "../components/BasicTable";
+<script lang="ts">
+import MasonryLayout from "../components/MasonryLayout.vue";
+import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
+import RowLayout from "../components/RowLayout.vue";
+import RowLayoutRow from "../components/RowLayoutRow.vue";
+import BasicTable from "../components/BasicTable.vue";
 import Stomp from "webstomp-client";
+import { Component, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "Traindata",
   props: ["id"],
   components: {
@@ -29,35 +30,33 @@ export default {
     RowLayout,
     MasonryLayout,
     MasonryLayoutTile
-  },
-  data() {
-    return {
-      receivedUpdates: [
-        ["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"]
-      ]
-    };
-  },
-  methods: {
-    connect(url = "/topic/updates") {
-      this.websocket = this.$store.state.websocket;
-      this.stompClient = Stomp.over(this.websocket);
-      this.stompClient.connect({}, () =>
-        this.stompClient.subscribe(
-          url,
-          update => {
-            console.log(update);
-          },
-          error => {
-            console.log(error);
-          }
-        )
-      );
-    }
-  },
+  }
+})
+export default class TrainData extends Vue {
+  receivedUpdates: Array<Array<string>> = [
+    ["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"]
+  ];
+  websocket: WebSocket = this.$store.state.websocket;
+  stompClient = Stomp.over(this.websocket);
+
+  connect(url = "/topic/updates") {
+    this.stompClient.connect({}, () =>
+      this.stompClient.subscribe(
+        url,
+        update => {
+          console.log(update);
+        },
+        error => {
+          console.log(error);
+        }
+      )
+    );
+  }
+
   mounted() {
     this.connect();
   }
-};
+}
 </script>
 
 <style lang="sass">

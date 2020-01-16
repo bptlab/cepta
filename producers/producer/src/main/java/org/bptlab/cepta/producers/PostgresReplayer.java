@@ -89,13 +89,7 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
       logger.error(e.getMessage());
     }
   }
-
-  // TODO: Replace with converter classes in util!
-  protected  <T extends Date> void convertTimestamp(T ts, Function<Long, ?> resultHandler) {
-    Optional.ofNullable(ts).map(T::toInstant).map(
-        Instant::toEpochMilli).map(resultHandler);
-  }
-
+  
   private String buildReplayQuery() {
     List<String> parts = new ArrayList<String>();
     // Datasource

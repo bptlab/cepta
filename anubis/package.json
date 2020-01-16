@@ -10,14 +10,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@types/chart.js": "^2.9.3",
+    "@types/chart.js": "^2.9.4",
     "@types/google-protobuf": "^3.7.2",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
     "axios": "^0.19.0",
     "bootstrap": "^4.4.1",
     "chart.js": "^2.9.3",
-    "core-js": "^3.4.7",
+    "core-js": "^3.4.8",
     "datatables": "^1.10.18",
     "grpc-web": "^1.0.7",
     "jquery": "^3.4.1",
@@ -42,7 +42,9 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.6",
+    "@types/jquery": "^3.3.31",
     "@types/mocha": "^5.2.7",
+    "@types/sockjs-client": "^1.1.1",
     "@vue/cli-plugin-babel": "^4.1.1",
     "@vue/cli-plugin-e2e-cypress": "^4.1.1",
     "@vue/cli-plugin-eslint": "^4.1.1",

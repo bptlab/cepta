@@ -14,12 +14,16 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "Error500",
-  components: {},
+  components: {}
+})
+export default class ErrorPage500 extends Vue {
   mounted() {}
-};
+}
 </script>
 
 <style lang="sass">

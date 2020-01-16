@@ -5,7 +5,8 @@ import {
   Module,
   Mutation,
   Action,
-  getModule, MutationAction
+  getModule,
+  MutationAction
 } from "vuex-module-decorators";
 import store from "@/store";
 import {
@@ -82,21 +83,21 @@ class Grpc extends VuexModule implements IGrpcState {
   @Action
   public async resetReplayer() {
     this.replayer.reset(new Empty(), {}, (err, response) => {
-      console.log(response.getSuccess());
+      if (!err && response.getSuccess()) {
+
+      } else {
+        alert("Operation failed");
+      }
     });
   }
 
-  @MutationAction({ mutate: ['setReplaying', 'setReplayingOptions']})
-  public async startReplayer(
-    options?: ReplayOptions
-  ) {
+  @Action
+  public async startReplayer(options?: ReplayOptions) {
     let newOptions = options || new ReplayOptions();
-    // debugger;
     this.replayer.start(newOptions, null, (err, response) => {
       if (!err && response.getSuccess()) {
-        // this.setReplaying(true);
-        // this.setReplayingOptions(newOptions);
-        // return ({ 'setReplaying': true, 'setReplayingOptions': newOptions })
+        this.setReplaying(true);
+        this.setReplayingOptions(newOptions);
       } else {
         alert("Operation failed");
       }

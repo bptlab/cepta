@@ -54,34 +54,6 @@
             <i class="c-teal-500 icon-view-list-alt"></i>
           </template>
           <template v-slot:entries>
-            <!-- Dashboard -->
-            <sidebar-element title="Dashboard" :route="{ name: 'dashboard' }">
-              <template v-slot:icon>
-                <i class="c-blue-500 icon-home"></i>
-              </template>
-            </sidebar-element>
-            <!-- Charts -->
-            <sidebar-element title="Charts" :route="{ name: 'charts' }">
-              <template v-slot:icon>
-                <i class="c-indigo-500 icon-bar-chart"></i>
-              </template>
-            </sidebar-element>
-            <!-- Tables -->
-            <sidebar-dropdown title="Tables">
-              <template v-slot:icon>
-                <i class="c-pink-500 icon-palette"></i>
-              </template>
-              <template v-slot:entries>
-                <sidebar-dropdown-element
-                  title="Basic Tables"
-                  :route="{ name: 'basictables' }"
-                />
-                <sidebar-dropdown-element
-                  title="Data Tables"
-                  :route="{ name: 'datatables' }"
-                />
-              </template>
-            </sidebar-dropdown>
             <!-- Pages -->
             <sidebar-dropdown title="Pages">
               <template v-slot:icon>
@@ -117,39 +89,30 @@
   </div>
 </template>
 
-<script>
-import SidebarElement from "./SidebarElement";
-import SidebarDropdown from "./SidebarDropdown";
-import SidebarDropdownElement from "./SidebarDropdownElement";
-import { AppModule } from "../store/modules/app";
+<script lang="ts">
+import SidebarElement from "./SidebarElement.vue";
+import SidebarDropdown from "./SidebarDropdown.vue";
+import SidebarDropdownElement from "./SidebarDropdownElement.vue";
+import { AppModule } from "@/store/modules/app";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "Sidebar",
   components: {
     SidebarElement,
     SidebarDropdown,
     SidebarDropdownElement
-  },
-  props: {
-    title: {
-      type: String,
-      default: "Cepta"
-    },
-    logo: {
-      type: String,
-      default: "@/assets/images/logo.png"
-    }
-  },
-  data() {
-    return {};
-  },
-  methods: {
-    toggleSidebar() {
-      AppModule.toggleCollapse();
-    }
-  },
+  }
+})
+export default class Sidebar extends Vue {
+  @Prop({ default: "Cepta" }) private title!: string;
+  @Prop({ default: "@/assets/images/logo.png" }) private logo!: string;
+
+  toggleSidebar() {
+    AppModule.toggleCollapse();
+  }
   mounted() {}
-};
+}
 </script>
 
 <style lang="sass">

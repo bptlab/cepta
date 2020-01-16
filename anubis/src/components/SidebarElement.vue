@@ -11,27 +11,18 @@
 </template>
 
 <script lang="ts">
-export default {
-  name: "SidebarElement",
-  props: {
-    title: {
-      type: String,
-      default: "Sidebar Element"
-    },
-    route: {
-      type: [String, Object],
-      default: "/"
-    },
-    active: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {};
-  },
+import { Component, Prop, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "SidebarElement"
+})
+export default class SidebarElement extends Vue {
+  @Prop({ default: "Sidebar Element" }) private title!: string;
+  @Prop({ default: "/" }) private route!: string | object;
+  @Prop({ default: false }) private active!: boolean;
+
   mounted() {}
-};
+}
 </script>
 
 <style scoped lang="sass"></style>

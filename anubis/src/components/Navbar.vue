@@ -68,7 +68,8 @@
               </div>
               <div class="form-group">
                 <label for="formControlRange"
-                  >Frequency ({{ scaledReplaySpeed.toFixed(isConstantReplay ? 2 : 0)
+                  >Frequency ({{
+                    scaledReplaySpeed.toFixed(isConstantReplay ? 2 : 0)
                   }}{{ isConstantReplay ? "sec" : "x" }})</label
                 >
                 <input
@@ -119,7 +120,7 @@
                   {{ isReplaying ? "Stop" : "Start" }}
                 </button>
                 <button
-                  @click.prevent="toggleReplay"
+                  @click.prevent="updateReplay"
                   id="updateReplayButton"
                   class="btn btn-info"
                   :disabled="!replayerConfigChanged"
@@ -127,7 +128,7 @@
                   Apply
                 </button>
                 <button
-                  @click.prevent="toggleReplay"
+                  @click.prevent="resetReplay"
                   id="resetReplayButton"
                   class="btn btn-danger"
                 >
@@ -163,6 +164,8 @@
             />
           </template>
         </notifications-dropdown>
+
+        <!-- User account -->
         <account-dropdown
           username="Admin"
           picture="https://randomuser.me/api/portraits/lego/5.jpg"
@@ -184,7 +187,7 @@ import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
 import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
-import {Frequency, ReplayOptions} from "@/generated/protobuf/replayer_pb";
+import { Frequency, ReplayOptions } from "@/generated/protobuf/replayer_pb";
 
 @Component({
   name: "NavigationBar",
@@ -198,8 +201,8 @@ import {Frequency, ReplayOptions} from "@/generated/protobuf/replayer_pb";
   }
 })
 export default class NavigationBar extends Vue {
-  searchToggled = false;
-  search = null;
+  searchToggled: boolean = false;
+  search: any = null;
   replaySpeed = 0;
   replayERRID = "";
   replayType = "proportional";
@@ -244,12 +247,14 @@ export default class NavigationBar extends Vue {
   }
 
   get scaledReplaySpeed() {
-    return this.replayFrequencyMin +
+    return (
+      this.replayFrequencyMin +
       (this.replaySpeed / 100) *
-        (this.replayFrequencyMax - this.replayFrequencyMin);
+        (this.replayFrequencyMax - this.replayFrequencyMin)
+    );
   }
 
-  toggleReplay() {
+  get replayOptions() {
     let options = new ReplayOptions();
     let errids = this.replayERRID?.trim().split(",") || new Array<string>();
     options.setIdsList(errids);
@@ -258,14 +263,33 @@ export default class NavigationBar extends Vue {
       freq.setFrequency(this.scaledReplaySpeed);
       options.setFrequency(freq);
     }
-    GrpcModule.toggleReplayer(options);
+    return options;
+  }
+
+  toggleReplay() {
+    GrpcModule.toggleReplayer(this.replayOptions);
+  }
+
+  updateReplay() {
+    let timestamp = this.replayOptions.getTimestamp()?.getTimestamp();
+    let frequency = this.replayOptions.getFrequency()?.getFrequency();
+    let ids = this.replayOptions.getIdsList();
+    if (ids || timestamp) {
+      // We must restart anyways
+      this.resetReplay();
+      this.toggleReplay();
+    } else if (frequency) GrpcModule.setReplayerSpeed(frequency);
+  }
+
+  resetReplay() {
+    GrpcModule.resetReplayer();
   }
 
   toggleSearch() {
     this.searchToggled = !this.searchToggled;
     window.setTimeout(() => {
       // Focus the input
-      this.$refs.searchInput.focus();
+      (this.$refs["searchInput"] as HTMLElement).focus();
     }, 0);
   }
 
@@ -282,7 +306,7 @@ export default class NavigationBar extends Vue {
   }
 
   checkForUpdate() {
-    let id = this.$refs.searchInput.value;
+    let id = (this.$refs["searchInput"] as HTMLInputElement).value;
     // this.send(id)
     let reg = new RegExp("^[0-9]*$");
     debugger;
