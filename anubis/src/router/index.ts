@@ -79,6 +79,14 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
       },
+      {
+        path: "user",
+        name: "user",
+        meta: { requiresAuth: true },
+        beforeEnter: ifAuthenticated,
+        component: () =>
+          import(/* webpackChunkName: "about" */ "@/views/User.vue")
+      },
 
       {
         path: "traindata/:id",
@@ -99,6 +107,16 @@ const routes = [
       }
     ]
   },
+
+  // User pages
+  {
+    path: "/user",
+    name: "user",
+    component: () =>
+    import(/* webpackChunkName: "about" */ "@/views/User.vue")
+
+  },
+
   // Error pages
   {
     path: "/error",
