@@ -10,16 +10,17 @@
 </template>
 
 <script lang="ts">
+  import { Component, Vue } from 'vue-property-decorator'
 
   @Component({
     name: "TraindataInfo",
     components: {},
   })
 
-export default {
+export default class TraindataInfo extends Vue {
 
     search(){
-      let id = this.$refs.search.value;
+      let id = (this.$refs["search"] as HTMLInputElement).value;
       this.$router.push({ name: 'traindata', params: { id }});
     }
 
