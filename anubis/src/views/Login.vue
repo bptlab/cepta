@@ -63,53 +63,53 @@
 </template>
 
 <script lang="ts">
-  import {Component, Vue} from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 
-  @Component({
-    name: "Login",
-    components: {},})
-export default class Login extends Vue{
-
-      email:string = "";
-      password:string = "";
-      shouldRemember:boolean = false;
-      hasError:boolean = false;
-      isRedirecting:boolean = false;
-      errorTitle:string = "Login failed";
-      errorMessage:string = "Check your email and password";
+@Component({
+  name: "Login",
+  components: {}
+})
+export default class Login extends Vue {
+  email: string = "";
+  password: string = "";
+  shouldRemember: boolean = false;
+  hasError: boolean = false;
+  isRedirecting: boolean = false;
+  errorTitle: string = "Login failed";
+  errorMessage: string = "Check your email and password";
 
   //computed
-    get appAllowsRegister() {
-      return this.$store.state.appAllowsRegister;
-    }
+  get appAllowsRegister() {
+    return this.$store.state.appAllowsRegister;
+  }
 
-    clearForm() {
-      this.password = "";
-    }
-    login() {
-      this.hasError = false;
-      this.$store
-        .dispatch(
-          "AUTH_REQUEST",
-          { email: this.email, password: this.password },
-          this.shouldRemember
-        )
-        .then(
-          () => {
-            this.isRedirecting = true;
-            setTimeout(() => {
-              this.$router.push("/");
-            }, 1000);
-          },
-          ({ error, message }) => {
-            this.hasError = true;
-            this.errorTitle = error;
-            this.errorMessage = message;
-            this.clearForm();
-          }
-        );
-    }
+  clearForm() {
+    this.password = "";
+  }
+  login() {
+    this.hasError = false;
+    this.$store
+      .dispatch(
+        "AUTH_REQUEST",
+        { email: this.email, password: this.password },
+        this.shouldRemember
+      )
+      .then(
+        () => {
+          this.isRedirecting = true;
+          setTimeout(() => {
+            this.$router.push("/");
+          }, 1000);
+        },
+        ({ error, message }) => {
+          this.hasError = true;
+          this.errorTitle = error;
+          this.errorMessage = message;
+          this.clearForm();
+        }
+      );
+  }
 
   mounted() {}
-};
+}
 </script>

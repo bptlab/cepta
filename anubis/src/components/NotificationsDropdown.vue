@@ -1,8 +1,8 @@
 <template>
-  <li class="notifications dropdown">
+  <li class="notifications dropdown" data-toggle="dropdown">
     <!-- Toggle -->
     <span class="counter bgc-red">{{ number }}</span>
-    <a class="dropdown-toggle no-after" data-toggle="dropdown">
+    <a class="dropdown-toggle no-after">
       <slot name="icon"></slot>
     </a>
     <!-- Dropdown menu -->
@@ -29,42 +29,26 @@
 </template>
 
 <script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component({
+  name: "NotificationDropdown"
+})
+export default class NotificationsDropdown extends Vue {
+  @Prop({ default: "Notification Dropdown" }) private title!: string;
+  @Prop({ default: null }) private more!: string;
+  @Prop({ default: 0 }) private number!: number;
 
-  import {Component, Vue} from "vue-property-decorator";
+  open: boolean = false;
 
-  @Component({
-    name: "NotificationDropdown",
-    props: {
-      title: {
-        type: String,
-        default: "Notification Dropdown"
-      },
-      more: {
-        type: String,
-        default: null
-      },
-      number: {
-        type: Number,
-        default: 0
-      }
-    },
-  })
+  watch: any = {};
 
-@Component
-export default class NotificationsDropdown extends Vue{
-
-
-  open : boolean = false;
-
-  watch : any = {};
-
-  uuid : string = this.getuuId();
+  uuid: string = this.getuuId();
 
   getuuId() {
-      return this.$props.title.replace(/\s+/g, "");
-    }
+    return this.title.replace(/\s+/g, "");
+  }
   mounted() {}
-};
+}
 </script>
 
 <style scoped lang="sass">

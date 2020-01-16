@@ -1,5 +1,5 @@
 <template>
-  <navigation-dropdown-element>
+  <navigation-bar-dropdown-element>
     <template v-slot:icon>
       <img class="w-3r bdrs-50p" :src="image" alt="DropDownElement Image" />
     </template>
@@ -13,36 +13,26 @@
         <small class="fsz-xs">{{ subHeadline }}</small>
       </p>
     </template>
-  </navigation-dropdown-element>
+  </navigation-bar-dropdown-element>
 </template>
 
 <script lang="ts">
 import NavigationBarDropdownElement from "./NavbarDropdownElement.vue";
-import {Component, Vue} from "vue-property-decorator";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
   name: "NotificationDropdownElement",
   components: {
-    "navigation-dropdown-element": NavigationBarDropdownElement
-  },
-  props: {
-    image: {
-      type: String,
-      default: "../../assets/images/logo.png"
-    },
-    headline: {
-      type: String,
-      default: "This is a notification headline!"
-    },
-    subHeadline: {
-      type: String,
-      default: "This is a notification sub-headline!"
-    }
+    NavigationBarDropdownElement
   }
 })
-
-export default class NotificationDropdownElement extends Vue{
-};
+export default class NotificationDropdownElement extends Vue {
+  @Prop({ default: "../../assets/images/logo.png" }) private image!: string;
+  @Prop({ default: "This is a notification headline!" })
+  private headline!: string;
+  @Prop({ default: "This is a notification sub-headline!" })
+  private subHeadline!: string;
+}
 </script>
 
 <style scoped lang="sass"></style>

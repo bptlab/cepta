@@ -19,7 +19,11 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
+        <li
+          class="search-input"
+          @keyup.enter="checkForUpdate()"
+          :class="{ active: searchToggled }"
+        >
           <input
             class="form-control"
             ref="searchInput"
@@ -35,12 +39,29 @@
         <!--<button id="replayBtn" @click="replayData" class="btn btn-danger">Replay Data!</button>-->
         <notifications-dropdown
           title="Notifications"
+          :number="3"
           more="notifications"
         >
           <template v-slot:icon>
             <i class="icon-bell"></i>
           </template>
-
+          <template v-slot:entries>
+            <notification-dropdown-element
+              image="https://randomuser.me/api/portraits/men/1.jpg"
+              headline="John Doe liked your post"
+              sub-headline="5 mins ago"
+            />
+            <notification-dropdown-element
+              image="https://randomuser.me/api/portraits/women/60.jpg"
+              headline="Moo Doe liked your cover image"
+              sub-headline="7 mins ago"
+            />
+            <notification-dropdown-element
+              image="https://randomuser.me/api/portraits/men/3.jpg"
+              headline="Lee Doe commented on your video"
+              sub-headline="10 mins ago"
+            />
+          </template>
         </notifications-dropdown>
 
         <!-- User account -->
@@ -48,7 +69,6 @@
           username="Admin"
           picture="https://randomuser.me/api/portraits/lego/5.jpg"
         />
-
       </ul>
     </div>
   </div>
@@ -60,14 +80,14 @@ import NotificationDropdownElement from "@/components/NotificationDropdownElemen
 import EmailDropdownElement from "@/components/EmailDropdownElement";
 import AccountDropdown from "@/components/AccountDropdown";
 import { GrpcModule } from "@/store/modules/grpc";
-import {AppModule} from "../store/modules/app";
-import axios from 'axios';
+import { AppModule } from "../store/modules/app";
+import axios from "axios";
 
 export default {
   name: "NavigationBar",
   components: {
     "notifications-dropdown": NotificationsDropdown,
-    "notifications-dropdown-element": NotificationDropdownElement,
+    "notification-dropdown-element": NotificationDropdownElement,
     "email-dropdown-element": EmailDropdownElement,
     "account-dropdown": AccountDropdown
   },
@@ -102,8 +122,8 @@ export default {
 
       //only Numbers update our list of train data
       if (reg.test(id))
-        this.$router.push({ name: 'traindata', params: { id }});
-    },
+        this.$router.push({ name: "traindata", params: { id } });
+    }
     /*
     send(message) {
       console.log('Sehen')

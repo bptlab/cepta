@@ -6,16 +6,12 @@
 </template>
 
 <script lang="ts">
-  import { Component, Vue } from 'vue-property-decorator'
-  @Component({
-    name: "RowLayout",
-    props: {
-      title: {}
-    },
-    components: {},
-  })
-
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component({
+  name: "RowLayout"
+})
 export default class RowLayout extends Vue {
+  @Prop({ default: null }) private title!: string;
   mounted() {}
-};
+}
 </script>

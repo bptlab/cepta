@@ -39,34 +39,28 @@
 
 <script lang="ts">
 import AccountDropdownElement from "../components/AccountDropdownElement.vue";
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
   name: "AccountDropdown",
   components: {
     AccountDropdownElement
-  },
-  props: {
-    username: {
-      type: String,
-      default: "Account Dropdown"
-    },
-    picture: {
-      type: String,
-      default: null
-    }
   }
 })
+export default class AccountDropdown extends Vue {
+  @Prop({ default: "Account Dropdown" }) private username!: string;
+  @Prop({ default: null }) private picture!: string;
 
-export default class AccountDropdown extends Vue{
-  open : boolean = false
-    logout() {
-      this.$store.dispatch("AUTH_LOGOUT").then(() => {
-        this.$router.push("/login");
-      });
-    }
+  open: boolean = false;
+
+  logout() {
+    this.$store.dispatch("AUTH_LOGOUT").then(() => {
+      this.$router.push("/login");
+    });
+  }
+
   mounted() {}
-};
+}
 </script>
 
 <style scoped lang="sass"></style>

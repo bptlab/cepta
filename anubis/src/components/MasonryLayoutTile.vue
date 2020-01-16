@@ -10,28 +10,19 @@
 </template>
 
 <script lang="ts">
-  import { Component, Vue } from 'vue-property-decorator'
-
-
-  @Component({
-    name: "MasonryLayoutTile",
-    props: {
-      section: {},
-      layoutStyle: {
-        type: Object,
-        default: function() {
-          return { "col-md-6": true }
-        }
-      },
-      wrap: {
-        type: Boolean,
-        default: true
-      }
-    },
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component({
+  name: "MasonryLayoutTile"
+})
+export default class MasonryLayoutTile extends Vue {
+  @Prop({ default: null }) private section!: string;
+  @Prop({
+    default: () => {
+      return { "col-md-6": true };
+    }
   })
-
-  export default class MasonryLayoutTile extends Vue {
-  computed:any = {};
+  private layoutStyle!: object;
+  @Prop({ default: true }) private wrap!: string;
   mounted() {}
-};
+}
 </script>

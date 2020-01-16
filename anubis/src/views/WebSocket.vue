@@ -3,13 +3,12 @@
     <masonry-layout-tile section="Data Feed">
       <web-socket-data-feed ref="feed"></web-socket-data-feed>
     </masonry-layout-tile>
-
   </masonry-layout>
 </template>
 
 <script lang="ts">
 import WebSocketDataFeed from "@/components/WebSocketDataFeed.vue";
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 
@@ -21,9 +20,7 @@ import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
     MasonryLayoutTile
   }
 })
-export default class Websocket extends Vue {
-
-};
+export default class Websocket extends Vue {}
 </script>
 
 <style lang="sass"></style>

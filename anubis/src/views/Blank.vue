@@ -8,19 +8,17 @@
 </template>
 
 <script lang="ts">
-  import {Component, Vue} from "vue-property-decorator"
+import { Component, Vue } from "vue-property-decorator";
 
-  @Component({
-    name: "Blank",
-    components: {},
-    props: {},
-  })
-
-  export default class Blank extends Vue{
-
-    example : string = "Test";
-    mounted() {}
-  };
+@Component({
+  name: "Blank",
+  components: {},
+  props: {}
+})
+export default class Blank extends Vue {
+  example: string = "Test";
+  mounted() {}
+}
 </script>
 
 <style lang="sass"></style>

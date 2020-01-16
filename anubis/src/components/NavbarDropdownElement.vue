@@ -12,15 +12,12 @@
 </template>
 
 <script lang="ts">
-
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "NavigationBarDropdownElement",
-  props: {}
+  name: "NavigationBarDropdownElement"
 })
-export default class NavbarDropdownElement extends Vue{
-};
+export default class NavbarDropdownElement extends Vue {}
 </script>
 
 <style scoped lang="sass"></style>
