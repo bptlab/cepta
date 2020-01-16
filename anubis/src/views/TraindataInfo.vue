@@ -9,20 +9,20 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+
+  @Component({
+    name: "TraindataInfo",
+    components: {},
+  })
+
 export default {
-  name: "TraindataInfo",
-  components: {},
-  data() {
-    return {
-    };
-  },
-  methods: {
+
     search(){
       let id = this.$refs.search.value;
       this.$router.push({ name: 'traindata', params: { id }});
     }
-  }
+
 };
 </script>
 
