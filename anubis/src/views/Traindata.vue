@@ -26,10 +26,18 @@ export default {
   components: { BasicTable, RowLayoutRow, RowLayout, MasonryLayout, MasonryLayoutTile },
   data() {
     return {
+      gridColumn:["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
       receivedUpdates:
           [["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
               ["4202153","Mockava","2019-08-02 13:28:00", "+00:31:00", "Faulty Signal","2019-08-02 13:59:00"],
             ],
+      plannedTrainData:
+          [{train_id:"43986033", location_id:"4202153", location_name:"Mockava", planned_time:"2019-08-02 13:28:00"},
+          ],
+      trainDelayNotificationData:
+          [{train_id: "43986033", location_id:"4202153", delay_cause: "Faulty Signal", delay:"+00:31:00" },
+
+          ],
     };
   },
   methods: {

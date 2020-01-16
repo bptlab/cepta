@@ -4,7 +4,7 @@
     <h3>Either in the input field below  or in the navbar</h3>
     <form class="form-inline">
       <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
-      <button @click="search">Search</button>
+      <button @click.prevent="search">Search</button>
     </form>
   </div>
 </template>
@@ -20,7 +20,7 @@ export default {
   methods: {
     search(){
       let id = this.$refs.search.value;
-      this.$router.push({ name: 'traindata', params: { id }});
+      this.$router.push({ name: 'traindatagrid', params: {id}});
     }
   }
 };

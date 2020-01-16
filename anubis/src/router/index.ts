@@ -121,6 +121,15 @@ const routes = [
             import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
       },
       {
+        path: "traindatagrid/:id",
+        name: "traindatagrid",
+        props: true,
+        meta: { requiresAuth: true },
+        beforeEnter: ifAuthenticated,
+        component: () =>
+            import(/* webpackChunkName: "about" */ "@/views/TraindataGrid.vue")
+      },
+      {
         path: "traindatainfo",
         name: "traindatainfo",
         meta: { requiresAuth: true },
