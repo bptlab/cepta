@@ -77,7 +77,6 @@ import { Component, Vue } from 'vue-property-decorator'
 
 export default class Navbar extends Vue {
 
-
   searchToggled:boolean = false;
   search:any = null;
   stompClient:any = null;
