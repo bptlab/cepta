@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="main-content" class="container">
-      <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
       <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <div class="row">
         <basic-table ref="table"
@@ -10,6 +9,7 @@
             :bordered="true"
             cellspacing="0"
             :table-data="filteredTableData"
+                     @click="test"
         ></basic-table>
       </div>
     </div>
@@ -33,7 +33,6 @@ export default class WebSocketDataFeed extends Vue {
   search : string =  "";
   receivedUpdates: Array<Array<string>> = [];
   websocket : WebSocket = this.$store.state.websocket;
-  stompClient = Stomp.over(this.websocket);
 
   pushUpdate(update : any, header:boolean){
     let obj : Object = JSON.parse(update.body);
@@ -46,6 +45,10 @@ export default class WebSocketDataFeed extends Vue {
     }
 
     this.receivedUpdates.push(newInput);
+  }
+
+  test() {
+    this.$router.push("/404")
   }
 
   // computed

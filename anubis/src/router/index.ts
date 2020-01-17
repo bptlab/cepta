@@ -1,6 +1,6 @@
 import Vue from "vue";
 import store from "@/store";
-import Router, { RouteConfig } from 'vue-router'
+import Router, {Route, RouteConfig} from 'vue-router'
 import Adminator from "@/views/Adminator.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
