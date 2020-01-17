@@ -10,7 +10,7 @@ services:
       ENVOY_HOST: ${ENVOY_HOST}
     volumes:
       - ../envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
-      - ../prepare-envoy.sh:/prepare.sh:ro
+      - ../../common/prepare-envoy.sh:/prepare.sh:ro
     entrypoint: ["bin/sh", "/prepare.sh"]
     network_mode: host
     env_file: .env
