@@ -22,7 +22,7 @@ import RowLayoutRow from "../components/RowLayoutRow.vue";
 import BasicTable from "../components/BasicTable.vue";
 import store from '@/store/index';
 import {GrpcModule} from "../store/modules/grpc";
-import Stomp from "webstomp-client";
+import Stomp, {SubscribeHeaders} from "webstomp-client";
 import { Component, Vue } from 'vue-property-decorator'
 
 @Component({
@@ -35,22 +35,6 @@ export default class WebSocketDataFeed extends Vue {
   websocket : WebSocket = this.$store.state.websocket;
   stompClient = Stomp.over(this.websocket);
 
-  connect(url = "/topic/updates"){
-    this.stompClient.connect(
-        {},
-        () =>
-          this.stompClient.subscribe(url, update => {
-            console.log(update);
-            if (this.receivedUpdates.length < 1)
-              this.pushUpdate(update, true);
-            this.pushUpdate(update, false);
-        },
-        error => {
-          console.log(error);
-        })
-    )
-  }
-
   pushUpdate(update : any, header:boolean){
     let obj : Object = JSON.parse(update.body);
     let newInput : Array <string> =  [];
@@ -62,10 +46,6 @@ export default class WebSocketDataFeed extends Vue {
     }
 
     this.receivedUpdates.push(newInput);
-  }
-
-  replay() {
-    GrpcModule.replayData().then()
   }
 
   // computed
@@ -82,7 +62,6 @@ export default class WebSocketDataFeed extends Vue {
 
   // Mount
   mounted() {
-    this.connect();
     this.search = (<HTMLInputElement>this.$refs.search).value;
   }
 };

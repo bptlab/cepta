@@ -24,7 +24,7 @@ export default class MasonryLayout extends Vue {
   @Prop({ default: null }) private title!: string;
 
   mounted() {
-    this.$redrawVueMasonry();
+    Vue.prototype.redrawVueMasonry();
   }
 }
 </script>

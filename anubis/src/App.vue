@@ -11,6 +11,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import SockJS from "sockjs-client";
+import {AuthModule} from "@/store/modules/auth";
 
 @Component({
   name: "App",
@@ -22,7 +23,7 @@ export default class App extends Vue {
   socket = new SockJS("http://localhost:5000/ws");
 
   redraw() {
-    this.$redrawVueMasonry();
+    Vue.prototype.redrawVueMasonry();
   }
 
   connectWebsocket() {
@@ -34,9 +35,9 @@ export default class App extends Vue {
       return new Promise(function(resolve, reject) {
         if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
           // if you ever get an unauthorized, logout the user
-          this.$store.dispatch("AUTH_LOGOUT");
+          AuthModule.authLogout();
           // you can also redirect to /login if needed !
-          this.$router.push("/login");
+          Vue.prototype.router.push("/login");
         }
         throw err;
       });
