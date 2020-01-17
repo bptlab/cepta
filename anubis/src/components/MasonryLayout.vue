@@ -14,15 +14,17 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MasonryLayout",
-  props: {
-    title: {}
-  },
-  components: {},
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "MasonryLayout"
+})
+export default class MasonryLayout extends Vue {
+  @Prop({ default: null }) private title!: string;
+
   mounted() {
-    this.$redrawVueMasonry();
+    Vue.prototype.redrawVueMasonry();
   }
-};
+}
 </script>

@@ -11,11 +11,13 @@
   </li>
 </template>
 
-<script>
-export default {
-  name: "NavigationBarDropdownElement",
-  props: {}
-};
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "NavigationBarDropdownElement"
+})
+export default class NavbarDropdownElement extends Vue {}
 </script>
 
 <style scoped lang="sass"></style>

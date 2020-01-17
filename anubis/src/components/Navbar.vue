@@ -19,7 +19,11 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
+        <li
+          class="search-input"
+          @keyup.enter="checkForUpdate()"
+          :class="{ active: searchToggled }"
+        >
           <input
             class="form-control"
             ref="searchInput"
@@ -42,112 +46,83 @@
             <i class="icon-bell"></i>
           </template>
           <template v-slot:entries>
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/1.jpg"
               headline="John Doe liked your post"
               sub-headline="5 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/women/60.jpg"
               headline="Moo Doe liked your cover image"
               sub-headline="7 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/3.jpg"
               headline="Lee Doe commented on your video"
               sub-headline="10 mins ago"
             />
           </template>
         </notifications-dropdown>
-        <!-- Email alerts
-        <notifications-dropdown title="Emails" :number="3" more="mails">
-          <template v-slot:icon>
-            <i class="icon-email"></i>
-          </template>
-          <template v-slot:entries>
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/1.jpg"
-              headline="John Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="5 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/2.jpg"
-              headline="Moo Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="15 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/3.jpg"
-              headline="Lee Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="25 mins ago"
-            />
-          </template>
-        </notifications-dropdown>
-        -->
+
         <!-- User account -->
         <account-dropdown
           username="Admin"
           picture="https://randomuser.me/api/portraits/lego/5.jpg"
         />
-
       </ul>
     </div>
   </div>
 </template>
 
-<script>
-import NotificationsDropdown from "@/components/NotificationsDropdown";
-import NotificationDropdownElement from "@/components/NotificationDropdownElement";
-import EmailDropdownElement from "@/components/EmailDropdownElement";
-import AccountDropdown from "@/components/AccountDropdown";
+<script lang="ts">
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+import AccountDropdown from "@/components/AccountDropdown.vue";
 import { GrpcModule } from "@/store/modules/grpc";
-import {AppModule} from "../store/modules/app";
-import axios from 'axios';
+import { AppModule } from "../store/modules/app";
+import axios from "axios";
+import { Component, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "NavigationBar",
   components: {
     "notifications-dropdown": NotificationsDropdown,
-    "notifications-dropdown-element": NotificationDropdownElement,
+    "notification-dropdown-element": NotificationDropdownElement,
     "email-dropdown-element": EmailDropdownElement,
     "account-dropdown": AccountDropdown
   },
-  props: {},
-  data() {
-    return {
-      searchToggled: false,
-      search: null,
-      stompClient: null
-    };
-  },
-  methods: {
-    toggleSearch() {
-      this.searchToggled = !this.searchToggled;
-      window.setTimeout(() => {
-        // Focus the input
-        this.$refs.searchInput.focus();
-      }, 0);
-    },
-    toggleSidebar() {
-      AppModule.toggleCollapse();
-      this.$redrawVueMasonry();
-      setTimeout(() => {
-        this.$redrawVueMasonry();
-      }, 0.2 * 500);
-    },
-    checkForUpdate() {
-      let id = this.$refs.searchInput.value;
-      // this.send(id)
-      let reg = new RegExp("^[0-9]*$");
-      debugger;
+  props: {}
+})
+export default class Navbar extends Vue {
+  searchToggled: boolean = false;
+  search: any = null;
+  stompClient: any = null;
 
-      //only Numbers update our list of train data
-      if (reg.test(id))
-        this.$router.push({ name: 'traindata', params: { id }});
-    },
-    /*
+  toggleSearch() {
+    this.searchToggled = !this.searchToggled;
+    window.setTimeout(() => {
+      // Focus the input
+      (this.$refs["searchInput"] as HTMLElement).focus();
+    }, 0);
+  }
+  toggleSidebar() {
+    AppModule.toggleCollapse();
+    Vue.prototype.redrawVueMasonry();
+    setTimeout(() => {
+      Vue.prototype.redrawVueMasonry();
+    }, 0.2 * 500);
+  }
+  checkForUpdate() {
+    let id = (this.$refs["searchInput"] as HTMLInputElement).value;
+    // this.send(id)
+    let reg = new RegExp("^[0-9]*$");
+    debugger;
+
+    //only Numbers update our list of train data
+    if (reg.test(id)) this.$router.push({ name: "traindata", params: { id } });
+  }
+  /*
     send(message) {
       console.log('Sehen')
       axios.post('/api/trainid', message)
@@ -176,8 +151,7 @@ export default {
   },
   mounted() {
     // this.connect();*/
-  }
-};
+}
 </script>
 
 <style scoped lang="sass">

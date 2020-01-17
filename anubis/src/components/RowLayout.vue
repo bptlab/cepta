@@ -5,13 +5,13 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "RowLayout",
-  props: {
-    title: {}
-  },
-  components: {},
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component({
+  name: "RowLayout"
+})
+export default class RowLayout extends Vue {
+  @Prop({ default: null }) private title!: string;
   mounted() {}
-};
+}
 </script>

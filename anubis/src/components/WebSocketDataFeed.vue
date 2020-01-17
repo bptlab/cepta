@@ -16,69 +16,53 @@
   </div>
 </template>
 
-<script lang="js">
-import RowLayout from "../components/RowLayout";
-import RowLayoutRow from "../components/RowLayoutRow";
-import BasicTable from "../components/BasicTable";
+<script lang="ts">
+import RowLayout from "../components/RowLayout.vue";
+import RowLayoutRow from "../components/RowLayoutRow.vue";
+import BasicTable from "../components/BasicTable.vue";
+import store from '@/store/index';
 import {GrpcModule} from "../store/modules/grpc";
-import Stomp from "webstomp-client";
+import Stomp, {SubscribeHeaders} from "webstomp-client";
+import { Component, Vue } from 'vue-property-decorator'
 
-export default {
+@Component({
   name: "WebSocketDataFeed",
-  components: { BasicTable, RowLayoutRow, RowLayout },
-  data() {
-    return {
-      search: "",
-      receivedUpdates: []
-    };
-  },
-  methods: {
-    connect(url = "/topic/updates"){
-      this.websocket = this.$store.state.websocket;
-      this.stompClient = Stomp.over(this.websocket);
-      this.stompClient.connect(
-          {},
-          () =>
-            this.stompClient.subscribe(url, update => {
-              console.log(update);
-              if (this.receivedUpdates.length < 1)
-                this.pushUpdate(update, true);
-              this.pushUpdate(update, false);
-          },
-          error => {
-            console.log(error);
-          })
-      )
-    },
-    pushUpdate(update, header){
-      let obj = JSON.parse(update.body);
-      let newInput =  [];
+  components: { BasicTable, RowLayoutRow, RowLayout }
+})
+export default class WebSocketDataFeed extends Vue {
+  search : string =  "";
+  receivedUpdates: Array<Array<string>> = [];
+  websocket : WebSocket = this.$store.state.websocket;
+  stompClient = Stomp.over(this.websocket);
 
-      for (let value of Object.entries(obj)) {
-        if (header) newInput.push(value[0]);
-        else newInput.push(value[1]);
-      }
+  pushUpdate(update : any, header:boolean){
+    let obj : Object = JSON.parse(update.body);
+    let newInput : Array <string> =  [];
+    let value : any;
 
-      this.receivedUpdates.push(newInput);
-    },
-    replay() {
-      GrpcModule.replayData().then()
+    for (value of Object.entries(obj)) {
+      if (header) newInput.push(value[0]);
+      else newInput.push(value[1]);
     }
-  },
-  computed: {
-    filteredTableData() {
-      this.search;
-      this.receivedUpdates.filter((tableArray) => {
-        for (let key in tableArray) {
-          if (String(tableArray[key]).includes(search) || String(tableArray[key]).includes("id"))
-            return tableArray;
-        };
-      })
-    }
-  },
+
+    this.receivedUpdates.push(newInput);
+  }
+
+  // computed
+  get filteredTableData() {
+    let tableData : Array<string> = []
+    this.receivedUpdates.filter((tableArray) => {
+      for (let key in tableArray) {
+        if (String(tableArray[key]).includes(this.search))
+          tableData =  tableArray;
+      };
+    })
+    return tableData;
+  }
+
+  // Mount
   mounted() {
-    this.connect();
-    this.search = this.$refs.search.value;
+    this.search = (<HTMLInputElement>this.$refs.search).value;
   }
 };
 </script>
