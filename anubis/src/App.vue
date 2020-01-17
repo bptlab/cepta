@@ -23,7 +23,8 @@ export default class App extends Vue {
   socket = new SockJS("http://localhost:5000/ws");
 
   redraw() {
-    Vue.prototype.redrawVueMasonry();
+    // @ts-ignore: No such attribute
+    this.$redrawVueMasonry();
   }
 
   connectWebsocket() {
@@ -31,13 +32,13 @@ export default class App extends Vue {
   }
 
   created() {
-    this.axios.interceptors.response.use(undefined, function(err) {
-      return new Promise(function(resolve, reject) {
+    this.axios.interceptors.response.use(undefined, err => {
+      return new Promise((resolve, reject) => {
         if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
           // if you ever get an unauthorized, logout the user
           AuthModule.authLogout();
           // you can also redirect to /login if needed !
-          Vue.prototype.router.push("/login");
+          this.$router.push("/404");
         }
         throw err;
       });

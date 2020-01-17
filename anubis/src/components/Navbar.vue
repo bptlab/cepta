@@ -108,9 +108,11 @@ export default class Navbar extends Vue {
   }
   toggleSidebar() {
     AppModule.toggleCollapse();
-    Vue.prototype.redrawVueMasonry();
+    // @ts-ignore: No such attribute
+    this.$redrawVueMasonry();
     setTimeout(() => {
-      Vue.prototype.redrawVueMasonry();
+      // @ts-ignore: No such attribute
+      this.$redrawVueMasonry();
     }, 0.2 * 500);
   }
   checkForUpdate() {

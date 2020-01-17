@@ -55,13 +55,13 @@ static_resources:
       type: logical_dns
       http2_protocol_options: {}
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT} }}]
+      hosts: [{ socket_address: { address: traindatareplayer, port_value: 9000 }}]
 
     - name: osiris_service
       connect_timeout: 15.0s
       type: logical_dns
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_WEBUI_BACKEND_PORT} }}]
+      hosts: [{ socket_address: { address: osiris, port_value: 80 }}]
 
     - name: anubis_service
       connect_timeout: 15.0s
@@ -70,4 +70,4 @@ static_resources:
         tcp_keepalive:
           keepalive_time: 300
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_WEBUI_FRONTEND_PORT} }}]
+      hosts: [{ socket_address: { address: anubis, port_value: 80 }}]
