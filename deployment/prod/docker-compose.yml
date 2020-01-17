@@ -1,8 +1,9 @@
 version: "3.6"
 services:
   anubis:
-    build:
-      context: ../../anubis
+    # build:
+    #   context: ../../anubis
+    image: bptlab/cepta-anubis:master
     expose:
       - 80
     ports:
@@ -19,7 +20,8 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    build: ../common/exporters/kafka
+    # build: ../common/exporters/kafka
+    image: bptlab/cepta-kafka:master
     expose:
       - 9092
       - 29092
@@ -84,11 +86,12 @@ services:
       driver: none
 
   core:
-    build:
-      context: ../../
-      dockerfile: deployment/common/java.exec.dockerfile
-      args:
-        MODULE: core
+    #build:
+    #  context: ../../
+    #  dockerfile: deployment/common/java.exec.dockerfile
+    #  args:
+    #    MODULE: core
+    image: bptlab/cepta-core:master
     command:
       - --broker=kafka:9092
     depends_on:
@@ -98,23 +101,23 @@ services:
       - traindatareplayer
 
   traindatareplayer:
-    build:
-      context: ../../
-      dockerfile: deployment/common/java.exec.dockerfile
-      args:
-        MODULE: producers/train-replayer
+    # build:
+    #  context: ../../
+    #  dockerfile: deployment/common/java.exec.dockerfile
+    #  args:
+    #    MODULE: producers/train-replayer
+    image: bptlab/cepta-traindatareplayer:master
     depends_on:
       - kafka
       - postgres
     expose:
       - 9000
     command:
-      - --broker localhost:29092
-      - --grpc-port 9000
-      - --host localhost
-      - --db-port 5432
+      - --broker=kafka:9092
+      - --grpc-port=9000
+      - --db-host=postgres
+      - --db-port=5432
       - --must-match='train_id=47298333'
-      # - --broker kafka:9092 --grpc-port 9000
 
   envoy:
     image: envoyproxy/envoy
