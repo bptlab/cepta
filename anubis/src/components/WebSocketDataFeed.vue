@@ -9,7 +9,6 @@
             :bordered="true"
             cellspacing="0"
             :table-data="filteredTableData"
-                     @click="test"
         ></basic-table>
       </div>
     </div>
@@ -45,10 +44,6 @@ export default class WebSocketDataFeed extends Vue {
     }
 
     this.receivedUpdates.push(newInput);
-  }
-
-  test() {
-    this.$router.push("/404")
   }
 
   // computed
