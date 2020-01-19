@@ -1,4 +1,3 @@
-## Custom proto compilations
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -14,19 +13,15 @@ rules_proto_grpc_repos()
 
 http_archive(
     name = "go_proto_gql",
-    urls = ["https://github.com/danielvladco/go-proto-gql/archive/v0.7.3.tar.gz"],
-    sha256 = "3add5ef14a0aa64a56d5cb4d197131e639fa072581226ffe459cd13eb8ba2f0b",
-    strip_prefix = "go-proto-gql-0.7.3",
-    build_file = "@//:go_proto_gql.BUILD",
-    workspace_file = "@//:go_proto_gql.WORKSPACE",
+    urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
+    sha256 = "7ae7e80b0e76e82e136053461144d8038faee9a2bf4d2c89cba1358ab16da3c6",
+    strip_prefix = "go-proto-gql-0.7.4",
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 FLINK_VERSION = "1.9.0"
-
 SCALA_VERSION = "2.11"
-
 RULES_JVM_EXTERNAL_TAG = "2.8"
 
 RULES_JVM_EXTERNAL_SHA = "79c9850690d7614ecdb72d68394f994fef7534b292c4867ce5e7dec0aa7bdfad"

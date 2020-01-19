@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("//:rules.bzl", "gql_proto_compile")
 
 proto_library(
     name = "gql_proto",
@@ -17,8 +18,6 @@ proto_library(
         "//schemas/types:basic_proto",
     ],
 )
-
-load("//:rules.bzl", "gql_proto_compile")
 
 gql_proto_compile(
     name = "query_gql_proto",

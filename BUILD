@@ -17,7 +17,8 @@ proto_plugin(
     # tool = "@com_github_golang_protobuf//protoc-gen-go",
     # tool = Label("//:protoc-gen-gql"),
     # tool = "@com_github_go_proto_gql_danielvladco//protoc-gen-gql",
-    tool = "@go_proto_gql//:protoc-gen-go",
+    # tool = "@go_proto_gql//:protoc-gen-go",
+    tool = "@go_proto_gql//protoc-gen-gql",
     exclusions = [
         "google/api",
         "google/protobuf",
