@@ -9,7 +9,7 @@ proto_library(
 
 go_proto_library(
     name = "basic_go_proto",
-    importpath = "github.com/bptlab/cepta/schemas/types/basic",
+    importpath = "github.com/bptlab/cepta/models/types/basic",
     proto = ":basic_proto",
     visibility = ["//visibility:public"],
 )
@@ -17,6 +17,6 @@ go_proto_library(
 go_library(
     name = "go_default_library",
     embed = [":basic_go_proto"],
-    importpath = "github.com/bptlab/cepta/schemas/types/basic",
+    importpath = "github.com/bptlab/cepta/models/types/basic",
     visibility = ["//visibility:public"],
 )

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package query;
-option go_package = "github.com/bptlab/cepta/schemas/gql/query;gql";
+option go_package = "github.com/bptlab/cepta/models/gql/query;gql";
 
-import "schemas/gql/gql.proto";
-import "schemas/types/basic.proto";
+import "models/gql/gql.proto";
+import "models/types/basic.proto";
 
 service Service {
     rpc MyTest (basic.Timestamp) returns (basic.Success); // must be a mutation

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package gql;
-option go_package = "github.com/bptlab/cepta/schemas/gql";
+option go_package = "github.com/bptlab/cepta/models/gql";
 
 import "google/protobuf/descriptor.proto";
 // import "google/protobuf/timestamp.proto";

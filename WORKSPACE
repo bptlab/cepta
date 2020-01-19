@@ -11,6 +11,16 @@ load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains", "rul
 rules_proto_grpc_toolchains()
 rules_proto_grpc_repos()
 
+load("@rules_proto_grpc//github.com/grpc/grpc-web:repositories.bzl", rules_proto_grpc_grpc_web_repos="grpc_web_repos")
+
+rules_proto_grpc_grpc_web_repos()
+
+load("@io_bazel_rules_closure//closure:repositories.bzl", "rules_closure_dependencies", "rules_closure_toolchains")
+rules_closure_dependencies(
+    omit_com_google_protobuf = True,
+)
+rules_closure_toolchains()
+
 http_archive(
     name = "go_proto_gql",
     urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
@@ -38,6 +48,7 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
+        "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
         "com.google.j2objc:j2objc-annotations:1.1",

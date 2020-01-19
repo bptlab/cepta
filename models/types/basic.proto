@@ -1,6 +1,6 @@
 syntax = "proto3";
 package basic;
-option go_package = "github.com/bptlab/cepta/schemas/types/basic";
+option go_package = "github.com/bptlab/cepta/models/types/basic";
 
 message Empty {}
 

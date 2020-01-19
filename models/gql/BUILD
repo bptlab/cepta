@@ -15,7 +15,7 @@ proto_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gql_proto",
-        "//schemas/types:basic_proto",
+        "//models/types:basic_proto",
     ],
 )
 
