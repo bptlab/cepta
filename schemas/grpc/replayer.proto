@@ -1,0 +1,35 @@
+syntax = "proto3";
+option go_package = "github.com/bptlab/cepta/schemas/service/replayer";
+
+option java_multiple_files = true;
+option java_package = "org.bptlab.cepta.producers.replayer";
+option java_outer_classname = "ReplayerProto";
+option objc_class_prefix = "RTG";
+
+package replayer;
+
+service Replayer {
+
+  // Basic controls
+  rpc SeekTo(Timestamp) returns (Success) {}
+  rpc Reset(Empty) returns (Success) {}
+  rpc Start(Empty) returns (Success) {}
+  rpc Stop(Empty) returns (Success) {}
+
+  // Setters for configuration
+  rpc SetSpeed(Frequency) returns (Success) {}
+}
+
+message Empty {}
+
+message Timestamp {
+  string timestamp = 1;
+}
+
+message Success {
+  bool success = 1;
+}
+
+message Frequency {
+  int32 frequency = 1;
+}
