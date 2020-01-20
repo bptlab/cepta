@@ -1,8 +1,32 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+# Unignore bazel files without extension
+!**/WORKSPACE
+!**/BUILD
+
+
+### Above combination will ignore all files without extension ###
+
+
 ### Ignore DS_Store for mac users
 *.DS_Store
 
+### VSCode
+.vscode/
+.settings/
+.project
+*.code-workspace
+
 ### Ignore bazel build artifacts
 bazel
+bazel-*
 bazel-bazel-test
 bazel-bin
 bazel-genfiles

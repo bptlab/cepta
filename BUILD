@@ -13,11 +13,6 @@ proto_plugin(
     ],
     protoc_plugin_name = "gql",
     outputs = ["{protopath}.pb.graphqls"],
-    # out = "{protopath}.pb.graphqls",
-    # tool = "@com_github_golang_protobuf//protoc-gen-go",
-    # tool = Label("//:protoc-gen-gql"),
-    # tool = "@com_github_go_proto_gql_danielvladco//protoc-gen-gql",
-    # tool = "@go_proto_gql//:protoc-gen-go",
     tool = "@go_proto_gql//protoc-gen-gql",
     exclusions = [
         "google/api",
