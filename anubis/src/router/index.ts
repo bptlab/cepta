@@ -89,6 +89,14 @@ const routes = [
       },
 
       {
+        path: "user",
+        name: "user",
+        meta: { requiresAuth: true },
+        beforeEnter: ifAuthenticated,
+        component: () =>
+          import(/* webpackChunkName: "about" */ "@/views/User.vue")
+      },
+      {
         path: "traindata/:id",
         name: "traindata",
         props: true,
