@@ -12,6 +12,7 @@ rm -r $OUT/*
 # export PATH=${PATH}:${GOPATH}/bin
 
 # bazel run //:gazelle -- update-repos -from_file=go.mod
+# bazel run //:gazelle -- update-repos "github.com/sirupsen/logrus"
 
 # go get -u github.com/golang/protobuf/protoc-gen-go
 # go install github.com/golang/protobuf/protoc-gen-go

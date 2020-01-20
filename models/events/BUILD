@@ -38,6 +38,13 @@ java_proto_library(
     visibility = ["//visibility:public"],
 )
 
+go_proto_library(
+    name = "live_train_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/livetraindataevent",
+    proto = ":live_train_data_proto",
+    visibility = ["//visibility:public"],
+)
+
 java_proto_library(
     name = "planned_train_data_java_proto",
     deps = [":planned_train_data_proto"],

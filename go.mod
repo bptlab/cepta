@@ -3,6 +3,7 @@ module github.com/bptlab/cepta
 go 1.13
 
 require (
+	github.com/Shopify/sarama v1.25.0
 	github.com/bazelbuild/buildtools v0.0.0-20200118074248-fb276b37173c // indirect
 	github.com/danielvladco/go-proto-gql v0.7.3 // indirect
 	github.com/friendsofgo/graphiql v0.2.2

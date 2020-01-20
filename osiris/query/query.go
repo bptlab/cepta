@@ -16,6 +16,7 @@ import (
 	// "github.com/golang/protobuf/proto"
 	// "github.com/bptlab/cepta/schemas/types/basic"
 	// "/schemas/types/basic"
+	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/friendsofgo/graphiql"
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
@@ -103,13 +104,6 @@ func serve(ctx *cli.Context) error {
 	if !ctx.Bool("ginger-crouton") {
 		return cli.Exit("Ginger croutons are not in the soup", 86)
 	}
-	
-
-	test := &types.Success{
-		Label: proto.String("hello"),
-		Type:  proto.Int32(17),
-		Reps:  []int64{1, 2, 3},
-	}
 	*/
 
 	s, err := loadSchema("test.pb.graphqls")
@@ -146,7 +140,7 @@ func main() {
 	app := &cli.App{
 		Name: "CEPTA Query service",
 		Usage: "Provides a GraphQL interface for querying transportation data",
-		Flags: []cli.Flag {
+		Flags: append(libdb.DatabaseCliOptions, []cli.Flag{
 			&cli.BoolFlag{
 				Name: "debug",
 				Value: false,
@@ -161,41 +155,7 @@ func main() {
 				EnvVars: []string{"PORT"},
 				Usage: "GraphQL server port",
 			},
-			&cli.StringFlag{
-				Name: "db-host",
-				Value: "localhost",
-				Aliases: []string{"db-hostname"},
-				EnvVars: []string{"DB_HOST", "DB_HOSTNAME"},
-				Usage: "Postgres database host",
-			},
-			&cli.IntFlag{
-				Name: "db-port",
-				Value: 5432,
-				EnvVars: []string{"DB_PORT"},
-				Usage: "Postgres database port",
-			},
-			&cli.StringFlag{
-				Name: "db-user",
-				Value: "postgres",
-				Aliases: []string{"db-username"},
-				EnvVars: []string{"DB_USER", "DB_USERNAME"},
-				Usage: "Postgres database user",
-			},
-			&cli.StringFlag{
-				Name: "db-name",
-				Value: "postgres",
-				Aliases: []string{"db", "database"},
-				EnvVars: []string{"DB_NAME", "DB_DATABASE_NAME"},
-				Usage: "Postgres database name",
-			},
-			&cli.StringFlag{
-				Name: "db-password",
-				Value: "postgres",
-				Aliases: []string{"db-pass"},
-				EnvVars: []string{"DB_PASSWORD", "DB_PASS"},
-				Usage: "Postgres database password",
-			},
-		  },
+		  }...),
 		Action: func(ctx *cli.Context) error {
 			ret := serve(ctx)
 			return ret
