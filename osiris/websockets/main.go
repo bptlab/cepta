@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-  "fmt"
-  "github.com/linkedin/goavro/v2"
+
 	"github.com/gorilla/websocket"
+	"github.com/Shopify/sarama"
 )
 
 /*
@@ -19,6 +19,7 @@ type Traindata struct {
 }
 */
 
+var consumer sarama.PartitionConsumer = connectKafkaConsumer()
 
 // Need to define an Upgrade
 var upgrader = websocket.Upgrader{
@@ -34,7 +35,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	// connection
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	log.Println("Client Connected")
@@ -53,42 +54,18 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 func reader(conn *websocket.Conn) {
 	for {
 		// read in a message
-		messageType, p, err := conn.ReadMessage()
+		_, _, err := conn.ReadMessage()
 		if err != nil {
-		  log.Println(err)
-		  return
-		}
-
-    /*
-    codec, err := goavro.NewCodec(`
-              {
-                "namespace": "org.bptlab.cepta",
-                "type": "record",
-                "name": "TrainDelayNotification",
-                "fields": [
-                  {"name": "train_id", "type": "int"},
-                  {"name": "location_id", "type": "int"},
-                  {"name": "delay", "type": "string"}
-                  ]
-              }
-              `)
-    */
-     
-    textual := []byte(`{"train_id":"10", "location_id":"12", "delay":"30min"}`)
-
-    // Convert textual Avro data (in Avro JSON format) to native Go form
-    native, _, err := codec.NativeFromTextual(textual)
-    fmt.Println(native)
-
-		// send data to the client
-		conn.WriteMessage(1, []byte(`{"next":{"LongList":{}}}`))
-
-		if err != nil {
-			log.Println(string(messageType))
-			log.Println(string(p))
+			log.Println(err)
 			return
 		}
 
+		// Consume Kafka messages
+		message := writeOutput(consumer)
+
+		// send data to the client
+		textual := message
+		conn.WriteMessage(1, []byte(textual))
 	}
 }
 

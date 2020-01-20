@@ -38,7 +38,7 @@ export default {
 
       socket.onmessage = function (evt) {
         var messages = evt.data;
-        console.log(JSON.parse(messages).next);
+        console.log(JSON.parse(messages));
       }
 
       socket.onclose = event => {
