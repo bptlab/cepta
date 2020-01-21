@@ -23,8 +23,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.formats.avro.AvroDeserializationSchema;
-import org.apache.flink.formats.avro.AvroRowSerializationSchema;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -37,8 +35,8 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
 import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
-import org.bptlab.cepta.serialization.AvroBinarySerializer;
-import org.bptlab.cepta.serialization.AvroBinaryFlinkSerializationSchema;
+import org.bptlab.cepta.serialization.BinaryProtoFlinkDeserializationSchema;
+import org.bptlab.cepta.serialization.BinaryProtoFlinkSerializationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -76,14 +74,14 @@ public class Main implements Callable<Integer> {
 
     // AvroDeserializationSchema.forSpecific(LiveTrainData.class)
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-            Topics.LIVE_TRAIN_DATA, new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+        new FlinkKafkaConsumer011<LiveTrainData>(
+            Topics.LIVE_TRAIN_DATA, new BinaryProtoFlinkDeserializationSchema(LiveTrainData.class), new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
     // AvroDeserializationSchema.forSpecific(PlannedTrainData.class)
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
+        new FlinkKafkaConsumer011<PlannedTrainData>(
             Topics.PLANNED_TRAIN_DATA,
-            null,
+            new BinaryProtoFlinkDeserializationSchema(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
@@ -122,8 +120,10 @@ public class Main implements Callable<Integer> {
     // Produce delay notifications into new queue
     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
         .withKeySerializer(Optional.of(LongSerializer::new));
+
+
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        KafkaConstants.Topics.DELAY_NOTIFICATIONS, new AvroBinaryFlinkSerializationSchema<>(),
+        KafkaConstants.Topics.DELAY_NOTIFICATIONS, new BinaryProtoFlinkSerializationSchema(TrainDelayNotification.class),
         delaySenderConfig.getProperties());
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
