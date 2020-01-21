@@ -33,12 +33,17 @@ export default {
 
       socket.onopen = () => {
         console.log("Successfully Connected");
-        socket.send("Client Connected")
+        socket.send(this.generateRandomUserID());
       };
 
       socket.onmessage = function (evt) {
-        var messages = evt.data;
-        console.log(JSON.parse(messages));
+        var message = JSON.parse(evt.data);
+        
+        if (message.type == 4) {
+          console.log(JSON.parse(message.body))
+        } else {
+          console.log(message);
+        }
       }
 
       socket.onclose = event => {
@@ -50,6 +55,9 @@ export default {
         console.log("Socket Error: ", error);
       };
 
+    },
+    generateRandomUserID() {
+      return Math.floor((Math.random() * 2));
     }
   },
   created() {
