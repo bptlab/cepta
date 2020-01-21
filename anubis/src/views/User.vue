@@ -1,5 +1,6 @@
 <template>
   <div>
+    <train-id-list/>
     <p>
       Hey hey hey :)
     </p>
@@ -8,13 +9,14 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import TrainIdList from "../components/TrainIdList.vue";
 
 @Component({
   name: "user",
-  components: {},
+  components: { TrainIdList },
   props: {}
 })
-export default class Blank extends Vue {
+export default class User extends Vue {
   example: string = "Test";
   mounted() {}
 }
