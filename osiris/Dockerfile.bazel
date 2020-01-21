@@ -1,0 +1,11 @@
+FROM l.gcr.io/google/bazel:latest AS BUILD
+
+ENV TARGET=//osiris/query
+WORKDIR /app
+COPY . /app/
+RUN bazel build ${TARGET}
+
+# ENTRYPOINT [ "app" ]
+# ENTRYPOINT ["./go-graphql-starter"]
+
+# FROM golang:latest

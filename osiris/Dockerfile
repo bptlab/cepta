@@ -5,7 +5,7 @@ FROM golang:latest
 # COPY . $SRC_DIR
 # WORKDIR $SRC_DIR
 
-ENV SRC_DIR=/service/query/
+ENV SRC_DIR=/osiris/query/
 WORKDIR /app
 COPY ${SRC_DIR} /app/
 COPY go.* /app/
