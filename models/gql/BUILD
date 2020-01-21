@@ -21,6 +21,6 @@ proto_library(
 
 gql_proto_compile(
     name = "query_gql_proto",
-    # proto = ":gql_proto",
     deps = [":query_proto"],
+    visibility = ["//visibility:public"],
 )

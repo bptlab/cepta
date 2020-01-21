@@ -1,11 +1,21 @@
 FROM l.gcr.io/google/bazel:latest AS BUILD
 
-ENV TARGET=//osiris/query
+ARG LOCATION=osiris/query
+ARG TARGET=query
+
 WORKDIR /app
 COPY . /app/
-RUN bazel build ${TARGET}
+RUN bazel build //${LOCATION}:${TARGET}
 
-# ENTRYPOINT [ "app" ]
-# ENTRYPOINT ["./go-graphql-starter"]
+# RUN read -ra ADDR <<< "$TARGET"
+# RUN export MOIN=$(python -c "print('${TARGET}'.split(':')[0])")
+# RUN export MOIN2=$(python -c "print('${TARGET}'.split(':')[1])")
+# RUN echo $MOIN
+# RUN cp bazel-bin/${LOCATION}/linux_amd64_stripped/${TARGET} /app.run
 
-# FROM golang:latest
+FROM golang:latest
+ENV ENTRY=/app/bazel-bin/osiris/query/linux_amd64_stripped/query
+WORKDIR /app
+COPY --from=BUILD /app/bazel-bin/ /app/bazel-bin/
+RUN ls -lia /app/bazel-bin/
+ENTRYPOINT $

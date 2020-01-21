@@ -3,14 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
-	"net/http"
-	"strings"
-	"io/ioutil"
-	"time"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
-    // "path/filepath"
+	"path"
+	"strings"
+	"time"
+
+	"path/filepath"
 
 	// "github.com/uber/jaeger-client-go"
 	// "github.com/golang/protobuf/proto"
@@ -51,7 +53,6 @@ func loadSchema(path string) (string, error) {
 	return string(b), nil
 }
 
-
 // TODO: Schema
 const Schema = `
 type Vegetable {
@@ -69,14 +70,16 @@ schema {
 
 // TODO: Model
 type Vegetable struct {
-    name  string
-    price int
-    image *string
+	name  string
+	price int
+	image *string
 }
+
 var vegetables map[string]Vegetable
+
 // Utils
 func strPtr(str string) *string {
-    return &str
+	return &str
 }
 
 func (q *query) Vegetable(ctx context.Context, args struct{ Name string }) *VegetableResolver {
@@ -101,25 +104,31 @@ func (r *VegetableResolver) Image() *string { return r.v.image }
 func serve(ctx *cli.Context) error {
 
 	/*
-	if !ctx.Bool("ginger-crouton") {
-		return cli.Exit("Ginger croutons are not in the soup", 86)
-	}
+		if !ctx.Bool("ginger-crouton") {
+			return cli.Exit("Ginger croutons are not in the soup", 86)
+		}
 	*/
 
-	s, err := loadSchema("test.pb.graphqls")
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	schemaPath := path.Join(dir, "query.runfiles", "__main__", ctx.String("schema"))
+
+	s, err := loadSchema(schemaPath) // "bazel-bin/models/gql/query_gql_proto/models/gql/query.pb.graphqls")
 	if err != nil {
 		panic(err)
 	}
 	schema := graphql.MustParseSchema(s, &query{})
 	http.Handle("/query", &relay.Handler{Schema: schema})
-	
+
 	// init model
 	vegetables = map[string]Vegetable{
 		"tomato": Vegetable{name: "Tomato", price: 100, image: strPtr("https://picsum.photos/id/152/100/100")},
 		"potato": Vegetable{name: "Potato", price: 50, image: strPtr("https://picsum.photos/id/159/100/100")},
-		"corn": Vegetable{name: "Corn", price: 200},
+		"corn":   Vegetable{name: "Corn", price: 200},
 	}
-	
+
 	if ctx.Bool("debug") {
 		graphiqlHandler, err := graphiql.NewGraphiqlHandler("/query")
 		if err != nil {
@@ -132,30 +141,37 @@ func serve(ctx *cli.Context) error {
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
 	log.Printf("Server ready at %s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
-	
+
 	return nil
 }
 
 func main() {
 	app := &cli.App{
-		Name: "CEPTA Query service",
+		Name:  "CEPTA Query service",
 		Usage: "Provides a GraphQL interface for querying transportation data",
 		Flags: append(libdb.DatabaseCliOptions, []cli.Flag{
 			&cli.BoolFlag{
-				Name: "debug",
-				Value: false,
+				Name:    "debug",
+				Value:   false,
 				Aliases: []string{"d"},
 				EnvVars: []string{"DEBUG", "ENABLE_DEBUG"},
-				Usage: "Start a graphiql webserver for testing and debugging queries",
+				Usage:   "Start a graphiql webserver for testing and debugging queries",
 			},
 			&cli.IntFlag{
-				Name: "port",
-				Value: 80,
+				Name:    "port",
+				Value:   80,
 				Aliases: []string{"p"},
 				EnvVars: []string{"PORT"},
-				Usage: "GraphQL server port",
+				Usage:   "GraphQL server port",
 			},
-		  }...),
+			&cli.StringFlag{
+				Name:    "schema",
+				Value:   "models/gql/query_gql_proto/models/gql/query.pb.graphqls",
+				Aliases: []string{"gql-schema", "graphql-schema"},
+				EnvVars: []string{"SCHEMA"},
+				Usage:   "Path to the GraphQL service schema",
+			},
+		}...),
 		Action: func(ctx *cli.Context) error {
 			ret := serve(ctx)
 			return ret
