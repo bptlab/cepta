@@ -1,5 +1,3 @@
-dist: trusty
-
 addons:
   apt:
     sources:
@@ -17,6 +15,7 @@ jobs:
   include:
    - os: linux
      arch: amd64
+     dist: trusty
    # Skip testing for ARM64 as this would require compiling
    # protoc-gen-grpc-web manually
    # - os: linux
@@ -25,9 +24,9 @@ jobs:
    #     apt:
    #       packages:
    #         - maven
-   - os: osx
-     # osx does not support openjdk<9
-     jdk: openjdk11
+   #- os: osx
+   #  # osx does not support openjdk<9
+   #  jdk: openjdk11
    # Disable windows completely because it does not make sense
    #- os: windows
    #  # windows does not support building java out of the box
@@ -36,10 +35,10 @@ jobs:
 services:
   - docker
 
-language: java
-jdk:
-  - openjdk8
-  - openjdk11
+#language: java
+#jdk:
+#  - openjdk8
+#  - openjdk11
 
 before_script:
   # Try to start pgadmin via docker
