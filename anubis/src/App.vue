@@ -7,51 +7,53 @@
   </div>
 </template>
 
-<script>
-import NprogressContainer from "vue-nprogress/src/NprogressContainer";
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import SockJS from "sockjs-client";
+import {AuthModule} from "@/store/modules/auth";
 
-export default {
+@Component({
   name: "App",
   components: {
     NprogressContainer
-  },
-  props: {},
-  data() {
-    return {};
-  },
-  computed: {},
-  methods: {
-    reDraw: function() {
-      this.$redrawVueMasonry();
-    },
-    connectWebsocket() {
-      this.socket = new SockJS("http://localhost:5000/ws");
-      this.$store.commit('setWebsocket', this.socket);
-    }
-  },
+  }
+})
+export default class App extends Vue {
+  socket = new SockJS("http://localhost:5000/ws");
+
+  redraw() {
+    // @ts-ignore: No such attribute
+    this.$redrawVueMasonry();
+  }
+
+  connectWebsocket() {
+    this.$store.commit("setWebsocket", this.socket);
+  }
+
   created() {
-    this.axios.interceptors.response.use(undefined, function(err) {
-      return new Promise(function(resolve, reject) {
+    this.axios.interceptors.response.use(undefined, err => {
+      return new Promise((resolve, reject) => {
         if (err.status === 401 && err.config && !err.config.__isRetryRequest) {
           // if you ever get an unauthorized, logout the user
-          this.$store.dispatch("AUTH_LOGOUT");
+          AuthModule.authLogout();
           // you can also redirect to /login if needed !
-          this.$router.push("/login");
+          this.$router.push("/404");
         }
         throw err;
       });
     });
-  },
+  }
+
   mounted() {
-    this.$redrawVueMasonry();
+    this.redraw();
     this.connectWebsocket();
-  },
+  }
+
   destroyed() {
     this.socket.close();
   }
-
-};
+}
 </script>
 
 <style lang="scss">
@@ -60,12 +62,12 @@ export default {
   font-family: "themify";
   src: url(~themify-icons/themify-icons/fonts/themify.eot?-fvbane);
   src: url(~themify-icons/themify-icons/fonts/themify.eot?#iefix-fvbane)
-  format("embedded-opentype"),
-  url(~themify-icons/themify-icons/fonts/themify.woff?-fvbane) format("woff"),
-  url(~themify-icons/themify-icons/fonts/themify.ttf?-fvbane)
-  format("truetype"),
-  url(~themify-icons/themify-icons/fonts/themify.svg?-fvbane#themify)
-  format("svg");
+      format("embedded-opentype"),
+    url(~themify-icons/themify-icons/fonts/themify.woff?-fvbane) format("woff"),
+    url(~themify-icons/themify-icons/fonts/themify.ttf?-fvbane)
+      format("truetype"),
+    url(~themify-icons/themify-icons/fonts/themify.svg?-fvbane#themify)
+      format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -77,10 +79,9 @@ export default {
 </style>
 
 <style lang="sass">
-@import "@/style/custom.sass"
-
-@import "@/style/spec/index.sass"
-@import "@/style/vendor/index.sass"
+@import "/style/custom.sass"
+@import "/style/spec/index.sass"
+@import "/style/vendor/index.sass"
 
 .ps__rail-y
   right: 0 !important
@@ -157,7 +158,6 @@ a
 
 \:focus
   outline: none
-
 hr
   border-top: 1px solid $border-color
 </style>

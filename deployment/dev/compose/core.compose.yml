@@ -130,19 +130,6 @@ services:
       # Disable logging
       driver: none
 
-  osiris:
-    build:
-      context: ../../../
-      dockerfile: deployment/common/java.exec.dockerfile
-      args:
-        MODULE: osiris
-    depends_on:
-      - kafka
-    command:
-      - --server.port=8082
-    ports:
-      - ${CEPTA_WEBUI_BACKEND_PORT}:8082
-
   core:
     build:
       context: ../../../
@@ -167,16 +154,17 @@ services:
       - kafka
       - postgres
     command:
-      - --broker localhost:29092
-      - --grpc-port 9000
-      - --host localhost
-      - --db-port ${CEPTA_POSTGRES_PORT}
-      - --must-match='train_id=47298333'
-      # - --broker kafka:9092 --grpc-port 9000
+      - --broker=kafka:9092
+      - --grpc-port=9000
+      - --db-host=postgres
+      - --db-port=${CEPTA_POSTGRES_PORT}
+      # Do not use quotation here as this will be used in the postgres query
+      - --must-match=train_id=47298333
     ports:
       - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000
 
 volumes:
+  # Use these if you need data to persist for kafka and zookeeper across restarts
   # zookeeper_data:
   #   driver: local
   # kafka_data:

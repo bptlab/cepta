@@ -31,7 +31,7 @@
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import NavigationBar from "../components/Navbar";
-import {AppModule} from "../store/modules/app";
+import { AppModule } from "../store/modules/app";
 
 export default {
   name: "Adminator",

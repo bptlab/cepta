@@ -9,21 +9,19 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "TraindataInfo",
-  components: {},
-  data() {
-    return {
-    };
-  },
-  methods: {
-    search(){
-      let id = this.$refs.search.value;
-      this.$router.push({ name: 'traindatagrid', params: {id}});
-    }
+  components: {}
+})
+export default class TraindataInfo extends Vue {
+  search() {
+    let id = (this.$refs["search"] as HTMLInputElement).value;
+    this.$router.push({ name: "traindata", params: { id } });
   }
-};
+}
 </script>
 
 <style lang="sass">

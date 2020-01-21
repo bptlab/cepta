@@ -22,17 +22,21 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "Landing",
-  components: {},
-  computed: {
-    appName() {
-      return this.$store.state.appName;
-    }
-  },
+  components: {}
+})
+export default class Landing extends Vue {
+  //computed
+  get appName() {
+    return this.$store.state.appName;
+  }
+
   mounted() {}
-};
+}
 </script>
 
 <style scoped lang="sass">
