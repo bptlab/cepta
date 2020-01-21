@@ -21,72 +21,72 @@
   </table>
 </template>
 
-<script>
-  export default {
-    name: "GridTable",
-    props: {
-      gridData: {
-        type: Array,
-        default: function () {
-          return [];
-        }
-      },
-      gridColumns: {
-        type: Array,
-        default: function() {
-          return [];
-        }
-      },
-      filterKey: {
-        type: String,
-        default: ""
-        }
-    },
-    data: function () {
-      var sortOrders = {};
-      this.gridColumns.forEach(function (key) {
-        sortOrders[key] = 1
-      });
-      return {
-        sortKey: '',
-        sortOrders: sortOrders
-      }
-    },
-    computed: {
-      filteredGridData: function () {
-        var sortKey = this.sortKey;
-        var filterKey = this.filterKey && this.filterKey.toLowerCase();
-        var order = this.sortOrders[sortKey] || 1;
-        var gridData = this.gridData;
-        if (filterKey) {
-          gridData = gridData.filter(function (row) {
-            return Object.keys(row).some(function (key) {
-              return String(row[key]).toLowerCase().indexOf(filterKey) > -1
-            })
-          })
-        }
-        if (sortKey) {
-          gridData = gridData.slice().sort(function (a, b) {
-            a = a[sortKey];
-            b = b[sortKey];
-            return (a === b ? 0 : a > b ? 1 : -1) * order
-          })
-        }
-        return gridData
-      }
-    },
-    filters: {
-      capitalize: function (str) {
-        return str.charAt(0).toUpperCase() + str.slice(1)
-      }
-    },
-    methods: {
-      sortBy: function (key) {
-        this.sortKey = key;
-        this.sortOrders[key] = this.sortOrders[key] * -1
-      }
+<script lang="ts">
+
+import {Component, Prop, Vue} from "vue-property-decorator";
+
+@Component({
+  name: "GridTable",
+  filters: {
+    capitalize(str: string) {
+      return str.charAt(0).toUpperCase() + str.slice(1)
     }
   }
+
+})
+
+export default class GridTable extends Vue {
+  @Prop({ default: () => [] }) private gridData!: any[];
+  @Prop({ default: () => [] }) private gridColumns!: any[];
+  @Prop({ default: "" }) private filterKey!: string;
+  sortKey: string = '';
+  sortOrders: { [key:string]:number; } = {};
+
+  constructor() {
+    super();
+    let sortOrders: { [key:string]:number; } = {};
+    this.gridColumns.forEach(function ( key: string ) {
+      sortOrders[key] = 1
+    });
+
+    this.sortKey = this.gridColumns[0];
+    this.sortOrders = sortOrders;
+  }
+
+
+
+  //computed
+  get filteredGridData() {
+    let sortKey = this.sortKey;
+    let filterKey = this.filterKey && this.filterKey.toLowerCase();
+    let order = this.sortOrders[sortKey] || 1;
+    let gridData = this.gridData;
+    if (filterKey) {
+      gridData = gridData.filter(function (row) {
+        return Object.keys(row).some(function (key) {
+          return String(row[key]).toLowerCase().indexOf(filterKey) > -1
+        })
+      })
+    }
+    if (sortKey) {
+      gridData = gridData.slice().sort(function (a, b) {
+        a = a[sortKey];
+        b = b[sortKey];
+        return (a === b ? 0 : a > b ? 1 : -1) * order
+      })
+    }
+    return gridData
+  }
+
+
+
+  //method
+  sortBy(key: string) {
+    this.sortKey = key;
+    this.sortOrders[key] = this.sortOrders[key] * -1
+  }
+
+};
 </script>
 
 <style lang="sass">
@@ -127,7 +127,7 @@
      width: 0
      height: 0
      margin-left: 5px
-     opacity: 0.66
+     opacity: 0.33
 
      &.asc
       border-left: 4px solid transparent
