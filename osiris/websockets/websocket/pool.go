@@ -1,3 +1,5 @@
+// inspired by tutorialedge.net webmaster Elliot Frobes
+
 package websocket
 
 import "fmt"
