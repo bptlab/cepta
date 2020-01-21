@@ -2,14 +2,14 @@ package websocket
 
 import (
 	"fmt"
-	"log"
-	"sync"
-
 	"github.com/gorilla/websocket"
+	"log"
+	"strconv"
+	"sync"
 )
 
 type Client struct {
-	ID   string
+	ID   int
 	Conn *websocket.Conn
 	Pool *Pool
 	mu   sync.Mutex
@@ -33,9 +33,12 @@ func (c *Client) Read() {
 			return
 		}
 
+		if messageType == 1 {
+			c.ID, _ = strconv.Atoi(string(p))
+			fmt.Printf("UserId: %+v\n", c.ID)
+		}
+
 		message := Message{Type: messageType, Body: string(p)}
 		c.Pool.Broadcast <- message
-		fmt.Printf("Message Received: %+v\n", message)
-
 	}
 }
