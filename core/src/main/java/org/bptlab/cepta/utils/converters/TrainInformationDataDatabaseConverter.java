@@ -2,7 +2,7 @@ package org.bptlab.cepta.utils.converters;
 
 import com.github.jasync.sql.db.RowData;
 import java.sql.ResultSet;
-import org.bptlab.cepta.TrainInformationData;
+import org.bptlab.cepta.models.events.train.TrainInformationDataProtos.TrainInformationData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

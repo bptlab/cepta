@@ -19,6 +19,7 @@
 *.DS_Store
 
 ### VSCode
+.classpath
 .vscode/
 .settings/
 .project

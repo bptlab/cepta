@@ -13,7 +13,12 @@ java_binary(
         ":types",
         ":config",
         ":constants",
+        "//models/events:planned_train_data_java_proto",
+        "//models/events:live_train_data_java_proto",
+        "//models/events:train_delay_notification_java_proto",
         "@maven//:info_picocli_picocli",
+        "@maven//:com_twitter_chill_protobuf",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_commons_commons_lang3",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",
@@ -38,6 +43,10 @@ java_library(
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
+        "//models/events:planned_train_data_java_proto",
+        "//models/events:live_train_data_java_proto",
+        ":converters",
+        ":config",
     ],
 )
 
@@ -52,6 +61,7 @@ java_library(
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -61,6 +71,7 @@ java_library(
     deps = [
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:info_picocli_picocli",
+        "//models/events:live_train_data_java_proto",
         ":config",
     ],
 )
@@ -69,16 +80,23 @@ java_library(
     name = "converters",
     srcs = glob(["src/main/java/org/bptlab/cepta/utils/converters/*.java"]),
     deps = [
-        
+        "@maven//:com_github_jasync_sql_jasync_postgresql",
+        "@maven//:com_github_jasync_sql_jasync_common",
+        "@maven//:joda_time_joda_time",
+        "@maven//:org_slf4j_slf4j_log4j12",
+        "@maven//:org_slf4j_slf4j_api",
+        "@maven//:info_picocli_picocli",
+        "//models/events:train_information_data_java_proto",
+        "//models/events:predicted_train_data_java_proto",
+        "//models/events:planned_train_data_java_proto",
+        "//models/events:live_train_data_java_proto",
     ],
 )
 
 java_library(
     name = "types",
     srcs = glob(["src/main/java/org/bptlab/cepta/utils/types/*.java"]),
-    deps = [
-        
-    ],
+    deps = [],
 )
 
 java_library(
@@ -86,13 +104,13 @@ java_library(
     srcs = glob(["src/main/java/org/bptlab/cepta/config/*.java"]),
     deps = [
         ":constants",
+        "@maven//:info_picocli_picocli",
+        "@maven//:org_apache_kafka_kafka_clients",
     ],
 )
 
 java_library(
     name = "constants",
     srcs = glob(["src/main/java/org/bptlab/cepta/config/constants/*.java"]),
-    deps = [
-        
-    ],
+    deps = [],
 )

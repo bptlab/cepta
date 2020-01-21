@@ -44,6 +44,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import com.twitter.chill.protobuf.ProtobufSerializer;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
 
 @Command(
     name = "cepta core",
@@ -67,15 +71,19 @@ public class Main implements Callable<Integer> {
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+    // env.getConfig().registerTypeWithKryoSerializer(LiveTrainData.class, ProtobufSerializer.class);
+    // env.getConfig().registerTypeWithKryoSerializer(LiveTrainData.class, ProtobufSerializer.class);
+
+    // AvroDeserializationSchema.forSpecific(LiveTrainData.class)
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
-            Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
-            new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+            Topics.LIVE_TRAIN_DATA, new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
+    // AvroDeserializationSchema.forSpecific(PlannedTrainData.class)
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
-            AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
+            null,
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
@@ -101,7 +109,7 @@ public class Main implements Callable<Integer> {
           delay > 0 is bad, the train might arrive later than planned
           delay < 0 is good, the train might arrive earlier than planned
          */
-                long delay = observed.getActualTime() - expected.getPlannedTime();
+                double delay = observed.getActualTime() - expected.getPlannedTime();
                 // Only send a delay notification if some threshold is exceeded
                 if (Math.abs(delay) > 10) {
                   collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)

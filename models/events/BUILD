@@ -8,30 +8,6 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-proto_library(
-    name = "planned_train_data_proto",
-    srcs = ["PlannedTrainData.proto"],
-    visibility = ["//visibility:public"],
-)
-
-proto_library(
-    name = "predicted_train_data_proto",
-    srcs = ["PredictedTrainData.proto"],
-    visibility = ["//visibility:public"],
-)
-
-proto_library(
-    name = "train_delay_notification",
-    srcs = ["TrainDelayNotification.proto"],
-    visibility = ["//visibility:public"],
-)
-
-proto_library(
-    name = "train_information_data",
-    srcs = ["TrainInformationData.proto"],
-    visibility = ["//visibility:public"],
-)
-
 java_proto_library(
     name = "live_train_data_java_proto",
     deps = [":live_train_data_proto"],
@@ -45,8 +21,106 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+
+
+
+
+
+
+
+
+
+
+
+proto_library(
+    name = "planned_train_data_proto",
+    srcs = ["PlannedTrainData.proto"],
+    visibility = ["//visibility:public"],
+)
+
 java_proto_library(
     name = "planned_train_data_java_proto",
     deps = [":planned_train_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "planned_train_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/plannedtraindataevent",
+    proto = ":planned_train_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
+
+proto_library(
+    name = "predicted_train_data_proto",
+    srcs = ["PredictedTrainData.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "predicted_train_data_java_proto",
+    deps = [":predicted_train_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "predicted_train_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/predictedtraindataevent",
+    proto = ":predicted_train_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
+
+proto_library(
+    name = "train_delay_notification_proto",
+    srcs = ["TrainDelayNotification.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "train_delay_notification_java_proto",
+    deps = [":train_delay_notification_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "train_delay_notification_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/traindelaynotificationevent",
+    proto = ":train_delay_notification_proto",
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
+
+
+
+proto_library(
+    name = "train_information_data_proto",
+    srcs = ["TrainInformationData.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "train_information_data_java_proto",
+    deps = [":train_information_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "train_information_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/traininformationdataevent",
+    proto = ":train_information_data_proto",
     visibility = ["//visibility:public"],
 )
