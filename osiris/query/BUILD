@@ -15,7 +15,7 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/query",
     visibility = ["//visibility:private"],
     deps = [
-        "//osiris/lib:db"
+        "//osiris/lib:db",
         "@com_github_friendsofgo_graphiql//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_graph_gophers_graphql_go//:go_default_library",

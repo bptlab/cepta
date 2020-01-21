@@ -20,3 +20,12 @@ proto_plugin(
     ],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "cepta",
+    srcs = [
+        "//osiris",
+        "//core",
+        "//aux",
+    ],
+)

@@ -5,6 +5,7 @@ java_binary(
     resources = glob([
         "src/main/resources/**",
     ]),
+    visibility = ["//visibility:public"],
     deps = [
         ":operators",
         ":consumers",

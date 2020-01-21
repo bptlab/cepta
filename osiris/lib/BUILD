@@ -1,6 +1,20 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
+    name = "lib",
+    srcs = [],
+    importpath = "github.com/bptlab/cepta/osiris/lib",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":db",
+        ":cli",
+        ":utils",
+        ":kafkaproducer",
+        ":kafkaconsumer",
+    ],
+)
+
+go_library(
     name = "db",
     srcs = [
         "db.go"
@@ -8,11 +22,6 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/lib/db",
     visibility = ["//visibility:public"],
     deps = [
-        # "@com_github_friendsofgo_graphiql//:go_default_library",
-        # "@com_github_golang_protobuf//proto:go_default_library",
-        # "@com_github_graph_gophers_graphql_go//:go_default_library",
-        # "@com_github_graph_gophers_graphql_go//relay:go_default_library",
-        # "@com_github_sirupsen_logrus//:go_default_library",
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_jinzhu_gorm//dialects/postgres:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",

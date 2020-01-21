@@ -1,8 +1,13 @@
 package kafkaconsumer
 
 import (
-	"time"
-	"encoding/json"
+	"os/signal"
+	"strings"
+	"context"
+	"sync"
+	"os"
+	"syscall"
+
 	"github.com/urfave/cli/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/Shopify/sarama"
@@ -36,7 +41,7 @@ var KafkaConsumerCliOptions = []cli.Flag{
 		Aliases: []string{"topics"},
 		EnvVars: []string{"TOPICS", "KAFKA_TOPICS"},
 		Usage: "Kafka topics to be consumed, as a comma seperated list",
-	}
+	},
 }
 
 type KafkaConsumerOptions struct {
@@ -49,7 +54,7 @@ type KafkaConsumerOptions struct {
 func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptions {
 	return KafkaConsumerOptions{
 		Brokers: strings.Split(ctx.String("kafka-brokers"), ","),
-		Group: uint(ctx.Int("kafka-group")),
+		Group: ctx.String("kafka-group"),
 		Version: ctx.String("kafka-version"),
 		Topics: strings.Split(ctx.String("kafka-topics"), ","),
 	}
@@ -84,7 +89,7 @@ func consumeKafka(options KafkaConsumerOptions) error {
 	}
 	config.Version = version
 	
-	consumer := Consumer{
+	consumer := KafkaConsumer{
 		ready: make(chan bool),
 	}
 
