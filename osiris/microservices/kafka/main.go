@@ -1,11 +1,15 @@
+// TODO: The kafka folder including this program can be deleted once the connection to the actual kafka queue exists
+// A Kafka Producer for testing the notification microservice
+
 package main
 
 import (
 	"encoding/json"
-	"github.com/Shopify/sarama"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"time"
+
+	"github.com/Shopify/sarama"
+	log "github.com/sirupsen/logrus"
 )
 
 type Message struct {

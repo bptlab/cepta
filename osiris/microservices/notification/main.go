@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"websockets/websocket"
+	websocket "notification/websocket"
 )
 
-//Duplicate code with kafkaproducer -- will be gone with the real kafka queue and protobuf anyway
+//Duplicate code with ../kafka/main.go -- will be gone with the real kafka queue and protobuf anyway
 type Message struct {
 	Name string
 	UID  int

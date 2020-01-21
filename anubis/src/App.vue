@@ -38,7 +38,7 @@ export default {
 
       socket.onmessage = function (evt) {
         var message = JSON.parse(evt.data);
-        
+
         if (message.type == 4) {
           console.log(JSON.parse(message.body))
         } else {

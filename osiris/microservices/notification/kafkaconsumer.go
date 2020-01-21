@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Shopify/sarama"
 	"time"
-	"websockets/websocket"
+	websocket "notification/websocket"
 )
 
 func connectKafkaConsumer(pool *websocket.Pool) {
