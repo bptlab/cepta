@@ -12,34 +12,32 @@
   </div>
 </template>
 
-<script>
-import MasonryLayout from "@/components/MasonryLayout";
-import MasonryLayoutTile from "@/components/MasonryLayoutTile";
-import RowLayout from "../components/RowLayout";
-import RowLayoutRow from "../components/RowLayoutRow";
-import GridTable from "../components/GridTable";
+<script lang="ts">
+import MasonryLayout from "../components/MasonryLayout.vue";
+import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue";
+import RowLayout from "../components/RowLayout.vue";
+import RowLayoutRow from "../components/RowLayoutRow.vue";
+import GridTable from "../components/GridTable.vue";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "TraindataGrid",
-  props: ['id'],
-  components: { GridTable, RowLayoutRow, RowLayout, MasonryLayout, MasonryLayoutTile },
-  data() {
-    return {
-      gridColumns:["trainID", "locationID", "plannedETA",],
+  components: { GridTable, RowLayoutRow, RowLayout, MasonryLayout, MasonryLayoutTile }
+})
 
-      plannedTrainData:
-          [{trainID:"43986033", locationID:"4202153", plannedETA:"2019-08-02 13:28:00"},
-            {trainID:"43986033", locationID:"4202154", plannedETA:"2019-08-02 13:38:00"},
-            {trainID:"43986033", locationID:"4202155", plannedETA:"2019-08-02 13:48:00"},
-          ],
-      /*
-      trainDelayNotificationData:
-          [{train_id: "43986033", location_id:"4202153", delay_cause: "Faulty Signal", delay:"+00:31:00" },
-          ],
-          */
-      searchQuery: '',
-    };
-  },
+export default class TraindataGrid extends Vue {
+  @Prop({ default: ""}) private id?: number;
+
+
+  gridColumns:string[] = ["trainID", "locationID", "plannedETA",];
+
+  plannedTrainData: {[key:string]:string;}[] =
+      [{trainID:"43986033", locationID:"4202153", plannedETA:"2019-08-02 13:28:00"},
+        {trainID:"43986033", locationID:"4202154", plannedETA:"2019-08-02 13:38:00"},
+        {trainID:"43986033", locationID:"4202155", plannedETA:"2019-08-02 13:48:00"},
+      ];
+  searchQuery: string = '';
+
   /*
   computed: {
     preFilteredTrainDelayNotificationData: function () {
@@ -61,7 +59,7 @@ export default {
     }
   }
    */
-};
+}
 </script>
 
 <style lang="sass">
