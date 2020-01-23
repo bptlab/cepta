@@ -13,8 +13,10 @@
     </thead>
     <tbody>
     <tr v-for="entry in filteredGridData">
-      <td v-for="key in gridColumns">
+      <td v-for="key in gridColumns"
+          v-bind:class="key=='delay'? (entry[key]<=0? 'delay-green':'delay-red') : 'default'">
         {{entry[key]}}
+        <span v-if="key=='delay'"> Minutes</span>
       </td>
     </tr>
     </tbody>
@@ -110,6 +112,12 @@ export default class GridTable extends Vue {
 
   td
      background-color: #f9f9f9
+
+  td.delay-red
+    color: red
+
+  td.delay-green
+    color: green
 
   th, td
      min-width: 120px

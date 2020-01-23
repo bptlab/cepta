@@ -29,12 +29,14 @@ export default class TraindataGrid extends Vue {
   @Prop({ default: ""}) private id?: number;
 
 
-  gridColumns:string[] = ["trainID", "locationID", "plannedETA",];
+  gridColumns:string[] = ["trainID", "locationID", "plannedETA","predictedETA","delay"];
 
   plannedTrainData: {[key:string]:string;}[] =
-      [{trainID:"43986033", locationID:"4202153", plannedETA:"2019-08-02 13:28:00"},
-        {trainID:"43986033", locationID:"4202154", plannedETA:"2019-08-02 13:38:00"},
-        {trainID:"43986033", locationID:"4202155", plannedETA:"2019-08-02 13:48:00"},
+      [{trainID:"43986033", locationID:"4202153", plannedETA:"2019-08-02 13:28:00", delay:"30", predictedETA:"2019-08-02 13:58:00"},
+        {trainID:"43986033", locationID:"4202154", plannedETA:"2019-08-02 14:38:00", delay:"15", predictedETA:"2019-08-02 14:53:00"},
+        {trainID:"43986033", locationID:"4202155", plannedETA:"2019-08-02 15:48:00", delay:"10", predictedETA:"2019-08-02 15:58:00"},
+        {trainID:"43986033", locationID:"4202156", plannedETA:"2019-08-02 16:20:00", delay:"0", predictedETA:"2019-08-02 16:20:00"},
+        {trainID:"43986033", locationID:"4202157", plannedETA:"2019-08-02 17:56:00", delay:"-10", predictedETA:"2019-08-02 17:46:00"},
       ];
   searchQuery: string = '';
 
@@ -63,9 +65,9 @@ export default class TraindataGrid extends Vue {
 </script>
 
 <style lang="sass">
-  tr td:last-child
+  /*tr td:last-child
     color: red
-    font-weight: bolder
+    font-weight: bolder*/
 
 
 </style>
