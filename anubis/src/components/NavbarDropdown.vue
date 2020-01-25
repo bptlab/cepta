@@ -17,36 +17,23 @@
   </li>
 </template>
 
-<script>
-export default {
-  name: "NavbarDropdown",
-  props: {
-    title: {
-      type: String,
-      default: "Notification Dropdown"
-    },
-    more: {
-      type: String,
-      default: null
-    },
-    number: {
-      type: Number,
-      default: 0
-    }
-  },
-  data() {
-    return {
-      open: false
-    };
-  },
-  watch: {},
-  computed: {
-    uuid: function() {
-      return this.title.replace(/\s+/g, "");
-    }
-  },
-  mounted() {}
-};
+<script lang="ts">
+import { Component, Prop, Vue } from "vue-property-decorator";
+@Component({
+  name: "NavigationBar",
+  components: {}
+})
+export default class NavbarDropdown extends Vue {
+  @Prop({ default: "Notification Dropdown" }) private title!: string;
+  @Prop({ default: "" }) private more!: string;
+  @Prop({ default: 0 }) private number!: number;
+  
+  open: boolean = false
+
+  get uuid() {
+    return this.title.replace(/\s+/g, "");
+  }
+}
 </script>
 
 <style scoped lang="sass">
