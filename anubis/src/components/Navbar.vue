@@ -295,8 +295,10 @@ export default class NavigationBar extends Vue {
 
   toggleSidebar() {
     AppModule.toggleCollapse();
+    // @ts-ignore: No such attribute
     this.$redrawVueMasonry();
     setTimeout(() => {
+      // @ts-ignore: No such attribute
       this.$redrawVueMasonry();
     }, 0.2 * 500);
   }
