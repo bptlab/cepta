@@ -73,13 +73,12 @@ public class Main implements Callable<Integer> {
             Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
             new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
-    /*
+    
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
             AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
-            new KafkaConfig().getProperties());
-    */
+            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // .withClientId("PlannedTrainDataMainConsumer")
     // System.out.print(liveTrainDataConsumer.client.id);
