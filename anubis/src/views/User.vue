@@ -36,10 +36,25 @@ import BasicTable from "../components/BasicTable.vue";
 export default class User extends Vue {
   example: string = "Test";
   trainIDs:Array<Array<number>> = [[1], [2], [3], [4]];
-  mounted() {}
+  search: string = "";
+  mounted() {
+    this.search = (<HTMLInputElement>this.$refs.search).value;
+  }
 
   get sectionTitle() {
     return 10
+  }
+  
+  // computed
+  get filteredTableData() {
+    let tableData : Array<number> = []
+    this.trainIDs.filter((tableArray) => {
+      for (let key in tableArray) {
+        if (String(tableArray[key]).includes(this.search))
+          tableData =  tableArray;
+      };
+    })
+    return tableData;
   }
 }
 

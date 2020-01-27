@@ -80,23 +80,6 @@ export const routes: RouteConfig[] = [
           import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
       },
       {
-        path: "user",
-        name: "user",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/User.vue")
-      },
-
-      {
-        path: "user",
-        name: "user",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/User.vue")
-      },
-      {
         path: "traindata/:id",
         name: "traindata",
         props: true,
