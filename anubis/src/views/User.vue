@@ -1,15 +1,15 @@
 <template>
   <masonry-layout title="Your trains">
   <masonry-layout-tile section="IDs">
-    <input ref="search" class="form-control" id="trainID oder so" type="number" placeholder="search ... ;)">
+    <input ref="search" class="form-control" id="search" type="number" placeholder="search ... ;)" v-model="search" >
       <basic-table
-        :table-data="trainIDs"
+        :table-data="filteredTableData"
         :show-indices="false"
         :striped="true"
         :bordered="true"
         cellspacing="0"
-        :data-table="false"
       />
+    <p> Hi {{search}} </p>
     </masonry-layout-tile>
   <masonry-layout-tile v-bind:section=sectionTitle id="sectionTitle">
 
@@ -36,25 +36,21 @@ import BasicTable from "../components/BasicTable.vue";
 export default class User extends Vue {
   example: string = "Test";
   trainIDs:Array<Array<number>> = [[1], [2], [3], [4]];
-  search: string = "";
+  search: number = -1;
   mounted() {
-    this.search = (<HTMLInputElement>this.$refs.search).value;
   }
 
   get sectionTitle() {
     return 10
   }
   
-  // computed
   get filteredTableData() {
-    let tableData : Array<number> = []
-    this.trainIDs.filter((tableArray) => {
-      for (let key in tableArray) {
-        if (String(tableArray[key]).includes(this.search))
-          tableData =  tableArray;
-      };
-    })
-    return tableData;
+    return this.trainIDs.filter(this.idFilter);
+  }
+
+  idFilter(row:Array<number>) {
+    if (String(row[0]).includes(String(this.search)) || this.search == -1)
+      return true;
   }
 }
 
