@@ -99,7 +99,7 @@ export const routes: RouteConfig[] = [
       
       // User pages
       {
-        path: "/user",
+        path: "user",
         name: "user",
         meta: { requiresAuth: true },
         component: () =>
