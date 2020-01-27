@@ -34,7 +34,7 @@ import BasicTable from "../components/BasicTable.vue";
   props: {}
 })
 export default class User extends Vue {
-  example: string = "Test";;
+  example: string = "Test";
   trainIDs:Array<Array<number>> = [[1], [2], [3], [4]];
   mounted() {}
 
