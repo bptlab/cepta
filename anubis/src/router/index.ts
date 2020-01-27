@@ -95,18 +95,21 @@ export const routes: RouteConfig[] = [
         beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
-      }
+      },  
+      
+      // User pages
+      {
+        path: "/user",
+        name: "user",
+        meta: { requiresAuth: true },
+        component: () =>
+        import(/* webpackChunkName: "about" */ "@/views/User.vue")
+
+      },
     ]
   },
 
-  // User pages
-  {
-    path: "/user",
-    name: "user",
-    component: () =>
-    import(/* webpackChunkName: "about" */ "@/views/User.vue")
 
-  },
 
   // Error pages
   {
@@ -133,7 +136,7 @@ export const routes: RouteConfig[] = [
 ];
 
 const createRouter = () => new Router({
-  // mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
+  mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
   scrollBehavior: (to, from, savedPosition) => {
     if (savedPosition) {
       return savedPosition
