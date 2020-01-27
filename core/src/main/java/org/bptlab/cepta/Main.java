@@ -66,6 +66,7 @@ public class Main implements Callable<Integer> {
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
 
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
@@ -78,14 +79,23 @@ public class Main implements Callable<Integer> {
             AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
+    FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.WEATHER_DATA,
+            AvroDeserializationSchema.forSpecific(WeatherData.class),
+            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+
     // Add consumer as source for data stream
+
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
+    DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
+
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 12);
+                100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .flatMap(
@@ -96,18 +106,25 @@ public class Main implements Callable<Integer> {
                   Collector<TrainDelayNotification> collector) throws Exception {
                 LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
-        /*
+
+         /*
           Delay is defined as the difference between the observed time of a train id at a location id.
           delay > 0 is bad, the train might arrive later than planned
           delay < 0 is good, the train might arrive earlier than planned
          */
-                long delay = observed.getActualTime() - expected.getPlannedTime();
-                // Only send a delay notification if some threshold is exceeded
-                if (Math.abs(delay) > 10) {
-                  collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                      .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
-                      .build());
+                try {
+                  long delay = observed.getActualTime() - expected.getPlannedTime();
+
+                  // Only send a delay notification if some threshold is exceeded
+                  if (Math.abs(delay) > 10) {
+                    collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
+                        .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
+                        .build());
+                  }
+                } catch ( NullPointerException e ) {
+                  // Do not send a delay event
                 }
+
               }
             });
 
@@ -124,9 +141,9 @@ public class Main implements Callable<Integer> {
     // Print stream to console
     trainDelayNotificationDataStream.print();
 
-    // insert every event into database table with name actor
-    // DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
-
+    //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
+    weatherDataStream.print();
+    plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;
   }

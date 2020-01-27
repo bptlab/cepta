@@ -44,7 +44,7 @@ export default class SidebarDropdown extends Vue {
   uuid: string = this.getuuID();
 
   getuuID() {
-    return this.$props.title.replace(/\s+/g, "");
+    return this.title.replace(/\s+/g, "");
   }
   mounted() {}
 }

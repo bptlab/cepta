@@ -16,6 +16,11 @@ export interface IAuthState {
   appSignUpAPI: string;
 }
 
+interface User {
+  email: string;
+  password: string;
+}
+
 @Module({ dynamic: true, store, name: "auth" })
 class Auth extends VuexModule implements IAuthState {
   public appAllowsRegister = false;
@@ -25,34 +30,34 @@ class Auth extends VuexModule implements IAuthState {
   public authToken = localStorage.getItem("user-token") || "";
   public authStatus = "";
 
-  get isAuthenticated() {
+  get isAuthenticated(): boolean {
     return !!this.authToken;
   }
 
   @Mutation
-  private AUTH_LOGOUT() {
+  private AUTH_LOGOUT(): void {
     this.authStatus = "";
     this.authToken = "";
   }
 
   @Mutation
-  private AUTH_REQUEST() {
+  private AUTH_REQUEST(): void {
     this.authStatus = "loading";
   }
 
   @Mutation
-  private AUTH_SUCCESS(token: string) {
+  private AUTH_SUCCESS(token: string): void {
     this.authStatus = "success";
     this.authToken = token;
   }
 
   @Mutation
-  private AUTH_ERROR(error: string) {
+  private AUTH_ERROR(error: string): void {
     this.authStatus = error;
   }
 
   @Action
-  public async authRequest(user: string) {
+  public async authRequest(user: User, shouldRemember: boolean = true) {
     return new Promise((resolve, reject) => {
       this.AUTH_REQUEST();
       const api = this.appAuthenticationAPI;

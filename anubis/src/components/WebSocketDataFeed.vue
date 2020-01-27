@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="main-content" class="container">
-      <button id="replayBtn" @click.prevent="replay" class="btn btn-danger">Replay Data!</button>
       <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <div class="row">
         <basic-table ref="table"
@@ -22,7 +21,7 @@ import RowLayoutRow from "../components/RowLayoutRow.vue";
 import BasicTable from "../components/BasicTable.vue";
 import store from '@/store/index';
 import {GrpcModule} from "../store/modules/grpc";
-import Stomp from "webstomp-client";
+import Stomp, {SubscribeHeaders} from "webstomp-client";
 import { Component, Vue } from 'vue-property-decorator'
 
 @Component({
@@ -33,23 +32,6 @@ export default class WebSocketDataFeed extends Vue {
   search : string =  "";
   receivedUpdates: Array<Array<string>> = [];
   websocket : WebSocket = this.$store.state.websocket;
-  stompClient = Stomp.over(this.websocket);
-
-  connect(url = "/topic/updates"){
-    this.stompClient.connect(
-        {},
-        () =>
-          this.stompClient.subscribe(url, update => {
-            console.log(update);
-            if (this.receivedUpdates.length < 1)
-              this.pushUpdate(update, true);
-            this.pushUpdate(update, false);
-        },
-        error => {
-          console.log(error);
-        })
-    )
-  }
 
   pushUpdate(update : any, header:boolean){
     let obj : Object = JSON.parse(update.body);
@@ -62,10 +44,6 @@ export default class WebSocketDataFeed extends Vue {
     }
 
     this.receivedUpdates.push(newInput);
-  }
-
-  replay() {
-    GrpcModule.replayData().then()
   }
 
   // computed
@@ -82,7 +60,6 @@ export default class WebSocketDataFeed extends Vue {
 
   // Mount
   mounted() {
-    this.connect();
     this.search = (<HTMLInputElement>this.$refs.search).value;
   }
 };

@@ -3,5 +3,7 @@ services:
   anubis:
     build:
       context: ../../../anubis
+    expose:
+      - 80
     ports:
       - ${CEPTA_WEBUI_FRONTEND_PORT}:80
