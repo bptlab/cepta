@@ -10,7 +10,7 @@ import VueCookies from "vue-cookies";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { VueMasonryPlugin } from "vue-masonry";
-import { createProvider } from "./vue-apollo";
+// import { createProvider } from "./vue-apollo";
 
 const options = {
   showSpinner: false,
@@ -62,6 +62,6 @@ new Vue({
   router,
   axios,
   store,
-  apolloProvider: createProvider(),
+  // apolloProvider: createProvider(),
   render: h => h(App)
 }).$mount("#app");

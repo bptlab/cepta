@@ -50,7 +50,14 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class GridTable extends Vue {
-  @Prop({ default: () => [] }) private gridData!: { [key: string]: string }[];
+  @Prop({ default: () => [{
+      trainID: "none",
+      locationID: "none",
+      locationName: "none",
+      plannedETA: "none",
+      delay: "0",
+      predictedETA: "none"
+    }] }) private gridData!: { [key: string]: string }[];
   @Prop({ default: "" }) private filterKey!: string;
   sortKey: string = "";
   sortOrder: number = 1;
@@ -114,6 +121,7 @@ td
 
 td.delay-red
   color: red
+  font-weight: bold
 
 td.delay-green
   color: green
