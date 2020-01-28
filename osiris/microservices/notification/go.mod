@@ -8,4 +8,5 @@ require (
 	github.com/linkedin/goavro/v2 v2.9.7 // indirect
 	github.com/segmentio/kafka-go v0.3.5 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/urfave/cli/v2 v2.1.1 // indirect
 )

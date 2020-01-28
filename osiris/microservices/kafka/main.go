@@ -13,8 +13,8 @@ import (
 )
 
 type Message struct {
-	Name string
 	UID  int
+	Message string
 }
 
 func (m *Message) Length() int {
@@ -106,28 +106,15 @@ func (s *Server) Close() error {
 	return nil
 }
 
-func randomUser() (string, int) {
-	// Small test for User management
-	var name string
-	var randomNumber int = rand.Intn(2)
-
-	if randomNumber == 0 {
-		name = "Romanski"
-	} else {
-		name = "Polanski"
-	}
-
-	return name, randomNumber
-}
-
 func (s *Server) Produce() error {
 	log.Info("Producing")
 	for {
-		name, randomNumber := randomUser()
+		var randomUserId int = rand.Intn(10)
+		var message string = "Sending train data"
 
 		entry := &Message{
-			Name: name,
-			UID:  randomNumber,
+			UID:  randomUserId,
+			Message: message,
 		}
 
 		// We will use the client's IP address as key. This will cause
@@ -138,8 +125,8 @@ func (s *Server) Produce() error {
 			Key:   sarama.StringEncoder("leo"),
 			Value: entry,
 		}
-		log.Info("Produced a message and will sleep for 2 seconds")
-		time.Sleep(2 * time.Second)
+		log.Info("Produced a message and will sleep for a second")
+		time.Sleep(time.Second)
 	}
 	return nil
 }

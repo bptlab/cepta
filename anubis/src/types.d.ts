@@ -1,9 +1,8 @@
 import Vue, { ComponentOptions } from "vue";
 import { AxiosStatic } from "axios";
-import {Action, Getter, Mutation, ModuleTree} from "vuex";
+import { Action, Getter, Mutation, ModuleTree } from "vuex";
 
 declare module "vue/types" {
-
   export interface ActionTree<S, R> {
     [key: string]: Action<S, R>;
   }
@@ -24,7 +23,6 @@ declare module "vue/types" {
     mutations?: MutationTree<S>;
     modules?: ModuleTree<R>;
   }
-
 }
 
 declare module "vue/types/options" {

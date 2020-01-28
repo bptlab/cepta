@@ -1,11 +1,10 @@
-// inspired by tutorialedge.net webmaster Elliot Frobes 
+// inspired by tutorialedge.net webmaster Elliot Frobes
 
 package websocket
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"sync"
 )
@@ -31,13 +30,13 @@ func (c *Client) Read() {
 	for {
 		messageType, p, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			return
 		}
 
 		if messageType == 1 {
 			c.ID, _ = strconv.Atoi(string(p))
-			fmt.Printf("UserId: %+v\n", c.ID)
+			log.Info("UserId: %+v\n", c.ID)
 		}
 
 		message := Message{Type: messageType, Body: string(p)}

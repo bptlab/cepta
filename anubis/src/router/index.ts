@@ -1,11 +1,11 @@
 import Vue from "vue";
 import store from "@/store";
-import VueRouter from "vue-router";
+import Router, {Route, RouteConfig} from 'vue-router'
 import Adminator from "@/views/Adminator.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
 
-Vue.use(VueRouter);
+Vue.use(Router);
 
 let authenticationRequired: boolean = false;
 
@@ -26,7 +26,7 @@ const ifAuthenticated = (to: any, from: any, next: any) => {
   next({ name: "login" });
 };
 
-const routes = [
+export const routes: RouteConfig[] = [
   {
     path: "/",
     beforeEnter: ifAuthenticated,
@@ -64,22 +64,6 @@ const routes = [
     component: Adminator,
     children: [
       {
-        path: "dashboard",
-        name: "dashboard",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
-      },
-      {
-        path: "charts",
-        name: "charts",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Charts.vue")
-      },
-      {
         path: "websockets",
         name: "websockets",
         meta: { requiresAuth: true },
@@ -95,22 +79,7 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
       },
-      {
-        path: "tables/basictables",
-        name: "basictables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/BasicTables.vue")
-      },
-      {
-        path: "tables/datatables",
-        name: "datatables",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Datatables.vue")
-      },
+
       {
         path: "traindata/:id",
         name: "traindata",
@@ -118,7 +87,7 @@ const routes = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-            import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
+          import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
       },
       {
         path: "traindatainfo",
@@ -126,7 +95,7 @@ const routes = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-            import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
+          import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
       }
     ]
   },
@@ -154,10 +123,25 @@ const routes = [
   { path: "*", redirect: { name: "error404" } }
 ];
 
-const router = new VueRouter({
-  mode: "history",
+const createRouter = () => new Router({
+  // mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
+  scrollBehavior: (to, from, savedPosition) => {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { x: 0, y: 0 }
+    }
+  },
   base: process.env.BASE_URL,
-  routes
-});
+  routes: routes
+})
 
-export default router;
+const router = createRouter()
+
+// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+export function resetRouter() {
+  const newRouter = createRouter();
+  (router as any).matcher = (newRouter as any).matcher // reset router
+}
+
+export default router

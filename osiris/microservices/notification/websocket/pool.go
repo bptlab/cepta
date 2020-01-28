@@ -2,7 +2,7 @@
 
 package websocket
 
-import "fmt"
+import log "github.com/sirupsen/logrus"
 
 type Pool struct {
 	Register   chan *Client
@@ -25,23 +25,17 @@ func (pool *Pool) Start() {
 		select {
 		case client := <-pool.Register:
 			pool.Clients[client] = true
-			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				client.Conn.WriteJSON(Message{Type: 3, Body: "New User Joined..."})
-			}
+			log.Debug("Size of Connection Pool: ", len(pool.Clients))
 			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
-			fmt.Println("Size of Connection Pool: ", len(pool.Clients))
-			for client, _ := range pool.Clients {
-				client.Conn.WriteJSON(Message{Type: 3, Body: "User Disconnected..."})
-			}
+			log.Debug("Size of Connection Pool: ", len(pool.Clients))
 			break
 		case message := <-pool.Broadcast:
-			fmt.Println("Sending message to all clients in Pool")
+			log.Debug("Sending message to all clients in Pool")
 			for client, _ := range pool.Clients {
 				if err := client.Conn.WriteJSON(message); err != nil {
-					fmt.Println(err)
+					log.Error(err)
 					return
 				}
 			}

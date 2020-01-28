@@ -151,7 +151,18 @@ under the License.
           </execution>
         </executions>
       </plugin>
-
+      <!-- Following plugin executes the testng tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+        <configuration>
+          <!-- Suite testng xml file to consider for test execution -->
+          <suiteXmlFiles>
+            <suiteXmlFile>src/test/testng.xml</suiteXmlFile>
+          </suiteXmlFiles>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>

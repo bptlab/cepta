@@ -21,23 +21,27 @@ your own running instances or see _Modularization_ down below.
 
 Start and stop the local cluster using the convenience scripts:
 ```bash
-cd deployment/dev
-./devenv.sh up
-./devenv.sh down
+deployment/dev/devenv.sh up
+deployment/dev/devenv.sh down
+```
+
+**Note**: If you use **macOS**, the envoy proxy cannot route to services running on your
+host machine in host network mode. Therefore, you must set `ENVOY_HOST` to
+[docker.internal](docker.internal) and start with:
+```bash
+ENVOY_HOST=docker.internal deployment/dev/devenv.sh up
 ```
 
 If any changes were made to the containers, rebuild with
 ```bash
-cd deployment/dev
-./devenv.sh down
-./devenv.sh build --parallel
-./devenv.sh up
+deployment/dev/devenv.sh down
+deployment/dev/devenv.sh build --parallel
+deployment/dev/devenv.sh up
 ```
 If any configurations are not applied you might need to delete 
 the docker volumes and force recreation
 ```
-cd deployment/dev
-/devenv.sh up --force-recreate --always-recreate-deps --renew-anon-volumes
+deployment/dev/devenv.sh up --force-recreate --always-recreate-deps --renew-anon-volumes
 ```
 
 #### What to do now?

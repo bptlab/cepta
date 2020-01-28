@@ -35,7 +35,7 @@ func connectKafkaConsumer(pool *websocket.Pool) {
 	}
 
 	// start consumer, emit to ws
-	noopTicker := time.NewTicker(time.Second * 5)
+	noopTicker := time.NewTicker(time.Second * 10)
 	subscriberDone := make(chan bool, 1)
 	stopSubscriber := make(chan bool, 1)
 
