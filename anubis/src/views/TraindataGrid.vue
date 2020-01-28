@@ -16,7 +16,7 @@ import RowLayout from "../components/RowLayout.vue";
 import RowLayoutRow from "../components/RowLayoutRow.vue";
 import GridTable from "../components/GridTable.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
-// import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
 @Component({
   name: "TraindataGrid",
@@ -87,7 +87,6 @@ export default class TraindataGrid extends Vue {
     }
   ];
   searchQuery: string = "";
-
 }
 </script>
 

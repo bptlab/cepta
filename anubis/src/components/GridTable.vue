@@ -9,7 +9,10 @@
           :class="{ active: sortKey == key }"
         >
           {{ key | capitalize }}
-          <span class="arrow" :class="sortKey == key && sortOrder > 0 ? 'asc' : 'dsc'">
+          <span
+            class="arrow"
+            :class="sortKey == key && sortOrder > 0 ? 'asc' : 'dsc'"
+          >
           </span>
         </th>
       </tr>
@@ -28,7 +31,8 @@
           "
         >
           <span v-if="key == 'delay'">
-            {{ entry[key] > 0 ? "+" : "" }}{{ entry[key] < 0 ? "-" : "" }}{{ Math.abs(entry[key]) }}
+            {{ entry[key] > 0 ? "+" : "" }}
+            {{ !(entry[key] >= 0) ? "-" : "" }}{{ Math.abs(entry[key]) }}
             Minutes
           </span>
           <span v-else>{{ entry[key] }}</span>
@@ -50,21 +54,26 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class GridTable extends Vue {
-  @Prop({ default: () => [{
-      trainID: "none",
-      locationID: "none",
-      locationName: "none",
-      plannedETA: "none",
-      delay: "0",
-      predictedETA: "none"
-    }] }) private gridData!: { [key: string]: string }[];
+  @Prop({
+    default: () => [
+      {
+        trainID: "none",
+        locationID: "none",
+        locationName: "none",
+        plannedETA: "none",
+        delay: "0",
+        predictedETA: "none"
+      }
+    ]
+  })
+  private gridData!: { [key: string]: string }[];
   @Prop({ default: "" }) private filterKey!: string;
   sortKey: string = "";
   sortOrder: number = 1;
 
   get filteredGridData(): { [key: string]: string }[] {
     let filterKey = this.filterKey && this.filterKey.toLowerCase();
-    let filteredGridData = this.gridData
+    let filteredGridData = this.gridData;
     if (filterKey) {
       filteredGridData = this.gridData.filter(function(row) {
         return Object.keys(row).some(function(key) {
@@ -76,8 +85,9 @@ export default class GridTable extends Vue {
         });
       });
     }
-    
-    let sortKey = this.sortKey || this.gridColumns.length > 0 ? this.gridColumns[0] : "";
+
+    let sortKey =
+      this.sortKey || this.gridColumns.length > 0 ? this.gridColumns[0] : "";
     filteredGridData = filteredGridData.slice().sort((a, b) => {
       let ak = a[this.sortKey];
       let bk = b[this.sortKey];
