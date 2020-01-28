@@ -12,6 +12,7 @@ public interface KafkaConstants {
     String PREDICTED_TRAIN_DATA = "PREDICTED_TRAIN_DATA";
     String TRAIN_INFO_DATA = "TRAIN_INFO_DATA";
     String DELAY_NOTIFICATIONS = "DELAY_NOTIFICATIONS";
+    String WEATHER_DATA = "WEATHER_DATA";
   }
 
 }
