@@ -37,7 +37,7 @@ import SelectableTable from "../components/SelectableTable.vue";
 })
 export default class User extends Vue {
   example: string = "Test";
-  trainIDs: Array<Array<number>> = [[1], [2], [3], [4]];
+  trainIDs: Array<Array<number>> = [ [], [1], [2], [3], [4]];
   search: number = -1;
   selectedRow: (HTMLTableRowElement | null) = null;
   mounted() {
