@@ -64,7 +64,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import {AuthModule} from "@/store/modules/auth";
+import { AuthModule } from "@/store/modules/auth";
 
 @Component({
   name: "Login",

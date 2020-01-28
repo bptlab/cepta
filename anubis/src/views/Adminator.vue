@@ -14,15 +14,10 @@
         </transition>
       </main>
 
-      <!-- App Screen Footer
+      <!-- App Screen Footer -->
       <footer-component id="footer">
-        Made by
-        <a href="https://romnn.io">romnn</a>
-        based on the original design by
-        <a href="https://colorlib.com" title="Colorlib">Colorlib</a>
-        . &copy; MIT.
+        bptlab 2020.
       </footer-component>
-      -->
     </div>
   </div>
 </template>

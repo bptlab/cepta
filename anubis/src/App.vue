@@ -11,7 +11,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import SockJS from "sockjs-client";
-import {AuthModule} from "@/store/modules/auth";
+import { AuthModule } from "@/store/modules/auth";
 
 @Component({
   name: "App",

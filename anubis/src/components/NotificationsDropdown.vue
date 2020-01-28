@@ -52,6 +52,9 @@ export default class NotificationsDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
+.dropdown
+  margin-left: 15px
+
 .dropdown-menu
   left: auto
   right: 0
