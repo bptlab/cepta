@@ -59,6 +59,7 @@ export const routes: RouteConfig[] = [
 
   {
     path: "/user",
+    redirect: "/user/home",
     meta: { requiresAuth: true },
     beforeEnter: ifAuthenticated,
     component: Adminator,
