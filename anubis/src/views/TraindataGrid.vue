@@ -16,7 +16,7 @@ import RowLayout from "../components/RowLayout.vue";
 import RowLayoutRow from "../components/RowLayoutRow.vue";
 import GridTable from "../components/GridTable.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
 @Component({
   name: "TraindataGrid",
@@ -38,7 +38,7 @@ import gql from 'graphql-tag'
 })
 export default class TraindataGrid extends Vue {
   @Prop({ default: "" }) private id?: number;
-  plannedTrainData2: { [key: string]: string }[] = []
+  plannedTrainData2: { [key: string]: string }[] = [];
   plannedTrainData: { [key: string]: string }[] = [
     {
       trainID: "43986033",
