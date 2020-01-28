@@ -9,7 +9,7 @@
           :class="{ active: sortKey == key }"
         >
           {{ key | capitalize }}
-          <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+          <span class="arrow" :class="sortKey == key && sortOrder > 0 ? 'asc' : 'dsc'">
           </span>
         </th>
       </tr>
@@ -28,7 +28,7 @@
           "
         >
           <span v-if="key == 'delay'">
-            {{ entry[key] >= 0 ? "+" : "-" }}{{ Math.abs(entry[key]) }}
+            {{ entry[key] > 0 ? "+" : "" }}{{ entry[key] < 0 ? "-" : "" }}{{ Math.abs(entry[key]) }}
             Minutes
           </span>
           <span v-else>{{ entry[key] }}</span>
@@ -53,22 +53,13 @@ export default class GridTable extends Vue {
   @Prop({ default: () => [] }) private gridData!: { [key: string]: string }[];
   @Prop({ default: "" }) private filterKey!: string;
   sortKey: string = "";
-  sortOrders: { [key: string]: number } = {};
-
-  constructor() {
-    super();
-    let sortOrders: { [key: string]: number } = {};
-    this.sortKey = this.gridColumns.length > 0 ? this.gridColumns[0] : "";
-    this.sortOrders = sortOrders;
-  }
+  sortOrder: number = 1;
 
   get filteredGridData(): { [key: string]: string }[] {
-    let sortKey = this.sortKey;
     let filterKey = this.filterKey && this.filterKey.toLowerCase();
-    let order = this.sortOrders[sortKey] || 1;
-    let gridData = this.gridData;
+    let filteredGridData = this.gridData
     if (filterKey) {
-      gridData = gridData.filter(function(row) {
+      filteredGridData = this.gridData.filter(function(row) {
         return Object.keys(row).some(function(key) {
           return (
             String(row[key])
@@ -78,14 +69,14 @@ export default class GridTable extends Vue {
         });
       });
     }
-    if (sortKey) {
-      gridData = gridData.slice().sort(function(a, b) {
-        let ak = a[sortKey];
-        let bk = b[sortKey];
-        return (ak === bk ? 0 : ak > bk ? 1 : -1) * order;
-      });
-    }
-    return gridData;
+    
+    let sortKey = this.sortKey || this.gridColumns.length > 0 ? this.gridColumns[0] : "";
+    filteredGridData = filteredGridData.slice().sort((a, b) => {
+      let ak = a[this.sortKey];
+      let bk = b[this.sortKey];
+      return (ak === bk ? 0 : ak > bk ? 1 : -1) * this.sortOrder;
+    });
+    return filteredGridData;
   }
 
   get gridColumns(): string[] {
@@ -94,7 +85,7 @@ export default class GridTable extends Vue {
 
   sortBy(key: string) {
     this.sortKey = key;
-    this.sortOrders[key] = this.sortOrders[key] * -1;
+    this.sortOrder = (this.sortOrder || 1) * -1;
   }
 }
 </script>

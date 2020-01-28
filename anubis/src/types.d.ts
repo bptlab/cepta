@@ -1,6 +1,8 @@
 import Vue, { ComponentOptions } from "vue";
 import { AxiosStatic } from "axios";
 import { Action, Getter, Mutation, ModuleTree } from "vuex";
+import VueRouter from 'vue-router'
+import { Store } from 'vuex'
 
 declare module "vue/types" {
   export interface ActionTree<S, R> {
@@ -23,11 +25,24 @@ declare module "vue/types" {
     mutations?: MutationTree<S>;
     modules?: ModuleTree<R>;
   }
+
+  export interface VueApollo {
+
+  }
+}
+
+declare module 'vue/types/vue' {
+  interface Vue {
+    $router: VueRouter
+    $apollo: object
+    apollo: object
+  }
 }
 
 declare module "vue/types/options" {
   interface ComponentOptions<V extends Vue> {
     nprogress?: any;
     axios?: AxiosStatic;
+    apollo?: object;
   }
 }
