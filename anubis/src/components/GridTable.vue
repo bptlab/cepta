@@ -4,6 +4,7 @@
       <tr>
         <th
           v-for="key in gridColumns"
+          :key="'header' + key"
           @click="sortBy(key)"
           :class="{ active: sortKey == key }"
         >
@@ -14,9 +15,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="entry in filteredGridData">
+      <tr v-for="(entry, index) in filteredGridData" :key="index">
         <td
           v-for="key in gridColumns"
+          :key="index.toString() + key"
           :class="
             key == 'delay'
               ? entry[key] <= 0
@@ -48,7 +50,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class GridTable extends Vue {
-  @Prop({ default: () => [] }) private gridData!: any[];
+  @Prop({ default: () => [] }) private gridData!: { [key: string]: string }[];
   @Prop({ default: "" }) private filterKey!: string;
   sortKey: string = "";
   sortOrders: { [key: string]: number } = {};
@@ -56,11 +58,11 @@ export default class GridTable extends Vue {
   constructor() {
     super();
     let sortOrders: { [key: string]: number } = {};
-    this.sortKey = this.gridColumns[0];
+    this.sortKey = this.gridColumns.length > 0 ? this.gridColumns[0] : "";
     this.sortOrders = sortOrders;
   }
 
-  get filteredGridData() {
+  get filteredGridData(): { [key: string]: string }[] {
     let sortKey = this.sortKey;
     let filterKey = this.filterKey && this.filterKey.toLowerCase();
     let order = this.sortOrders[sortKey] || 1;
@@ -78,16 +80,16 @@ export default class GridTable extends Vue {
     }
     if (sortKey) {
       gridData = gridData.slice().sort(function(a, b) {
-        a = a[sortKey];
-        b = b[sortKey];
-        return (a === b ? 0 : a > b ? 1 : -1) * order;
+        let ak = a[sortKey];
+        let bk = b[sortKey];
+        return (ak === bk ? 0 : ak > bk ? 1 : -1) * order;
       });
     }
     return gridData;
   }
 
-  get gridColumns() {
-    return Object.keys(this.gridData[0]);
+  get gridColumns(): string[] {
+    return this.gridData.length > 0 ? Object.keys(this.gridData[0]) : [];
   }
 
   sortBy(key: string) {
