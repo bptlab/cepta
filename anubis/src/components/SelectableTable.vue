@@ -29,8 +29,9 @@
         <th v-if="showIndices" scope="row">{{ row._index || rowIndex }}</th>
         <td
           v-for="(item, itemIndex) in row"
+          v-bind:id="'row-' + rowIndex + '-data-' + itemIndex"
           v-bind:key="'row-' + rowIndex + '-data-' + itemIndex"
-          v-on:click="clickHandler"
+          v-on:click="clickHandler($event)"
         >
           {{ item }}
         </td>
@@ -46,7 +47,7 @@
         <td
           v-for="(category, additionalIndex) in tableCategories"
           v-bind:key="'row-' + rowIndex + '-data-' + additionalIndex"
-          v-on:click="clickHandler"
+          v-on:click="clickHandler($event)"
         >
           {{ row[category] }}
         </td>
@@ -68,7 +69,7 @@ import BasicTable from './BasicTable.vue';
   }
 })
 export default class SelectableTable extends BasicTable {
-  @Prop({ default: () => [] }) private clickHandler!: any;
+  @Prop({ default: null }) private clickHandler!: any;
 }
 </script>
 <style scoped>

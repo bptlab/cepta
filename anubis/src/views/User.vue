@@ -37,8 +37,9 @@ import SelectableTable from "../components/SelectableTable.vue";
 })
 export default class User extends Vue {
   example: string = "Test";
-  trainIDs:Array<Array<number>> = [[1], [2], [3], [4]];
+  trainIDs: Array<Array<number>> = [[1], [2], [3], [4]];
   search: number = -1;
+  selectedRow: (HTMLTableRowElement | null) = null;
   mounted() {
   }
 
@@ -55,11 +56,21 @@ export default class User extends Vue {
       return true;
   }
 
-  clickHandler(record:any, index:number){
-    console.log(record, index)
+  clickHandler(record:MouseEvent){
+    let selectedElement:EventTarget  = record.target;
+    let selectedId:number = Number(selectedElement.innerText);
+
+    this.selectedRow != null ? this.selectedRow.setAttribute("class", "") : null;
+
+    this.selectedRow = document.getElementById(selectedElement.id);
+
+    this.selectedRow.setAttribute("class", "selectedRow");
   }
 }
 
 </script>
 
-<style lang="sass"></style>
+<style lang="sass">
+.selectedRow 
+  background-color: red
+</style>
