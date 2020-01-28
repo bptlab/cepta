@@ -1,6 +1,6 @@
 import Vue from "vue";
 import store from "@/store";
-import Router, {Route, RouteConfig} from 'vue-router'
+import Router, { Route, RouteConfig } from "vue-router";
 import Adminator from "@/views/Adminator.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
@@ -77,7 +77,7 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Blank.vue")
+          import(/* webpackChunkName: "blank" */ "@/views/Blank.vue")
       },
 
       {
@@ -87,7 +87,7 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Traindata.vue")
+          import(/* webpackChunkName: "TrainData" */ "@/views/Traindata.vue")
       },
       {
         path: "traindatagrid/:id",
@@ -96,7 +96,7 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-            import(/* webpackChunkName: "about" */ "@/views/TraindataGrid.vue")
+          import(/* webpackChunkName: "about" */ "@/views/TraindataGrid.vue")
       },
       {
         path: "traindatainfo",
@@ -132,25 +132,26 @@ export const routes: RouteConfig[] = [
   { path: "*", redirect: { name: "error404" } }
 ];
 
-const createRouter = () => new Router({
-  // mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
-  scrollBehavior: (to, from, savedPosition) => {
-    if (savedPosition) {
-      return savedPosition
-    } else {
-      return { x: 0, y: 0 }
-    }
-  },
-  base: process.env.BASE_URL,
-  routes: routes
-})
+const createRouter = () =>
+  new Router({
+    // mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
+    scrollBehavior: (to, from, savedPosition) => {
+      if (savedPosition) {
+        return savedPosition;
+      } else {
+        return { x: 0, y: 0 };
+      }
+    },
+    base: process.env.BASE_URL,
+    routes: routes
+  });
 
-const router = createRouter()
+const router = createRouter();
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
   const newRouter = createRouter();
-  (router as any).matcher = (newRouter as any).matcher // reset router
+  (router as any).matcher = (newRouter as any).matcher; // reset router
 }
 
-export default router
+export default router;
