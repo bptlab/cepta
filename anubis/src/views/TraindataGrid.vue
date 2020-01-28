@@ -43,6 +43,7 @@ export default class TraindataGrid extends Vue {
     {
       trainID: "43986033",
       locationID: "4202153",
+      locationName: "MusterLocation",
       plannedETA: "2019-08-02 13:28:00",
       delay: "30",
       predictedETA: "2019-08-02 13:58:00"
@@ -50,6 +51,7 @@ export default class TraindataGrid extends Vue {
     {
       trainID: "43986033",
       locationID: "4202154",
+      locationName: "ExampleTown",
       plannedETA: "2019-08-02 14:38:00",
       delay: "15",
       predictedETA: "2019-08-02 14:53:00"
@@ -57,6 +59,7 @@ export default class TraindataGrid extends Vue {
     {
       trainID: "43986033",
       locationID: "4202155",
+      locationName: "NoWhereToFind",
       plannedETA: "2019-08-02 15:48:00",
       delay: "10",
       predictedETA: "2019-08-02 15:58:00"
@@ -64,6 +67,7 @@ export default class TraindataGrid extends Vue {
     {
       trainID: "43986033",
       locationID: "4202156",
+      locationName: "RightHere",
       plannedETA: "2019-08-02 16:20:00",
       delay: "0",
       predictedETA: "2019-08-02 16:20:00"
@@ -71,6 +75,7 @@ export default class TraindataGrid extends Vue {
     {
       trainID: "43986033",
       locationID: "4202157",
+      locationName: "LeftThere",
       plannedETA: "2019-08-02 17:56:00",
       delay: "-10",
       predictedETA: "2019-08-02 17:46:00"
@@ -78,27 +83,6 @@ export default class TraindataGrid extends Vue {
   ];
   searchQuery: string = "";
 
-  /*
-  computed: {
-    preFilteredTrainDelayNotificationData: function () {
-      return this.trainDelayNotificationData.filter(function (delayNotification, index, delayNotificationData) {
-        return delayNotification.train_id.equal(this)
-      })
-    }
-  },
-
-  methods: {
-    updateAllTrainData() {
-      var updatedTrainData = this.plannedTrainData;
-      updatedTrainData.forEach(function (trainData, index) {
-        var matchingDelay = this.preFilteredTrainDelayNotificationData.find(
-            (delayNotification) => delayNotification.location_id.equal(trainData.location_id))
-        trainData.push(matchingDelay.delay, matchingDelay.delay_cause)
-      })
-      return updatedTrainData
-    }
-  }
-   */
 }
 </script>
 
