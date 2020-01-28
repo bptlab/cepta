@@ -70,6 +70,9 @@ export default class BasicTable extends Vue {
   @Prop({ default: false }) private hoverable!: boolean;
   @Prop({ default: "_index" }) private sortKey!: string;
   @Prop({ default: "" }) private thead!: string;
+  @Prop({ default: false }) private headless!: boolean;
+
+  dataStartIndex: number = this.headless ? 0 : 1 ; // if not headless
 
   get firstRow(): Array<Number> {
     return this.tableData.length > 0 ? this.tableData[0] : [];
@@ -88,7 +91,7 @@ export default class BasicTable extends Vue {
   }
 
   get sortedTableData() {
-    return this.tableData.slice(1).sort((a: {[key: string]: any }, b: {[key: string]: any }) => {
+    return this.tableData.slice(this.dataStartIndex).sort((a: {[key: string]: any }, b: {[key: string]: any }) => {
       return a[this.sortKey] > b[this.sortKey]
         ? 1
         : b[this.sortKey] > a[this.sortKey]

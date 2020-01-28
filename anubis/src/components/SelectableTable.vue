@@ -8,7 +8,7 @@
       'table-hover': hoverable
     }"
   >
-    <thead :class="tableHeadClasses">
+    <thead :class="tableHeadClasses" v-if="!headless">
       <tr>
         <th v-if="showIndices" scope="col">#</th>
         <th

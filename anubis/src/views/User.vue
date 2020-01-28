@@ -8,6 +8,7 @@
         :striped="true"
         :bordered="true"
         :hoverable="true"
+        :headless="true"
         :clickHandler="this.clickHandler"
         cellspacing="0"
       />
@@ -37,9 +38,10 @@ import SelectableTable from "../components/SelectableTable.vue";
 })
 export default class User extends Vue {
   example: string = "Test";
-  trainIDs: Array<Array<number>> = [ [], [1], [2], [3], [4]];
+  trainIDs: Array<Array<number>> = [ [1], [2], [3], [4]];
   search: number = -1;
   selectedRow: (HTMLTableRowElement | null) = null;
+  selectedTrainId: (number | null) = null;
   mounted() {
   }
 
@@ -63,6 +65,7 @@ export default class User extends Vue {
     this.selectedRow != null ? this.selectedRow.setAttribute("class", "") : null;
 
     this.selectedRow = document.getElementById(selectedElement.id);
+    this.selectedTrainId = selectedId;
 
     this.selectedRow.setAttribute("class", "selectedRow");
   }
