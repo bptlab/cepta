@@ -29,3 +29,10 @@ filegroup(
         "//aux",
     ],
 )
+
+test_suite(
+    name = "cepta-tests",
+    tests = [
+        "//core:core-tests",
+    ],
+)
