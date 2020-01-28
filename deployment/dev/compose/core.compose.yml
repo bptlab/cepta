@@ -106,9 +106,7 @@ services:
       driver: none
 
   pgadmin:
-    image: dpage/pgadmin4:4.15
-    depends_on:
-      - postgres
+    image: dpage/pgadmin4:4.14
     restart: "no"
     environment:
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
@@ -152,7 +150,6 @@ services:
         MODULE: producers/train-replayer
     depends_on:
       - kafka
-      - postgres
     command:
       - --broker=kafka:9092
       - --grpc-port=9000
@@ -171,6 +168,10 @@ volumes:
   #   driver: local
   postgres_data:
     driver: local
+   #  driver_opts:
+   #   type: 'none'
+   #   o: 'bind'
+   #   device: '/media/roman/BPDATA/postgres-data'
 
 secrets:
   postgres_passwd:

@@ -3,12 +3,13 @@
     <div id="main-content" class="container">
       <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
       <div class="row">
-        <basic-table ref="table"
-            :showIndices="false"
-            :striped="true"
-            :bordered="true"
-            cellspacing="0"
-            :table-data="filteredTableData"
+        <basic-table
+          ref="table"
+          :showIndices="false"
+          :striped="true"
+          :bordered="true"
+          cellspacing="0"
+          :table-data="filteredTableData"
         ></basic-table>
       </div>
     </div>
@@ -82,6 +83,4 @@ export default class WebSocketDataFeed extends Vue {
 
 .dataTables_scroll
   margin-bottom: 10px
-
-
 </style>

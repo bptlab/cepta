@@ -134,15 +134,20 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
       }
 
       while (result.next()) {
+        if (Thread.currentThread().isInterrupted()) {
+          throw new InterruptedException();
+        }
         try {
           V event = convertToEvent(result);
           ProducerRecord<K, V> record =
               new ProducerRecord<K, V>(topic, event);
           RecordMetadata metadata = producer.send(record).get();
-          logger.info(
+          logger.info(String.format("%d", this.frequency));
+          /*logger.info(
               String.format("Sent record(key=%s value=%s) meta(partition=%d, offset=%d)\n",
                   record.key(), (V) record.value(), metadata.partition(), metadata.offset()));
           // producer.flush();
+           */
           Thread.sleep(this.frequency);
         } catch (Exception e) {
           logger.warn("Failed to process database entry. Will continue with the next entry.");
@@ -150,6 +155,8 @@ public abstract class PostgresReplayer<K, V> extends Replayer<K, V> {
         }
       }
       logger.info("There is no more live train data left in the database. Exiting.");
+    } catch (InterruptedException interrupt) {
+      logger.info(String.format("Received interrupt. Closing the %s producer.", this.getClass().getName()));
     } catch (Exception e) {
       e.printStackTrace();
       logger.error(String.format("Error while executing database query. Closing the %s producer.", this.getClass().getName()));

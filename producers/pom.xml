@@ -36,7 +36,6 @@ under the License.
   <modules>
     <module>producer</module>
     <module>train-replayer</module>
-    <module>weather-replayer</module>
   </modules>
 
   <dependencies>
