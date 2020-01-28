@@ -82,7 +82,6 @@ export default class TraindataGrid extends Vue {
     }
   ];
   searchQuery: string = "";
-
 }
 </script>
 

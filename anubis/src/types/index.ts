@@ -10,7 +10,7 @@ declare module "vue-apollo" {
   class VueApollo implements PluginObject<{}> {
     [key: string]: any;
     install: PluginFunction<{}>;
-    constructor(options: { defaultClient: ApolloClient });
+    constructor(options: { defaultClient: ApolloClient<{}> });
     static install(pVue: typeof Vue, options?: {} | undefined): void;
   }
   export default VueApollo;
