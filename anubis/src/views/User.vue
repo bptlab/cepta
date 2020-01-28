@@ -1,7 +1,7 @@
 <template>
   <masonry-layout title="Your trains">
   <masonry-layout-tile section="IDs">
-    <input ref="search" class="form-control" id="search" type="number" placeholder="search ... ;)" v-model="search" >
+    <input ref="search" class="form-control" id="search" type="number" placeholder="search ... ;)" v-model="search" v-on:input="this.resetSelection">
       <selectable-table
         :table-data="filteredTableData"
         :show-indices="false"
@@ -12,9 +12,11 @@
         :clickHandler="this.clickHandler"
         cellspacing="0"
       />
-    <p> Hi {{search}} </p>
+      <button v-if="this.selectedTrainId" v-on:click="this.editId" type="button" class="btn btn-block black-btn"> Edit </button>
+      <button v-if="this.selectedTrainId" v-on:click="this.deleteId" type="button" class="btn btn-block black-btn"> Delete </button>
+      <button v-on:click="this.addId" type="button" class="btn btn-block black-btn"> Add ID </button>
     </masonry-layout-tile>
-  <masonry-layout-tile v-bind:section=sectionTitle id="sectionTitle">
+  <masonry-layout-tile v-bind:section=sectionTitle id="sectionTitle" v-if="this.selectedTrainId">
 
   </masonry-layout-tile>
   </masonry-layout>
@@ -39,14 +41,14 @@ import SelectableTable from "../components/SelectableTable.vue";
 export default class User extends Vue {
   example: string = "Test";
   trainIDs: Array<Array<number>> = [ [1], [2], [3], [4]];
-  search: number = -1;
+  search: (number | null) = null;
   selectedRow: (HTMLTableRowElement | null) = null;
   selectedTrainId: (number | null) = null;
   mounted() {
   }
 
   get sectionTitle() {
-    return 10
+    return this.selectedTrainId ? "Info for train " + this.selectedTrainId : "Please select a Train"
   }
   
   get filteredTableData() {
@@ -54,7 +56,7 @@ export default class User extends Vue {
   }
 
   idFilter(row:Array<number>) {
-    if (String(row[0]).includes(String(this.search)) || this.search == -1)
+    if (String(row[0]).includes(String(this.search)) || !this.search)
       return true;
   }
 
@@ -69,6 +71,22 @@ export default class User extends Vue {
 
     this.selectedRow.setAttribute("class", "selectedRow");
   }
+
+  resetSelection(){
+    console.log("hi")
+    this.selectedRow != null ? this.selectedRow.setAttribute("class", "") : this.selectedRow = null;
+    this.selectedTrainId = null;
+  }
+
+  addId(){
+    console.log("You clicked the add button!")
+  }
+  editId(){
+    console.log("You clicked the edit button!")
+  }
+  deleteId(){
+    console.log("You clicked the delete button!")
+  }
 }
 
 </script>
@@ -76,4 +94,7 @@ export default class User extends Vue {
 <style lang="sass">
 .selectedRow 
   background-color: red
+.black-btn
+  background-color: black
+  color: white
 </style>
