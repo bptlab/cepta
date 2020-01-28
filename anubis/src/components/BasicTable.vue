@@ -88,13 +88,15 @@ export default class BasicTable extends Vue {
   }
 
   get sortedTableData() {
-    return this.tableData.slice(1).sort((a: {[key: string]: any }, b: {[key: string]: any }) => {
-      return a[this.sortKey] > b[this.sortKey]
-        ? 1
-        : b[this.sortKey] > a[this.sortKey]
-        ? -1
-        : 0;
-    });
+    return this.tableData
+      .slice(1)
+      .sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
+        return a[this.sortKey] > b[this.sortKey]
+          ? 1
+          : b[this.sortKey] > a[this.sortKey]
+          ? -1
+          : 0;
+      });
   }
 
   get tableCategories() {

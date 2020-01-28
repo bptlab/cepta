@@ -25,7 +25,8 @@
     "sockjs-client": "^1.4.0",
     "themify-icons": "^1.0.0",
     "ts-protoc-gen": "^0.12.0",
-    "vue": "^2.6.10",
+    "vue": "^2.6.11",
+    "vue-apollo": "^3.0.0-beta.11",
     "vue-axios": "^2.1.5",
     "vue-chartjs": "^3.5.0",
     "vue-class-component": "^7.1.0",
@@ -45,6 +46,8 @@
     "@types/jquery": "^3.3.31",
     "@types/mocha": "^5.2.7",
     "@types/sockjs-client": "^1.1.1",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
     "@vue/cli-plugin-babel": "^4.1.1",
     "@vue/cli-plugin-e2e-cypress": "^4.1.1",
     "@vue/cli-plugin-eslint": "^4.1.1",
@@ -58,13 +61,17 @@
     "@vue/test-utils": "1.0.0-beta.29",
     "chai": "^4.2.0",
     "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-vue": "^6.0.1",
+    "graphql-tag": "^2.9.0",
+    "husky": "^4.2.1",
     "node-sass": "^4.13.0",
     "prettier": "^1.19.1",
     "sass-loader": "^8.0.0",
     "typescript": "~3.7.3",
-    "vue-template-compiler": "^2.6.10",
+    "vue-cli-plugin-apollo": "^0.21.3",
+    "vue-template-compiler": "^2.6.11",
     "vuex-module-decorators": "^0.11.0"
   },
   "eslintConfig": {
@@ -95,6 +102,11 @@
   "postcss": {
     "plugins": {
       "autoprefixer": {}
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "vue-cli-service lint"
     }
   },
   "browserslist": [

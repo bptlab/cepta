@@ -1,7 +1,13 @@
 <template>
   <div>
     <div id="main-content" class="container">
-      <input ref="search" class="form-control" id="myInput" type="text" placeholder="Search..">
+      <input
+        ref="search"
+        class="form-control"
+        id="myInput"
+        type="text"
+        placeholder="Search.."
+      />
       <div class="row">
         <basic-table
           ref="table"
@@ -20,24 +26,24 @@
 import RowLayout from "../components/RowLayout.vue";
 import RowLayoutRow from "../components/RowLayoutRow.vue";
 import BasicTable from "../components/BasicTable.vue";
-import store from '@/store/index';
-import {GrpcModule} from "../store/modules/grpc";
-import Stomp, {SubscribeHeaders} from "webstomp-client";
-import { Component, Vue } from 'vue-property-decorator'
+import store from "@/store/index";
+import { GrpcModule } from "../store/modules/grpc";
+import Stomp, { SubscribeHeaders } from "webstomp-client";
+import { Component, Vue } from "vue-property-decorator";
 
 @Component({
   name: "WebSocketDataFeed",
   components: { BasicTable, RowLayoutRow, RowLayout }
 })
 export default class WebSocketDataFeed extends Vue {
-  search : string =  "";
+  search: string = "";
   receivedUpdates: Array<Array<string>> = [];
-  websocket : WebSocket = this.$store.state.websocket;
+  websocket: WebSocket = this.$store.state.websocket;
 
-  pushUpdate(update : any, header:boolean){
-    let obj : Object = JSON.parse(update.body);
-    let newInput : Array <string> =  [];
-    let value : any;
+  pushUpdate(update: any, header: boolean) {
+    let obj: Object = JSON.parse(update.body);
+    let newInput: Array<string> = [];
+    let value: any;
 
     for (value of Object.entries(obj)) {
       if (header) newInput.push(value[0]);
@@ -49,21 +55,21 @@ export default class WebSocketDataFeed extends Vue {
 
   // computed
   get filteredTableData() {
-    let tableData : Array<string> = []
-    this.receivedUpdates.filter((tableArray) => {
+    let tableData: Array<string> = [];
+    this.receivedUpdates.filter(tableArray => {
       for (let key in tableArray) {
         if (String(tableArray[key]).includes(this.search))
-          tableData =  tableArray;
-      };
-    })
+          tableData = tableArray;
+      }
+    });
     return tableData;
   }
 
   // Mount
   mounted() {
-    this.search = (<HTMLInputElement>this.$refs.search).value;
+    this.search = (this.$refs.search as HTMLInputElement).value;
   }
-};
+}
 </script>
 
 <style lang="sass">

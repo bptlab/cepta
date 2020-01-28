@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Choose a TrainId</h1>
-    <h3>Either in the input field below or the in the navbar</h3>
+    <h3>Either in the input field below or in the navbar</h3>
     <form class="form-inline">
       <input
         ref="search"
@@ -10,7 +10,7 @@
         type="text"
         placeholder="Search.."
       />
-      <button @click="search">Search</button>
+      <button @click.prevent="search">Search</button>
     </form>
   </div>
 </template>
@@ -25,7 +25,7 @@ import { Component, Vue } from "vue-property-decorator";
 export default class TraindataInfo extends Vue {
   search() {
     let id = (this.$refs["search"] as HTMLInputElement).value;
-    this.$router.push({ name: "traindata", params: { id } });
+    this.$router.push({ name: "traindatagrid", params: { id } });
   }
 }
 </script>
