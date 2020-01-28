@@ -1,17 +1,19 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"fmt"
 	"net/http"
 	websocket "notification/websocket"
-	"github.com/urfave/cli/v2"
 	"os"
-	"fmt"
+
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 //Duplicate code with ../kafka/main.go -- will be gone with the real kafka queue and protobuf anyway
 type Message struct {
-	UID  int
+	UID     int
 	Message string
 }
 
@@ -54,28 +56,14 @@ func setupRoutes() {
 }
 
 func serve(ctx *cli.Context) error {
-	// Set port number
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
 	log.Printf("Server ready at %s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
-
-	/* Set log level
-	switch (ctx.Int("log") string) {
-		case "INFO" string:
-			log.SetLevel(log.InfoLevel);
-		case "EROOR" string:
-			log.SetLevel(log.ErrorLevel);
-		default: 
-			log.SetLevel(log.DebugLevel);
-	}
-	*/
-	
 	return nil
 }
 
 func main() {
 	setupRoutes()
-
 	app := &cli.App{
 		Name:  "CEPTA Notification service",
 		Usage: "The service sets up the websocket connection and subscription to kafka",
@@ -96,6 +84,12 @@ func main() {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+			level, err := logrus.ParseLevel(ctx.String("log"))
+			if err != nil {
+				log.Warnf("Log level '%s' does not exist.")
+				level = logrus.InfoLevel
+			}
+			log.SetLevel(level)
 			ret := serve(ctx)
 			return ret
 		},
