@@ -1,16 +1,11 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
-	"strings"
-	"time"
 
 	"path/filepath"
 
@@ -19,17 +14,15 @@ import (
 	// "github.com/bptlab/cepta/schemas/types/basic"
 	// "/schemas/types/basic"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	"github.com/bptlab/cepta/osiris/query/resolvers"
 	"github.com/friendsofgo/graphiql"
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
-var (
-	ctx context.Context
-	db  *sql.DB
-)
-
+/*
 func ExampleDB_QueryRowContext() {
 	id := 123
 	var username string
@@ -44,6 +37,7 @@ func ExampleDB_QueryRowContext() {
 		log.Printf("username is %q, account created on %s\n", username, created)
 	}
 }
+*/
 
 func loadSchema(path string) (string, error) {
 	b, err := ioutil.ReadFile(path)
@@ -53,53 +47,9 @@ func loadSchema(path string) (string, error) {
 	return string(b), nil
 }
 
-// TODO: Schema
-const Schema = `
-type Vegetable {
-    name: String!
-    price: Int!
-    image: String
-}
-type Query {
-    vegetable(name: String!): Vegetable
-}
-schema {
-    query: Query
-}
-`
-
-// TODO: Model
-type Vegetable struct {
-	name  string
-	price int
-	image *string
-}
-
-var vegetables map[string]Vegetable
-
-// Utils
 func strPtr(str string) *string {
 	return &str
 }
-
-func (q *query) Vegetable(ctx context.Context, args struct{ Name string }) *VegetableResolver {
-	v, ok := vegetables[strings.ToLower(args.Name)]
-	if ok {
-		return &VegetableResolver{v: &v}
-	}
-	return nil
-}
-
-type query struct{}
-
-// TODO: Resolver
-type VegetableResolver struct {
-	v *Vegetable
-}
-
-func (r *VegetableResolver) Name() string   { return r.v.name }
-func (r *VegetableResolver) Price() int32   { return int32(r.v.price) }
-func (r *VegetableResolver) Image() *string { return r.v.image }
 
 func serve(ctx *cli.Context) error {
 
@@ -115,19 +65,19 @@ func serve(ctx *cli.Context) error {
 	}
 	schemaPath := path.Join(dir, "query.runfiles", "__main__", ctx.String("schema"))
 
-	s, err := loadSchema(schemaPath) // "bazel-bin/models/gql/query_gql_proto/models/gql/query.pb.graphqls")
+	s, err := loadSchema(schemaPath)
 	if err != nil {
 		panic(err)
 	}
-	schema := graphql.MustParseSchema(s, &query{})
-	http.Handle("/query", &relay.Handler{Schema: schema})
 
-	// init model
-	vegetables = map[string]Vegetable{
-		"tomato": Vegetable{name: "Tomato", price: 100, image: strPtr("https://picsum.photos/id/152/100/100")},
-		"potato": Vegetable{name: "Potato", price: 50, image: strPtr("https://picsum.photos/id/159/100/100")},
-		"corn":   Vegetable{name: "Corn", price: 200},
+	config := libdb.DBConfig{}.ParseCli(ctx)
+	db, err := libdb.PostgresDatabase(&config)
+	if err != nil {
+		log.Fatalf("failed to initialize database: %v", err)
 	}
+
+	schema := graphql.MustParseSchema(s, &resolvers.Resolver{DB: &resolvers.QueryDB{DB: db}}, graphql.UseStringDescriptions())
+	http.Handle("/query", &relay.Handler{Schema: schema})
 
 	if ctx.Bool("debug") {
 		graphiqlHandler, err := graphiql.NewGraphiqlHandler("/query")
