@@ -15,6 +15,7 @@ type Client struct {
 	mu   sync.Mutex
 }
 
+// TODO: send protobuf message
 type Message struct {
 	Type int    `json:"type"`
 	Body string `json:"body"`
@@ -33,9 +34,9 @@ func (c *Client) Read() {
 			return
 		}
 
-		if messageType == 1 {
+		if messageType == UserMessage {
 			c.ID, _ = strconv.Atoi(string(p))
-			log.Info("UserId: %+v\n", c.ID)
+			log.Infof("UserId: %+v\n", c.ID)
 		}
 
 		message := Message{Type: messageType, Body: string(p)}

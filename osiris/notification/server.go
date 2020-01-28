@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-//Duplicate code with ../kafka/main.go -- will be gone with the real kafka queue and protobuf anyway
+// TODO: Protobuf schema will replace this test Message with actual message send through the kafka queue
 type Message struct {
 	UID     int
 	Message string
@@ -40,7 +40,7 @@ func setupRoutes() {
 
 	go connectKafkaConsumer(pool)
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ws/userdata", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(pool, w, r)
 	})
 }
@@ -60,9 +60,9 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "log",
-				Value:   "INFO",
-				Aliases: []string{"l"},
-				EnvVars: []string{"LOG_LEVEL"},
+				Value:   "info",
+				Aliases: []string{"log-level"},
+				EnvVars: []string{"LOG", "LOG_LEVEL"},
 				Usage:   "Set the log level for the microservice",
 			},
 			&cli.IntFlag{
