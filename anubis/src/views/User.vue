@@ -61,20 +61,27 @@ export default class User extends Vue {
   }
 
   clickHandler(record:MouseEvent){
-    let selectedElement:EventTarget  = record.target;
+    let target:EventTarget  = record.target;
+    let selectedElement: HTMLTableRowElement = document.getElementById(target.id);
     let selectedId:number = Number(selectedElement.innerText);
 
-    this.selectedRow != null ? this.selectedRow.setAttribute("class", "") : null;
 
-    this.selectedRow = document.getElementById(selectedElement.id);
-    this.selectedTrainId = selectedId;
+    if (this.selectedRow != selectedElement){
+      this.resetSelection();
+      this.selectedRow = selectedElement;
+      this.selectedTrainId = selectedId;
+      this.selectedRow.setAttribute("class", "selectedRow");
+    } else {
+      this.resetSelection();
+    }
 
-    this.selectedRow.setAttribute("class", "selectedRow");
   }
 
   resetSelection(){
-    console.log("hi")
-    this.selectedRow != null ? this.selectedRow.setAttribute("class", "") : this.selectedRow = null;
+    if (this.selectedRow != null ){
+      this.selectedRow.setAttribute("class", "");
+      this.selectedRow = null;
+    }
     this.selectedTrainId = null;
   }
 
