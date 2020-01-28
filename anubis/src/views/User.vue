@@ -2,11 +2,13 @@
   <masonry-layout title="Your trains">
   <masonry-layout-tile section="IDs">
     <input ref="search" class="form-control" id="search" type="number" placeholder="search ... ;)" v-model="search" >
-      <basic-table
+      <selectable-table
         :table-data="filteredTableData"
         :show-indices="false"
         :striped="true"
         :bordered="true"
+        :hoverable="true"
+        :clickHandler="this.clickHandler"
         cellspacing="0"
       />
     <p> Hi {{search}} </p>
@@ -22,7 +24,7 @@ import { Component, Vue } from "vue-property-decorator";
 import TrainIdList from "../components/TrainIdList.vue";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
-import BasicTable from "../components/BasicTable.vue";
+import SelectableTable from "../components/SelectableTable.vue";
 
 @Component({
   name: "user",
@@ -30,7 +32,7 @@ import BasicTable from "../components/BasicTable.vue";
     TrainIdList,
     MasonryLayout,
     MasonryLayoutTile,
-    BasicTable },
+    SelectableTable },
   props: {}
 })
 export default class User extends Vue {
@@ -51,6 +53,10 @@ export default class User extends Vue {
   idFilter(row:Array<number>) {
     if (String(row[0]).includes(String(this.search)) || this.search == -1)
       return true;
+  }
+
+  clickHandler(record:any, index:number){
+    console.log(record, index)
   }
 }
 
