@@ -86,12 +86,15 @@ export default class User extends Vue {
   }
 
   addId(){
+    // add id to user
     console.log("You clicked the add button!")
   }
   editId(){
+    // change id -> remove old from user and add new id to user
     console.log("You clicked the edit button!")
   }
   deleteId(){
+    // remove id from user
     console.log("You clicked the delete button!")
   }
 }

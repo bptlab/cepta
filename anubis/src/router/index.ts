@@ -56,6 +56,31 @@ export const routes: RouteConfig[] = [
       }
     ]
   },
+
+  {
+    path: "/user",
+    meta: { requiresAuth: true },
+    beforeEnter: ifAuthenticated,
+    component: Adminator,
+    children: [      
+      {
+        path: "home",
+        name: "home",
+        meta: { requiresAuth: true },
+        component: () =>
+        import(/* webpackChunkName: "about" */ "@/views/User.vue")
+
+      },
+      {
+        path: "settings",
+        name: "settings",
+        meta: { requiresAuth: true },
+        component: () =>
+        import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
+
+      }
+    ]
+  },
   {
     path: "/dashboard",
     redirect: "/dashboard/websockets",
@@ -96,16 +121,6 @@ export const routes: RouteConfig[] = [
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
       },  
-      
-      // User pages
-      {
-        path: "user",
-        name: "user",
-        meta: { requiresAuth: true },
-        component: () =>
-        import(/* webpackChunkName: "about" */ "@/views/User.vue")
-
-      },
     ]
   },
 
