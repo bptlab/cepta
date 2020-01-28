@@ -27,18 +27,23 @@ import { Component, Prop, Vue } from "vue-property-decorator";
     MasonryLayout,
     MasonryLayoutTile
   },
-  apollo: {
-    // Simple query that will update the 'hello' vue property
-    hello: gql`
-      query {
-        hello
-      }
-    `
-  }
+  // apollo: {
+  //   // Simple query that will update the 'hello' vue property
+  //   plannedTrainData: gql`
+  //     query {
+  //       plannedTrainData( id: this.id) {
+  //         locationID
+  //         locationName
+  //         plannedETA(unit: DATE)
+  //         delay(unit: SECONDS)
+  //         predictedETA(unit: DATE)
+  //         }
+  //     }
+  //   `
+  // }
 })
 export default class TraindataGrid extends Vue {
   @Prop({ default: "" }) private id?: number;
-  plannedTrainData2: { [key: string]: string }[] = []
   plannedTrainData: { [key: string]: string }[] = [
     {
       trainID: "43986033",
