@@ -124,3 +124,27 @@ go_proto_library(
     proto = ":train_information_data_proto",
     visibility = ["//visibility:public"],
 )
+
+
+
+
+
+
+proto_library(
+    name = "weather_data_proto",
+    srcs = ["WeatherData.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "weather_data_java_proto",
+    deps = [":weather_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "weather_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/weatherdataevent",
+    proto = ":weather_data_proto",
+    visibility = ["//visibility:public"],
+)

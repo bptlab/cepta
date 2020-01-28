@@ -34,7 +34,6 @@
 
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu pos-r">
-
         <!-- Websockets -->
         <sidebar-element title="Websockets" :route="{ name: 'websockets' }">
           <template v-slot:icon>
@@ -43,12 +42,11 @@
         </sidebar-element>
 
         <!-- Traindata -->
-        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo'}">
+        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
           </template>
         </sidebar-element>
-
 
         <!-- Multiple Levels -->
         <sidebar-dropdown title="Examples">
@@ -56,34 +54,6 @@
             <i class="c-teal-500 icon-view-list-alt"></i>
           </template>
           <template v-slot:entries>
-            <!-- Dashboard -->
-            <sidebar-element title="Dashboard" :route="{ name: 'dashboard' }">
-              <template v-slot:icon>
-                <i class="c-blue-500 icon-home"></i>
-              </template>
-            </sidebar-element>
-            <!-- Charts -->
-            <sidebar-element title="Charts" :route="{ name: 'charts' }">
-              <template v-slot:icon>
-                <i class="c-indigo-500 icon-bar-chart"></i>
-              </template>
-            </sidebar-element>
-            <!-- Tables -->
-            <sidebar-dropdown title="Tables">
-              <template v-slot:icon>
-                <i class="c-pink-500 icon-palette"></i>
-              </template>
-              <template v-slot:entries>
-                <sidebar-dropdown-element
-                    title="Basic Tables"
-                    :route="{ name: 'basictables' }"
-                />
-                <sidebar-dropdown-element
-                    title="Data Tables"
-                    :route="{ name: 'datatables' }"
-                />
-              </template>
-            </sidebar-dropdown>
             <!-- Pages -->
             <sidebar-dropdown title="Pages">
               <template v-slot:icon>
@@ -91,24 +61,24 @@
               </template>
               <template v-slot:entries>
                 <sidebar-dropdown-element
-                    title="Blank"
-                    :route="{ name: 'blank' }"
+                  title="Blank"
+                  :route="{ name: 'blank' }"
                 />
                 <sidebar-dropdown-element
-                    title="404 Error"
-                    :route="{ name: 'error404' }"
+                  title="404 Error"
+                  :route="{ name: 'error404' }"
                 />
                 <sidebar-dropdown-element
-                    title="500 Error"
-                    :route="{ name: 'error500' }"
+                  title="500 Error"
+                  :route="{ name: 'error500' }"
                 />
                 <sidebar-dropdown-element
-                    title="Log In"
-                    :route="{ name: 'login' }"
+                  title="Log In"
+                  :route="{ name: 'login' }"
                 />
                 <sidebar-dropdown-element
-                    title="Sign Up"
-                    :route="{ name: 'signup' }"
+                  title="Sign Up"
+                  :route="{ name: 'signup' }"
                 />
               </template>
             </sidebar-dropdown>
@@ -119,39 +89,30 @@
   </div>
 </template>
 
-<script>
-import SidebarElement from "./SidebarElement";
-import SidebarDropdown from "./SidebarDropdown";
-import SidebarDropdownElement from "./SidebarDropdownElement";
-import {AppModule} from "../store/modules/app";
+<script lang="ts">
+import SidebarElement from "./SidebarElement.vue";
+import SidebarDropdown from "./SidebarDropdown.vue";
+import SidebarDropdownElement from "./SidebarDropdownElement.vue";
+import { AppModule } from "@/store/modules/app";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "Sidebar",
   components: {
     SidebarElement,
     SidebarDropdown,
     SidebarDropdownElement
-  },
-  props: {
-    title: {
-      type: String,
-      default: "Cepta"
-    },
-    logo: {
-      type: String,
-      default: "@/assets/images/logo.png"
-    }
-  },
-  data() {
-    return {}
-  },
-  methods: {
-    toggleSidebar() {
-      AppModule.toggleCollapse();
-    }
-  },
+  }
+})
+export default class Sidebar extends Vue {
+  @Prop({ default: "Cepta" }) private title!: string;
+  @Prop({ default: "@/assets/images/logo.png" }) private logo!: string;
+
+  toggleSidebar() {
+    AppModule.toggleCollapse();
+  }
   mounted() {}
-};
+}
 </script>
 
 <style lang="sass">

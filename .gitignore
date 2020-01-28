@@ -40,6 +40,7 @@ Vagrantfile
 .idea/
 
 node_modules/
+.package-lock.json
 
 ### Ignore java (build) artifacts
 **/dependency-reduced-pom.xml

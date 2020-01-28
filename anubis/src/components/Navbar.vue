@@ -19,7 +19,11 @@
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
-        <li class="search-input" @keyup.enter="checkForUpdate()" :class="{ active: searchToggled }">
+        <li
+          class="search-input"
+          @keyup.enter="checkForUpdate()"
+          :class="{ active: searchToggled }"
+        >
           <input
             class="form-control"
             ref="searchInput"
@@ -32,7 +36,108 @@
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
-        <!--<button id="replayBtn" @click="replayData" class="btn btn-danger">Replay Data!</button>-->
+        <navbar-dropdown>
+          <template v-slot:icon>
+            <span
+              id="replayBtn"
+              :class="{ btn: true, 'btn-danger': isReplaying }"
+            >
+              {{ replayStatus }}
+              <beat-loader
+                class="inline-spinner"
+                v-show="isReplaying"
+                :color="'#ffffff'"
+                :size="'8px'"
+              ></beat-loader>
+            </span>
+          </template>
+          <template v-slot:content>
+            <form>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text" id="btnGroupAddon">ERRID</div>
+                </div>
+                <input
+                  type="text"
+                  v-model="replayERRID"
+                  class="form-control"
+                  id="erridInput"
+                  placeholder="82734629"
+                  aria-describedby="btnGroupAddon"
+                />
+              </div>
+              <div class="form-group">
+                <label for="formControlRange"
+                  >Frequency ({{
+                    scaledReplaySpeed.toFixed(isConstantReplay ? 2 : 0)
+                  }}{{ isConstantReplay ? "sec" : "x" }})</label
+                >
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  class="form-control-range"
+                  id="formControlRange"
+                  v-model="replaySpeed"
+                />
+              </div>
+              <div class="form-group">
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    v-model="replayType"
+                    type="radio"
+                    name="inlineRadioOptions"
+                    id="constantReplayCheckbox"
+                    value="constant"
+                  />
+                  <label class="form-check-label" for="constantReplayCheckbox"
+                    >Constant</label
+                  >
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    v-model="replayType"
+                    type="radio"
+                    name="inlineRadioOptions"
+                    id="proportionalReplayCheckbox"
+                    value="proportional"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="proportionalReplayCheckbox"
+                    >Proportional</label
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <button
+                  @click.prevent="toggleReplay"
+                  id="toggleReplayButton"
+                  :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
+                >
+                  {{ isReplaying ? "Stop" : "Start" }}
+                </button>
+                <button
+                  @click.prevent="updateReplay"
+                  id="updateReplayButton"
+                  class="btn btn-info"
+                  :disabled="!replayerConfigChanged"
+                >
+                  Apply
+                </button>
+                <button
+                  @click.prevent="resetReplay"
+                  id="resetReplayButton"
+                  class="btn btn-danger"
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </template>
+        </navbar-dropdown>
         <notifications-dropdown
           title="Notifications"
           :number="3"
@@ -42,147 +147,187 @@
             <i class="icon-bell"></i>
           </template>
           <template v-slot:entries>
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/1.jpg"
               headline="John Doe liked your post"
               sub-headline="5 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/women/60.jpg"
               headline="Moo Doe liked your cover image"
               sub-headline="7 mins ago"
             />
-            <notifications-dropdown-element
+            <notification-dropdown-element
               image="https://randomuser.me/api/portraits/men/3.jpg"
               headline="Lee Doe commented on your video"
               sub-headline="10 mins ago"
             />
           </template>
         </notifications-dropdown>
-        <!-- Email alerts
-        <notifications-dropdown title="Emails" :number="3" more="mails">
-          <template v-slot:icon>
-            <i class="icon-email"></i>
-          </template>
-          <template v-slot:entries>
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/1.jpg"
-              headline="John Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="5 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/2.jpg"
-              headline="Moo Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="15 mins ago"
-            />
-            <email-dropdown-element
-              image="https://randomuser.me/api/portraits/men/3.jpg"
-              headline="Lee Doe"
-              sub-headline="Want to create your own customized data generator for your app..."
-              status="25 mins ago"
-            />
-          </template>
-        </notifications-dropdown>
-        -->
+
         <!-- User account -->
         <account-dropdown
           username="Admin"
           picture="https://randomuser.me/api/portraits/lego/5.jpg"
         />
-
       </ul>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement";
 import EmailDropdownElement from "@/components/EmailDropdownElement";
 import AccountDropdown from "@/components/AccountDropdown";
+import NavbarDropdown from "@/components/NavbarDropdown";
 import { GrpcModule } from "@/store/modules/grpc";
-import {AppModule} from "../store/modules/app";
-import axios from 'axios';
+import { AppModule } from "../store/modules/app";
+import axios from "axios";
+import BeatLoader from "vue-spinner/src/BeatLoader.vue";
+import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+import { Frequency, ReplayOptions } from "@/generated/protobuf/replayer_pb";
 
-export default {
+@Component({
   name: "NavigationBar",
   components: {
-    "notifications-dropdown": NotificationsDropdown,
-    "notifications-dropdown-element": NotificationDropdownElement,
-    "email-dropdown-element": EmailDropdownElement,
-    "account-dropdown": AccountDropdown
-  },
-  props: {},
-  data() {
-    return {
-      searchToggled: false,
-      search: null,
-      stompClient: null
-    };
-  },
-  methods: {
-    toggleSearch() {
-      this.searchToggled = !this.searchToggled;
-      window.setTimeout(() => {
-        // Focus the input
-        this.$refs.searchInput.focus();
-      }, 0);
-    },
-    toggleSidebar() {
-      AppModule.toggleCollapse();
-      this.$redrawVueMasonry();
-      setTimeout(() => {
-        this.$redrawVueMasonry();
-      }, 0.2 * 500);
-    },
-    checkForUpdate() {
-      let id = this.$refs.searchInput.value;
-      // this.send(id)
-      let reg = new RegExp("^[0-9]*$");
-      debugger;
-
-      //only Numbers update our list of train data
-      if (reg.test(id))
-        this.$router.push({ name: 'traindata', params: { id }});
-    },
-    /*
-    send(message) {
-      console.log('Sehen')
-      axios.post('/api/trainid', message)
-        .then(response => {console.log(response)});
-    }
-
-    send(message){
-      console.log("Sending message: " + message);
-      if (this.stompClient) {
-        this.stompClient.send("/app/id", message, {});
-      }
-    },
-    connect(url = "/topic/traindata") {
-      this.stompClient = this.$store.state.websocket;
-      this.stompClient.connect(
-          {},
-          () =>
-              this.stompClient.subscribe(url, update => {
-                    console.log(update);
-                  },
-                  error => {
-                    console.log(error);
-                  })
-      )
-    },
-  },
-  mounted() {
-    // this.connect();*/
+    NavbarDropdown,
+    BeatLoader,
+    NotificationsDropdown,
+    NotificationDropdownElement,
+    EmailDropdownElement,
+    AccountDropdown
   }
-};
+})
+export default class NavigationBar extends Vue {
+  searchToggled: boolean = false;
+  search: any = null;
+  replaySpeed = 0;
+  replayERRID = "";
+  replayType = "proportional";
+
+  get replayerConfigChanged() {
+    return !(
+      this.replayingERRID == this.replayERRID &&
+      this.replayingSpeed == this.replaySpeed
+    );
+  }
+
+  get isReplaying() {
+    return GrpcModule.isReplaying;
+  }
+
+  get replayStatus() {
+    return GrpcModule.replayStatus;
+  }
+
+  get replayingERRID() {
+    return GrpcModule.replayingERRID;
+  }
+
+  get replayingType() {
+    return GrpcModule.replayingType;
+  }
+
+  get replayingSpeed() {
+    return GrpcModule.replayingSpeed;
+  }
+
+  get isConstantReplay() {
+    return this.replayType === "constant";
+  }
+
+  get replayFrequencyMin() {
+    return this.isConstantReplay ? 0.0 : 1.0;
+  }
+
+  get replayFrequencyMax() {
+    return this.isConstantReplay ? 5.0 : 50000.0;
+  }
+
+  get scaledReplaySpeed() {
+    return (
+      this.replayFrequencyMin +
+      (this.replaySpeed / 100) *
+        (this.replayFrequencyMax - this.replayFrequencyMin)
+    );
+  }
+
+  get replayOptions() {
+    let options = new ReplayOptions();
+    let errids = this.replayERRID?.trim().split(",") || new Array<string>();
+    options.setIdsList(errids);
+    if (this.scaledReplaySpeed) {
+      let freq = new Frequency();
+      freq.setFrequency(this.scaledReplaySpeed);
+      options.setFrequency(freq);
+    }
+    return options;
+  }
+
+  toggleReplay() {
+    GrpcModule.toggleReplayer(this.replayOptions);
+  }
+
+  updateReplay() {
+    let timestamp = this.replayOptions.getTimestamp()?.getTimestamp();
+    let frequency = this.replayOptions.getFrequency()?.getFrequency();
+    let ids = this.replayOptions.getIdsList();
+    if (ids || timestamp) {
+      // We must restart anyways
+      this.resetReplay();
+      this.toggleReplay();
+    } else if (frequency) GrpcModule.setReplayerSpeed(frequency);
+  }
+
+  resetReplay() {
+    GrpcModule.resetReplayer();
+  }
+
+  toggleSearch() {
+    this.searchToggled = !this.searchToggled;
+    window.setTimeout(() => {
+      // Focus the input
+      (this.$refs["searchInput"] as HTMLElement).focus();
+    }, 0);
+  }
+
+  toggleSidebar() {
+    AppModule.toggleCollapse();
+    // @ts-ignore: No such attribute
+    this.$redrawVueMasonry();
+    setTimeout(() => {
+      // @ts-ignore: No such attribute
+      this.$redrawVueMasonry();
+    }, 0.2 * 500);
+  }
+
+  created(): void {
+    GrpcModule.queryReplayer();
+  }
+
+  checkForUpdate() {
+    let id = (this.$refs["searchInput"] as HTMLInputElement).value;
+    // this.send(id)
+    let reg = new RegExp("^[0-9]*$");
+    debugger;
+
+    //only Numbers update our list of train data
+    if (reg.test(id)) this.$router.push({ name: "traindata", params: { id } });
+  }
+}
 </script>
 
 <style scoped lang="sass">
 
 // TODO: Make scoped by adding styles to child components
+
+#toggleReplayButton
+  float: right
+
+#resetReplayButton
+  float: left
 
 // ---------------------------------------------------------
 // @TOC
@@ -193,6 +338,10 @@ export default {
 // ---------------------------------------------------------
 // @Topbar
 // ---------------------------------------------------------
+
+.inline-spinner
+  display: inline-block
+  position: relative
 
 .header
   background-color: $default-white
@@ -263,7 +412,9 @@ export default {
 
       #replayBtn
         float: left
-        margin-right: 20px
+        height: calc(#{$header-height} / 2)
+        margin: 0
+        // margin-right: 20px
 
   .search-box
     .search-icon-close

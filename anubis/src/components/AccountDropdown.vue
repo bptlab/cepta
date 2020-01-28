@@ -37,39 +37,30 @@
   </li>
 </template>
 
-<script>
-import AccountDropdownElement from "@/components/AccountDropdownElement";
+<script lang="ts">
+import AccountDropdownElement from "../components/AccountDropdownElement.vue";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
-export default {
+@Component({
   name: "AccountDropdown",
   components: {
     AccountDropdownElement
-  },
-  props: {
-    username: {
-      type: String,
-      default: "Account Dropdown"
-    },
-    picture: {
-      type: String,
-      default: null
-    }
-  },
-  data() {
-    return {
-      open: false
-    };
-  },
-  methods: {
-    logout() {
-      this.$store.dispatch("AUTH_LOGOUT").then(() => {
-        this.$router.push("/login");
-      });
-    }
-  },
-  computed: {},
+  }
+})
+export default class AccountDropdown extends Vue {
+  @Prop({ default: "Account Dropdown" }) private username!: string;
+  @Prop({ default: null }) private picture!: string;
+
+  open: boolean = false;
+
+  logout() {
+    this.$store.dispatch("AUTH_LOGOUT").then(() => {
+      this.$router.push("/login");
+    });
+  }
+
   mounted() {}
-};
+}
 </script>
 
 <style scoped lang="sass"></style>

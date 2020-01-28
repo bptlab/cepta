@@ -6,7 +6,14 @@ services:
       - ${CEPTA_ENVOY_ADMIN_PORT}:9901
       - ${CEPTA_ENVOY_INGRESS_PORT}:80
       - ${CEPTA_ENVOY_GRPC_PORT}:81
+    environment:
+      ENVOY_HOST: ${ENVOY_HOST}
     volumes:
-      - ../envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
+      - ../prepare-envoy.sh:/prepare.sh:ro
+    entrypoint: ["bin/sh", "/prepare.sh"]
+    network_mode: host
+    env_file: .env
     command:
+      - envoy
       - -c /etc/envoy/envoy.yaml

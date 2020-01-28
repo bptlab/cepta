@@ -4,7 +4,6 @@ option go_package = "github.com/bptlab/cepta/models/grpc/replayer";
 option java_multiple_files = true;
 option java_package = "org.bptlab.cepta.producers.replayer";
 option java_outer_classname = "ReplayerProto";
-option objc_class_prefix = "RTG";
 
 package replayer;
 
@@ -13,23 +12,49 @@ service Replayer {
   // Basic controls
   rpc SeekTo(Timestamp) returns (Success) {}
   rpc Reset(Empty) returns (Success) {}
-  rpc Start(Empty) returns (Success) {}
+  rpc Start(ReplayOptions) returns (Success) {}
   rpc Stop(Empty) returns (Success) {}
 
-  // Setters for configuration
+  // Configuration
   rpc SetSpeed(Frequency) returns (Success) {}
+  rpc SetType(ReplayTypeOption) returns (Success) {}
+  rpc SetOptions(ReplayOptions) returns (Success) {}
+
+  // Query
+  rpc Status(Empty) returns (ReplayStatus) {}
+  rpc GetOptions(Empty) returns (ReplayOptions) {}
 }
 
-message Empty {}
+enum ReplayType {
+  CONSTANT = 0;
+  PROPORTIONAL = 1;
+}
+
+message ReplayTypeOption {
+  ReplayType type = 1;
+}
+
+message Frequency {
+  int32 frequency = 1;
+}
 
 message Timestamp {
   string timestamp = 1;
 }
 
-message Success {
-  bool success = 1;
+message ReplayStatus {
+  bool active = 1;
 }
 
-message Frequency {
-  int32 frequency = 1;
+message ReplayOptions {
+  repeated string ids = 1;
+  Frequency frequency = 2;
+  Timestamp timestamp = 3;
+  ReplayType type = 4;
+}
+
+message Empty {}
+
+message Success {
+  bool success = 1;
 }

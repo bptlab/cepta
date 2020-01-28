@@ -14,15 +14,10 @@
         </transition>
       </main>
 
-      <!-- App Screen Footer
+      <!-- App Screen Footer -->
       <footer-component id="footer">
-        Made by
-        <a href="https://romnn.io">romnn</a>
-        based on the original design by
-        <a href="https://colorlib.com" title="Colorlib">Colorlib</a>
-        . &copy; MIT.
+        bptlab 2020.
       </footer-component>
-      -->
     </div>
   </div>
 </template>
@@ -31,7 +26,7 @@
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import NavigationBar from "../components/Navbar";
-import {AppModule} from "../store/modules/app";
+import { AppModule } from "../store/modules/app";
 
 export default {
   name: "Adminator",

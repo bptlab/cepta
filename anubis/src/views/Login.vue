@@ -62,54 +62,49 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import { AuthModule } from "@/store/modules/auth";
+
+@Component({
   name: "Login",
-  components: {},
-  data() {
-    return {
-      email: "",
-      password: "",
-      shouldRemember: false,
-      hasError: false,
-      isRedirecting: false,
-      errorTitle: "Login failed",
-      errorMessage: "Check your email and password"
-    };
-  },
-  computed: {
-    appAllowsRegister() {
-      return this.$store.state.appAllowsRegister;
-    }
-  },
-  methods: {
-    clearForm() {
-      this.password = "";
-    },
-    login() {
-      this.hasError = false;
-      this.$store
-        .dispatch(
-          "AUTH_REQUEST",
-          { email: this.email, password: this.password },
-          this.shouldRemember
-        )
-        .then(
-          () => {
-            this.isRedirecting = true;
-            setTimeout(() => {
-              this.$router.push("/");
-            }, 1000);
-          },
-          ({ error, message }) => {
-            this.hasError = true;
-            this.errorTitle = error;
-            this.errorMessage = message;
-            this.clearForm();
-          }
-        );
-    }
-  },
+  components: {}
+})
+export default class Login extends Vue {
+  email: string = "";
+  password: string = "";
+  shouldRemember: boolean = false;
+  hasError: boolean = false;
+  isRedirecting: boolean = false;
+  errorTitle: string = "Login failed";
+  errorMessage: string = "Check your email and password";
+
+  //computed
+  get appAllowsRegister() {
+    return this.$store.state.appAllowsRegister;
+  }
+
+  clearForm() {
+    this.password = "";
+  }
+  login() {
+    this.hasError = false;
+    AuthModule.authRequest({ email: this.email, password: this.password }).then(
+      () => {
+        this.isRedirecting = true;
+        setTimeout(() => {
+          this.$router.push("/");
+        }, 1000);
+      },
+      ({ error, message }) => {
+        this.hasError = true;
+        this.errorTitle = error;
+        this.errorMessage = message;
+        this.clearForm();
+      }
+    );
+  }
+
   mounted() {}
-};
+}
 </script>

@@ -74,6 +74,7 @@ java_library(
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "//models/events:planned_train_data_java_proto",
         "//models/events:live_train_data_java_proto",
+        "//models/events:weather_data_java_proto",
         ":converters",
         ":config",
     ],
@@ -119,6 +120,7 @@ java_library(
         "//models/events:predicted_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:live_train_data_java_proto",
+        "//models/events:weather_data_java_proto",
     ],
 )
 
