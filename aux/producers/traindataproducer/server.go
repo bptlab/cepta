@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
-	"fmt"
 
-  	"github.com/sirupsen/logrus"
+	livetraindatareplayer "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer"
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	libutils "github.com/bptlab/cepta/osiris/lib/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
-	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	libcli "github.com/bptlab/cepta/osiris/lib/cli"
-	libutils "github.com/bptlab/cepta/osiris/lib/utils"
-	livetraindatareplayer "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer"
 )
 
 var speed = 5000
@@ -71,11 +71,11 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		// mustMatch 	*string
 		// timerange 	Timerange
 		SortColumn: "ACTUAL_TIME",
-		Limit: &limit,
-		Offset: 0,
-		Db: db,
-		Speed: &speed,
-		Mode: &mode,
+		Limit:      &limit,
+		Offset:     0,
+		Db:         db,
+		Speed:      &speed,
+		Mode:       &mode,
 	}
 	go live.Start(log)
 
@@ -96,9 +96,9 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 func main() {
 	log = logrus.New()
 	app := &cli.App{
-		Name: "CEPTA Train data replayer producer",
+		Name:  "CEPTA Train data replayer producer",
 		Usage: "Produces train data events by replaying a database dump",
-		Flags: append(libdb.DatabaseCliOptions, []cli.Flag {
+		Flags: append(libdb.DatabaseCliOptions, []cli.Flag{
 			&cli.GenericFlag{
 				Name: "log",
 				Value: &libcli.EnumValue{
@@ -107,21 +107,21 @@ func main() {
 				},
 				Aliases: []string{"log-level"},
 				EnvVars: []string{"LOG", "LOG_LEVEL"},
-				Usage: "Log level",
+				Usage:   "Log level",
 			},
 			&cli.IntFlag{
-				Name: "port",
-				Value: 80,
+				Name:    "port",
+				Value:   80,
 				Aliases: []string{"p"},
 				EnvVars: []string{"PORT"},
-				Usage: "grpc service port",
+				Usage:   "grpc service port",
 			},
 			&cli.StringFlag{
-				Name: "include",
-				Value: "",
+				Name:    "include",
+				Value:   "",
 				Aliases: []string{"must-match", "match", "errids"},
 				EnvVars: []string{"INCLUDE", "ERRIDS", "MATCH"},
-				Usage: "ids to be included in the replay",
+				Usage:   "ids to be included in the replay",
 			},
 			&cli.GenericFlag{
 				Name: "mode",
@@ -131,33 +131,33 @@ func main() {
 				},
 				Aliases: []string{"replay-type", "type", "replay"},
 				EnvVars: []string{"REPLAY_MODE", "MODE", "REPLAY"},
-				Usage: "replay mode (constant or proportional)",
+				Usage:   "replay mode (constant or proportional)",
 			},
 			&cli.IntFlag{
-				Name: "frequency",
-				Value: 200,
+				Name:    "frequency",
+				Value:   200,
 				Aliases: []string{"freq", "speed"},
 				EnvVars: []string{"FREQENCY", "SPEED", "FREQ"},
-				Usage: "speedup factor for proportional replay (as integer)",
+				Usage:   "speedup factor for proportional replay (as integer)",
 			},
 			&cli.IntFlag{
-				Name: "pause",
-				Value: 2 * 1000,
+				Name:    "pause",
+				Value:   2 * 1000,
 				Aliases: []string{"wait"},
 				EnvVars: []string{"PAUSE"},
-				Usage: "pause between sending events when using constant replay (in milliseconds)",
+				Usage:   "pause between sending events when using constant replay (in milliseconds)",
 			},
 			&cli.StringFlag{
-				Name: "start-timestamp",
+				Name:    "start-timestamp",
 				Aliases: []string{"start"},
 				EnvVars: []string{"START_TIMESTAMP", "START"},
-				Usage: "start timestamp",
+				Usage:   "start timestamp",
 			},
 			&cli.StringFlag{
-				Name: "end-timestamp",
+				Name:    "end-timestamp",
 				Aliases: []string{"end"},
 				EnvVars: []string{"END_TIMESTAMP", "END"},
-				Usage: "end timestamp",
+				Usage:   "end timestamp",
 			},
 		}...),
 		Action: func(ctx *cli.Context) error {

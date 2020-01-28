@@ -32,27 +32,6 @@ type Replayer struct {
 	producer	*kafkaproducer.KafkaProducer
 }
 
-type LiveTrainData struct {
-	Id			int64
-    Train_id	int64
-    Location_id	int64
-    Actual_time	time.Time
-    Status		int64
-    First_train_number		int64
-    Train_number_reference	int64
-    Arrival_time_reference	time.Time
-    Planned_arrival_deviation	int64
-    Transfer_location_id	int64
-    Reporting_im_id		int64
-    Next_im_id			int64
-    Message_status		int64
-    Message_creation	time.Time
-}
-
-func (LiveTrainData) TableName() string {
-    return "public.live"
-}
-
 func (timerange Timerange) buildQuery(column string) []string {
 	frmt := "2006-01-02 15:04:05" // Go want's this date!
 	query := []string{}
@@ -73,7 +52,7 @@ func DebugDatabase(r *Replayer) *gorm.DB {
 }
 
 func (r Replayer) produce() error {
-	query := DebugDatabase(&r).Model(&LiveTrainData{})
+	query := DebugDatabase(&r).Model(&libdb.LiveTrainData{})
 	// Match ERRIDs
 	if r.MustMatch != nil {
 		query = query.Where(*(r.MustMatch))
@@ -98,7 +77,7 @@ func (r Replayer) produce() error {
 		passedTime := time.Duration(0)
 		
 		for rows.Next() {
-			var livetraindata LiveTrainData
+			var livetraindata libdb.LiveTrainData
 			r.Db.DB.ScanRows(rows, &livetraindata) //.Error
 			r.log.Debugf("%v", livetraindata)
 			

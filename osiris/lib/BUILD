@@ -17,7 +17,8 @@ go_library(
 go_library(
     name = "db",
     srcs = [
-        "db.go"
+        "db.go",
+        "tmpmodels.go"
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/db",
     visibility = ["//visibility:public"],

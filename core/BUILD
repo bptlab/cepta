@@ -1,6 +1,6 @@
 java_binary(
     name = "core",
-    srcs = glob(["src/main/java/org/bptlab/cepta/*.java"]),
+    srcs = glob(["src/main/java/**/*.java"]),
     main_class = "org.bptlab.cepta.Main",
     resources = glob([
         "src/main/resources/**",
@@ -17,6 +17,10 @@ java_binary(
         "//models/events:planned_train_data_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:train_delay_notification_java_proto",
+        "//models/events:predicted_train_data_java_proto",
+        "//models/events:train_information_data_java_proto",
+        "@maven//:commons_io_commons_io_2_6",
+        "@maven//:joda_time_joda_time_2_9_7",
         "@maven//:info_picocli_picocli",
         "@maven//:com_twitter_chill_protobuf",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -33,6 +37,30 @@ java_binary(
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_github_jasync_sql_jasync_common",
     ],
+)
+
+java_library(
+    name = "core-testlib",
+    srcs = glob(["src/test/java/**/*.java"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        "@maven//:org_testng_testng_7_1_0",
+    ],
+)
+
+java_test(
+    name="core-tests",
+    size="small",
+    runtime_deps=[
+        ":core",
+        ":core-testlib",
+        "@maven//:org_testng_testng_7_1_0",
+    ],
+    data=["src/test/testng.xml"],
+    use_testrunner=False,
+    main_class="org.testng.TestNG",
+    args=["core/src/test/testng.xml"],
 )
 
 java_library(
