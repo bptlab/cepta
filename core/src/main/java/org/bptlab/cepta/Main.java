@@ -73,11 +73,15 @@ public class Main implements Callable<Integer> {
             Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
             new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
+    
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
             AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+
+    // .withClientId("PlannedTrainDataMainConsumer")
+    // System.out.print(liveTrainDataConsumer.client.id);
 
     FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
@@ -86,7 +90,6 @@ public class Main implements Callable<Integer> {
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
-
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
     DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
