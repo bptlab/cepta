@@ -84,7 +84,6 @@ class Grpc extends VuexModule implements IGrpcState {
   public async resetReplayer() {
     this.replayer.reset(new Empty(), {}, (err, response) => {
       if (!err && response.getSuccess()) {
-
       } else {
         alert("Operation failed");
       }

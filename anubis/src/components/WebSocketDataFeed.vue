@@ -32,7 +32,7 @@ import Stomp, { SubscribeHeaders } from "webstomp-client";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "WebSocketDataFeed",    
+  name: "WebSocketDataFeed",
   components: { BasicTable, RowLayoutRow, RowLayout }
 })
 export default class WebSocketDataFeed extends Vue {

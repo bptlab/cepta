@@ -63,22 +63,20 @@ export const routes: RouteConfig[] = [
     meta: { requiresAuth: true },
     beforeEnter: ifAuthenticated,
     component: Adminator,
-    children: [      
+    children: [
       {
         path: "home",
         name: "home",
         meta: { requiresAuth: true },
         component: () =>
-        import(/* webpackChunkName: "about" */ "@/views/User.vue")
-
+          import(/* webpackChunkName: "about" */ "@/views/User.vue")
       },
       {
         path: "settings",
         name: "settings",
         meta: { requiresAuth: true },
         component: () =>
-        import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
-
+          import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
       }
     ]
   },
@@ -130,11 +128,9 @@ export const routes: RouteConfig[] = [
         beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
-      },  
+      }
     ]
   },
-
-
 
   // Error pages
   {
@@ -160,18 +156,19 @@ export const routes: RouteConfig[] = [
   { path: "*", redirect: { name: "error404" } }
 ];
 
-const createRouter = () => new Router({
-  mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
-  scrollBehavior: (to, from, savedPosition) => {
-    if (savedPosition) {
-      return savedPosition
-    } else {
-      return { x: 0, y: 0 }
-    }
-  },
-  base: process.env.BASE_URL,
-  routes: routes
-})
+const createRouter = () =>
+  new Router({
+    mode: "history", // Disabled due to Github Pages doesn't support this, enable this if you need.
+    scrollBehavior: (to, from, savedPosition) => {
+      if (savedPosition) {
+        return savedPosition;
+      } else {
+        return { x: 0, y: 0 };
+      }
+    },
+    base: process.env.BASE_URL,
+    routes: routes
+  });
 
 const router = createRouter();
 

@@ -4,7 +4,7 @@
     <div v-if="isRedirecting">
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>
-    <form action="http://warm-plains-47366.herokuapp.com/api/user/login" method="post">
+    <form @submit="this.login">
       <!-- Email -->
       <div class="form-group">
         <label class="text-normal text-dark">Email</label>
@@ -89,5 +89,13 @@ export default class Login extends Vue {
   }
 
   mounted() {}
+
+  login(){
+    let jsonBody: string = `{ email: "${this.email}", password: "${this.password}"}`;
+    this.$http.post(
+      "http://warm-plains-47366.herokuapp.com/api/user/login",
+      jsonBody
+    );
+  }
 }
 </script>

@@ -27,8 +27,8 @@ export default class NavbarDropdown extends Vue {
   @Prop({ default: "Notification Dropdown" }) private title!: string;
   @Prop({ default: "" }) private more!: string;
   @Prop({ default: 0 }) private number!: number;
-  
-  open: boolean = false
+
+  open: boolean = false;
 
   get uuid() {
     return this.title.replace(/\s+/g, "");

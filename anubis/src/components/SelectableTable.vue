@@ -1,5 +1,5 @@
-<template>  
-<table
+<template>
+  <table
     class="table"
     :class="{
       dataTable: dataTable,
@@ -60,11 +60,11 @@
 import $ from "jquery";
 import "datatables";
 import { Component, Prop, Vue } from "vue-property-decorator";
-import BasicTable from './BasicTable.vue';
+import BasicTable from "./BasicTable.vue";
 
 @Component({
   name: "SelectableTable",
-  components: { 
+  components: {
     BasicTable
   }
 })
@@ -72,6 +72,4 @@ export default class SelectableTable extends BasicTable {
   @Prop({ default: null }) private clickHandler!: any;
 }
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>
