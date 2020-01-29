@@ -5,10 +5,10 @@
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>
     <div v-if="!isRedirecting && appAllowsRegister">
-      <form @submit.prevent="signup">
+      <form @submit="this.signup">
         <div class="form-group">
           <label class="text-normal text-dark">Username</label>
-          <input type="text" class="form-control" Placeholder="John Doe" />
+          <input type="text" class="form-control" Placeholder="John Doe" v-model="username"/>
         </div>
         <div class="form-group">
           <label class="text-normal text-dark">Email Address</label>
@@ -16,15 +16,16 @@
             type="email"
             class="form-control"
             Placeholder="name@email.com"
+            v-model="email"
           />
         </div>
         <div class="form-group">
           <label class="text-normal text-dark">Password</label>
-          <input type="password" class="form-control" placeholder="Password" />
+          <input type="password" class="form-control" placeholder="Password" v-model="password"/>
         </div>
         <div class="form-group">
           <label class="text-normal text-dark">Confirm Password</label>
-          <input type="password" class="form-control" placeholder="Password" />
+          <input type="password" class="form-control" placeholder="Password" v-model="conf_password"/>
         </div>
         <div class="form-group">
           <button class="btn btn-primary">Register</button>
@@ -44,19 +45,29 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import { AxiosRequestConfig } from 'axios';
 @Component({
   name: "Signup",
   components: {}
 })
 export default class SignUp extends Vue {
   isRedirecting: boolean = false;
+  username: string = "";
+  email: string = "";
+  password: string = "";
+  conf_password: string = "";
 
   //computed
   get appAllowsRegister() {
-    return this.$store.state.appAllowsRegister;
+    // return this.$store.state.appAllowsRegister;
+    return true;
   }
 
   signup() {
+    let jsonBody:string = `{ username: "${this.username}", email: "${this.email}", password: "${this.password}"}`
+    console.log(jsonBody)
+    // let config:AxiosRequestConfig = {headers: {'Access-Control-Allow-Origin': '*'}}
+    this.$http.post("http://warm-plains-47366.herokuapp.com/api/user/new", jsonBody);
     // If success
     this.isRedirecting = true;
   }

@@ -4,7 +4,7 @@
     <div v-if="isRedirecting">
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>
-    <form v-else @submit.prevent="login">
+    <form action="http://warm-plains-47366.herokuapp.com/api/user/login" method="post">
       <!-- Email -->
       <div class="form-group">
         <label class="text-normal text-dark">Email</label>
@@ -86,23 +86,6 @@ export default class Login extends Vue {
 
   clearForm() {
     this.password = "";
-  }
-  login() {
-    this.hasError = false;
-    AuthModule.authRequest({ email: this.email, password: this.password }).then(
-      () => {
-        this.isRedirecting = true;
-        setTimeout(() => {
-          this.$router.push("/");
-        }, 1000);
-      },
-      ({ error, message }) => {
-        this.hasError = true;
-        this.errorTitle = error;
-        this.errorMessage = message;
-        this.clearForm();
-      }
-    );
   }
 
   mounted() {}
