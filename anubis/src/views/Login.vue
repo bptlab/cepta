@@ -90,7 +90,7 @@ export default class Login extends Vue {
 
   mounted() {}
 
-  login(){
+  login() {
     let jsonBody: string = `{ email: "${this.email}", password: "${this.password}"}`;
     this.$http.post(
       "http://warm-plains-47366.herokuapp.com/api/user/login",
