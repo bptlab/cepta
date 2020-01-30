@@ -12,7 +12,7 @@ public class WeatherDataDatabaseConverter extends DatabaseConverter<WeatherData>
   public WeatherData fromResult(ResultSet result) throws Exception {
     WeatherData.Builder event = WeatherData.newBuilder();
     try {
-      event.setClass$(result.getString("class"));
+      event.setEventclass(result.getString("class"));
       event.setLatitude(result.getDouble("latitude"));
       event.setLongitude(result.getDouble("longitude"));
       convertTimestamp(result.getTimestamp("starttimestamp"), event::setStarttimestamp);
@@ -48,7 +48,7 @@ public class WeatherDataDatabaseConverter extends DatabaseConverter<WeatherData>
   public WeatherData fromRowData(RowData result) throws Exception {
     WeatherData.Builder event = WeatherData.newBuilder();
     try {
-      event.setClass$(result.getString("class"));
+      event.setEventclass(result.getString("class"));
       event.setLatitude(result.getDouble("latitude"));
       event.setLongitude(result.getDouble("longitude"));
       convertLocalDateTime(result.getDate("starttimestamp"), event::setStarttimestamp);

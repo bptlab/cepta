@@ -5,7 +5,7 @@ option java_package = "org.bptlab.cepta.models.events.weather";
 option java_outer_classname = "WeatherDataProtos";
 
 message WeatherData {
-    string class = 1;
+    string eventclass = 1;
     double latitude = 2;
     double longitude = 3;
     double starttimestamp = 4;

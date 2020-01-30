@@ -46,6 +46,7 @@ import com.twitter.chill.protobuf.ProtobufSerializer;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
 @Command(
     name = "cepta core",
@@ -80,18 +81,24 @@ public class Main implements Callable<Integer> {
 
     // AvroDeserializationSchema.forSpecific(PlannedTrainData.class)
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<PlannedTrainData>(
+        new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
             new BinaryProtoFlinkDeserializationSchema(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // .withClientId("PlannedTrainDataMainConsumer")
     // System.out.print(liveTrainDataConsumer.client.id);
-
+    /*
     FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.WEATHER_DATA,
             AvroDeserializationSchema.forSpecific(WeatherData.class),
+            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+            */
+    FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.WEATHER_DATA,
+            new BinaryProtoFlinkDeserializationSchema(WeatherData.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream

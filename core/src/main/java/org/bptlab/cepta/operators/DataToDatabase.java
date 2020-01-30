@@ -9,14 +9,19 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import org.apache.avro.Schema;
-import org.apache.avro.specific.SpecificRecord;
+import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+// import org.apache.avro.Schema;
+// import org.apache.avro.specific.SpecificRecord;
 import org.apache.flink.api.common.functions.MapFunction;
 
-public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, T> {
+public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T, T> {
   static final String HOST = "localhost";
   static final String DATABASE = "dbs1_imdb";
   static final String USER = "tester";
@@ -49,21 +54,32 @@ public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, 
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
-    // get column names from avro schema of data class
+    /* get column names from avro schema of data class
     Schema avroSchema = dataSet.getSchema();
     List<Schema.Field> fields = avroSchema.getFields();
     String[] columnNames = new String[fields.size()];
     for(int i = 0; i < fields.size(); i++){
       columnNames[i] = fields.get(i).name();
     }
+    */
+    /*
+    for(int i = 0; i < dataSet.field_count(); i++) {
+      columnNames[i] = descriptor->field(i).name();
+    }
+    */
+    List<String> columnNames = new ArrayList<String>();
+    for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
+      columnNames.add(entry.getKey().getName());
+    }
 
     // store strings of values and columns for sql query
-    String valuesString = valuesToQueryString(dataSet, columnNames);
+    // String valuesString = valuesToQueryString(dataSet, columnNames);
+    String insertionValues = arrayToQueryString(getValuesOfProtoMessage(dataSet));
     String columnsString = arrayToQueryString(columnNames);
 
     // Create query
     String query = "INSERT INTO " + table_name + columnsString
-        + " VALUES " + valuesString + ";";
+        + " VALUES " + insertionValues + ";";
     System.out.println(query);
 
     // send query
@@ -84,11 +100,11 @@ public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, 
     }
   }
 
-  private String valuesToQueryString(T dataSet, String[] columns)
-      throws NoSuchFieldException, IllegalAccessException {
+  private List<String> getValuesOfProtoMessage(T dataSet) throws NoSuchFieldException, IllegalAccessException {
+    List<String> values = new ArrayList<String>();
     // returns the query part string for the values
     // necessary for usage in the sql statement
-
+    /*
     Class c = dataSet.getClass();
 
     // get attribute fields of dataSet's class and store them in fields
@@ -118,19 +134,27 @@ public class DataToDatabase<T extends SpecificRecord> implements MapFunction<T, 
         columns[i] = null;
       }
     }
-
-    // generate string for values
-    String valuesString = arrayToQueryString(values);
-    return valuesString;
+    */
+    // String[] values = new String[columns.length];
+    for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
+      System.out.println(entry.getKey() + "/" + entry.getValue());
+      if(entry.getValue() instanceof String){
+        // add ' ' around value if it's a string
+        values.add(String.format("'%s'", entry.getValue().toString()));
+      }else{
+        values.add(entry.getValue().toString());
+      }
+    }
+    return values;
   }
 
-  private String arrayToQueryString(String[] array){
+  private String arrayToQueryString(List<String> elements){
     // takes the array's elements and converts them to a "(val1, val2, ...)" String
     // necessary for usage in the sql statement
     String string;
 
     // remove null values
-    ArrayList<String> elements = new ArrayList<>(Arrays.asList(array));;
+    // ArrayList<String> elements = new ArrayList<>(Arrays.asList(array));;
     elements.removeIf(Objects::isNull);
 
     // add , between elements
