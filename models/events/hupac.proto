@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.bptlab.cepta.producers.hupac";
+option java_outer_classname = "HUPACProto";
+option objc_class_prefix = "HPC";
+
+package hupac;
+
+servicce hupac {
+    // Basic controls
+
+    // Configuration
+
+    // Query
+}
+
+message MsgCreationTime {
+    string msgCreationType = 1;
+}
+
+message MsgVersion {
+    double msgVersion = 1;
+}
+
+message System {
+    string senderSystem = 1;
+}
+
+message Env {
+    string senderEnv = 1;
+}
+
+message TrainTrip{
+    int traintrip = 1;
+}
+
+message Train {
+    int train = 1;
+}
+
+message PlannedTrainDepartureDate {
+    string plannedTrainDepartureDate = 1;
+}
+
+message WagonNumber {
+    long wagonNumber = 1;
+}
+
+message EventTime {
+    string eventTime = 1;
+}
+
+message GPS {
+    float gps = 1;
+}
+
+message UIC {
+    long uic = 1;
+}
+
+message CourseOverGround {
+    int courseOverGround = 1;
+}
+
+message Speed {
+    double speed = 1;
+}
+
+message EventPlace {
+    GPS latitude = 1;
+    GPS longitude = 2;
+    GPS Altitude = 3;
+    UIC uic = 4;
+}
+
+message WagonTrackingEvent {
+    TrainTrip trainTrip= 1;
+    Train train = 2;
+    PlannedTrainDepartureDate plannedTrainDepartureDate = 3;
+    WagonNumber wagonNumber = 4;
+    EventTime eventTime = 5;
+    EventPlace EventPlace = 6;
+    CourseOverGround courseOverGround = 7;
+    Speed speed = 8;
+}
+message ListOfEvents {
+    WagonTrackingEvent WagonTrackingEvent = 1;
+}
+message MsgHeader {
+    MsgVersion version = 1;
+    System senderSystem = 2;
+    Env senderEnv = 3;
+    System receiverSystem  = 4;
+    Env receiverEnv = 5;
+    MsgCreationTime msgCreationType = 6;
+}
+
+message WagonTrackingMsg {
+    MsgHeader header = 1;
+    ListOfEvents listOfEvents = 2;
+}

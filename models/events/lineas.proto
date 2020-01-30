@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.bptlab.cepta.producers.lineas";
+option java_outer_classname = "LineasProto";
+option objc_class_prefix = "LNS";
+
+package lineas;
+
+message TrainTrip{
+    int traintrip = 1;
+}
+
+message Train {
+    int train = 1;
+}
+
+message PlannedTrainDepartureDate {
+    string plannedTrainDepartureDate = 1;
+}
+
+message EventTime {
+    string eventTime = 1;
+}
+
+message GPS {
+    float gps = 1;
+}
+
+message EventPlace {
+    GPS latitude = 1;
+    GPS longitude = 2;
+}
+
+message TripPosition {
+    TrainTrip trainTrip = 1;
+    Train train = 2;
+    PlannedTrainDepartureDate plannedTrainDepartureDate = 3;
+    EventTime eventTime = 4;
+    EventPlace EventPlace = 5;
+}
+
+message Root {
+    TripPosition TripPosition = 1;
+}
