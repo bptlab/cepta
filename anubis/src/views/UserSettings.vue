@@ -41,7 +41,9 @@
         <button class="btn btn-primary">Update</button>
       </div>
     </form>
-    <button class="btn btn-secondary red" v-on:click="this.deleteUser">Delete</button>
+    <button class="btn btn-secondary red" v-on:click="this.deleteUser">
+      Delete
+    </button>
   </div>
 </template>
 
@@ -66,9 +68,7 @@ export default class SignUp extends Vue {
   }
 
   deleteUser() {
-    console.log(
-      "you would have deleted yourself if it was implemented ;-)"
-    );
+    console.log("you would have deleted yourself if it was implemented ;-)");
   }
 
   mounted() {}
