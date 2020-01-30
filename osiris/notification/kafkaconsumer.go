@@ -2,10 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"time"
-
 	"github.com/Shopify/sarama"
-	"github.com/bptlab/cepta/osiris/notification/websocket"
+	"time"
+	websocket "notification/websocket"
 )
 
 func connectKafkaConsumer(pool *websocket.Pool) {
@@ -13,7 +12,7 @@ func connectKafkaConsumer(pool *websocket.Pool) {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 
-	// TODO: Specify brokers address through environment variables or CLI
+	// Specify brokers address
 	brokers := []string{"localhost:29092"}
 
 	// Create new consumer
@@ -28,9 +27,8 @@ func connectKafkaConsumer(pool *websocket.Pool) {
 		}
 	}()
 
-	// TODO: Specify topic through environment variables or CLI
 	topic := "news_for_leo"
-
+	
 	consumer, err := master.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		panic(err)
@@ -49,19 +47,19 @@ func connectKafkaConsumer(pool *websocket.Pool) {
 			case msg := <-consumer.Messages():
 				payload := msg.Value
 
-				// Converting []byte payload to JSON --> TODO: replace to send protobuf (receive in the frontend)
+				// Converting []byte payload to JSON
 				var message Message
 				json.Unmarshal(payload, &message)
 
 				for client, _ := range pool.Clients {
 					if client.ID == message.UID {
-						client.Conn.WriteJSON(websocket.Message{Type: websocket.KafkaMessage, Body: string(payload)})
+						client.Conn.WriteJSON(websocket.Message{Type: 4, Body: string(payload)})
 					}
 				}
 				break
 
 			case <-noopTicker.C:
-				message := websocket.Message{Type: websocket.PingMessage, Body: "ping"}
+				message := websocket.Message{Type: 2, Body: "ping"}
 				pool.Broadcast <- message
 			case <-stopSubscriber:
 				return

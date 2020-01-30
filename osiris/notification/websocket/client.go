@@ -1,11 +1,12 @@
+// inspired by tutorialedge.net webmaster Elliot Frobes
+
 package websocket
 
 import (
-	"strconv"
-	"sync"
-
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"strconv"
+	"sync"
 )
 
 type Client struct {
@@ -15,7 +16,6 @@ type Client struct {
 	mu   sync.Mutex
 }
 
-// TODO: send protobuf message
 type Message struct {
 	Type int    `json:"type"`
 	Body string `json:"body"`
@@ -34,9 +34,9 @@ func (c *Client) Read() {
 			return
 		}
 
-		if messageType == UserMessage {
+		if messageType == 1 {
 			c.ID, _ = strconv.Atoi(string(p))
-			log.Infof("UserId: %+v\n", c.ID)
+			log.Info("UserId: %+v\n", c.ID)
 		}
 
 		message := Message{Type: messageType, Body: string(p)}

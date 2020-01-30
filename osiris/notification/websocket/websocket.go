@@ -1,18 +1,12 @@
+// inspired by tutorialedge.net webmaster Elliot Frobes
+
 package websocket
 
 import (
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/gorilla/websocket"
-)
-
-// Websocket message type 
-const (
-	PingMessage  = iota
-	UserMessage  = iota
-	KafkaMessage = iota
 )
 
 var upgrader = websocket.Upgrader{

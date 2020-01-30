@@ -19,18 +19,12 @@ import { AuthModule } from "@/store/modules/auth";
   }
 })
 export default class App extends Vue {
-
   redraw() {
     // @ts-ignore: No such attribute
     this.$redrawVueMasonry();
   }
 
   connectWebsocket() {
-    /*
-    this.$store.commit('setWebsocket', socket);
-    */
-
-
     let socket: WebSocket = new WebSocket("ws://localhost:5555/ws/userdata");
     console.log("Attempting Connection...");
     socket.onopen = () => {
