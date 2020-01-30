@@ -19,7 +19,7 @@
         <i class="icon-user mR-10"></i>
       </account-dropdown-element>
       <!-- Settings page -->
-      <account-dropdown-element title="Settings" route="profile/settings">
+      <account-dropdown-element title="Settings" route="/user/settings">
         <i class="icon-settings mR-10"></i>
       </account-dropdown-element>
       <!-- Messages page -->

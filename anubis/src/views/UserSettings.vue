@@ -59,7 +59,7 @@ export default class SignUp extends Vue {
   }
 
   updateSettings() {
-    console.log("hi");
+    console.log("you could have updated your settings if it was implemented ;-)");
   }
 
   mounted() {}
