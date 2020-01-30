@@ -34,22 +34,22 @@ export default class App extends Vue {
     socket.onmessage = event => {
       var message = JSON.parse(event.data);
       if (message.type == 4) {
-        console.log(JSON.parse(message.body))
+        console.log(JSON.parse(message.body));
       } else {
         console.log(message);
       }
-    }
+    };
     socket.onclose = event => {
       console.log("Socket Closed Connection: ", event);
-      socket.send("Client Closed!")
+      socket.send("Client Closed!");
     };
     socket.onerror = error => {
       console.log("Socket Error: ", error);
     };
-  } 
+  }
 
-  generateRandomUserID(quantity:number) :string {
-    var userId:string = Math.floor(Math.random() * quantity).toString()
+  generateRandomUserID(quantity: number): string {
+    var userId: string = Math.floor(Math.random() * quantity).toString();
     return userId;
   }
 
