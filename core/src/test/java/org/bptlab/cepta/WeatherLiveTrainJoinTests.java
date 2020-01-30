@@ -22,6 +22,9 @@ import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.junit.Before;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class WeatherLiveTrainJoinTests {
 
