@@ -1,25 +1,26 @@
 package kafkaproducer
 
 import (
-	"time"
 	"strings"
-	"github.com/urfave/cli/v2"
-	log "github.com/sirupsen/logrus"
+	"time"
+
 	"github.com/Shopify/sarama"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 var KafkaProducerCliOptions = []cli.Flag{
 	&cli.StringFlag{
-		Name: "kafka-brokers",
-		Value: "localhost:29092",
+		Name:    "kafka-brokers",
+		Value:   "localhost:29092",
 		Aliases: []string{"brokers"},
 		EnvVars: []string{"KAFKA_BROKERS", "BROKERS"},
-		Usage: "Kafka bootstrap brokers to connect to, as a comma separated list",
+		Usage:   "Kafka bootstrap brokers to connect to, as a comma separated list",
 	},
 }
 
 type KafkaProducerOptions struct {
-	Brokers 	[]string
+	Brokers []string
 }
 
 func (config KafkaProducerOptions) ParseCli(ctx *cli.Context) KafkaProducerOptions {
@@ -28,82 +29,49 @@ func (config KafkaProducerOptions) ParseCli(ctx *cli.Context) KafkaProducerOptio
 	}
 }
 
-/*
-type Message struct {
-	Name	string
-	Age		int32
-}
-
-func (m *Message) Length() int {
-	encoded, _ := m.Encode()
-	return len(encoded)
-}
-
-func (m *Message) Encode() ([]byte, error) {
-	encoded, err := json.Marshal(m)
-	return encoded, err
-}
-*/
-
-/*
-func WrappedProto struct {
-	wrapped		string
-}
-
-func (m *Message) Length() int {
-	encoded, _ := m.Encode()
-	return len(encoded)
-}
-
-func (m *Message) Encode() ([]byte, error) {
-	encoded, err := json.Marshal(m)
-	return encoded, err
-}
-*/
-
-
-
 type KafkaProducer struct {
 	DataCollector     sarama.SyncProducer
 	AccessLogProducer sarama.AsyncProducer
 }
 
-func (p KafkaProducer) ForBroker(brokerList []string) *KafkaProducer {
-	return &KafkaProducer{
-		DataCollector:     newDataCollector(brokerList),
-		AccessLogProducer: newAccessLogProducer(brokerList),
+func (p KafkaProducer) ForBroker(brokerList []string) (*KafkaProducer, error) {
+	collector, err := newDataCollector(brokerList)
+	if err != nil {
+		return nil, err
 	}
+	producer, err := newAccessLogProducer(brokerList)
+	if err != nil {
+		return nil, err
+	}
+	return &KafkaProducer{
+		DataCollector:     collector,
+		AccessLogProducer: producer,
+	}, nil
 }
 
-func newDataCollector(brokerList []string) sarama.SyncProducer {
+func newDataCollector(brokerList []string) (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll // Wait for all in-sync replicas to ack the message
 	config.Producer.Retry.Max = 10                   // Retry up to 10 times to produce the message
 	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(brokerList, config)
-	if err != nil {
-		log.Fatalf("Failed to start Sarama producer:", err)
-	}
-
-	return producer
+	return sarama.NewSyncProducer(brokerList, config)
 }
 
-func newAccessLogProducer(brokerList []string) sarama.AsyncProducer {
+func newAccessLogProducer(brokerList []string) (sarama.AsyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
 	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
 	config.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
-
 	producer, err := sarama.NewAsyncProducer(brokerList, config)
 	if err != nil {
-		log.Fatalf("Failed to start Sarama producer:", err)
+		return nil, err
 	}
 	go func() {
 		for err := range producer.Errors() {
 			log.Warnf("Failed to write access log entry:", err)
 		}
 	}()
-	return producer
+	return producer, err
 }
 
 func (s *KafkaProducer) Close() error {

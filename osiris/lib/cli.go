@@ -1,28 +1,30 @@
 package cli
 
 import (
-	"time"
-	"strings"
 	"fmt"
+	"strings"
+	"time"
 )
 
+var DefaultTimestampFormat = "2006-01-02 15:04:05"
+
 type TimestampValue struct {
-	Format	*string
-	Default	time.Time
-	ts		*time.Time
+	Format  *string
+	Default time.Time
+	ts      *time.Time
 }
 
 func (ts *TimestampValue) getFormat() string {
 	if ts.Format != nil {
 		return *ts.Format
 	}
-	return "2006-01-02 15:04:05"
+	return DefaultTimestampFormat
 }
 
 func (ts *TimestampValue) Set(value string) error {
 	t, err := time.Parse(ts.getFormat(), value)
 	if err != nil {
-		return fmt.Errorf("%s cannot be parsed as %s", value, ts.getFormat())
+		return fmt.Errorf("%s cannot be parsed as a timestamp (expected format: %s)", value, ts.getFormat())
 	}
 	ts.ts = &t
 	return nil

@@ -3,43 +3,42 @@ package livetraindatareplayer
 import (
 	"fmt"
 	"time"
+
+	"github.com/Shopify/sarama"
+	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
+	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	"github.com/Shopify/sarama"
-	"github.com/bptlab/cepta/models/events/livetraindataevent"
-	"github.com/bptlab/cepta/osiris/lib/kafka/producer"
-	"github.com/golang/protobuf/proto"
 )
 
-type Timerange struct {
-	from *time.Time
-	to *time.Time
-}
-
 type Replayer struct {
-	TableName 	string
-	MustMatch 	*string
-	Timerange 	Timerange
-	SortColumn 	string
-	Limit 		*int
-	Speed		*int
-	Mode		*string
-	Offset 		int
-	Db 			*libdb.DB
-	log			*logrus.Entry
-	running		bool
-	producer	*kafkaproducer.KafkaProducer
+	TableName  string
+	MustMatch  *[]string
+	Timerange  *pb.Timerange
+	SortColumn string
+	Limit      *int
+	Speed      *int
+	Mode       *pb.ReplayType
+	Offset     int
+	Db         *libdb.DB
+	Brokers    []string
+	log        *logrus.Entry
+	running    bool
+	producer   *kafkaproducer.KafkaProducer
 }
 
-func (timerange Timerange) buildQuery(column string) []string {
+func buildQuery(column string, timerange *pb.Timerange) []string {
 	frmt := "2006-01-02 15:04:05" // Go want's this date!
 	query := []string{}
-	if timerange.from != nil {
-		query = append(query, fmt.Sprintf("%s >= '%s'", column, timerange.from.Format(frmt)))
+	if start, err := ptypes.Timestamp(timerange.GetStart()); err != nil && start.Unix() > 0 {
+		query = append(query, fmt.Sprintf("%s >= '%s'", column, start.Format(frmt)))
 	}
-	if timerange.from != nil {
-		query = append(query, fmt.Sprintf("%s < '%s'", column, timerange.to.Format(frmt)))
+	if end, err := ptypes.Timestamp(timerange.GetEnd()); err != nil && end.Unix() > 0 {
+		query = append(query, fmt.Sprintf("%s < '%s'", column, end.Format(frmt)))
 	}
 	return query
 }
@@ -55,10 +54,14 @@ func (r Replayer) produce() error {
 	query := DebugDatabase(&r).Model(&libdb.LiveTrainData{})
 	// Match ERRIDs
 	if r.MustMatch != nil {
-		query = query.Where(*(r.MustMatch))
+		for _, condition := range *(r.MustMatch) {
+			if len(condition) > 0 {
+				query = query.Where(condition)
+			}
+		}
 	}
 	// Match time range
-	for _, constraint := range r.Timerange.buildQuery(r.SortColumn) {
+	for _, constraint := range buildQuery(r.SortColumn, r.Timerange) {
 		r.log.Info(constraint)
 		query = query.Where(constraint)
 	}
@@ -75,12 +78,16 @@ func (r Replayer) produce() error {
 	if err == nil {
 		recentTime := time.Time{}
 		passedTime := time.Duration(0)
-		
+
 		for rows.Next() {
 			var livetraindata libdb.LiveTrainData
-			r.Db.DB.ScanRows(rows, &livetraindata) //.Error
+			err := r.Db.DB.ScanRows(rows, &livetraindata)
+			if err != nil {
+				r.log.Debugf("%v", err)
+				continue
+			}
 			r.log.Debugf("%v", livetraindata)
-			
+
 			newTime := livetraindata.Actual_time
 			if !recentTime.IsZero() {
 				passedTime = newTime.Sub(recentTime)
@@ -88,7 +95,7 @@ func (r Replayer) produce() error {
 			r.log.Infof("%v have passed since the last event", passedTime)
 
 			// Serialize proto
-			event := &train.LiveTrainData{Id: 23}
+			event := &livetraindataevent.LiveTrainData{Id: 23}
 			eventBytes, err := proto.Marshal(event)
 			if err != nil {
 				r.log.Fatalf("Failed to marshal proto:", err)
@@ -98,14 +105,14 @@ func (r Replayer) produce() error {
 
 			waitTime := int64(0) // time.Duration(0)
 			switch *r.Mode {
-			case "constant":
+			case pb.ReplayType_CONSTANT:
 				waitTime = 10 // * time.Second
-			case "proportional":
+			case pb.ReplayType_PROPORTIONAL:
 				waitTime = passedTime.Nanoseconds() / int64(*r.Speed)
 			default:
 				waitTime = 10 // * time.Second
 			}
-			
+
 			r.log.Infof("Produced a message and will sleep for %v seconds", time.Duration(waitTime))
 			time.Sleep(time.Duration(waitTime))
 			recentTime = newTime
@@ -118,13 +125,18 @@ func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.TableName)
 	r.log.Info("Starting to produce")
 	brokerList := []string{"localhost:29092"}
-	r.producer = kafkaproducer.KafkaProducer{}.ForBroker(brokerList)
+	var err error
+	r.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(brokerList)
+	if err != nil {
+		log.Warnf("Failed to start kafka producer: %s", err.Error())
+		log.Fatal("Cannot produce events")
+	}
 	defer func() {
 		if err := r.producer.Close(); err != nil {
 			r.log.Println("Failed to close server", err)
 		}
 	}()
-	err := r.produce()
+	err = r.produce()
 	if err != nil {
 		panic(err)
 	}
