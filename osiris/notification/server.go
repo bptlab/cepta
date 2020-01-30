@@ -7,7 +7,6 @@ import (
 
 	"github.com/bptlab/cepta/osiris/notification/websocket"
 
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -74,10 +73,10 @@ func main() {
 			},
 		},
 		Action: func(ctx *cli.Context) error {
-			level, err := logrus.ParseLevel(ctx.String("log"))
+			level, err := log.ParseLevel(ctx.String("log"))
 			if err != nil {
 				log.Warnf("Log level '%s' does not exist.")
-				level = logrus.InfoLevel
+				level = log.InfoLevel
 			}
 			log.SetLevel(level)
 			ret := serve(ctx)

@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/Shopify/sarama"
 	"time"
-	websocket "notification/websocket"
+
+	"github.com/Shopify/sarama"
+	"github.com/bptlab/cepta/osiris/notification/websocket"
 )
 
 func connectKafkaConsumer(pool *websocket.Pool) {
@@ -28,7 +29,7 @@ func connectKafkaConsumer(pool *websocket.Pool) {
 	}()
 
 	topic := "news_for_leo"
-	
+
 	consumer, err := master.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		panic(err)
