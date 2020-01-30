@@ -16,18 +16,19 @@ bazel build //:cepta
 ```
 To build only a specific module or executable:
 ```bash
-bazel build //aux/producers/traindataproducer  # Example
+bazel build //auxiliary/producers/traindataproducer  # Example
 ```
 
 #### Running
 To run a specific executable:
 ```bash
-bazel run //aux/producers/traindataproducer -- --port 8080  # Example
+bazel run //auxiliary/producers/traindataproducer -- --port 8080  # Example
 ```
 
 #### Testing
 ```bash
-bazel test //core:core-tests
+bazel test :all
+bazel test //core:core-tests  # Only test core
 ``` 
 
 #### Deployment

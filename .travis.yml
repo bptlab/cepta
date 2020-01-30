@@ -39,4 +39,4 @@ script:
   # Test docker compose regressions
   # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
-  - bazel test :cepta-tests
+  - bazel test :all

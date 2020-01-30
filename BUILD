@@ -26,13 +26,13 @@ filegroup(
     srcs = [
         "//osiris",
         "//core",
-        "//aux",
+        "//auxiliary",
     ],
 )
 
 test_suite(
-    name = "cepta-tests",
+    name = "all",
     tests = [
-        "//core:core-tests",
+        "//core:all",
     ],
 )
