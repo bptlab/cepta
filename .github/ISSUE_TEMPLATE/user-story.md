@@ -16,19 +16,19 @@ assignees: ''
 ### Because
 
 
-## Prerequisite
+## Prerequisites
 
 
 ## Tasks
-- [ ] Pull Request open 
-- [ ] gain knowledge about different best practices
-- [ ] generate a short presentation share you insights with the Team
+- [ ] Open Pull Request
+- [ ] Gain knowledge about different best practices
+- [ ] Prepare a short presentation to share your insights with the Team
 
 
 
 ## Acceptance Criteria
 - [ ] Documented
-- [ ] on Master
+- [ ] Merged in master
 - [ ] Linter is okay
 - [ ] Tests are written and green
 - [ ] Code Review done

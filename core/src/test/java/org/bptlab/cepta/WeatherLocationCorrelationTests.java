@@ -14,6 +14,7 @@ import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.testng.Assert;
 import java.util.TreeSet;
 import org.testng.annotations.Test;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
 public class WeatherLocationCorrelationTests {
   private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");

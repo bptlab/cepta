@@ -23,8 +23,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.formats.avro.AvroDeserializationSchema;
-import org.apache.flink.formats.avro.AvroRowSerializationSchema;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -37,13 +35,18 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.config.constants.KafkaConstants;
 import org.bptlab.cepta.config.constants.KafkaConstants.Topics;
 import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
-import org.bptlab.cepta.serialization.AvroBinarySerializer;
-import org.bptlab.cepta.serialization.AvroBinaryFlinkSerializationSchema;
+import org.bptlab.cepta.serialization.BinaryProtoFlinkDeserializationSchema;
+import org.bptlab.cepta.serialization.BinaryProtoFlinkSerializationSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import com.twitter.chill.protobuf.ProtobufSerializer;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
 @Command(
     name = "cepta core",
@@ -68,25 +71,34 @@ public class Main implements Callable<Integer> {
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
 
-    FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-            Topics.LIVE_TRAIN_DATA, AvroDeserializationSchema.forSpecific(LiveTrainData.class),
-            new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+    // env.getConfig().registerTypeWithKryoSerializer(LiveTrainData.class, ProtobufSerializer.class);
+    // env.getConfig().registerTypeWithKryoSerializer(LiveTrainData.class, ProtobufSerializer.class);
 
-    
+    // AvroDeserializationSchema.forSpecific(LiveTrainData.class)
+    FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
+        new FlinkKafkaConsumer011<LiveTrainData>(
+            Topics.LIVE_TRAIN_DATA, new BinaryProtoFlinkDeserializationSchema(LiveTrainData.class), new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+
+    // AvroDeserializationSchema.forSpecific(PlannedTrainData.class)
     FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.PLANNED_TRAIN_DATA,
-            AvroDeserializationSchema.forSpecific(PlannedTrainData.class),
+            new BinaryProtoFlinkDeserializationSchema(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     // .withClientId("PlannedTrainDataMainConsumer")
     // System.out.print(liveTrainDataConsumer.client.id);
-
+    /*
     FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topics.WEATHER_DATA,
             AvroDeserializationSchema.forSpecific(WeatherData.class),
+            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+            */
+    FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topics.WEATHER_DATA,
+            new BinaryProtoFlinkDeserializationSchema(WeatherData.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
 
     // Add consumer as source for data stream
@@ -116,7 +128,7 @@ public class Main implements Callable<Integer> {
           delay < 0 is good, the train might arrive earlier than planned
          */
                 try {
-                  long delay = observed.getActualTime() - expected.getPlannedTime();
+                  double delay = observed.getActualTime() - expected.getPlannedTime();
 
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {
@@ -134,8 +146,10 @@ public class Main implements Callable<Integer> {
     // Produce delay notifications into new queue
     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
         .withKeySerializer(Optional.of(LongSerializer::new));
+
+
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        KafkaConstants.Topics.DELAY_NOTIFICATIONS, new AvroBinaryFlinkSerializationSchema<>(),
+        KafkaConstants.Topics.DELAY_NOTIFICATIONS, new BinaryProtoFlinkSerializationSchema(TrainDelayNotification.class),
         delaySenderConfig.getProperties());
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);

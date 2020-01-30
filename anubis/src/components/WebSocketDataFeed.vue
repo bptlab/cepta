@@ -28,7 +28,6 @@ import RowLayoutRow from "../components/RowLayoutRow.vue";
 import BasicTable from "../components/BasicTable.vue";
 import store from "@/store/index";
 import { GrpcModule } from "../store/modules/grpc";
-import Stomp, { SubscribeHeaders } from "webstomp-client";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
@@ -38,6 +37,10 @@ import { Component, Vue } from "vue-property-decorator";
 export default class WebSocketDataFeed extends Vue {
   search: string = "";
   receivedUpdates: Array<Array<string>> = [];
+
+  /*
+  Old websocket connection
+
   websocket: WebSocket = this.$store.state.websocket;
 
   pushUpdate(update: any, header: boolean) {
@@ -64,6 +67,7 @@ export default class WebSocketDataFeed extends Vue {
     });
     return tableData;
   }
+  */
 
   // Mount
   mounted() {

@@ -10,29 +10,24 @@ The project is under active development and will regularly
 push updates to the [demo instance](https://bpt-lab.org/cepta). 
 
 #### Building
-To build the entire project with all modules:
+To build all executables of the entire project:
 ```bash
-mvn clean package
+bazel build //:cepta
 ```
-To `clean compile` a module, you can use the provided convenience script:
+To build only a specific module or executable:
 ```bash
-./run.sh <MODULE>
-./run.sh core  # Example
-./run.sh anubis --server.port=8085  # Example with arguments
+bazel build //aux/producers/traindataproducer  # Example
 ```
 
-To build only some modules:
+#### Running
+To run a specific executable:
 ```bash
-mvn -am -pl <MODULE> -am clean package
-mvn -am -pl backend -am clean package  # Example
+bazel run //aux/producers/traindataproducer -- --port 8080  # Example
 ```
-For a list of modules, check out the root level `pom.xml`.
 
 #### Testing
 ```bash
-mvn test
-mvn -am -pl <MODULE> test  # only test one module
-mvn -am -pl backend test  # Example
+bazel test //core:core-tests
 ``` 
 
 #### Deployment
