@@ -1,6 +1,6 @@
 <template>
   <masonry-layout title="Your trains">
-    <masonry-layout-tile section="IDs">
+    <masonry-layout-tile section="IDs" layoutStyle='{"col-ms-2": true}'>
       <input
         ref="search"
         class="form-control"
@@ -49,6 +49,7 @@
       id="sectionTitle"
       v-if="this.selectedTrainId"
     >
+      <grid-table :grid-data="trainData" :filter-key="searchQuery"></grid-table>
     </masonry-layout-tile>
   </masonry-layout>
 </template>
@@ -59,6 +60,7 @@ import TrainIdList from "../components/TrainIdList.vue";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import SelectableTable from "../components/SelectableTable.vue";
+import GridTable from "../components/GridTable.vue";
 
 @Component({
   name: "user",
@@ -66,13 +68,14 @@ import SelectableTable from "../components/SelectableTable.vue";
     TrainIdList,
     MasonryLayout,
     MasonryLayoutTile,
-    SelectableTable
+    SelectableTable,
+    GridTable
   },
   props: {}
 })
 export default class User extends Vue {
   example: string = "Test";
-  trainIDs: Array<Array<number>> = [[1], [2], [3], [4]];
+  trainIDs: Array<Array<number>> = [[43986033], [2], [3], [4]];
   search: number | null = null;
   selectedRow: HTMLTableRowElement | null = null;
   selectedTrainId: number | null = null;
@@ -129,6 +132,47 @@ export default class User extends Vue {
   deleteId() {
     // remove id from user
     console.log("You clicked the delete button!");
+  }
+
+  get trainData(): { [key: string]: string }[] {
+    // here should be the request of the actual data for the selected train id
+    return [
+      {
+        locationID: "4202153",
+        locationName: "MusterLocation",
+        plannedETA: "2019-08-02 13:28:00",
+        delay: "30",
+        predictedETA: "2019-08-02 13:58:00"
+      },
+      {
+        locationID: "4202154",
+        locationName: "ExampleTown",
+        plannedETA: "2019-08-02 14:38:00",
+        delay: "15",
+        predictedETA: "2019-08-02 14:53:00"
+      },
+      {
+        locationID: "4202155",
+        locationName: "NoWhereToFind",
+        plannedETA: "2019-08-02 15:48:00",
+        delay: "10",
+        predictedETA: "2019-08-02 15:58:00"
+      },
+      {
+        locationID: "4202156",
+        locationName: "RightHere",
+        plannedETA: "2019-08-02 16:20:00",
+        delay: "0",
+        predictedETA: "2019-08-02 16:20:00"
+      },
+      {
+        locationID: "4202157",
+        locationName: "LeftThere",
+        plannedETA: "2019-08-02 17:56:00",
+        delay: "-10",
+        predictedETA: "2019-08-02 17:46:00"
+      }
+    ];
   }
 }
 </script>

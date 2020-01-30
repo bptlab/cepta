@@ -18,7 +18,7 @@ export default class MasonryLayoutTile extends Vue {
   @Prop({ default: null }) private section!: string;
   @Prop({
     default: () => {
-      return { "col-md-6": true };
+      return { "col-md-8": true };
     }
   })
   private layoutStyle!: object;

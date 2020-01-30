@@ -1,5 +1,5 @@
 <template>
-  <table>
+  <table class="table-striped table-interactive" style="width: 100%">
     <thead>
       <tr>
         <th
@@ -110,16 +110,16 @@ export default class GridTable extends Vue {
 <style lang="sass">
 body
   font-size: 14px
-  color: #444
+  color: black
 
 table
-   border: 2px solid #42b983
+   border: 2px solid black
    border-radius: 3px
    background-color: #fff
 
 th
-   background-color: #42b983
-   color: rgba(255, 255, 255, 0.66)
+   background-color: black
+   color: white
    cursor: pointer
    -webkit-user-select: none
    -moz-user-select: none
@@ -136,9 +136,7 @@ td.delay-red
 td.delay-green
   color: green
 
-th, td
-   min-width: 120px
-   padding: 10px 20px
+
 
 th.active
    color: #fff
