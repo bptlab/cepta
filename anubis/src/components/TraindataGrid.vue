@@ -1,4 +1,6 @@
 <template>
+<masonry-layout>
+<masonry-layout-tile layoutStyle='{"col-ms-12": true}'>
   <div>
     <h1>{{ id }}</h1>
     <form id="search">Search <input name="query" v-model="searchQuery" /></form>
@@ -7,6 +9,8 @@
       :filter-key="searchQuery"
     ></grid-table>
   </div>
+</masonry-layout-tile>
+</masonry-layout>
 </template>
 
 <script lang="ts">

@@ -49,7 +49,7 @@
       id="sectionTitle"
       v-if="this.selectedTrainId"
     >
-      <grid-table :grid-data="trainData" :filter-key="searchQuery"></grid-table>
+      <grid-table :grid-data="trainData" :filter-key="search"></grid-table>
     </masonry-layout-tile>
   </masonry-layout>
 </template>
