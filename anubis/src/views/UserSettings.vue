@@ -41,7 +41,7 @@
         <button class="btn btn-primary">Update</button>
       </div>
     </form>
-    <button class="btn btn-secondary red" v-on:click="this.deleteUser">
+    <button class="btn btn-secondary red" v-on:click="deleteUser">
       Delete
     </button>
   </div>
