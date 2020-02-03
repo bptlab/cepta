@@ -46,6 +46,7 @@
     </masonry-layout-tile>
     <masonry-layout-tile
       v-bind:section="sectionTitle"
+      layoutStyle='{"col-ms-10": true}'
       id="sectionTitle"
       v-if="this.selectedTrainId"
     >
