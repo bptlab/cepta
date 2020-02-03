@@ -17,7 +17,7 @@
         :bordered="true"
         :hoverable="true"
         :headless="true"
-        :clickHandler="this.clickHandler"
+        :clickHandler="this.rowClickHandler"
         cellspacing="0"
       />
       <button
@@ -95,11 +95,12 @@ export default class User extends Vue {
       return true;
   }
 
-  clickHandler(record: MouseEvent) {
-    let target: EventTarget = record.target;
+  rowClickHandler(record: MouseEvent) {
+    let targetElement: HTMLElement | null = record.target as HTMLElement;
+    let elementId = targetElement != null ? targetElement.id : null;
     let selectedElement: HTMLTableRowElement = document.getElementById(
-      target.id
-    );
+      targetElement.id
+    ) as HTMLTableRowElement;
     let selectedId: number = Number(selectedElement.innerText);
 
     if (this.selectedRow != selectedElement) {
