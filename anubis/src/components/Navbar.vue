@@ -247,7 +247,7 @@ export default class NavigationBar extends Vue {
     );
   }
 
-  get parsedErrids():  Array<string> {
+  get parsedErrids(): Array<string> {
     return this.replayERRIDs?.trim().split(",") || new Array<string>();
   }
 

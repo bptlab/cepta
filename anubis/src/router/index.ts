@@ -124,14 +124,12 @@ export const routes: RouteConfig[] = [
       {
         path: "404",
         name: "error404",
-        component: () =>
-          import(/* webpackChunkName: "404" */ "@/views/404.vue")
+        component: () => import(/* webpackChunkName: "404" */ "@/views/404.vue")
       },
       {
         path: "500",
         name: "error500",
-        component: () =>
-          import(/* webpackChunkName: "500" */ "@/views/500.vue")
+        component: () => import(/* webpackChunkName: "500" */ "@/views/500.vue")
       }
     ]
   },
