@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
-import org.bptlab.cepta.WeatherData;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 import org.bptlab.cepta.config.PostgresConfig;
 
 public class WeatherLocationCorrelationFunction extends

@@ -1,0 +1,32 @@
+syntax = "proto3";
+package weather;
+option go_package = "github.com/bptlab/cepta/models/events/weather";
+option java_package = "org.bptlab.cepta.models.events.weather";
+option java_outer_classname = "WeatherDataProtos";
+
+message WeatherData {
+    string eventclass = 1;
+    double latitude = 2;
+    double longitude = 3;
+    double starttimestamp = 4;
+    double endtimestamp = 5;
+    double detectiontimestamp = 6;
+    string title = 7;
+    string description = 8;
+    double temperature = 9;
+    double rain = 10;
+    double windspeed = 11;
+    double cloudpercentage = 12;
+    string cityname = 13;
+    string identifier = 14;
+    double pressure = 15;
+    double ozone = 16;
+    double humidity = 17;
+    int64 windbearing = 18;
+    double precippropability = 19;
+    string preciptype = 20;
+    double dewpoint = 21;
+    int64 neareststormbearing = 22;
+    int64 neareststormdistance = 23;
+    double visibility = 24;
+}

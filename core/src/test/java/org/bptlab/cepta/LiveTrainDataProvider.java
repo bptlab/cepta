@@ -7,15 +7,37 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.testng.annotations.DataProvider;
+import org.bptlab.cepta.WeatherDataProvider;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
 public class LiveTrainDataProvider {
+
+  public static LiveTrainData getDefaultLiveTrainDataEvent() {
+    LiveTrainData.Builder builder = LiveTrainData.newBuilder();
+    builder.setId(1);
+    builder.setTrainId(1);
+    builder.setLocationId(1);
+    builder.setActualTime(1L);
+    builder.setStatus(1);
+    builder.setFirstTrainNumber(1);
+    builder.setTrainNumberReference(1);
+    builder.setArrivalTimeReference(1L);
+    builder.setPlannedArrivalDeviation(1);
+    builder.setTransferLocationId(1);
+    builder.setReportingImId(1);
+    builder.setNextImId(1);
+    builder.setMessageStatus(1);
+    builder.setMessageCreation(1L);
+    return builder.build();
+  }
 
   @DataProvider(name = "one-matching-live-train-weather-data-provider")
   public  static Object[][] weatherJoinOneLiveTrain(){
     StreamExecutionEnvironment env;
     env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
-    ArrayList<LiveTrainData>  oneMatchingTrain = new ArrayList<>();
+    ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
 
     oneMatchingTrain.add(trainEventWithLocationID(1));
     DataStream<LiveTrainData> liveTrainStream= env.fromCollection(oneMatchingTrain)
@@ -23,7 +45,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation();
+                return (long)liveTrainData.getMessageCreation();
               }
         });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -36,7 +58,7 @@ public class LiveTrainDataProvider {
             @Override
             public long extractAscendingTimestamp(
                 Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-              return weatherDataIntegerTuple2.f0.getStarttimestamp();
+              return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
             }
         });
     liveTrainStream.print();
@@ -60,7 +82,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation();
+                return (long) liveTrainData.getMessageCreation();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -76,7 +98,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return weatherDataIntegerTuple2.f0.getStarttimestamp();
+                return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
               }
             });
     return new Object[][] { {liveTrainStream, weatherStream} };
@@ -87,7 +109,7 @@ public class LiveTrainDataProvider {
     StreamExecutionEnvironment env;
     env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
-    ArrayList<LiveTrainData>  oneMatchingTrain = new ArrayList<>();
+    ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
 
     oneMatchingTrain.add(trainEventWithLocationID(1));
     DataStream<LiveTrainData> liveTrainStream= env.fromCollection(oneMatchingTrain)
@@ -95,7 +117,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation();
+                return (long) liveTrainData.getMessageCreation();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -108,7 +130,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return weatherDataIntegerTuple2.f0.getStarttimestamp();
+                return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
               }
             });
     liveTrainStream.print();
@@ -117,11 +139,14 @@ public class LiveTrainDataProvider {
   }
 
   private static LiveTrainData trainEventWithLocationID(int locationId){
-    return new LiveTrainData(1, 1, locationId, 1L, 1, 1, 1, 1L, 1, 1, 1, 1, 1, 1L);
+    return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+      .setLocationId(locationId).build();
   }
 
-  private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String $class){
-    return new Tuple2<>(new WeatherData($class, 1D, 1D, 1L, 1L, 1L, "", "", 1D, 1D, 1D, 1D, "", "", 1D, 1D, 1D, 1, 1D, "", 1D, 1, 1, 1D), locationId);
+  private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
+    WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
+      .setEventclass(eventClass).build();
+    return new Tuple2<>(weather, locationId);
   }
 
 }

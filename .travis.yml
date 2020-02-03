@@ -1,49 +1,42 @@
-branches:
-  only:
-    - /^*$/
-cache:
-  directories:
-  - $HOME/.m2
-jobs:
-  include:
-   - os: linux
-     arch: amd64
-   # Skip testing for ARM64 as this would require compiling
-   # protoc-gen-grpc-web manually
-   # - os: linux
-   #   arch: arm64
-   #   addons:
-   #     apt:
-   #       packages:
-   #         - maven
-   - os: osx
-     # osx does not support openjdk<9
-     jdk: openjdk11
-   # Disable windows completely because it does not make sense
-   #- os: windows
-   #  # windows does not support building java out of the box
-   #  language: shell
-
-services:
-  - docker
-
+dist: trusty
+sudo: required
+osx_image: xcode8
 language: java
-jdk:
-  - openjdk8
-  - openjdk11
+
+os:
+  - linux
+  - osx
+
+env:
+  - V=1.2.1
 
 before_install:
-  # Manually install openjdk and maven when on windows
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install openjdk8 maven docker-desktop docker-compose ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then cmd.exe //c "RefreshEnv.cmd" ; fi
+  - OS=linux
+  - ARCH=x86_64
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then OS=darwin; fi
+  - GH_BASE="https://github.com/bazelbuild/bazel/releases/download/$V"
+  - GH_ARTIFACT="bazel-$V-installer-$OS-$ARCH.sh"
+  - CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=$OS-$ARCH/lastSuccessfulBuild/artifact/output/ci"
+  - CI_ARTIFACT="bazel--installer.sh"
+  - URL="$GH_BASE/$GH_ARTIFACT"
+  - if [[ "$V" == "HEAD" ]]; then CI_ARTIFACT="`wget -qO- $CI_BASE | grep -o 'bazel-[-_a-zA-Z0-9\.]*-installer.sh' | uniq`"; fi
+  - if [[ "$V" == "HEAD" ]]; then URL="$CI_BASE/$CI_ARTIFACT"; fi
+  - echo $URL
+  - wget -O install.sh $URL
+  - chmod +x install.sh
+  - ./install.sh --user
+  - rm -f install.sh
 
-before_script:
+# services:
+#   - docker
+
+# before_script:
   # Try to start pgadmin via docker
   # As windows server cannot run linux docker containers we can only test this on linux
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
 
 script:
   # Test docker compose regressions
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
-  - mvn clean verify
+  - bazel test :cepta-tests

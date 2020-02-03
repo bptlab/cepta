@@ -1,0 +1,17 @@
+syntax = "proto3";
+package basic;
+option go_package = "github.com/bptlab/cepta/models/types/basic";
+
+message Empty {}
+
+message Timestamp {
+  string timestamp = 1;
+}
+
+message Success {
+  bool success = 1;
+}
+
+message Frequency {
+  int32 frequency = 1;
+}

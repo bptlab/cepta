@@ -1,6 +1,6 @@
 package org.bptlab.cepta.consumers;
 
-import org.bptlab.cepta.producers.KafkaServiceRunner;
+import org.bptlab.cepta.consumers.KafkaServiceRunner;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

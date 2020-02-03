@@ -1,5 +1,43 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+# Unignore bazel files without extension
+!**/WORKSPACE
+!**/BUILD
+
+
+### Above combination will ignore all files without extension ###
+
+
 ### Ignore DS_Store for mac users
 *.DS_Store
+
+### VSCode
+.classpath
+.vscode/
+.settings/
+.project
+*.code-workspace
+
+### Ignore bazel build artifacts
+bazel
+bazel-*
+bazel-bazel-test
+bazel-bin
+bazel-genfiles
+bazel-out
+bazel-testlogs
+bazel-vagrant
+bazel-bazel-example
+.vagrant/
+Vagrantfile
+.idea/
 
 node_modules/
 .package-lock.json
