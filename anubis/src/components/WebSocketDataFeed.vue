@@ -37,8 +37,16 @@ import { Component, Vue } from "vue-property-decorator";
 export default class WebSocketDataFeed extends Vue {
   search: string = "";
   receivedUpdates: Array<Array<string>> = [];
-  filteredTableData:Array<Array<string>> = [["I", "am"], ["some", "filtered"], ["Table", "date"]];
-  tableData:Array<Array<string>> = [["I", "am"], ["some", "unfiltered"], ["Table", "date"]];
+  filteredTableData: Array<Array<string>> = [
+    ["I", "am"],
+    ["some", "filtered"],
+    ["Table", "date"]
+  ];
+  tableData: Array<Array<string>> = [
+    ["I", "am"],
+    ["some", "unfiltered"],
+    ["Table", "date"]
+  ];
   /*
   Old websocket connection
 

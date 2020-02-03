@@ -45,7 +45,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import MasonryLayout from "@/components/MasonryLayout.vue";
-import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue"
+import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue";
 
 @Component({
   name: "GridTable",
