@@ -4,7 +4,7 @@
     <div v-if="isRedirecting">
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>
-    <form @submit="this.login">
+    <form v-else @submit.prevent="login">
       <!-- Email -->
       <div class="form-group">
         <label class="text-normal text-dark">Email</label>
