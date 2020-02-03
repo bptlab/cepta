@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
-    name = "traindataproducer",
+    name = "replayer",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -11,10 +11,10 @@ go_library(
     srcs = [
         "server.go"
     ],
-    importpath = "github.com/bptlab/cepta/aux/producers/traindataproducer",
+    importpath = "github.com/bptlab/cepta/auxiliary/producers/replayer",
     visibility = ["//visibility:private"],
     deps = [
-        ":livetraindatareplayer",
+        ":producer",
         "//models/grpc:replayer_go_proto",
         "//osiris/lib:db",
         "//osiris/lib:cli",
@@ -33,12 +33,11 @@ go_library(
     srcs = [
         "LiveTrainDataReplayer.go"
     ],
-    importpath = "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer",
+    importpath = "github.com/bptlab/cepta/auxiliary/producers/producer/replayer",
     visibility = ["//visibility:private"],
     deps = [
         "//osiris/lib:db",
         "//models/grpc:replayer_go_proto",
-        "//models/events:live_train_data_go_proto",
         "//osiris/lib:kafkaproducer",
         "@com_github_shopify_sarama//:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
