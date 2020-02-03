@@ -25,7 +25,7 @@ import gql from "graphql-tag";
     RowLayout,
     MasonryLayout,
     MasonryLayoutTile
-  },
+  }
   // apollo: {
   //   // Simple query that will update the 'hello' vue property
   //   plannedTrainData: gql`
