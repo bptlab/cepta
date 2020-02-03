@@ -58,7 +58,7 @@ java_library(
 )
 
 java_test(
-    name="core-tests",
+    name="all",
     size="small",
     runtime_deps=[
         ":core",
