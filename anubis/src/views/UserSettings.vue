@@ -1,6 +1,6 @@
 <template>
   <div>
-    <form action="www.google.de" method="post">
+    <form>
       <div class="form-group">
         <label class="text-normal text-dark">Username</label>
         <input

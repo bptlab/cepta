@@ -59,13 +59,15 @@ import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import SelectableTable from "../components/SelectableTable.vue";
+import GridTable from "../components/GridTable.vue";
 
 @Component({
   name: "user",
   components: {
     MasonryLayout,
     MasonryLayoutTile,
-    SelectableTable
+    SelectableTable,
+    GridTable
   },
   props: {}
 })
