@@ -177,16 +177,16 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import NotificationsDropdown from "@/components/NotificationsDropdown";
-import NotificationDropdownElement from "@/components/NotificationDropdownElement";
-import EmailDropdownElement from "@/components/EmailDropdownElement";
-import AccountDropdown from "@/components/AccountDropdown";
-import NavbarDropdown from "@/components/NavbarDropdown";
-import { GrpcModule } from "@/store/modules/grpc";
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+import AccountDropdown from "@/components/AccountDropdown.vue";
+import NavbarDropdown from "@/components/NavbarDropdown.vue";
+import { GrpcModule } from "../store/modules/grpc";
 import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue";
 import { Frequency, ReplayOptions } from "@/generated/protobuf/replayer_pb";
 
 @Component({
