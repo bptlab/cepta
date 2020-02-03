@@ -42,6 +42,13 @@
     "webstomp-client": "^1.2.6"
   },
   "devDependencies": {
+    "@bazel/hide-bazel-files": "latest",
+    "@bazel/bazel": "^2.0.0",
+    "@bazel/buildifier": "^0.29.0",
+    "@bazel/ibazel": "^0.11.1",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
     "@types/chai": "^4.2.6",
     "@types/jquery": "^3.3.31",
     "@types/mocha": "^5.2.7",

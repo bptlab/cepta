@@ -1,4 +1,25 @@
+workspace(
+    name = "cepta",
+    managed_directories = {"@npm": ["anubis/node_modules"]},
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "9473b207f1c5a61b603442cbfeeea8aaf2aa62870673fce2a1c52087f6ff4dc9",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.2.4/rules_nodejs-1.2.4.tar.gz"],
+)
+
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+
+npm_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "npm",
+    package_json = "//anubis:package.json",
+    # yarn_lock = "//:yarn.lock",
+    package_lock_json = "//anubis:package-lock.json",
+)
 
 http_archive(
     name = "rules_proto_grpc",

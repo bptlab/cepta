@@ -46,13 +46,13 @@ export const routes: RouteConfig[] = [
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Login.vue")
+          import(/* webpackChunkName: "login" */ "@/views/Login.vue")
       },
       {
         path: "/signup",
         name: "signup",
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Signup.vue")
+          import(/* webpackChunkName: "signup" */ "@/views/Signup.vue")
       }
     ]
   },
@@ -69,14 +69,14 @@ export const routes: RouteConfig[] = [
         name: "home",
         meta: { requiresAuth: true },
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/User.vue")
+          import(/* webpackChunkName: "user" */ "@/views/User.vue")
       },
       {
         path: "settings",
         name: "settings",
         meta: { requiresAuth: true },
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
+          import(/* webpackChunkName: "settings" */ "@/views/UserSettings.vue")
       }
     ]
   },
@@ -93,7 +93,7 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/WebSocket.vue")
+          import(/* webpackChunkName: "websocket" */ "@/views/WebSocket.vue")
       },
       {
         path: "blank",
@@ -110,7 +110,7 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "TrainData" */ "@/views/Traindata.vue")
+          import(/* webpackChunkName: "traindata" */ "@/views/Traindata.vue")
       }
     ]
   },
@@ -125,13 +125,13 @@ export const routes: RouteConfig[] = [
         path: "404",
         name: "error404",
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/404.vue")
+          import(/* webpackChunkName: "404" */ "@/views/404.vue")
       },
       {
         path: "500",
         name: "error500",
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/500.vue")
+          import(/* webpackChunkName: "500" */ "@/views/500.vue")
       }
     ]
   },

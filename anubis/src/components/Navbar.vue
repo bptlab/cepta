@@ -59,7 +59,7 @@
                 </div>
                 <input
                   type="text"
-                  v-model="replayERRID"
+                  v-model="replayERRIDs"
                   class="form-control"
                   id="erridInput"
                   placeholder="82734629"
@@ -196,14 +196,14 @@ import { Frequency, ReplayOptions } from "@/generated/protobuf/replayer_pb";
 export default class NavigationBar extends Vue {
   searchToggled: boolean = false;
   search: any = null;
-  replaySpeed = 0;
-  replayERRID = "";
-  replayType = "proportional";
+  replaySpeed: number = 0;
+  replayERRIDs: string = "";
+  replayType: string = "proportional";
 
   get replayerConfigChanged() {
     return !(
-      this.replayingERRID == this.replayERRID &&
-      this.replayingSpeed == this.replaySpeed
+      this.replayingERRID == this.parsedErrids &&
+      this.replayingSpeed?.getFrequency() == this.replaySpeed
     );
   }
 
@@ -216,15 +216,15 @@ export default class NavigationBar extends Vue {
   }
 
   get replayingERRID() {
-    return GrpcModule.replayingERRID;
+    return GrpcModule.replayingOptions.getIdsList();
   }
 
   get replayingType() {
-    return GrpcModule.replayingType;
+    return "TODO";
   }
 
   get replayingSpeed() {
-    return GrpcModule.replayingSpeed;
+    return GrpcModule.replayingOptions.getFrequency();
   }
 
   get isConstantReplay() {
@@ -247,10 +247,13 @@ export default class NavigationBar extends Vue {
     );
   }
 
+  get parsedErrids():  Array<string> {
+    return this.replayERRIDs?.trim().split(",") || new Array<string>();
+  }
+
   get replayOptions() {
     let options = new ReplayOptions();
-    let errids = this.replayERRID?.trim().split(",") || new Array<string>();
-    options.setIdsList(errids);
+    options.setIdsList(this.parsedErrids);
     if (this.scaledReplaySpeed) {
       let freq = new Frequency();
       freq.setFrequency(this.scaledReplaySpeed);

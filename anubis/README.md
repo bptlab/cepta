@@ -13,3 +13,12 @@
 | `npm run lint` | Lint and check for errors
 | `npm run test:unit` | Run unittests
 | `npm run test:e2e` | Run end to end tests
+
+## Notes
+https://github.com/bazelbuild/rules_nodejs/blob/master/packages/hide-bazel-files/README.md
+
+```json
+"devDependencies": {
+  "@bazel/hide-bazel-files": "latest"
+},
+```
