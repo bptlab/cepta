@@ -111,23 +111,6 @@ export const routes: RouteConfig[] = [
         beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "TrainData" */ "@/views/Traindata.vue")
-      },
-      {
-        path: "traindatagrid/:id",
-        name: "traindatagrid",
-        props: true,
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/TraindataGrid.vue")
-      },
-      {
-        path: "traindatainfo",
-        name: "traindatainfo",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
       }
     ]
   },

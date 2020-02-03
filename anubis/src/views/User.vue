@@ -6,7 +6,7 @@
         class="form-control"
         id="search"
         type="number"
-        placeholder="search ... ;)"
+        placeholder="search ..."
         v-model="search"
         v-on:input="this.resetSelection"
       />
@@ -56,20 +56,16 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import TrainIdList from "../components/TrainIdList.vue";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import SelectableTable from "../components/SelectableTable.vue";
-import GridTable from "../components/GridTable.vue";
 
 @Component({
   name: "user",
   components: {
-    TrainIdList,
     MasonryLayout,
     MasonryLayoutTile,
-    SelectableTable,
-    GridTable
+    SelectableTable
   },
   props: {}
 })
