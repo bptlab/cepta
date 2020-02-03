@@ -1,5 +1,5 @@
 <template>
-  <table>
+  <table class="table-striped table-interactive fullsize">
     <thead>
       <tr>
         <th
@@ -44,6 +44,8 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import MasonryLayout from "@/components/MasonryLayout.vue";
+import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue";
 
 @Component({
   name: "GridTable",
@@ -51,6 +53,10 @@ import { Component, Prop, Vue } from "vue-property-decorator";
     capitalize(str: string) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
+  },
+  components: {
+    MasonryLayout,
+    MasonryLayoutTile
   }
 })
 export default class GridTable extends Vue {
@@ -108,18 +114,20 @@ export default class GridTable extends Vue {
 </script>
 
 <style lang="sass">
+fullsize
+  width: 100%
 body
   font-size: 14px
-  color: #444
+  color: black
 
 table
-   border: 2px solid #42b983
+   border: 2px solid black
    border-radius: 3px
    background-color: #fff
 
 th
-   background-color: #42b983
-   color: rgba(255, 255, 255, 0.66)
+   background-color: black
+   color: white
    cursor: pointer
    -webkit-user-select: none
    -moz-user-select: none
@@ -136,9 +144,7 @@ td.delay-red
 td.delay-green
   color: green
 
-th, td
-   min-width: 120px
-   padding: 10px 20px
+
 
 th.active
    color: #fff

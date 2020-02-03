@@ -31,13 +31,22 @@ import { GrpcModule } from "../store/modules/grpc";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "WebSocketDataFeed",    
+  name: "WebSocketDataFeed",
   components: { BasicTable, RowLayoutRow, RowLayout }
 })
 export default class WebSocketDataFeed extends Vue {
   search: string = "";
   receivedUpdates: Array<Array<string>> = [];
-
+  filteredTableData: Array<Array<string>> = [
+    ["I", "am"],
+    ["some", "filtered"],
+    ["Table", "date"]
+  ];
+  tableData: Array<Array<string>> = [
+    ["I", "am"],
+    ["some", "unfiltered"],
+    ["Table", "date"]
+  ];
   /*
   Old websocket connection
 
