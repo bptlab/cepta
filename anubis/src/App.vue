@@ -71,6 +71,11 @@ export default class App extends Vue {
     this.redraw();
     this.connectWebsocket();
   }
+  /*
+  destroyed() {
+    this.socket.close();
+  }
+  */
 }
 </script>
 

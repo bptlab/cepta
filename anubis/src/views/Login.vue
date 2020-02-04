@@ -87,7 +87,11 @@ export default class Login extends Vue {
   clearForm() {
     this.password = "";
   }
+
+  mounted() {}
+
   login() {
+    /* 
     this.hasError = false;
     AuthModule.authRequest({ email: this.email, password: this.password }).then(
       () => {
@@ -102,9 +106,12 @@ export default class Login extends Vue {
         this.errorMessage = message;
         this.clearForm();
       }
+     */
+    let jsonBody: string = `{ email: "${this.email}", password: "${this.password}"}`;
+    this.$http.post(
+      "http://warm-plains-47366.herokuapp.com/api/user/login",
+      jsonBody
     );
   }
-
-  mounted() {}
 }
 </script>

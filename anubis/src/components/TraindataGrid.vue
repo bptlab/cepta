@@ -1,12 +1,18 @@
 <template>
-  <div>
-    <h1>{{ id }}</h1>
-    <form id="search">Search <input name="query" v-model="searchQuery" /></form>
-    <grid-table
-      :grid-data="plannedTrainData"
-      :filter-key="searchQuery"
-    ></grid-table>
-  </div>
+  <masonry-layout>
+    <masonry-layout-tile layoutStyle='{"col-ms-12": true}'>
+      <div>
+        <h1>{{ id }}</h1>
+        <form id="search">
+          Search <input name="query" v-model="searchQuery" />
+        </form>
+        <grid-table
+          :grid-data="plannedTrainData"
+          :filter-key="searchQuery"
+        ></grid-table>
+      </div>
+    </masonry-layout-tile>
+  </masonry-layout>
 </template>
 
 <script lang="ts">
@@ -17,7 +23,6 @@ import RowLayoutRow from "../components/RowLayoutRow.vue";
 import GridTable from "../components/GridTable.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import gql from "graphql-tag";
-
 @Component({
   name: "TraindataGrid",
   components: {

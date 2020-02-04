@@ -56,6 +56,30 @@ export const routes: RouteConfig[] = [
       }
     ]
   },
+
+  {
+    path: "/user",
+    redirect: "/user/home",
+    meta: { requiresAuth: true },
+    beforeEnter: ifAuthenticated,
+    component: Adminator,
+    children: [
+      {
+        path: "home",
+        name: "home",
+        meta: { requiresAuth: true },
+        component: () =>
+          import(/* webpackChunkName: "about" */ "@/views/User.vue")
+      },
+      {
+        path: "settings",
+        name: "settings",
+        meta: { requiresAuth: true },
+        component: () =>
+          import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
+      }
+    ]
+  },
   {
     path: "/dashboard",
     redirect: "/dashboard/websockets",
@@ -79,7 +103,6 @@ export const routes: RouteConfig[] = [
         component: () =>
           import(/* webpackChunkName: "blank" */ "@/views/Blank.vue")
       },
-
       {
         path: "traindata/:id",
         name: "traindata",
@@ -88,26 +111,10 @@ export const routes: RouteConfig[] = [
         beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "TrainData" */ "@/views/Traindata.vue")
-      },
-      {
-        path: "traindatagrid/:id",
-        name: "traindatagrid",
-        props: true,
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/TraindataGrid.vue")
-      },
-      {
-        path: "traindatainfo",
-        name: "traindatainfo",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/TraindataInfo.vue")
       }
     ]
   },
+
   // Error pages
   {
     path: "/error",
@@ -134,7 +141,7 @@ export const routes: RouteConfig[] = [
 
 const createRouter = () =>
   new Router({
-    // mode: 'history',  // Disabled due to Github Pages doesn't support this, enable this if you need.
+    mode: "history", // Disabled due to Github Pages doesn't support this, enable this if you need.
     scrollBehavior: (to, from, savedPosition) => {
       if (savedPosition) {
         return savedPosition;

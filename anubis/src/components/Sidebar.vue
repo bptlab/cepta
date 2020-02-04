@@ -41,8 +41,8 @@
           </template>
         </sidebar-element>
 
-        <!-- Traindata -->
-        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo' }">
+        <!-- User Home -->
+        <sidebar-element title="Trains" :route="{ name: 'home' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
           </template>

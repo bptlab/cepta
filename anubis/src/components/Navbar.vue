@@ -140,7 +140,7 @@
         </navbar-dropdown>
         <notifications-dropdown
           title="Notifications"
-          :number="3"
+          :number="2"
           more="notifications"
         >
           <template v-slot:icon>
@@ -148,19 +148,12 @@
           </template>
           <template v-slot:entries>
             <notification-dropdown-element
-              image="https://randomuser.me/api/portraits/men/1.jpg"
-              headline="John Doe liked your post"
-              sub-headline="5 mins ago"
+              headline="A new user signed up for the platform"
+              sub-headline="13 mins ago"
             />
             <notification-dropdown-element
-              image="https://randomuser.me/api/portraits/women/60.jpg"
-              headline="Moo Doe liked your cover image"
-              sub-headline="7 mins ago"
-            />
-            <notification-dropdown-element
-              image="https://randomuser.me/api/portraits/men/3.jpg"
-              headline="Lee Doe commented on your video"
-              sub-headline="10 mins ago"
+              headline="ERRID 777 arrived 10 minutes later than predicted in Berlin - Hauptbahnhof"
+              sub-headline="20 mins ago"
             />
           </template>
         </notifications-dropdown>
@@ -177,16 +170,16 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import NotificationsDropdown from "@/components/NotificationsDropdown";
-import NotificationDropdownElement from "@/components/NotificationDropdownElement";
-import EmailDropdownElement from "@/components/EmailDropdownElement";
-import AccountDropdown from "@/components/AccountDropdown";
-import NavbarDropdown from "@/components/NavbarDropdown";
-import { GrpcModule } from "@/store/modules/grpc";
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+import AccountDropdown from "@/components/AccountDropdown.vue";
+import NavbarDropdown from "@/components/NavbarDropdown.vue";
+import { GrpcModule } from "../store/modules/grpc";
 import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement";
+import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue";
 import { Frequency, ReplayOptions } from "@/generated/protobuf/replayer_pb";
 
 @Component({
@@ -414,7 +407,8 @@ export default class NavigationBar extends Vue {
         float: left
         height: calc(#{$header-height} / 2)
         margin: 0
-        // margin-right: 20px
+        margin-right: 20px
+        width: auto
 
   .search-box
     .search-icon-close
