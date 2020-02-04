@@ -1,14 +1,12 @@
 <template>
-  <div>
-    <div id="main-content">
-      <input
-        ref="search"
-        class="form-control"
-        type="text"
-        placeholder="Search.."
-      />
-      <grid-table :grid-data="receivedUpdates"></grid-table>
-    </div>
+  <div id="main-content">
+    <input
+      ref="search"
+      class="form-control"
+      type="text"
+      placeholder="Search.."
+    />
+    <grid-table :grid-data="receivedUpdates"></grid-table>
   </div>
 </template>
 

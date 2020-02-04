@@ -33,6 +33,7 @@
     "vue-chartjs": "^3.5.0",
     "vue-class-component": "^7.1.0",
     "vue-cookies": "^1.5.13",
+    "vue-dynamic-dropdown": "^1.0.12",
     "vue-masonry": "^0.11.8",
     "vue-nprogress": "^0.1.5",
     "vue-property-decorator": "^8.3.0",

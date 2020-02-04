@@ -149,7 +149,7 @@ export default class Sidebar extends Vue {
   top: 0
   transition: all 0.2s ease
   width: $offscreen-size
-  z-index: 1000
+  z-index: 1002
 
   ul
     list-style-type: none

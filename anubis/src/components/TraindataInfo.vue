@@ -26,7 +26,7 @@ import { Component, Vue } from "vue-property-decorator";
 export default class TraindataInfo extends Vue {
   search() {
     let id = (this.$refs["search"] as HTMLInputElement).value;
-    this.$router.push({ name: "traindatagrid", params: { id } });
+    this.$router.push({ name: "traindata", params: { id } });
   }
 }
 </script>
