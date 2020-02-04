@@ -36,6 +36,7 @@ go_library(
     importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer",
     visibility = ["//visibility:private"],
     deps = [
+        "//auxiliary/producers/producer:replayer",
         "//osiris/lib:db",
         "//models/grpc:replayer_go_proto",
         "//models/events:live_train_data_go_proto",
