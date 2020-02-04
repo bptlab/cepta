@@ -1,6 +1,9 @@
 <template>
   <div>
-    <p>Search for Informations on a specific train ID in the input field below or in the navbar.</p>
+    <p>
+      Search for Informations on a specific train ID in the input field below or
+      in the navbar.
+    </p>
     <form class="form-inline">
       <input
         ref="search"

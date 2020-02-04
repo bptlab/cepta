@@ -7,9 +7,7 @@
         type="text"
         placeholder="Search.."
       />
-      <grid-table
-        :grid-data="receivedUpdates"
-      ></grid-table>
+      <grid-table :grid-data="receivedUpdates"></grid-table>
     </div>
   </div>
 </template>
@@ -23,10 +21,10 @@ import { Component, Vue } from "vue-property-decorator";
 
 @Component({
   name: "LiveTrainDataFeed",
-  components: { 
+  components: {
     BasicTable,
     GridTable
-    }
+  }
 })
 export default class LiveTrainDataFeed extends Vue {
   search: string = "";
@@ -72,7 +70,6 @@ export default class LiveTrainDataFeed extends Vue {
       predictedETA: "2019-08-02 17:46:00"
     }
   ];
-  
 
   /*
   Old websocket connection

@@ -42,7 +42,10 @@
         </sidebar-element>
 
         <!-- User -->
-        <sidebar-element title="Trainmanagement" :route="{ name: 'trainmanagement' }">
+        <sidebar-element
+          title="Trainmanagement"
+          :route="{ name: 'trainmanagement' }"
+        >
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
           </template>
