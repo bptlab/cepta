@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.bptlab.cepta.config.constants.KafkaConstants;
 import picocli.CommandLine.Option;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -16,22 +15,22 @@ public class KafkaConfig implements Serializable, Cloneable {
   @Option(
       names = {"-b", "--broker"},
       description = "Specifies the Kafka Broker (ex. localhost:29092).")
-  static String kafkaBroker = KafkaConstants.KAFKA_BROKER;
+  static String kafkaBroker = "localhost:29092";
 
   @Option(
       names = {"-cid", "--client-id"},
       description = "Specifies the Kafka client.")
-  static String kafkaClientID = KafkaConstants.CLIENT_ID;
+  static String kafkaClientID = "client1";
 
   @Option(
       names = {"-t", "--topic"},
       description = "Specifies the Kafka topic.")
-  static String kafkaTopic = KafkaConstants.TOPIC_NAME;
+  static String kafkaTopic = "test";
 
   @Option(
       names = {"-gid", "--group-id"},
       description = "Specifies the Kafka group ID.")
-  static String kafkaGroupID = KafkaConstants.GROUP_ID_CONFIG;
+  static String kafkaGroupID = "consumerGroup1";
 
   String broker;
   String clientId;

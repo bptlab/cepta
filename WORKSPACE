@@ -25,6 +25,27 @@ rules_closure_dependencies(
 
 rules_closure_toolchains()
 
+
+
+
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "com_github_atlassian_bazel_tools",
+    commit = "1d1765561cf3baaeaf91ae4123b8290c589b93f8",
+    remote = "https://github.com/atlassian/bazel-tools.git",
+    shallow_since = "1578869856 +1100",
+)
+
+load("@com_github_atlassian_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
+
+multirun_dependencies()
+
+
+
+
+
 http_archive(
     name = "go_proto_gql",
     urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
@@ -32,7 +53,6 @@ http_archive(
     strip_prefix = "go-proto-gql-0.7.4",
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 FLINK_VERSION = "1.9.0"
 

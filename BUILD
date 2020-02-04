@@ -1,9 +1,9 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
+load("@rules_proto_grpc//:plugin.bzl", "proto_plugin")
 
 # gazelle:prefix github.com/bptlab/cepta
 gazelle(name = "gazelle")
-
-load("@rules_proto_grpc//:plugin.bzl", "proto_plugin")
 
 proto_plugin(
     name = "proto_gql_plugin",
@@ -28,6 +28,42 @@ filegroup(
         "//core",
         "//auxiliary",
     ],
+)
+
+command(
+    name = "command1",
+    command = "//some/label",
+    arguments = [
+        "-arg1",
+        "value1",
+        "-arg2",
+    ],
+    environment = {
+        "ABC": "DEF",
+    },
+    raw_environment = {
+        "PATH": "$(pwd)/path",
+    },
+)
+
+command(
+    name = "producer",
+    command = "//auxiliary/producers/traindataproducer",
+    environment = {
+        "PORT": "8080",
+    },
+    raw_environment = {
+       "PATH": "$(pwd)/path",
+    },
+)
+
+multirun(
+    name = "run_all",
+    commands = [
+        ":producer",
+        # "//core",
+    ],
+    parallel = True,
 )
 
 test_suite(

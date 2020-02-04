@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/bptlab/cepta/constants"
 	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -100,7 +101,8 @@ func (r Replayer) produce() error {
 			if err != nil {
 				r.log.Fatalf("Failed to marshal proto:", err)
 			}
-			r.producer.Send("live", "live", sarama.ByteEncoder(eventBytes))
+			topic := constants.Topics_LIVE_TRAIN_DATA.String()
+			r.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
 			r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
 
 			waitTime := int64(0) // time.Duration(0)
@@ -113,7 +115,7 @@ func (r Replayer) produce() error {
 				waitTime = 10 // * time.Second
 			}
 
-			r.log.Infof("Produced a message and will sleep for %v seconds", time.Duration(waitTime))
+			r.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
 			time.Sleep(time.Duration(waitTime))
 			recentTime = newTime
 		}

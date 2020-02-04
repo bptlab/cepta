@@ -13,13 +13,13 @@ java_binary(
         ":serialization",
         ":types",
         ":config",
-        ":constants",
         "//models/events:planned_train_data_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:train_delay_notification_java_proto",
         "//models/events:predicted_train_data_java_proto",
         "//models/events:train_information_data_java_proto",
         "//models/events:weather_data_java_proto",
+        "//models/constants:constants_java_proto",
         "@maven//:commons_io_commons_io_2_6",
         "@maven//:joda_time_joda_time_2_9_7",
         "@maven//:info_picocli_picocli",
@@ -49,6 +49,7 @@ java_library(
         "//models/events:train_delay_notification_java_proto",
         "//models/events:weather_data_java_proto",
         "//models/events:live_train_data_java_proto",
+        "//models/constants:topics_java_proto",
         "@maven//:org_testng_testng_7_1_0",
         "@maven//:junit_junit_4_13",
         "@maven//:org_apache_flink_flink_core",
@@ -144,14 +145,7 @@ java_library(
     name = "config",
     srcs = glob(["src/main/java/org/bptlab/cepta/config/*.java"]),
     deps = [
-        ":constants",
         "@maven//:info_picocli_picocli",
         "@maven//:org_apache_kafka_kafka_clients",
     ],
-)
-
-java_library(
-    name = "constants",
-    srcs = glob(["src/main/java/org/bptlab/cepta/config/constants/*.java"]),
-    deps = [],
 )

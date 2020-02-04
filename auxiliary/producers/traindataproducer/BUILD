@@ -39,6 +39,7 @@ go_library(
         "//osiris/lib:db",
         "//models/grpc:replayer_go_proto",
         "//models/events:live_train_data_go_proto",
+        "//models/constants:constants_go_proto",
         "//osiris/lib:kafkaproducer",
         "@com_github_shopify_sarama//:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
