@@ -16,7 +16,7 @@
 
       <!-- App Screen Footer -->
       <footer-component id="footer">
-        bptlab 2020.
+        &#x24B8; CEPTA 2020
       </footer-component>
     </div>
   </div>
@@ -63,5 +63,4 @@ export default {
 <style scoped lang="sass">
 #footer
   z-index: 1
-  position: relative
 </style>

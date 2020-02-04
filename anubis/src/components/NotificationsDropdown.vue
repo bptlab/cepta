@@ -1,10 +1,12 @@
 <template>
-  <li class="notifications dropdown" data-toggle="dropdown">
+  <li class="notifications dropdown">
     <!-- Toggle -->
-    <span class="counter bgc-red">{{ number }}</span>
-    <a class="dropdown-toggle no-after">
-      <slot name="icon"></slot>
-    </a>
+    <div data-toggle="dropdown">
+      <span class="counter bgc-red">{{ number }}</span>
+      <a class="dropdown-toggle no-after">
+        <slot name="icon"></slot>
+      </a>
+    </div>
     <!-- Dropdown menu -->
     <ul class="dropdown-menu">
       <li class="pX-20 pY-15 bdB">
@@ -52,9 +54,6 @@ export default class NotificationsDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
-.dropdown
-  margin-left: 15px
-
 .dropdown-menu
   left: auto
   right: 0

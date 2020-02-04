@@ -1,12 +1,10 @@
 <template>
   <div>
-    <h1>Choose a TrainId</h1>
-    <h3>Either in the input field below or in the navbar</h3>
+    <p>Search for Informations on a specific train ID in the input field below or in the navbar.</p>
     <form class="form-inline">
       <input
         ref="search"
         class="form-control"
-        id="myInput"
         type="text"
         placeholder="Search.."
       />
