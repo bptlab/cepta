@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	replayer "github.com/bptlab/cepta/auxiliary/producers/producer/replayer"
 	livetraindatareplayer "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
@@ -22,7 +23,7 @@ import (
 
 var db *libdb.DB
 var log *logrus.Logger
-var replayers []*livetraindatareplayer.Replayer
+var replayers []*livetraindatareplayer.LiveTrainReplayer
 
 type server struct {
 	pb.UnimplementedReplayerServer
@@ -114,7 +115,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		ids:       strings.Split(ctx.String("include"), ","),
 	}
 	kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
-	live := &livetraindatareplayer.Replayer{
+	parentReplayer := replayer.Replayer{
 		TableName:  "public.live",
 		MustMatch:  &replayerServer.ids,
 		Timerange:  &replayerServer.timerange,
@@ -125,6 +126,9 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Speed:      &replayerServer.speed,
 		Mode:       &replayerServer.mode,
 		Brokers:    kafkaBrokers,
+	}
+	live := &livetraindatareplayer.LiveTrainReplayer{
+		parentReplayer,
 	}
 	replayers = append(replayers, live)
 	go live.Start(log)

@@ -50,7 +50,7 @@ func buildQuery(column string, timerange *pb.Timerange) []string {
 	return query
 }
 
-func DebugDatabase(r *Replayer) *gorm.DB {
+func (r Replayer) DebugDatabase() *gorm.DB {
 	if r.log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		return r.Db.DB.Debug()
 	}
@@ -128,7 +128,7 @@ func (r Replayer) produce(query *gorm.DB) error {
 	}
 	return err
 }
-func (r Replayer) enrichQuery(query *gorm.DB) {
+func (r Replayer) enrichQuery(query *gorm.DB) *gorm.DB {
 	// Match ERRIDs
 	if r.MustMatch != nil {
 		for _, condition := range *(r.MustMatch) {
@@ -155,4 +155,6 @@ func (r Replayer) enrichQuery(query *gorm.DB) {
 	// Set offset
 	query = query.Offset(r.Offset)
 	// *query.Offset(r.Offset)
+
+	return query
 }

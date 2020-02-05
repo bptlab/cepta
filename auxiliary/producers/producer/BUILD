@@ -9,13 +9,12 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = [
-        "server.go"
+        #"server.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/producer",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         ":replayer",
-        "//auxiliary/producers/traindataproducer:livetraindatareplayer",
         "//models/grpc:replayer_go_proto",
         "//osiris/lib:db",
         "//osiris/lib:cli",

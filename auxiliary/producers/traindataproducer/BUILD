@@ -12,9 +12,10 @@ go_library(
         "server.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         ":livetraindatareplayer",
+        "//auxiliary/producers/producer:replayer",
         "//models/grpc:replayer_go_proto",
         "//osiris/lib:db",
         "//osiris/lib:cli",
@@ -34,7 +35,7 @@ go_library(
         "LiveTrainDataReplayer.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         "//auxiliary/producers/producer:replayer",
         "//osiris/lib:db",
