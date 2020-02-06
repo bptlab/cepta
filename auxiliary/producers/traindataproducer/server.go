@@ -127,8 +127,12 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Mode:       &replayerServer.mode,
 		Brokers:    kafkaBrokers,
 	}
-	live := &livetraindatareplayer.LiveTrainReplayer{
-		parentReplayer,
+	// live := &livetraindatareplayer.LiveTrainReplayer{
+	// 	parentReplayer,
+	// }
+
+	var live = &livetraindatareplayer.LiveTrainReplayer{
+		Parent: parentReplayer,
 	}
 	replayers = append(replayers, live)
 	go live.Start(log)
