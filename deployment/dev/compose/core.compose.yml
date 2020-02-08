@@ -11,7 +11,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    build: romnn/jmxkafka:master
+    build: romnn/jmxkafka
     ports:
       - ${CEPTA_KAFKA_PORT}:9092
       - 29092:29092

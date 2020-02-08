@@ -20,7 +20,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    image: romnn/jmxkafka:master
+    image: romnn/jmxkafka
     expose:
       - 9092
       - 29092
@@ -102,7 +102,7 @@ services:
     #  dockerfile: deployment/common/java.exec.dockerfile
     #  args:
     #    MODULE: producers/train-replayer
-    image: ceptaorg/traindatareplayer:master
+    image: ceptaorg/traindataproducer:master
     depends_on:
       - kafka
       - postgres
