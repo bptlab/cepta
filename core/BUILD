@@ -38,35 +38,3 @@ java_binary(
         "@maven//:com_github_jasync_sql_jasync_common",
     ],
 )
-
-java_library(
-    name = "core-testlib",
-    srcs = glob(["src/test/java/**/*.java"]),
-    visibility = ["//visibility:public"],
-    deps = [
-        ":core",
-        "//models/events:train_delay_notification_java_proto",
-        "//models/events:weather_data_java_proto",
-        "//models/events:live_train_data_java_proto",
-        "//models/constants:topics_java_proto",
-        "@maven//:org_testng_testng_7_1_0",
-        "@maven//:junit_junit_4_13",
-        "@maven//:org_apache_flink_flink_core",
-        "@maven//:org_apache_flink_flink_java",
-        "@maven//:org_apache_flink_flink_streaming_java_2_11",
-    ],
-)
-
-java_test(
-    name="all",
-    size="small",
-    runtime_deps=[
-        ":core",
-        ":core-testlib",
-        "@maven//:org_testng_testng_7_1_0",
-    ],
-    data=["src/test/testng.xml"],
-    use_testrunner=False,
-    main_class="org.testng.TestNG",
-    args=["core/src/test/testng.xml"],
-)

@@ -1,13 +1,13 @@
-package org.bptlab.cepta;
+package org.bptlab.cepta.providers;
 
 import java.util.ArrayList;
+import org.javatuples.Pair;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
-import org.testng.annotations.DataProvider;
-import org.bptlab.cepta.WeatherDataProvider;
+import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
@@ -32,10 +32,9 @@ public class LiveTrainDataProvider {
     return builder.build();
   }
 
-  @DataProvider(name = "one-matching-live-train-weather-data-provider")
-  public  static Object[][] weatherJoinOneLiveTrain(){
-    StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.getExecutionEnvironment();
+  // @DataProvider(name = "one-matching-live-train-weather-data-provider")
+  public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> oneMatchingLiveTrainWeatherData() {
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
     ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
 
@@ -63,13 +62,12 @@ public class LiveTrainDataProvider {
         });
     liveTrainStream.print();
     weatherStream.print();
-    return new Object[][] { {liveTrainStream, weatherStream} };
+    return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
-  @DataProvider(name = "several-matching-live-train-weather-data-provider")
-  public  static Object[][] weatherJoinSeveralLiveTrain(){
-    StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.getExecutionEnvironment();
+  // @DataProvider(name = "several-matching-live-train-weather-data-provider")
+  public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> multipleMatchingLiveTrainWeatherData() {
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
     ArrayList<LiveTrainData>  matchingTrains = new ArrayList<>();
 
@@ -101,13 +99,13 @@ public class LiveTrainDataProvider {
                 return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
               }
             });
-    return new Object[][] { {liveTrainStream, weatherStream} };
+    return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
+    // return new Object[][] { {liveTrainStream, weatherStream} };
   }
 
-  @DataProvider(name = "not-matching-live-train-weather-data-provider")
-  public  static Object[][] weatherJoinNotMatchingLiveTrain(){
-    StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.getExecutionEnvironment();
+  // @DataProvider(name = "not-matching-live-train-weather-data-provider")
+  public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> noMatchingLiveTrainWeatherData(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
     ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
 
@@ -135,7 +133,7 @@ public class LiveTrainDataProvider {
             });
     liveTrainStream.print();
     weatherStream.print();
-    return new Object[][] { {liveTrainStream, weatherStream} };
+    return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
   private static LiveTrainData trainEventWithLocationID(int locationId){

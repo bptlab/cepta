@@ -69,6 +69,6 @@ multirun(
 test_suite(
     name = "all",
     tests = [
-        "//core:all",
+        "//core/src/test/java/org/bptlab/cepta:all",
     ],
 )
