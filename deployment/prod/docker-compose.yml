@@ -3,7 +3,7 @@ services:
   anubis:
     # build:
     #   context: ../../anubis
-    image: bptlab/cepta-anubis:master
+    image: ceptaorg/anubis:master
     expose:
       - 80
     ports:
@@ -20,14 +20,10 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    # build: ../common/exporters/kafka
-    image: bptlab/cepta-kafka:master
+    image: romnn/jmxkafka:master
     expose:
       - 9092
       - 29092
-    # Enable volume for persistence
-    # volumes:
-    #   - kafka_data:/bitnami
     environment:
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
@@ -91,7 +87,7 @@ services:
     #  dockerfile: deployment/common/java.exec.dockerfile
     #  args:
     #    MODULE: core
-    image: bptlab/cepta-core:master
+    image: ceptaorg/core:master
     command:
       - --broker=kafka:9092
     depends_on:
@@ -106,7 +102,7 @@ services:
     #  dockerfile: deployment/common/java.exec.dockerfile
     #  args:
     #    MODULE: producers/train-replayer
-    image: bptlab/cepta-traindatareplayer:master
+    image: ceptaorg/traindatareplayer:master
     depends_on:
       - kafka
       - postgres

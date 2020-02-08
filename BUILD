@@ -30,38 +30,24 @@ filegroup(
     ],
 )
 
-command(
-    name = "command1",
-    command = "//some/label",
-    arguments = [
-        "-arg1",
-        "value1",
-        "-arg2",
+multirun(
+    name = "publish",
+    commands = [
+        "//osiris:publish",
+        "//core:publish",
+        "//auxiliary/producers/traindataproducer:publish",
     ],
-    environment = {
-        "ABC": "DEF",
-    },
-    raw_environment = {
-        "PATH": "$(pwd)/path",
-    },
-)
-
-command(
-    name = "producer",
-    command = "//auxiliary/producers/traindataproducer",
-    environment = {
-        "PORT": "8080",
-    },
-    raw_environment = {
-       "PATH": "$(pwd)/path",
-    },
+    parallel = True,
 )
 
 multirun(
     name = "run_all",
     commands = [
-        ":producer",
+        # ":producer",
         # "//core",
+        "//osiris:images",
+        "//core:image",
+        "//auxiliary/producers/traindataproducer:image",
     ],
     parallel = True,
 )
