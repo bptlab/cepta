@@ -21,6 +21,14 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "constants",
+    srcs = [
+        ":constants_go_proto", ":constants_java_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 
 
 
