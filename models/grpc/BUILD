@@ -1,7 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "ts_grpc_compile")
+load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "ts_grpc_compile", "commonjs_dts_grpc_compile", "closure_grpc_compile")
+load("@rules_proto_grpc//nodejs:defs.bzl", "nodejs_proto_compile")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_typescript_proto//:index.bzl", "typescript_proto_library")
 
 proto_library(
     name = "replayer_proto",
@@ -18,9 +20,29 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+typescript_proto_library(
+  name = "replayer_ts_proto",
+  proto = ":replayer_proto",
+)
+
 ts_grpc_compile(
     name = "replayer_ts_grpc_proto",
     deps = [":replayer_proto"],
+)
+
+commonjs_dts_grpc_compile(
+    name = "replayer_commonjs_dts_grpc_proto",
+    deps = ["replayer_proto"],
+)
+
+closure_grpc_compile(
+    name = "replayer_closure_grpc_proto",
+    deps = ["replayer_proto"],
+)
+
+nodejs_proto_compile(
+    name = "replayer_nodejs_proto",
+    deps = ["replayer_proto"],
 )
 
 genrule(
@@ -52,7 +74,10 @@ go_library(
 filegroup(
     name = "grpc",
     srcs = [
-        ":replayer_ts_grpc_proto",
+        # ":replayer_ts_grpc_proto",
+        ":replayer_commonjs_dts_grpc_proto",
+        "replayer_nodejs_proto",
+        # ":replayer_ts_proto",
         ":replayer_go_proto",
     ],
     visibility = ["//visibility:public"],

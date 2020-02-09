@@ -27,8 +27,9 @@ service Replayer {
 }
 
 enum ReplayType {
-  CONSTANT = 0;
-  PROPORTIONAL = 1;
+  // Proportional is default
+  PROPORTIONAL = 0;
+  CONSTANT = 1;
 }
 
 message ReplayTypeOption {
