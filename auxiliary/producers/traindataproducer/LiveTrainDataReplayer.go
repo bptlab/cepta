@@ -17,12 +17,15 @@ import (
 )
 
 type Replayer struct {
+	Ctrl	   chan pb.InternalControlMessageType
 	TableName  string
 	MustMatch  *[]string
 	Timerange  *pb.Timerange
 	SortColumn string
 	Limit      *int
-	Speed      *int
+	Speed      *int32
+	Active	   *bool
+	Repeat	   bool
 	Mode       *pb.ReplayType
 	Offset     int
 	Db         *libdb.DB
@@ -51,7 +54,7 @@ func DebugDatabase(r *Replayer) *gorm.DB {
 	return r.Db.DB
 }
 
-func (r Replayer) produce() error {
+func (r Replayer) makeQuery() *gorm.DB {
 	query := DebugDatabase(&r).Model(&libdb.LiveTrainData{})
 	// Match ERRIDs
 	if r.MustMatch != nil {
@@ -74,50 +77,84 @@ func (r Replayer) produce() error {
 	}
 	// Set offset
 	query = query.Offset(r.Offset)
+	return query
+}
+
+func (r Replayer) produce() error {
+	query := r.makeQuery()
 	rows, err := query.Rows()
 	defer rows.Close()
 	if err == nil {
 		recentTime := time.Time{}
 		passedTime := time.Duration(0)
-
-		for rows.Next() {
-			var livetraindata libdb.LiveTrainData
-			err := r.Db.DB.ScanRows(rows, &livetraindata)
-			if err != nil {
-				r.log.Debugf("%v", err)
-				continue
-			}
-			r.log.Debugf("%v", livetraindata)
-
-			newTime := livetraindata.Actual_time
-			if !recentTime.IsZero() {
-				passedTime = newTime.Sub(recentTime)
-			}
-			r.log.Infof("%v have passed since the last event", passedTime)
-
-			// Serialize proto
-			event := &livetraindataevent.LiveTrainData{Id: 23}
-			eventBytes, err := proto.Marshal(event)
-			if err != nil {
-				r.log.Fatalf("Failed to marshal proto:", err)
-			}
-			topic := constants.Topics_LIVE_TRAIN_DATA.String()
-			r.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
-			r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
-
-			waitTime := int64(0) // time.Duration(0)
-			switch *r.Mode {
-			case pb.ReplayType_CONSTANT:
-				waitTime = 10 // * time.Second
-			case pb.ReplayType_PROPORTIONAL:
-				waitTime = passedTime.Nanoseconds() / int64(*r.Speed)
+		for {
+			select {
+			case ctrlMessage := <-r.Ctrl:
+				switch ctrlMessage {
+				case pb.InternalControlMessageType_SHUTDOWN:
+					// Acknowledge shutdown
+					rows.Close()
+					r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+					return err
+				case pb.InternalControlMessageType_RESET:
+					// Recreate the query and row cursor
+					query = r.makeQuery()
+					rows, err := query.Rows()
+					defer rows.Close()
+					if err != nil {
+						r.log.Error("Cannot reset")
+					}
+				}
 			default:
-				waitTime = 10 // * time.Second
-			}
+				if !*r.Active {
+					time.Sleep(1 * time.Second)
+				} else if rows.Next() {
+					var livetraindata libdb.LiveTrainData
+					err := r.Db.DB.ScanRows(rows, &livetraindata)
+					if err != nil {
+						r.log.Debugf("%v", err)
+						continue
+					}
+					r.log.Debugf("%v", livetraindata)
 
-			r.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
-			time.Sleep(time.Duration(waitTime))
-			recentTime = newTime
+					newTime := livetraindata.Actual_time
+					if !recentTime.IsZero() {
+						passedTime = newTime.Sub(recentTime)
+					}
+					r.log.Infof("%v have passed since the last event", passedTime)
+
+					// Serialize proto
+					event := &livetraindataevent.LiveTrainData{Id: 23}
+					eventBytes, err := proto.Marshal(event)
+					if err != nil {
+						r.log.Fatalf("Failed to marshal proto:", err)
+					}
+					topic := constants.Topics_LIVE_TRAIN_DATA.String()
+					r.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
+					r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
+
+					waitTime := int64(0) // time.Duration(0)
+					switch *r.Mode {
+					case pb.ReplayType_CONSTANT:
+						waitTime = 10 // * time.Second
+					case pb.ReplayType_PROPORTIONAL:
+						waitTime = passedTime.Nanoseconds() / int64(*r.Speed)
+					default:
+						waitTime = 10 // * time.Second
+					}
+
+					r.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
+					time.Sleep(time.Duration(waitTime))
+					recentTime = newTime
+				
+				} else if r.Repeat {
+					rows, err = query.Rows()
+					if err != nil {
+						r.log.Error("Cannot repeat replay")
+					}
+					defer rows.Close()
+				}
+			}
 		}
 	}
 	return err
