@@ -15,13 +15,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Producer can be used to extract data from a database
 type Producer interface {
-	getNextRow() Any
+	// getNextRow() Any
+	Start(*logrus.Logger) error
 }
 
+// Any types can be everything
 type Any interface {
 }
 
+// Replayer implements the Producer interface
 type Replayer struct {
 	TableName  string
 	MustMatch  *[]string
@@ -50,6 +54,7 @@ func buildQuery(column string, timerange *pb.Timerange) []string {
 	return query
 }
 
+// DebugDatabase creates the base for the database query
 func (r Replayer) DebugDatabase() *gorm.DB {
 	if r.log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		return r.Db.DB.Debug()
@@ -57,6 +62,7 @@ func (r Replayer) DebugDatabase() *gorm.DB {
 	return r.Db.DB
 }
 
+// Start starts the replaying
 func (r Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
 	r.log = log.WithField("source", r.TableName)
 	r.log.Info("Starting to produce")

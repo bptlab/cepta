@@ -9,7 +9,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = [
-        #"server.go"
+        "server.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/producer",
     visibility = ["//visibility:public"],

@@ -1,5 +1,10 @@
 package main
 
+/*
+It would be prettier to move this to the producer, i think.
+That would propably need some adjustments somewhere else.
+*/
+
 import (
 	"context"
 	"fmt"
@@ -23,7 +28,7 @@ import (
 
 var db *libdb.DB
 var log *logrus.Logger
-var replayers []*livetraindatareplayer.LiveTrainReplayer
+var replayers []replayer.Producer
 
 type server struct {
 	pb.UnimplementedReplayerServer
@@ -115,7 +120,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		ids:       strings.Split(ctx.String("include"), ","),
 	}
 	kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
-	parentReplayer := replayer.Replayer{
+	parentLiveTrainReplayer := replayer.Replayer{
 		TableName:  "public.live",
 		MustMatch:  &replayerServer.ids,
 		Timerange:  &replayerServer.timerange,
@@ -127,12 +132,33 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Mode:       &replayerServer.mode,
 		Brokers:    kafkaBrokers,
 	}
+	/*
+		Here could be our weather replayer
+		parentWeatherReplayer := replayer.Replayer{
+			TableName:  "public.weather",
+			MustMatch:  &replayerServer.ids,
+			Timerange:  &replayerServer.timerange,
+			SortColumn: "ACTUAL_TIME",
+			Limit:      &replayerServer.limit,
+			Offset:     0,
+			Db:         db,
+			Speed:      &replayerServer.speed,
+			Mode:       &replayerServer.mode,
+			Brokers:    kafkaBrokers,
+		}
+		var weather = &weatherdatareplayer.WeatherReplayer{
+			Parent: parentWeatherReplayer,
+		}
+		replayers = append(replayers, weather)
+		go weather.Start(log)
+	*/
+
 	// live := &livetraindatareplayer.LiveTrainReplayer{
 	// 	parentReplayer,
 	// }
 
 	var live = &livetraindatareplayer.LiveTrainReplayer{
-		Parent: parentReplayer,
+		Parent: parentLiveTrainReplayer,
 	}
 	replayers = append(replayers, live)
 	go live.Start(log)
