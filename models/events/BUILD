@@ -7,6 +7,7 @@ proto_library(
     name = "live_train_data_proto",
     srcs = ["LiveTrainData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
