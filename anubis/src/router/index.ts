@@ -96,6 +96,14 @@ export const routes: RouteConfig[] = [
           import(/* webpackChunkName: "about" */ "@/views/Dashboard.vue")
       },
       {
+        path: "map",
+        name: "map",
+        meta: { requiresAuth: true },
+        beforeEnter: ifAuthenticated,
+        component: () =>
+          import(/* webpackChunkName: "about" */ "@/views/Map.vue")
+      },
+      {
         path: "blank",
         name: "blank",
         meta: { requiresAuth: true },

@@ -4,7 +4,10 @@
       <live-train-data-feed></live-train-data-feed>
     </masonry-layout-tile>
     <masonry-layout-tile section="Live Map">
-      <visualisation></visualisation>
+      <router-link to="/dashboard/map">
+        <p>Click for full page view</p>
+        <map-visualisation></map-visualisation>
+      </router-link>
     </masonry-layout-tile>
     <masonry-layout-tile section="Train Data info">
       <traindata-info></traindata-info>
@@ -17,7 +20,7 @@
 
 <script lang="ts">
 import LiveTrainDataFeed from "@/components/LiveTrainDataFeed.vue";
-import Visualisation from "@/components/Visualisation.vue";
+import MapVisualisation from "@/components/MapVisualisation.vue";
 import TraindataInfo from "@/components/TraindataInfo.vue";
 import RankedDelay from "@/components/RankedDelay.vue";
 import { Component, Vue } from "vue-property-decorator";
@@ -30,7 +33,7 @@ import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
     LiveTrainDataFeed,
     RankedDelay,
     TraindataInfo,
-    Visualisation,
+    MapVisualisation,
     MasonryLayout,
     MasonryLayoutTile
   }

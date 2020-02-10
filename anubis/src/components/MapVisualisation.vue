@@ -23,7 +23,7 @@ import L from "leaflet";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "Visualisation",
+  name: "MapVisualisation",
   components: {
     LMap,
     LTileLayer,
