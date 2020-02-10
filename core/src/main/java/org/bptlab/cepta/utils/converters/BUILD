@@ -5,6 +5,7 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:joda_time_joda_time",

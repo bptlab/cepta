@@ -68,8 +68,6 @@ public class Main implements Callable<Integer> {
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
-    System.out.println(Topics.WEATHER_DATA.getValueDescriptor().getName());
-    System.out.println(Topics.LIVE_TRAIN_DATA.getValueDescriptor().getName());
 
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
         new FlinkKafkaConsumer011<LiveTrainData>(
@@ -115,7 +113,7 @@ public class Main implements Callable<Integer> {
           delay < 0 is good, the train might arrive earlier than planned
          */
                 try {
-                  double delay = observed.getActualTime() - expected.getPlannedTime();
+                  double delay = observed.getActualTime().getSeconds() - expected.getPlannedTime();
 
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {
@@ -144,6 +142,7 @@ public class Main implements Callable<Integer> {
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
 
     // Print stream to console
+    // liveTrainDataStream.print();
     trainDelayNotificationDataStream.print();
 
     //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
