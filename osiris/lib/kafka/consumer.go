@@ -1,19 +1,21 @@
 package kafkaconsumer
 
 import (
-	"os/signal"
+	// "os/signal"
 	"strings"
 	"context"
 	"sync"
-	"os"
-	"syscall"
+	// "os"
+	// "syscall"
 
 	"github.com/urfave/cli/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/Shopify/sarama"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 )
 
-var KafkaConsumerCliOptions = []cli.Flag{
+var KafkaConsumerCliOptions = libcli.CommonCliOptions(libcli.Kafka)
+/*[]cli.Flag{
 	&cli.StringFlag{
 		Name: "kafka-brokers",
 		Value: "localhost:29092",
@@ -42,7 +44,7 @@ var KafkaConsumerCliOptions = []cli.Flag{
 		EnvVars: []string{"TOPICS", "KAFKA_TOPICS"},
 		Usage: "Kafka topics to be consumed, as a comma seperated list",
 	},
-}
+}*/
 
 type KafkaConsumerOptions struct {
 	Brokers 	[]string
@@ -81,7 +83,7 @@ func (consumer *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func consumeKafka(options KafkaConsumerOptions) error {
+func consumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.ConsumerGroup, error) {
 	config := sarama.NewConfig()
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
@@ -93,7 +95,7 @@ func consumeKafka(options KafkaConsumerOptions) error {
 		ready: make(chan bool),
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	// ctx, cancel := context.WithCancel(context.Background())
 	client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
 	if err != nil {
 		log.Panicf("Error creating consumer group client: %v", err)
@@ -118,6 +120,7 @@ func consumeKafka(options KafkaConsumerOptions) error {
 	<-consumer.ready // Await till the consumer has been set up
 	log.Debug("Sarama consumer up and running!...")
 
+	/*
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 	select {
@@ -132,4 +135,6 @@ func consumeKafka(options KafkaConsumerOptions) error {
 		log.Panicf("Error closing client: %v", err)
 	}
 	return nil
+	*/
+	return client, err
 }

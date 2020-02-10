@@ -7,17 +7,10 @@ import (
 	"github.com/Shopify/sarama"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 )
 
-var KafkaProducerCliOptions = []cli.Flag{
-	&cli.StringFlag{
-		Name:    "kafka-brokers",
-		Value:   "localhost:29092",
-		Aliases: []string{"brokers", "kafka"},
-		EnvVars: []string{"BROKERS", "KAFKA_BROKERS"},
-		Usage:   "comma separated list of kafka brokers",
-	},
-}
+var KafkaProducerCliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
 
 type KafkaProducerOptions struct {
 	Brokers []string

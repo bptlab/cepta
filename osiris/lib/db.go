@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 )
 
 type DB struct {
@@ -34,7 +35,7 @@ func (config DBConfig) ParseCli(ctx *cli.Context) DBConfig {
 	}
 }
 
-var DatabaseCliOptions = []cli.Flag{
+var DatabaseCliOptions = libcli.CommonCliOptions(libcli.Postgres) /*[]cli.Flag{
 	&cli.StringFlag{
 		Name: "db-host",
 		Value: "localhost",
@@ -77,7 +78,7 @@ var DatabaseCliOptions = []cli.Flag{
 		Usage: "Postgres database ssl mode",
 	},
 }
-
+*/
 
 
 func PostgresDatabase(config *DBConfig) (*DB, error) {
