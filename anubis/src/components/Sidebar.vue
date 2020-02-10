@@ -52,10 +52,7 @@
         </sidebar-element>
 
         <!-- Map -->
-        <sidebar-element
-          title="Live map"
-          :route="{ name: 'map' }"
-        >
+        <sidebar-element title="Live map" :route="{ name: 'map' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-map"></i>
           </template>

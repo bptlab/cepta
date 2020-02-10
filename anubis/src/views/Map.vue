@@ -1,18 +1,17 @@
 <template>
   <masonry-layout>
-    <masonry-layout-tile section="Train ID's"
-      layoutStyle='{"col-md-2": true}'>
+    <masonry-layout-tile section="Train ID's" layoutStyle='{"col-md-2": true}'>
       <table>
         <tr>
           <th>ID</th>
         </tr>
-        <tr v-for="id in ids">
-          <td>{{id}}</td>
+        <tr v-for="(id, index) in ids" :key="index">
+          <td>{{ id }}</td>
         </tr>
       </table>
     </masonry-layout-tile>
     <masonry-layout-tile section="Live Map">
-        <map-visualisation></map-visualisation>
+      <map-visualisation></map-visualisation>
     </masonry-layout-tile>
   </masonry-layout>
 </template>
@@ -32,26 +31,25 @@ import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
   }
 })
 export default class Dashboard extends Vue {
-  ids: Array<number> = [1, 2, 3, 4]
+  ids: Array<number> = [1, 2, 3, 4];
 }
 </script>
 
 <style lang="sass">
-  table
-    border-collapse: collapse
+table
+  border-collapse: collapse
 
-  tr
-    border: 1px solid black
-    text-align: center
+tr
+  border: 1px solid black
+  text-align: center
 
-  td, th
-    padding: 10px
+td, th
+  padding: 10px
 
-  th
-    background-color: black
-    color: white
+th
+  background-color: black
+  color: white
 
-  td:hover
-    background-color: #bbb
-
+td:hover
+  background-color: #bbb
 </style>
