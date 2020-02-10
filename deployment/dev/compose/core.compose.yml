@@ -159,13 +159,14 @@ services:
     image: bazel/auxiliary/producers/traindataproducer:image
     depends_on:
       - kafka
+      - postgres
     command:
-      - --broker=kafka:9092
-      - --grpc-port=9000
+      - --brokers=kafka:9092
+      - --port=9000
       - --db-host=postgres
       - --db-port=${CEPTA_POSTGRES_PORT}
       # Do not use quotation here as this will be used in the postgres query
-      - --must-match=train_id=47298333
+      # - --must-match=train_id=47298333
     ports:
       - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000
 
