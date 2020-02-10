@@ -13,6 +13,7 @@ import (
 	livetraindatareplayer "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 
 	"github.com/golang/protobuf/ptypes"
@@ -116,10 +117,11 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
-
-	config := libdb.DBConfig{}.ParseCli(ctx)
+	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
+	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
+	
 	var err error
-	db, err = libdb.PostgresDatabase(&config)
+	db, err = libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
@@ -153,7 +155,6 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		timerange: timeRange,
 		ids:       strings.Split(ctx.String("include"), ","),
 	}
-	kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
 
 	// Live train data replayer
 	live := &livetraindatareplayer.Replayer{
@@ -176,7 +177,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		replayer.Speed = &replayerServer.speed
 		replayer.Mode = &replayerServer.mode
 		replayer.Repeat = ctx.Bool("repeat")
-		replayer.Brokers = kafkaBrokers
+		replayer.Brokers = kafkaConfig.Brokers
 		go replayer.Start(log)
 	}
 
@@ -224,82 +225,79 @@ func main() {
 		app := &cli.App{
 			Name:  "CEPTA Train data replayer producer",
 			Usage: "Produces train data events by replaying a database dump",
-			Flags: append(libdb.DatabaseCliOptions, []cli.Flag{
-				&cli.GenericFlag{
-					Name: "log",
-					Value: &libcli.EnumValue{
-						Enum:    []string{"info", "debug", "warn", "fatal", "trace", "error", "panic"},
-						Default: "info",
+			Flags: append(
+				append(
+					libdb.DatabaseCliOptions,
+					kafkaproducer.KafkaProducerCliOptions...),
+				[]cli.Flag{
+					&cli.GenericFlag{
+						Name: "log",
+						Value: &libcli.EnumValue{
+							Enum:    []string{"info", "debug", "warn", "fatal", "trace", "error", "panic"},
+							Default: "info",
+						},
+						Aliases: []string{"log-level"},
+						EnvVars: []string{"LOG", "LOG_LEVEL"},
+						Usage:   "Log level",
 					},
-					Aliases: []string{"log-level"},
-					EnvVars: []string{"LOG", "LOG_LEVEL"},
-					Usage:   "Log level",
-				},
-				&cli.IntFlag{
-					Name:    "port",
-					Value:   80,
-					Aliases: []string{"p"},
-					EnvVars: []string{"PORT"},
-					Usage:   "grpc service port",
-				},
-				&cli.StringFlag{
-					Name:    "include",
-					Value:   "",
-					Aliases: []string{"must-match", "match", "errids"},
-					EnvVars: []string{"INCLUDE", "ERRIDS", "MATCH"},
-					Usage:   "ids to be included in the replay",
-				},
-				&cli.StringFlag{
-					Name:    "kafka-brokers",
-					Value:   "localhost:29092",
-					Aliases: []string{"brokers", "kafka"},
-					EnvVars: []string{"BROKERS", "KAFKA_BROKERS"},
-					Usage:   "comma separated list of kafka brokers",
-				},
-				&cli.GenericFlag{
-					Name: "mode",
-					Value: &libcli.EnumValue{
-						Enum:    []string{"constant", "proportional"},
-						Default: "proportional",
+					&cli.IntFlag{
+						Name:    "port",
+						Value:   80,
+						Aliases: []string{"p"},
+						EnvVars: []string{"PORT"},
+						Usage:   "grpc service port",
 					},
-					Aliases: []string{"replay-type", "type", "replay"},
-					EnvVars: []string{"REPLAY_MODE", "MODE", "REPLAY"},
-					Usage:   "replay mode (constant or proportional)",
-				},
-				&cli.IntFlag{
-					Name:    "frequency",
-					Value:   200,
-					Aliases: []string{"freq", "speed"},
-					EnvVars: []string{"FREQENCY", "SPEED", "FREQ"},
-					Usage:   "speedup factor for proportional replay (as integer)",
-				},
-				&cli.IntFlag{
-					Name:    "pause",
-					Value:   2 * 1000,
-					Aliases: []string{"wait"},
-					EnvVars: []string{"PAUSE"},
-					Usage:   "pause between sending events when using constant replay (in milliseconds)",
-				},
-				&cli.BoolFlag{
-					Name:    "repeat",
-					Value:   true,
-					EnvVars: []string{"REPEAT"},
-					Usage:   "whether or not to automatically resume and repeat the replay",
-				},
-				&cli.GenericFlag{
-					Name:    "start-timestamp",
-					Value:   &libcli.TimestampValue{},
-					Aliases: []string{"start"},
-					EnvVars: []string{"START_TIMESTAMP", "START"},
-					Usage:   "start timestamp",
-				},
-				&cli.GenericFlag{
-					Name:    "end-timestamp",
-					Value:   &libcli.TimestampValue{},
-					Aliases: []string{"end"},
-					EnvVars: []string{"END_TIMESTAMP", "END"},
-					Usage:   "end timestamp",
-				},
+					&cli.StringFlag{
+						Name:    "include",
+						Value:   "",
+						Aliases: []string{"must-match", "match", "errids"},
+						EnvVars: []string{"INCLUDE", "ERRIDS", "MATCH"},
+						Usage:   "ids to be included in the replay",
+					},
+					&cli.GenericFlag{
+						Name: "mode",
+						Value: &libcli.EnumValue{
+							Enum:    []string{"constant", "proportional"},
+							Default: "proportional",
+						},
+						Aliases: []string{"replay-type", "type", "replay"},
+						EnvVars: []string{"REPLAY_MODE", "MODE", "REPLAY"},
+						Usage:   "replay mode (constant or proportional)",
+					},
+					&cli.IntFlag{
+						Name:    "frequency",
+						Value:   200,
+						Aliases: []string{"freq", "speed"},
+						EnvVars: []string{"FREQENCY", "SPEED", "FREQ"},
+						Usage:   "speedup factor for proportional replay (as integer)",
+					},
+					&cli.IntFlag{
+						Name:    "pause",
+						Value:   2 * 1000,
+						Aliases: []string{"wait"},
+						EnvVars: []string{"PAUSE"},
+						Usage:   "pause between sending events when using constant replay (in milliseconds)",
+					},
+					&cli.BoolFlag{
+						Name:    "repeat",
+						Value:   true,
+						EnvVars: []string{"REPEAT"},
+						Usage:   "whether or not to automatically resume and repeat the replay",
+					},
+					&cli.GenericFlag{
+						Name:    "start-timestamp",
+						Value:   &libcli.TimestampValue{},
+						Aliases: []string{"start"},
+						EnvVars: []string{"START_TIMESTAMP", "START"},
+						Usage:   "start timestamp",
+					},
+					&cli.GenericFlag{
+						Name:    "end-timestamp",
+						Value:   &libcli.TimestampValue{},
+						Aliases: []string{"end"},
+						EnvVars: []string{"END_TIMESTAMP", "END"},
+						Usage:   "end timestamp",
+					},
 			}...),
 			Action: func(ctx *cli.Context) error {
 				level, err := logrus.ParseLevel(ctx.String("log"))

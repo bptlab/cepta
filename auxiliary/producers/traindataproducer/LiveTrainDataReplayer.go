@@ -12,6 +12,7 @@ import (
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -33,6 +34,11 @@ type Replayer struct {
 	log        *logrus.Entry
 	running    bool
 	producer   *kafkaproducer.KafkaProducer
+}
+
+func toTimestamp(t time.Time) *tspb.Timestamp {
+	ts, _ := ptypes.TimestampProto(t)
+	return ts
 }
 
 func buildQuery(column string, timerange *pb.Timerange) []string {
@@ -83,8 +89,8 @@ func (r Replayer) makeQuery() *gorm.DB {
 func (r Replayer) produce() error {
 	query := r.makeQuery()
 	rows, err := query.Rows()
-	defer rows.Close()
 	if err == nil {
+		defer rows.Close()
 		recentTime := time.Time{}
 		passedTime := time.Duration(0)
 		for {
@@ -93,14 +99,14 @@ func (r Replayer) produce() error {
 				switch ctrlMessage {
 				case pb.InternalControlMessageType_SHUTDOWN:
 					// Acknowledge shutdown
-					rows.Close()
+					// rows.Close()
 					r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 					return err
 				case pb.InternalControlMessageType_RESET:
 					// Recreate the query and row cursor
 					query = r.makeQuery()
-					rows, err := query.Rows()
-					defer rows.Close()
+					rows, err = query.Rows()
+					// defer rows.Close()
 					if err != nil {
 						r.log.Error("Cannot reset")
 					}
@@ -123,8 +129,23 @@ func (r Replayer) produce() error {
 					}
 					r.log.Infof("%v have passed since the last event", passedTime)
 
-					// Serialize proto
-					event := &livetraindataevent.LiveTrainData{Id: 23}
+					// Serialize event
+					event := &livetraindataevent.LiveTrainData{
+						Id: livetraindata.Id,
+						TrainId: livetraindata.Train_id,            
+						LocationId: livetraindata.Location_id,
+						ActualTime: toTimestamp(livetraindata.Actual_time),
+						Status: livetraindata.Status,
+						FirstTrainNumber: livetraindata.First_train_number,
+						TrainNumberReference: livetraindata.Train_number_reference,
+						ArrivalTimeReference: toTimestamp(livetraindata.Arrival_time_reference),
+						PlannedArrivalDeviation: livetraindata.Planned_arrival_deviation,
+						TransferLocationId: livetraindata.Transfer_location_id,
+						ReportingImId: livetraindata.Reporting_im_id,
+						NextImId: livetraindata.Next_im_id,
+						MessageStatus: livetraindata.Message_status,
+						MessageCreation: toTimestamp(livetraindata.Message_creation),
+					}
 					eventBytes, err := proto.Marshal(event)
 					if err != nil {
 						r.log.Fatalf("Failed to marshal proto:", err)
@@ -152,7 +173,7 @@ func (r Replayer) produce() error {
 					if err != nil {
 						r.log.Error("Cannot repeat replay")
 					}
-					defer rows.Close()
+					// defer rows.Close()
 				}
 			}
 		}
@@ -163,9 +184,9 @@ func (r Replayer) produce() error {
 func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.TableName)
 	r.log.Info("Starting to produce")
-	brokerList := []string{"localhost:29092"}
+	// brokerList := []string{"localhost:29092"}
 	var err error
-	r.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(brokerList)
+	r.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(r.Brokers)
 	if err != nil {
 		log.Warnf("Failed to start kafka producer: %s", err.Error())
 		log.Fatal("Cannot produce events")
