@@ -13,9 +13,9 @@ var KafkaProducerCliOptions = []cli.Flag{
 	&cli.StringFlag{
 		Name:    "kafka-brokers",
 		Value:   "localhost:29092",
-		Aliases: []string{"brokers"},
-		EnvVars: []string{"KAFKA_BROKERS", "BROKERS"},
-		Usage:   "Kafka bootstrap brokers to connect to, as a comma separated list",
+		Aliases: []string{"brokers", "kafka"},
+		EnvVars: []string{"BROKERS", "KAFKA_BROKERS"},
+		Usage:   "comma separated list of kafka brokers",
 	},
 }
 

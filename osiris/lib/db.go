@@ -99,34 +99,5 @@ func PostgresDatabase(config *DBConfig) (*DB, error) {
 		panic(err)
 	}
 	db, err := gorm.Open("postgres", connectionOptions.String())
-
-	/* drop tables and all data, and recreate them fresh for this run
-	db.DropTableIfExists(&User{}, &Pet{}, &Tag{})
-	db.AutoMigrate(&User{}, &Pet{}, &Tag{})
-
-	// put all the users into the db
-	for _, u := range users {
-		if err := db.Create(&u).Error; err != nil {
-			return nil, err
-		}
-	}
-
-	var tg = []Tag{}
-	for _, t := range tags {
-		if err := db.Create(&t).Error; err != nil {
-			return nil, err
-		}
-
-		tg = append(tg, t)
-	}
-
-	// put all the pets into the db
-	for _, p := range pets {
-		p.Tags = tg[:rand.Intn(5)]
-		if err := db.Create(&p).Error; err != nil {
-			return nil, err
-		}
-	}
-	*/
 	return &DB{db}, err
 }
