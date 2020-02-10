@@ -1,6 +1,6 @@
 <template>
   <li>
-    <router-link :to="route" class="d-b td-n pY-5 bgcH-grey-100 c-grey-700">
+    <router-link :to="route" class="d-b td-n pY-5">
       <slot></slot>
       <span>{{ title }}</span>
     </router-link>

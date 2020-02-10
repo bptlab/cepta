@@ -122,66 +122,8 @@ export default class App extends Vue {
   background: #42b983
   height: 3px
 
-/* Base */
-html, html a, body
-  -webkit-font-smoothing: antialiased
+#app
+  +theme(background-color, bgc-body)
+  +theme(color, c-default-text)
 
-a
-  transition: all 0.3s ease-in-out
-
-body
-  font-family: $font-primary
-  font-size: 14px
-  color: $default-text-color
-  line-height: 1.5
-  letter-spacing: 0.2px
-  overflow-x: hidden
-h1,
-h2,
-h3,
-h4,
-h5,
-h6
-  font-family: $font-secondary
-  letter-spacing: 0.5px
-  line-height: 1.5
-
-  a
-    font-family: $font-secondary
-
-  small
-    font-weight: 300
-    color: lighten($default-dark, 5%)
-
-p
-  font-family: $font-primary
-  line-height: 1.9
-
-.lead
-  font-size: 18px
-
-ul
-  margin-bottom: 0
-
-a
-  color: $default-info
-
-  &:hover,
-  &:focus
-    text-decoration: none
-    color: darken($default-info, 10%)
-
-  &:focus
-    outline: none
-
-  &.text-gray
-    &:hover,
-    &:focus,
-    &.active
-      color: $default-dark !important
-
-\:focus
-  outline: none
-hr
-  border-top: 1px solid $border-color
 </style>

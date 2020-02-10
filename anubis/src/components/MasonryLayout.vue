@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h4 v-if="title" class="c-grey-900 pos-r m-0">{{ title }}</h4>
+    <h4 v-if="title" class="pos-r m-0">{{ title }}</h4>
     <div
       v-masonry
       item-selector=".item"

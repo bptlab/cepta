@@ -116,26 +116,18 @@ export default class GridTable extends Vue {
 <style lang="sass">
 fullsize
   width: 100%
-body
-  font-size: 14px
-  color: black
 
 table
    border: 2px solid black
    border-radius: 3px
-   background-color: #fff
 
 th
-   background-color: black
    color: white
    cursor: pointer
    -webkit-user-select: none
    -moz-user-select: none
    -ms-user-select: none
    user-select: none
-
-td
-   background-color: #f9f9f9
 
 td.delay-red
   color: red

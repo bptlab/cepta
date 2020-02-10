@@ -8,7 +8,7 @@
       <navbar-component />
 
       <!-- App Screen Content -->
-      <main class="main-content bgc-grey-100">
+      <main class="main-content">
         <transition id="mainContent" name="fade" mode="out-in">
           <router-view />
         </transition>
@@ -64,4 +64,7 @@ export default {
 #footer
   z-index: 1
   position: relative
+
+.main-content
+  +theme(background-color, bgc-content)
 </style>

@@ -180,12 +180,7 @@ import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
 import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue";
-import {
-  Speed,
-  ReplayStartOptions,
-  ReplayType,
-  ReplayTypeOption
-} from "@/generated/protobuf/replayer_pb";
+import { Speed, ReplayStartOptions, ReplayType, ReplayTypeOption } from "@/generated/protobuf/replayer_pb";
 
 @Component({
   name: "NavigationBar",
@@ -203,41 +198,27 @@ export default class NavigationBar extends Vue {
   search: any = null;
   replaySpeed: number = 0;
   replayIdsInput: string = "";
-  defaultReplayType: ReplayType =
-    ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
+  defaultReplayType: ReplayType = ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
   replayTypeInput: string = Object.keys(ReplayType)[0];
 
   private equalArrays(a1: string[], a2: string[]): boolean {
-    return (
-      a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
-    );
+    return a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i]);
   }
 
   get replayerConfigChanged() {
     let idsChanged = !this.equalArrays(this.replayingIds, this.replayIds);
-    let speedChanged = !(
-      (this.replayingSpeed?.getSpeed() || 0) === this.replaySpeed
-    );
+    let speedChanged = !((this.replayingSpeed?.getSpeed() || 0) === this.replaySpeed);
     let typeChanged = !(this.replayingType === this.replayType);
     return idsChanged || speedChanged || typeChanged;
   }
 
   get replayIds(): string[] {
-    return (
-      this.replayIdsInput
-        ?.trim()
-        ?.split(",")
-        ?.filter(e => e.length > 0) || []
-    );
+    return this.replayIdsInput?.trim()?.split(",")?.filter(e => e.length > 0) || [];
   }
 
   get replayType(): ReplayType {
-    let index = this.replayTypeInput
-      ?.trim()
-      ?.toUpperCase() as keyof typeof ReplayType;
-    return ReplayType[index] === undefined
-      ? this.defaultReplayType
-      : ReplayType[index];
+    let index = this.replayTypeInput?.trim()?.toUpperCase() as keyof typeof ReplayType;
+    return ReplayType[index] === undefined ? this.defaultReplayType : ReplayType[index];
   }
 
   get isReplaying() {
@@ -274,11 +255,10 @@ export default class NavigationBar extends Vue {
 
   get scaledReplaySpeed(): number {
     return (
-      (this.replayFrequencyMin +
-        (this.replaySpeed / 100) *
-          (this.replayFrequencyMax - this.replayFrequencyMin)) |
-      0
-    ); // Bitwise-OR the value with zero to get int
+      this.replayFrequencyMin +
+      (this.replaySpeed / 100) *
+        (this.replayFrequencyMax - this.replayFrequencyMin)
+    ) | 0; // Bitwise-OR the value with zero to get int
   }
 
   get replayOptions() {
@@ -300,17 +280,6 @@ export default class NavigationBar extends Vue {
 
   updateReplay() {
     GrpcModule.setReplayOptions(this.replayOptions);
-    /*
-    let changedStart = this.replayOptions.getRange()?.getStart();
-    // let changedEnd = this.replayOptions.getRange()?.getEnd();
-    let speed = this.replayOptions.getSpeed()?.getSpeed();
-    let ids = this.replayOptions.getIdsList();
-    if (ids || changedStart) {
-      // We must restart anyways
-      this.resetReplay();
-      this.toggleReplay();
-    } else if (speed) GrpcModule.setReplayerSpeed(speed);
-    */
   }
 
   resetReplay() {
@@ -376,7 +345,7 @@ export default class NavigationBar extends Vue {
   position: relative
 
 .header
-  background-color: $default-white
+  +theme(background-color, bgc-navbar)
   border-bottom: 1px solid $border-color
   display: block
   margin-bottom: 0
