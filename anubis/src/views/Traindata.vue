@@ -7,7 +7,7 @@
       :striped="true"
       :bordered="true"
       cellspacing="0"
-      :table-data="receivedUpdates"
+      :table-data="testDelays"
     ></basic-table>
     <p>More Information is coming...</p>
   </div>
@@ -20,6 +20,7 @@ import RowLayout from "../components/RowLayout.vue";
 import RowLayoutRow from "../components/RowLayoutRow.vue";
 import BasicTable from "../components/BasicTable.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { AppModule } from "@/store/modules/app";
 
 @Component({
   name: "Traindata",
@@ -34,14 +35,10 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class TrainData extends Vue {
   @Prop({ default: "" }) private id?: number;
 
-  gridColumn: Array<string> = [
-    "StationID",
-    "Station",
-    "old ETA",
-    "Delay",
-    "Cause",
-    "new ETA"
-  ];
+  get testDelays() {
+    return AppModule.delays.map(e => e.toObject()).reverse();
+  }
+
   receivedUpdates: Array<Array<string>> = [
     ["StationID", "Station", "old ETA", "Delay", "Cause", "new ETA"],
     [

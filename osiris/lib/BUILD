@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "lib",
@@ -9,8 +9,8 @@ go_library(
         ":db",
         ":cli",
         ":utils",
-        ":kafkaproducer",
-        ":kafkaconsumer",
+        "//osiris/lib/kafka:producer",
+        "//osiris/lib/kafka:consumer",
     ],
 )
 
@@ -23,6 +23,7 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/lib/db",
     visibility = ["//visibility:public"],
     deps = [
+        ":cli",
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_jinzhu_gorm//dialects/postgres:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",
@@ -32,11 +33,15 @@ go_library(
 go_library(
     name = "cli",
     srcs = [
-        "cli.go"
+        "cli.go",
+        "options.go",
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/cli",
     visibility = ["//visibility:public"],
-    deps = [],
+    deps = [
+        ":utils",
+        "@com_github_urfave_cli_v2//:go_default_library",
+    ],
 )
 
 go_library(
@@ -46,33 +51,4 @@ go_library(
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/utils",
     visibility = ["//visibility:public"],
-    deps = [],
-)
-
-go_library(
-    name = "kafkaproducer",
-    srcs = [
-        "kafkaproducer.go"
-    ],
-    importpath = "github.com/bptlab/cepta/osiris/lib/kafka/producer",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_shopify_sarama//:go_default_library",
-        "@com_github_sirupsen_logrus//:go_default_library",
-        "@com_github_urfave_cli_v2//:go_default_library",
-    ],
-)
-
-go_library(
-    name = "kafkaconsumer",
-    srcs = [
-        "kafkaconsumer.go"
-    ],
-    importpath = "github.com/bptlab/cepta/osiris/lib/kafka/consumer",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_shopify_sarama//:go_default_library",
-        "@com_github_sirupsen_logrus//:go_default_library",
-        "@com_github_urfave_cli_v2//:go_default_library",
-    ],
 )

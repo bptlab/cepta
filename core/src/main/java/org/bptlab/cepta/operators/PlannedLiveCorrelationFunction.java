@@ -4,6 +4,8 @@ import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
 import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
+// import com.github.jasync.sql.db.postgresql.RowData;
+import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -15,9 +17,7 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.utils.converters.LiveTrainDataDatabaseConverter;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
-// import org.bptlab.cepta.utils.DatabaseObjectToJavaObjectConverter;
 
 public class PlannedLiveCorrelationFunction extends
     RichAsyncFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>> {
@@ -36,7 +36,6 @@ public class PlannedLiveCorrelationFunction extends
       this must be set to transient, as flink will otherwise try to serialize it which it is not
      */
     super.open(parameters);
-    System.out.println(parameters.toString());
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
     config.setUsername(postgresConfig.getUser());
     config.setPassword(postgresConfig.getPassword());
@@ -75,8 +74,8 @@ public class PlannedLiveCorrelationFunction extends
       public PlannedTrainData get() {
         try {
           QueryResult queryResult = future.get();
-          // return DatabaseObjectToJavaObjectConverter.toPlannedTrainData(queryResult.getRows().get(0));
-          return new PlannedTrainDataDatabaseConverter().fromRowData(queryResult.getRows().get(0));
+          RowData firstMatch = queryResult.getRows().get(0);
+          return new PlannedTrainDataDatabaseConverter().fromRowData(firstMatch);
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());
           return null;

@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
+    "build": "./gen-protos.sh vue-cli-service build",
+    "test:unit": "./gen-protos.sh vue-cli-service test:unit",
+    "test:e2e": "./gen-protos.sh vue-cli-service test:e2e",
+    "lint": "./gen-protos.sh vue-cli-service lint"
   },
   "dependencies": {
     "@types/chart.js": "^2.9.4",

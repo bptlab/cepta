@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h4 class="fw-300 c-grey-900 mB-40">Login</h4>
+    <h4 class="fw-300 mB-40">Login</h4>
     <div v-if="isRedirecting">
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>

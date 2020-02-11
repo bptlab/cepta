@@ -1,5 +1,6 @@
 <template>
   <masonry-layout>
+    <!--
     <masonry-layout-tile section="Train ID's" layoutStyle='{"col-md-2": true}'>
       <table>
         <tr>
@@ -13,6 +14,7 @@
     <masonry-layout-tile section="Live Map">
       <map-visualisation></map-visualisation>
     </masonry-layout-tile>
+    -->
   </masonry-layout>
 </template>
 

@@ -1,7 +1,6 @@
 package org.bptlab.cepta.config;
 
 import java.io.Serializable;
-import org.bptlab.cepta.config.constants.DatabaseConstants;
 import picocli.CommandLine.Option;
 
 public class PostgresConfig implements Serializable, Cloneable {
@@ -9,37 +8,37 @@ public class PostgresConfig implements Serializable, Cloneable {
   @Option(
       names = {"--db-host"},
       description = "Specifies the Database Host (ex. postgres).")
-  static String host = DatabaseConstants.HOST;
+  static String host = "postgres";
 
   @Option(
       names = {"--db-port"},
       description = "Specifies the port where the Database is running.")
-  static int port = DatabaseConstants.PORT;
+  static int port = 5432;
 
   @Option(
       names = {"-db", "--database"},
       description = "Specifies the name of the Database.")
-  static String name = DatabaseConstants.DATABASE_NAME;
+  static String name = "postgres";
 
   @Option(
       names = {"-u", "--user"},
       description = "Specifies the user of the Database.")
-  static String user = DatabaseConstants.USER;
+  static String user = "postgres";
 
   @Option(
       names = {"-pw", "--password"},
       description = "Specifies the password of the Database.")
-  static String password = DatabaseConstants.PASSWORD;
+  static String password = "example";
 
   @Option(
       names = {"-c", "--connector"},
       description = "Specifies the connector to the Database (ex. jdbc).")
-  static String connector = DatabaseConstants.CONNECTOR;
+  static String connector = "jdbc";
 
   @Option(
       names = {"-proto", "--protocol"},
       description = "Specifies the protocol of the Database (ex. postgresql).")
-  static String protocol = DatabaseConstants.PROTOCOL;
+  static String protocol = "postgresql";
 
   public PostgresConfig() {
   }

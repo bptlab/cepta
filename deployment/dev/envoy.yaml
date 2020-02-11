@@ -23,28 +23,21 @@ static_resources:
                         - match: { prefix: "/api" }
                           route:
                             cluster: osiris_service
-                        - match: { prefix: "/ws" }
+                        - match: { prefix: "/ws/userdata" }
                           route:
                             upgrade_configs:
                               - upgrade_type: websocket
                                 enabled: true
-                            cluster: osiris_service
+                            cluster: notification_service
                         - match: { prefix: "/sockjs-node/" }
                           route:
-                            cluster: osiris_service
+                            cluster: notification_service
                             upgrade_configs:
                               - upgrade_type: websocket
                                 enabled: true
                         - match: { prefix: "/" }
                           route:
                             cluster: anubis_service
-                      cors:
-                        allow_origin:
-                          - "*"
-                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                        # allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
-                        max_age: "1728000"
-                        expose_headers: grpc-status,grpc-message
                 http_filters:
                   - name: envoy.grpc_web
                   - name: envoy.cors
@@ -62,6 +55,12 @@ static_resources:
       type: logical_dns
       lb_policy: round_robin
       hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_WEBUI_BACKEND_PORT} }}]
+
+    - name: notification_service
+      connect_timeout: 15.0s
+      type: logical_dns
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_NOTIFICATION_BACKEND_PORT} }}]
 
     - name: anubis_service
       connect_timeout: 15.0s

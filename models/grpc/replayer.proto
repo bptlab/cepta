@@ -26,9 +26,16 @@ service Replayer {
   rpc GetOptions(Empty) returns (ReplayStartOptions) {}
 }
 
+enum InternalControlMessageType {
+  RESET = 0;
+  SEEK = 1;
+  SHUTDOWN = 2;
+}
+
 enum ReplayType {
-  CONSTANT = 0;
-  PROPORTIONAL = 1;
+  // Proportional is default
+  PROPORTIONAL = 0;
+  CONSTANT = 1;
 }
 
 message ReplayTypeOption {

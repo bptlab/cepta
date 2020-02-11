@@ -5,9 +5,9 @@
     </div>
 
     <div class="error">
-      <h1 class="mB-30 c-red-500">500</h1>
-      <h3 class="mB-10 c-grey-900">Internal server error</h3>
-      <p class="mB-30 c-grey-700">
+      <h1 class="mB-30">500</h1>
+      <h3 class="mB-10">Internal server error</h3>
+      <p class="mB-30">
         Something goes wrong with our servers, please try again later.
       </p>
     </div>

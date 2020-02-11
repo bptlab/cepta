@@ -1,9 +1,8 @@
-package org.bptlab.cepta;
+package org.bptlab.cepta.providers;
 
 import java.util.ArrayList;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.testng.annotations.DataProvider;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
 public class WeatherDataProvider {
@@ -37,21 +36,16 @@ public class WeatherDataProvider {
     return builder.build();
   }
 
-  @DataProvider(name = "weather-at-direct-location")
-  public  static Object[][] weatherAtDirectLocation(){
-    StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.createLocalEnvironment();
+  public static DataStream<WeatherData> weatherAtDirectLocationData(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
     env.setParallelism(1);
     WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent();
-    DataStream<WeatherData> weatherStream1 = env.fromElements(weather);
-
-    return new Object[][] { {weatherStream1} };
+    DataStream<WeatherData> weatherStream = env.fromElements(weather);
+    return weatherStream;
   }
 
-  @DataProvider(name = "weather-inside-box-location")
-  public  static Object[][] weatherInsideBoxLocation(){
-    StreamExecutionEnvironment env;
-    env = StreamExecutionEnvironment.createLocalEnvironment();
+  public  static DataStream<WeatherData> weatherInsideBoxLocationData(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
     env.setParallelism(1);
 
     ArrayList<WeatherData> testData = new ArrayList<>();
@@ -61,13 +55,11 @@ public class WeatherDataProvider {
     testData.add(weatherWithLatLng(49.576, 3.0067));
     testData.add(weatherWithLatLng(49.5765, 3.00665));
     testData.add(weatherWithLatLng(49.5775, 3.00676));
-    DataStream<WeatherData> weatherStream1 = env.fromCollection(testData);
-
-    return new Object[][] { {weatherStream1} };
+    DataStream<WeatherData> weatherStream = env.fromCollection(testData);
+    return weatherStream;
   }
 
-  @DataProvider(name = "weather-outside-box-location")
-  public static Object[][] weatherOutsideBoxLocation(){
+  public static DataStream<WeatherData> weatherOutsideBoxLocationData(){
     StreamExecutionEnvironment env;
     env = StreamExecutionEnvironment.createLocalEnvironment();
     env.setParallelism(1);
@@ -94,9 +86,8 @@ public class WeatherDataProvider {
     testData.add(weatherWithLatLng(baseLat + boxRadius, baseLng + boxRadius * 10));
     // farAwayBoth
     testData.add(weatherWithLatLng(baseLat + boxRadius * 10, baseLng + boxRadius * 10));
-    DataStream<WeatherData> weatherStream1 = env.fromCollection(testData);
-
-    return new Object[][] { {weatherStream1} };
+    DataStream<WeatherData> weatherStream = env.fromCollection(testData);
+    return weatherStream;
   }
 
   private static WeatherData weatherWithLatLng(double lat, double lng){

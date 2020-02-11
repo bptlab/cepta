@@ -17,8 +17,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-// import org.apache.avro.Schema;
-// import org.apache.avro.specific.SpecificRecord;
 import org.apache.flink.api.common.functions.MapFunction;
 
 public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T, T> {
