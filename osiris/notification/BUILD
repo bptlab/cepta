@@ -27,13 +27,18 @@ container_push(
 go_library(
     name = "go_default_library",
     srcs = [
-        "server.go",
-        "kafkaconsumer.go",
+        "server.go"
     ],
     importpath = "github.com/bptlab/cepta/osiris/notification",
     visibility = ["//visibility:private"],
     deps = [
+        "//models/constants:constants_go_proto",
+        "//models/events:train_delay_notification_go_proto",
         "//osiris/notification/websocket:go_default_library",
+        "//osiris/lib/kafka:consumer",
+        "//osiris/lib:cli",
+        "@com_github_golang_protobuf//jsonpb:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_shopify_sarama//:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
