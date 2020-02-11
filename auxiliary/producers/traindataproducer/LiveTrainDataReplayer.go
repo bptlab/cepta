@@ -86,6 +86,13 @@ func (r Replayer) makeQuery() *gorm.DB {
 	return query
 }
 
+func max(a int64, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func (r Replayer) produce() error {
 	query := r.makeQuery()
 	rows, err := query.Rows()
@@ -159,7 +166,7 @@ func (r Replayer) produce() error {
 					case pb.ReplayType_CONSTANT:
 						waitTime = 10 // * time.Second
 					case pb.ReplayType_PROPORTIONAL:
-						waitTime = passedTime.Nanoseconds() / int64(*r.Speed)
+						waitTime = passedTime.Nanoseconds() / max(1, int64(*r.Speed))
 					default:
 						waitTime = 10 // * time.Second
 					}
