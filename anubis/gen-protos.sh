@@ -7,6 +7,7 @@ cd $(dirname $0)
 cmd="$@"
 
 # Build all models
+# ../run.sh build //models
 bazel build //models
 
 # Now copy all generated typescript files

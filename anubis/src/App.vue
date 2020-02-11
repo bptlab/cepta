@@ -11,6 +11,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import { AuthModule } from "@/store/modules/auth";
+import { TrainDelayNotification } from "@/generated/protobuf/TrainDelayNotification_pb";
 
 @Component({
   name: "App",
@@ -26,18 +27,19 @@ export default class App extends Vue {
 
   connectWebsocket() {
     let socket: WebSocket = new WebSocket("ws://localhost:5555/ws/userdata");
+    socket.binaryType = 'arraybuffer';
     console.log("Attempting Connection...");
     socket.onopen = () => {
       console.log("Successfully Connected");
       socket.send(this.generateRandomUserID(10));
     };
     socket.onmessage = event => {
-      var message = JSON.parse(event.data);
-      if (message.type == 4) {
-        console.log(JSON.parse(message.body));
-      } else {
-        console.log(message);
-      }
+      let deserializedEvent = TrainDelayNotification.deserializeBinary(new Uint8Array(event.data));
+      console.log(deserializedEvent);
+      console.log(deserializedEvent.getDelay());
+      console.log(deserializedEvent.getTrainId());
+      console.log(deserializedEvent.getLocationId());
+      // var message = JSON.parse(event.data);
     };
 
     socket.onclose = event => {

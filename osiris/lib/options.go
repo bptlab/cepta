@@ -65,7 +65,6 @@ func CommonCliOptions(options ...int) []cli.Flag {
 		case KafkaTopics:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name: "kafka-topics",
-				Value: "news_for_leo",
 				Aliases: []string{"topics"},
 				EnvVars: []string{"TOPICS", "KAFKA_TOPICS"},
 				Usage: "Kafka topics to be consumed, as a comma seperated list",
@@ -138,7 +137,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 				Value:   80,
 				Aliases: []string{"p"},
 				EnvVars: []string{"PORT"},
-				Usage:   "grpc service port",
+				Usage:   "Service port",
 			}}
 		default:
 			// Do not add any
