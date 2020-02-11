@@ -1,0 +1,120 @@
+$base-color-dark: #161616;
+
+$themes: (
+    'light': (
+        /*
+        Light theme (default)
+        */
+        'bgc-body': #FFF,
+        'bgc-sidebar': #FFF,
+        'bgc-navbar': #FFF,
+        'bgc-content': #FFF,
+        'c-default-text': #000,
+        'c-accent-text': white,
+        'c-logo-text': #009688,
+    ),
+    'dark': (
+        /*
+        Dark theme (default)
+        */
+        'bgc-body': $base-color-dark,
+        'bgc-sidebar': $base-color-dark,
+        'bgc-navbar': $base-color-dark,
+        'bgc-content': $base-color-dark,
+        'c-default-text': white,
+        'c-accent-text': #009688,
+        'c-logo-text': #009688,
+    )
+) !default;
+
+
+/* Theme mixin */
+@mixin theme($property, $key, $args:'') {
+  // Iterate over the themes
+  @each $theme, $colors in $themes {
+    // Create a selector (.theme-unicorn .media)
+    .theme-#{$theme} & {
+      // Output the declaration
+      #{$property}: map-get($colors, $key) #{$args};
+    }
+  }
+}
+
+@mixin theme-highlight($property, $key, $args:'') {
+  @each $theme, $colors in $themes {
+    .theme-#{$theme}.theme-beats & {
+      #{$property}: map-get($colors, 'c-beats-' + $key) #{$args};
+    }
+    .theme-#{$theme}.theme-request & {
+      #{$property}: map-get($colors, 'c-request-' + $key) #{$args};
+    }
+    .theme-#{$theme}.theme-audio & {
+      #{$property}: map-get($colors, 'c-audio-' + $key) #{$args};
+    }
+  }
+}
+
+/* Theme body mixin */
+@mixin theme-body {
+  @each $theme, $colors in $themes {
+    .theme-#{$theme}-base {
+      background-color: map-get($colors, 'bgc-body');
+      color: map-get($colors, 'c-body');
+    }
+  }
+}
+
+
+/* Theme color darken mixin */
+@mixin theme-color-darken($property, $key, $darken, $args:'') {
+  @each $theme, $colors in $themes {
+    .theme-#{$theme} & {
+      #{$property}: darken(map-get($colors, $key), $darken) #{$args};
+    }
+  }
+}
+
+/* Theme color lighten mixin */
+@mixin theme-color-lighten($property, $key, $lighten, $args:'') {
+  @each $theme, $colors in $themes {
+    .theme-#{$theme} & {
+      #{$property}: lighten(map-get($colors, $key), $lighten) #{$args};
+    }
+  }
+}
+
+/* Theme highlight lighten mixin */
+@mixin theme-highlight-lighten($property, $key, $lighten, $args:'') {
+  @each $theme, $colors in $themes {
+    .theme-#{$theme}.theme-beats & {
+      #{$property}: lighten(map-get($colors, 'c-beats-' + $key), $lighten) #{$args};
+    }
+    .theme-#{$theme}.theme-request & {
+      #{$property}: lighten(map-get($colors, 'c-request-' + $key), $lighten) #{$args};
+    }
+    .theme-#{$theme}.theme-audio & {
+      #{$property}: lighten(map-get($colors, 'c-audio-' + $key), $lighten) #{$args};
+    }
+  }
+}
+
+@mixin for-size($range) {
+  $phone-upper-boundary: 600px;
+  $tablet-portrait-upper-boundary: 900px;
+  $tablet-landscape-upper-boundary: 1200px;
+  $desktop-upper-boundary: 1800px;
+
+  @if $range == phone-only {
+    @media (max-width: #{$phone-upper-boundary - 1}) { @content; }
+  } @else if $range == phone-landscape {
+    @media (max-height: 500px) and (orientation : landscape) { @content; }
+  } @else if $range == tablet-portrait-up {
+    @media (min-width: $phone-upper-boundary) { @content; }
+  } @else if $range == tablet-landscape-up {
+    @media (min-width: $tablet-portrait-upper-boundary) { @content; }
+  } @else if $range == desktop-up {
+    @media (min-width: $tablet-landscape-upper-boundary) { @content; }
+  } @else if $range == big-desktop-up {
+    @media (min-width: $desktop-upper-boundary) { @content; }
+  }
+}

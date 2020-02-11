@@ -39,7 +39,9 @@ func (c *Client) Read() {
 			log.Info("UserId: %+v\n", c.ID)
 		}
 
+		/*
 		message := Message{Type: messageType, Body: string(p)}
 		c.Pool.Broadcast <- message
+		*/
 	}
 }

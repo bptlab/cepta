@@ -9,7 +9,7 @@
     <ul class="dropdown-menu">
       <li class="pX-20 pY-15 bdB">
         <i class="icon-bell pR-10"></i>
-        <span class="fsz-sm fw-600 c-grey-900">{{ title }}</span>
+        <span class="fsz-sm fw-600">{{ title }}</span>
       </li>
       <li>
         <ul class="ovY-a pos-r scrollable lis-n p-0 m-0 fsz-sm">
@@ -18,7 +18,7 @@
       </li>
       <li v-if="more" class="pX-20 pY-15 ta-c bdT">
         <span>
-          <a class="c-grey-600 cH-blue fsz-sm td-n">
+          <a class="cH-blue fsz-sm td-n">
             View all {{ title }}
             <i class="icon-angle-right fsz-xs mL-10"></i>
           </a>

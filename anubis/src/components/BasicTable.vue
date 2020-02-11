@@ -121,7 +121,8 @@ export default class BasicTable extends Vue {
 </script>
 
 <style lang="sass">
-table
+.table
+  color: inherit
   &.dataTable
     &.no-footer
       border-bottom: 1px solid $border-color
@@ -136,7 +137,6 @@ table
   padding-bottom: 5px
 
   .dataTables_length
-    color: $default-dark
     float: left
 
     +to($breakpoint-sm)
@@ -152,11 +152,9 @@ table
       padding: 5px
       margin-left: 5px
       margin-right: 5px
-      color: $default-text-color
       transition: all 0.2s ease-in
 
   .dataTables_filter
-    color: $default-dark
     float: right
 
     +to($breakpoint-sm)
@@ -171,11 +169,9 @@ table
       font-size: 14px
       margin-left: 15px
       padding: 5px
-      color: $default-text-color
       transition: all 0.2s ease-in
 
   .dataTables_info
-    color: $default-text-color
     float: left
 
   .dataTables_processing

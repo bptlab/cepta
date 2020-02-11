@@ -13,7 +13,7 @@
             <small class="fsz-xs">{{ status }}</small>
           </div>
         </div>
-        <span class="c-grey-600 fsz-sm">
+        <span class="fsz-sm">
           {{ subHeadline }}
         </span>
       </div>

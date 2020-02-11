@@ -1,4 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 go_binary(
     name = "query",
@@ -7,6 +9,25 @@ go_binary(
         "//models/gql:query_gql_proto",
     ],
     visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "image",
+    embed = [":go_default_library"],
+    data = [
+        "//models/gql:query_gql_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+container_push(
+  name = "publish",
+  format = "Docker",
+  image = ":image",
+  registry = "index.docker.io",
+  repository = "ceptaorg/query",
+  tag = "master",
+  visibility = ["//visibility:public"],
 )
 
 go_library(
