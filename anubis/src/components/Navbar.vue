@@ -304,8 +304,10 @@ export default class NavigationBar extends Vue {
     }, 0.2 * 500);
   }
 
-  created(): void {
-    GrpcModule.queryReplayer();
+  mounted(): void {
+    GrpcModule.queryReplayer().then(() => {
+      this.replaySpeed = this.replayingSpeed;
+    });
   }
 
   checkForUpdate() {

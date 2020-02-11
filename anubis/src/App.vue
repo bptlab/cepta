@@ -11,6 +11,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import { AuthModule } from "@/store/modules/auth";
+import { AppModule } from "@/store/modules/app";
 import { TrainDelayNotification } from "@/generated/protobuf/TrainDelayNotification_pb";
 
 @Component({
@@ -36,9 +37,7 @@ export default class App extends Vue {
     socket.onmessage = event => {
       let deserializedEvent = TrainDelayNotification.deserializeBinary(new Uint8Array(event.data));
       console.log(deserializedEvent);
-      console.log(deserializedEvent.getDelay());
-      console.log(deserializedEvent.getTrainId());
-      console.log(deserializedEvent.getLocationId());
+      AppModule.addDelay(deserializedEvent);
       // var message = JSON.parse(event.data);
     };
 

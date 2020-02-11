@@ -52,10 +52,13 @@ class Grpc extends VuexModule implements IGrpcState {
     });
   }
 
-  @Mutation
-  public queryReplayer() {
+  @Action({ rawError: true })
+  public async queryReplayer() {
     this.replayer.getStatus(new Empty(), undefined, (err, response) => {
-      this.isReplaying = response?.getActive() || false;
+      this.setReplaying(response?.getActive() || false);
+    });
+    this.replayer.getOptions(new Empty(), undefined, (err, response) => {
+      this.setReplayingOptions(response);
     });
   }
 
