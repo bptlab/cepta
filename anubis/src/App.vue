@@ -27,15 +27,19 @@ export default class App extends Vue {
   }
 
   connectWebsocket() {
-    let socket: WebSocket = new WebSocket("ws://" + window.location.hostname + "/ws/userdata");
-    socket.binaryType = 'arraybuffer';
+    let socket: WebSocket = new WebSocket(
+      "ws://" + window.location.hostname + "/ws/userdata"
+    );
+    socket.binaryType = "arraybuffer";
     console.log("Attempting Connection...");
     socket.onopen = () => {
       console.log("Successfully Connected");
       socket.send(this.generateRandomUserID(10));
     };
     socket.onmessage = event => {
-      let deserializedEvent = TrainDelayNotification.deserializeBinary(new Uint8Array(event.data));
+      let deserializedEvent = TrainDelayNotification.deserializeBinary(
+        new Uint8Array(event.data)
+      );
       console.log(deserializedEvent);
       AppModule.addDelay(deserializedEvent);
       // var message = JSON.parse(event.data);
@@ -126,5 +130,4 @@ export default class App extends Vue {
 #app
   +theme(background-color, bgc-body)
   +theme(color, c-default-text)
-
 </style>
