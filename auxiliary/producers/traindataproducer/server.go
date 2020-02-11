@@ -16,7 +16,7 @@ import (
 	"time"
 
 	replayer "github.com/bptlab/cepta/auxiliary/producers/producer/replayer"
-	livetraindatareplayer "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer"
+	livetraindatareplayer "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/traindataproducer_test/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
