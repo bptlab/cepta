@@ -1,14 +1,15 @@
-// inspired by tutorialedge.net webmaster Elliot Frobes
-
 package websocket
 
-import log "github.com/sirupsen/logrus"
+import (
+	log "github.com/sirupsen/logrus"
+	"github.com/gorilla/websocket"
+)
 
 type Pool struct {
 	Register   chan *Client
 	Unregister chan *Client
 	Clients    map[*Client]bool
-	Broadcast  chan Message
+	Broadcast  chan []byte
 }
 
 func NewPool() *Pool {
@@ -16,7 +17,7 @@ func NewPool() *Pool {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
-		Broadcast:  make(chan Message),
+		Broadcast:  make(chan []byte),
 	}
 }
 
@@ -34,7 +35,7 @@ func (pool *Pool) Start() {
 		case message := <-pool.Broadcast:
 			log.Debug("Sending message to all clients in Pool")
 			for client, _ := range pool.Clients {
-				if err := client.Conn.WriteJSON(message); err != nil {
+				if err := client.Conn.WriteMessage(websocket.BinaryMessage, message); err != nil {
 					log.Error(err)
 					return
 				}

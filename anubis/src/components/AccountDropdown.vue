@@ -9,7 +9,7 @@
         <img class="w-2r bdrs-50p" :src="picture" alt="" />
       </div>
       <div class="peer">
-        <span class="fsz-sm c-grey-900">{{ username }}</span>
+        <span class="fsz-sm">{{ username }}</span>
       </div>
     </a>
     <!-- Dropdown menu items -->

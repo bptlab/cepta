@@ -1,5 +1,34 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
+    strip_prefix = "rules_proto-97d8af4dc474595af3900dd85cb3a29ad28cc313",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+    ],
+)
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+rules_proto_dependencies()
+rules_proto_toolchains()
+
+
+
+
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "b6670f9f43faa66e3009488bbd909bc7bc46a5a9661a33f6bc578068d1837f37",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.3.0/rules_nodejs-1.3.0.tar.gz"],
+)
+
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
+
+
+
+
 http_archive(
     name = "rules_proto_grpc",
     urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/1.0.1.tar.gz"],
@@ -25,6 +54,77 @@ rules_closure_dependencies(
 
 rules_closure_toolchains()
 
+
+
+
+
+http_archive(
+    name = "rules_typescript_proto",
+    sha256 = "0c76ae0d04eaa4d4c5f12556615cb70d294082ee672aee6dd849fea4ec2075ee",
+    strip_prefix = "rules_typescript_proto-0.0.3",
+    urls = [
+	"https://github.com/Dig-Doug/rules_typescript_proto/archive/0.0.3.tar.gz",
+    ],
+)
+
+load("@rules_typescript_proto//:index.bzl", "rules_typescript_proto_dependencies")
+
+rules_typescript_proto_dependencies()
+
+
+
+
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "com_github_atlassian_bazel_tools",
+    commit = "1d1765561cf3baaeaf91ae4123b8290c589b93f8",
+    remote = "https://github.com/atlassian/bazel-tools.git",
+    shallow_since = "1578869856 +1100",
+)
+
+load("@com_github_atlassian_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
+
+multirun_dependencies()
+
+
+
+
+# Download the rules_docker repository at release v0.14.1
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "dc97fccceacd4c6be14e800b2a00693d5e8d07f69ee187babfd04a80a9f8e250",
+    strip_prefix = "rules_docker-0.14.1",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.14.1/rules_docker-v0.14.1.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load(
+    "@io_bazel_rules_docker//java:image.bzl",
+    _java_image_repos = "repositories",
+)
+
+_java_image_repos()
+
+load(
+    "@io_bazel_rules_docker//go:image.bzl",
+    _go_image_repos = "repositories",
+)
+
+_go_image_repos()
+
+
+
+
+
+
 http_archive(
     name = "go_proto_gql",
     urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
@@ -32,7 +132,6 @@ http_archive(
     strip_prefix = "go-proto-gql-0.7.4",
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 FLINK_VERSION = "1.9.0"
 
@@ -54,8 +153,10 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
-        "org.testng:testng:7.1.0",
+        "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
+        "org.testcontainers:testcontainers:1.12.5",
+        "org.testcontainers:kafka:1.12.5",
         "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
@@ -64,15 +165,12 @@ maven_install(
         "info.picocli:picocli:4.1.0",
         "org.slf4j:slf4j-log4j12:1.7.5",
         "org.slf4j:slf4j-api:1.7.28",
-        "org.apache.avro:avro:1.9.0",
-        "com.twitter:chill-protobuf:0.9.5",
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
-        "org.apache.flink:flink-avro:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
         "org.apache.flink:flink-connector-kafka-0.11_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
     ],

@@ -49,7 +49,6 @@ export default class Landing extends Vue {
   .landing-logo
     width: 140px
     border-radius: 10px
-    background-color: red
     img
       padding-top: 20px
       padding-bottom: 20px

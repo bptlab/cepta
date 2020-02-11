@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 )
 
 type DB struct {
@@ -34,7 +35,7 @@ func (config DBConfig) ParseCli(ctx *cli.Context) DBConfig {
 	}
 }
 
-var DatabaseCliOptions = []cli.Flag{
+var DatabaseCliOptions = libcli.CommonCliOptions(libcli.Postgres) /*[]cli.Flag{
 	&cli.StringFlag{
 		Name: "db-host",
 		Value: "localhost",
@@ -77,7 +78,7 @@ var DatabaseCliOptions = []cli.Flag{
 		Usage: "Postgres database ssl mode",
 	},
 }
-
+*/
 
 
 func PostgresDatabase(config *DBConfig) (*DB, error) {
@@ -99,34 +100,5 @@ func PostgresDatabase(config *DBConfig) (*DB, error) {
 		panic(err)
 	}
 	db, err := gorm.Open("postgres", connectionOptions.String())
-
-	/* drop tables and all data, and recreate them fresh for this run
-	db.DropTableIfExists(&User{}, &Pet{}, &Tag{})
-	db.AutoMigrate(&User{}, &Pet{}, &Tag{})
-
-	// put all the users into the db
-	for _, u := range users {
-		if err := db.Create(&u).Error; err != nil {
-			return nil, err
-		}
-	}
-
-	var tg = []Tag{}
-	for _, t := range tags {
-		if err := db.Create(&t).Error; err != nil {
-			return nil, err
-		}
-
-		tg = append(tg, t)
-	}
-
-	// put all the pets into the db
-	for _, p := range pets {
-		p.Tags = tg[:rand.Intn(5)]
-		if err := db.Create(&p).Error; err != nil {
-			return nil, err
-		}
-	}
-	*/
 	return &DB{db}, err
 }

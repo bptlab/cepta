@@ -1,5 +1,5 @@
 <template>
-  <table class="table-striped table-interactive fullsize">
+  <table class="grid-table table-striped table-interactive">
     <thead>
       <tr>
         <th
@@ -113,60 +113,47 @@ export default class GridTable extends Vue {
 }
 </script>
 
-<style lang="sass">
+<style lang="sass" scoped>
 fullsize
   width: 100%
-body
-  font-size: 14px
-  color: black
 
-table
-   border: 2px solid black
-   border-radius: 3px
-   background-color: #fff
-
-th
-   background-color: black
-   color: white
-   cursor: pointer
-   -webkit-user-select: none
-   -moz-user-select: none
-   -ms-user-select: none
-   user-select: none
-
-td
-   background-color: #f9f9f9
-
-td.delay-red
+.grid-table
+  border: 2px solid black
+  border-radius: 3px
   color: red
-  font-weight: bold
 
-td.delay-green
-  color: green
+  th
+    cursor: pointer
+    -webkit-user-select: none
+    -moz-user-select: none
+    -ms-user-select: none
+    user-select: none
 
+  td.delay-red
+    color: red
+    font-weight: bold
 
+  td.delay-green
+    color: green
 
-th.active
-   color: #fff
+  th.active .arrow
+    opacity: 1
 
-th.active .arrow
-  opacity: 1
+  .arrow
+    display: inline-block
+    vertical-align: middle
+    width: 0
+    height: 0
+    margin-left: 5px
+    opacity: 0.33
 
-.arrow
-   display: inline-block
-   vertical-align: middle
-   width: 0
-   height: 0
-   margin-left: 5px
-   opacity: 0.33
+    &.asc
+      border-left: 4px solid transparent
+      border-right: 4px solid transparent
+      border-bottom: 4px solid #fff
 
-   &.asc
-    border-left: 4px solid transparent
-    border-right: 4px solid transparent
-    border-bottom: 4px solid #fff
-
-   &.dsc
-    border-left: 4px solid transparent
-    border-right: 4px solid transparent
-    border-top: 4px solid #fff
+    &.dsc
+      border-left: 4px solid transparent
+      border-right: 4px solid transparent
+      border-top: 4px solid #fff
 </style>

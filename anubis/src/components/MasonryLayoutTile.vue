@@ -1,7 +1,7 @@
 <template>
   <div v-masonry-tile :class="['item', layoutStyle]">
     <div :class="{ 'bgc-white p-20 bd': wrap }">
-      <h6 class="c-grey-900">{{ section }}</h6>
+      <h6>{{ section }}</h6>
       <div class="mT-20">
         <slot></slot>
       </div>
