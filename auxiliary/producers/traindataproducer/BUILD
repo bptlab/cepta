@@ -1,3 +1,4 @@
+
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
@@ -30,14 +31,14 @@ go_library(
         "server.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer",
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
         ":livetraindatareplayer",
-        "//auxiliary/producers/producer:replayer",
         "//models/grpc:replayer_go_proto",
         "//osiris/lib:db",
         "//osiris/lib:cli",
         "//osiris/lib/kafka:producer",
+        "//auxiliary/producers/producer:replayer",
         "//osiris/lib:utils",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
@@ -54,14 +55,14 @@ go_library(
         "LiveTrainDataReplayer.go"
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer",
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
-        "//auxiliary/producers/producer:replayer",
         "//osiris/lib:db",
         "//models/grpc:replayer_go_proto",
         "//models/events:live_train_data_go_proto",
         "//models/constants:constants_go_proto",
         "//osiris/lib/kafka:producer",
+        "//auxiliary/producers/producer:replayer",
         "@com_github_shopify_sarama//:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",

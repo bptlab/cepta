@@ -11,16 +11,16 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"syscall"
 	"strings"
+	"syscall"
 	"time"
 
 	replayer "github.com/bptlab/cepta/auxiliary/producers/producer/replayer"
 	livetraindatareplayer "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
-	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -36,7 +36,6 @@ var db *libdb.DB
 var log *logrus.Logger
 var replayers []replayer.Producer
 
-
 type server struct {
 	pb.UnimplementedReplayerServer
 	speed     int32
@@ -44,7 +43,7 @@ type server struct {
 	mode      pb.ReplayType
 	timerange pb.Timerange
 	ids       []string
-	active		bool
+	active    bool
 }
 
 func (s *server) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
@@ -52,7 +51,7 @@ func (s *server) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, e
 	s.timerange.Start = in
 	for _, replayer := range replayers {
 		// Send RESET control message
-		replayer.Ctrl <- pb.InternalControlMessageType_RESET
+		replayer.GetParent().Ctrl <- pb.InternalControlMessageType_RESET
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -61,7 +60,7 @@ func (s *server) Reset(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Resetting")
 	for _, replayer := range replayers {
 		// Send RESET control message
-		replayer.Ctrl <- pb.InternalControlMessageType_RESET
+		replayer.GetParent().Ctrl <- pb.InternalControlMessageType_RESET
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -116,16 +115,16 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 	log.Info("Handling query for current replay options")
 	return &pb.ReplayStartOptions{
 		Speed: &pb.Speed{Speed: s.speed},
-		Type: s.mode,
+		Type:  s.mode,
 		Range: &s.timerange,
-		Ids: s.ids,
+		Ids:   s.ids,
 	}, nil
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
-	
+
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
@@ -161,61 +160,34 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		timerange: timeRange,
 		ids:       strings.Split(ctx.String("include"), ","),
 	}
-	kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
-	parentLiveTrainReplayer := replayer.Replayer{
+
+	// kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
 
 	// Live train data replayer
-	live := &livetraindatareplayer.Replayer{
-		TableName:  "public.live",
-		SortColumn: "ACTUAL_TIME",
-	}
-	/*
-		Here could be our weather replayer
-		parentWeatherReplayer := replayer.Replayer{
-			TableName:  "public.weather",
-			MustMatch:  &replayerServer.ids,
-			Timerange:  &replayerServer.timerange,
+	liveTrainDataReplayer := &livetraindatareplayer.LiveTrainReplayer{
+		Parent: replayer.Replayer{
+			TableName:  "public.live",
 			SortColumn: "ACTUAL_TIME",
-			Limit:      &replayerServer.limit,
-			Offset:     0,
-			Db:         db,
-			Speed:      &replayerServer.speed,
-			Mode:       &replayerServer.mode,
-			Brokers:    kafkaBrokers,
-		}
-		var weather = &weatherdatareplayer.WeatherReplayer{
-			Parent: parentWeatherReplayer,
-		}
-		replayers = append(replayers, weather)
-		go weather.Start(log)
-	*/
-
-	// live := &livetraindatareplayer.LiveTrainReplayer{
-	// 	parentReplayer,
-	// }
-
-	var live = &livetraindatareplayer.LiveTrainReplayer{
-		Parent: parentLiveTrainReplayer,
+		},
 	}
-	replayers = append(replayers, live)
-	go live.Start(log)
-	replayers = []*livetraindatareplayer.Replayer{
-		live,
+
+	replayers = []replayer.Producer{
+		liveTrainDataReplayer,
 	}
-	
+
 	// Set common replayer parameters
 	for _, replayer := range replayers {
-		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.MustMatch = &replayerServer.ids
-		replayer.Timerange = &replayerServer.timerange
-		replayer.Limit = &replayerServer.limit
-		replayer.Offset = 0
-		replayer.Db = db
-		replayer.Active = &replayerServer.active
-		replayer.Speed = &replayerServer.speed
-		replayer.Mode = &replayerServer.mode
-		replayer.Repeat = ctx.Bool("repeat")
-		replayer.Brokers = kafkaConfig.Brokers
+		replayer.GetParent().Ctrl = make(chan pb.InternalControlMessageType)
+		replayer.GetParent().MustMatch = &replayerServer.ids
+		replayer.GetParent().Timerange = &replayerServer.timerange
+		replayer.GetParent().Limit = &replayerServer.limit
+		replayer.GetParent().Offset = 0
+		replayer.GetParent().Db = db
+		replayer.GetParent().Active = &replayerServer.active
+		replayer.GetParent().Speed = &replayerServer.speed
+		replayer.GetParent().Mode = &replayerServer.mode
+		replayer.GetParent().Repeat = ctx.Bool("repeat")
+		replayer.GetParent().Brokers = kafkaConfig.Brokers
 		go replayer.Start(log)
 	}
 
@@ -227,7 +199,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	}
 	grpcServer = grpc.NewServer()
 	pb.RegisterReplayerServer(grpcServer, &replayerServer)
-	
+
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
@@ -242,18 +214,18 @@ func main() {
 	shutdown := make(chan os.Signal)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-        <-shutdown
+		<-shutdown
 		log.Info("Graceful shutdown")
 		log.Info("Sending SHUTDOWN signal to all replaying topics")
 		for _, replayer := range replayers {
-			log.Debugf("Sending SHUTDOWN signal to %s", replayer.TableName)
-			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+			log.Debugf("Sending SHUTDOWN signal to %s", replayer.GetParent().TableName)
+			replayer.GetParent().Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 			// Wait for ack
-			log.Debugf("Waiting for ack from %s", replayer.TableName)
-			<- replayer.Ctrl
-			log.Debugf("Shutdown complete for %s", replayer.TableName)
+			log.Debugf("Waiting for ack from %s", replayer.GetParent().TableName)
+			<-replayer.GetParent().Ctrl
+			log.Debugf("Shutdown complete for %s", replayer.GetParent().TableName)
 		}
-		
+
 		log.Info("Stopping GRPC server")
 		grpcServer.Stop()
 	}()
@@ -315,7 +287,7 @@ func main() {
 			Usage:   "end timestamp",
 		},
 	}...)
-	
+
 	log = logrus.New()
 	go func() {
 		app := &cli.App{
@@ -338,7 +310,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	
+
 	<-done
 	log.Info("Exiting")
 }
