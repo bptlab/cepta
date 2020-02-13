@@ -165,7 +165,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 	// Live train data replayer
 	liveTrainDataReplayer := &livetraindatareplayer.LiveTrainReplayer{
-		Parent: replayer.Replayer{
+		Parent: &replayer.Replayer{
 			TableName:  "public.live",
 			SortColumn: "ACTUAL_TIME",
 		},
@@ -175,6 +175,8 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		liveTrainDataReplayer,
 	}
 
+	fmt.Print("Server: ")
+	fmt.Println(replayerServer)
 	// Set common replayer parameters
 	for _, replayer := range replayers {
 		replayer.GetParent().Ctrl = make(chan pb.InternalControlMessageType)

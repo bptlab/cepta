@@ -45,6 +45,8 @@ type Replayer struct {
 type Producer interface {
 	// getNextRow() Any
 	GetParent() *Replayer
+	SetParent(*Replayer)
+	SetCtrl(chan pb.InternalControlMessageType)
 	Start(*logrus.Logger) error
 }
 
@@ -98,8 +100,8 @@ func (this Replayer) enrichQuery(query *gorm.DB) *gorm.DB {
 }
 
 // DebugDatabase creates the base for the database query
-func (this Replayer) DebugDatabase() *gorm.DB {
-	if this.log.Logger.IsLevelEnabled(logrus.DebugLevel) {
+func (this Replayer) DebugDatabase(log *logrus.Logger) *gorm.DB {
+	if log.IsLevelEnabled(logrus.DebugLevel) {
 		return this.Db.DB.Debug()
 	}
 	return this.Db.DB
