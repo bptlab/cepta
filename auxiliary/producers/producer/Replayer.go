@@ -49,7 +49,7 @@ type Replayer struct {
 // Producer can be used to extract data from a database
 type Producer interface {
 	GetParent() *Replayer
-	Start(*logrus.Logger, *EventData) error
+	Start(*logrus.Logger) error
 }
 
 func toTimestamp(t time.Time) *tspb.Timestamp {
@@ -110,7 +110,7 @@ func (this Replayer) DebugDatabase(log *logrus.Logger) *gorm.DB {
 }
 
 // Start starts the replaying
-func (this Replayer) Start(log *logrus.Logger, query *gorm.DB, resultStore *EventData) error {
+func (this Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
 	this.log = log.WithField("source", this.TableName)
 	this.log.Info("Starting to produce")
 	// brokerList := []string{"localhost:29092"}
@@ -125,14 +125,14 @@ func (this Replayer) Start(log *logrus.Logger, query *gorm.DB, resultStore *Even
 			this.log.Println("Failed to close server", err)
 		}
 	}()
-	err = this.produce(query, resultStore)
+	err = this.produce(query)
 	if err != nil {
 		panic(err)
 	}
 	return nil
 }
 
-func (this Replayer) produce(query *gorm.DB, resultStore *EventData) error {
+func (this Replayer) produce(query *gorm.DB) error {
 
 	rows, err := query.Rows()
 	if err == nil {
@@ -161,12 +161,12 @@ func (this Replayer) produce(query *gorm.DB, resultStore *EventData) error {
 				if !*this.Active {
 					time.Sleep(1 * time.Second)
 				} else if rows.Next() {
-					err := this.Db.DB.ScanRows(rows, resultStore)
+					var eventData libdb.LiveTrainData
+					err := this.Db.DB.ScanRows(rows, &eventData)
 					if err != nil {
 						this.log.Debugf("%v", err)
 						continue
 					}
-					eventData := *resultStore
 					this.log.Debugf("%v", eventData)
 					newTime := eventData.GetActualTime()
 					if !recentTime.IsZero() {

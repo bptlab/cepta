@@ -23,8 +23,7 @@ func (this LiveTrainReplayer) completeQuery(log *logrus.Logger) *gorm.DB {
 // Start starts the replayer
 func (this LiveTrainReplayer) Start(log *logrus.Logger) error {
 	query := this.completeQuery(log)
-	var resultStore libdb.LiveTrainData
-	return this.Parent.Start(log, query, &resultStore)
+	return this.Parent.Start(log, query)
 }
 
 // GetParent returns the parent replayer
