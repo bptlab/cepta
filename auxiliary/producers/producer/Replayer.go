@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/bptlab/cepta/constants"
-	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
@@ -16,6 +14,13 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
+
+// EventData types
+type EventData interface {
+	GetActualTime() time.Time
+	ToEvent() proto.Message
+	GetTopic() string
+}
 
 // Any types can be everything
 type Any interface {
@@ -43,11 +48,8 @@ type Replayer struct {
 
 // Producer can be used to extract data from a database
 type Producer interface {
-	// getNextRow() Any
 	GetParent() *Replayer
-	SetParent(*Replayer)
-	SetCtrl(chan pb.InternalControlMessageType)
-	Start(*logrus.Logger) error
+	Start(*logrus.Logger, *EventData) error
 }
 
 func toTimestamp(t time.Time) *tspb.Timestamp {
@@ -108,7 +110,7 @@ func (this Replayer) DebugDatabase(log *logrus.Logger) *gorm.DB {
 }
 
 // Start starts the replaying
-func (this Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
+func (this Replayer) Start(log *logrus.Logger, query *gorm.DB, resultStore *EventData) error {
 	this.log = log.WithField("source", this.TableName)
 	this.log.Info("Starting to produce")
 	// brokerList := []string{"localhost:29092"}
@@ -123,14 +125,14 @@ func (this Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
 			this.log.Println("Failed to close server", err)
 		}
 	}()
-	err = this.produce(query)
+	err = this.produce(query, resultStore)
 	if err != nil {
 		panic(err)
 	}
 	return nil
 }
 
-func (this Replayer) produce(query *gorm.DB) error {
+func (this Replayer) produce(query *gorm.DB, resultStore *EventData) error {
 
 	rows, err := query.Rows()
 	if err == nil {
@@ -159,42 +161,26 @@ func (this Replayer) produce(query *gorm.DB) error {
 				if !*this.Active {
 					time.Sleep(1 * time.Second)
 				} else if rows.Next() {
-					var livetraindata libdb.LiveTrainData
-					err := this.Db.DB.ScanRows(rows, &livetraindata)
+					err := this.Db.DB.ScanRows(rows, resultStore)
 					if err != nil {
 						this.log.Debugf("%v", err)
 						continue
 					}
-					this.log.Debugf("%v", livetraindata)
-
-					newTime := livetraindata.Actual_time
+					eventData := *resultStore
+					this.log.Debugf("%v", eventData)
+					newTime := eventData.GetActualTime()
 					if !recentTime.IsZero() {
 						passedTime = newTime.Sub(recentTime)
 					}
 					this.log.Infof("%v have passed since the last event", passedTime)
 
 					// Serialize event
-					event := &livetraindataevent.LiveTrainData{
-						Id:                      livetraindata.Id,
-						TrainId:                 livetraindata.Train_id,
-						LocationId:              livetraindata.Location_id,
-						ActualTime:              toTimestamp(livetraindata.Actual_time),
-						Status:                  livetraindata.Status,
-						FirstTrainNumber:        livetraindata.First_train_number,
-						TrainNumberReference:    livetraindata.Train_number_reference,
-						ArrivalTimeReference:    toTimestamp(livetraindata.Arrival_time_reference),
-						PlannedArrivalDeviation: livetraindata.Planned_arrival_deviation,
-						TransferLocationId:      livetraindata.Transfer_location_id,
-						ReportingImId:           livetraindata.Reporting_im_id,
-						NextImId:                livetraindata.Next_im_id,
-						MessageStatus:           livetraindata.Message_status,
-						MessageCreation:         toTimestamp(livetraindata.Message_creation),
-					}
+					event := eventData.ToEvent()
 					eventBytes, err := proto.Marshal(event)
 					if err != nil {
 						this.log.Fatalf("Failed to marshal proto:", err)
 					}
-					topic := constants.Topics_LIVE_TRAIN_DATA.String()
+					topic := eventData.GetTopic()
 					this.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
 					this.log.Debugf("Speed is %d, mode is %s", *this.Speed, *this.Mode)
 
