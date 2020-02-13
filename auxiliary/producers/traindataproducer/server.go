@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	livetraindatareplayer "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer"
+	livetraindatareplayer "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"

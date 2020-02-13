@@ -29,7 +29,7 @@ go_library(
     srcs = [
         "server.go"
     ],
-    importpath = "github.com/bptlab/cepta/aux/producers/traindataproducer",
+    importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer",
     visibility = ["//visibility:private"],
     deps = [
         ":livetraindatareplayer",
@@ -52,7 +52,7 @@ go_library(
     srcs = [
         "LiveTrainDataReplayer.go"
     ],
-    importpath = "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer",
+    importpath = "github.com/bptlab/cepta/auxiliary/producers/traindataproducer/livetraindatareplayer",
     visibility = ["//visibility:private"],
     deps = [
         "//osiris/lib:db",
