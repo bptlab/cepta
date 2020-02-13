@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "./gen-protos.sh vue-cli-service serve",
     "build": "./gen-protos.sh vue-cli-service build",
     "test:unit": "./gen-protos.sh vue-cli-service test:unit",
     "test:e2e": "./gen-protos.sh vue-cli-service test:e2e",
