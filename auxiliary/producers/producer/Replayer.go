@@ -41,7 +41,7 @@ type Replayer struct {
 	Offset     int
 	Db         *libdb.DB
 	Brokers    []string
-	log        *logrus.Entry
+	Log        *logrus.Logger
 	running    bool
 	producer   *kafkaproducer.KafkaProducer
 }
@@ -49,7 +49,7 @@ type Replayer struct {
 // Producer can be used to extract data from a database
 type Producer interface {
 	GetParent() *Replayer
-	Start(*logrus.Logger) error
+	Start() error
 }
 
 func toTimestamp(t time.Time) *tspb.Timestamp {
@@ -71,6 +71,10 @@ func buildQuery(column string, timerange *pb.Timerange) []string {
 }
 
 func (this Replayer) enrichQuery(query *gorm.DB) *gorm.DB {
+	logEntry := this.Log.WithFields(logrus.Fields{
+		"source": this.TableName,
+		"action": "enriching query",
+	})
 	// Match ERRIDs
 	if this.MustMatch != nil {
 		for _, condition := range *(this.MustMatch) {
@@ -82,7 +86,7 @@ func (this Replayer) enrichQuery(query *gorm.DB) *gorm.DB {
 	}
 	// Match time range
 	for _, constraint := range buildQuery(this.SortColumn, this.Timerange) {
-		this.log.Info(constraint)
+		logEntry.Info(constraint)
 		query = query.Where(constraint)
 		// *query.Where(constraint)
 	}
@@ -102,27 +106,31 @@ func (this Replayer) enrichQuery(query *gorm.DB) *gorm.DB {
 }
 
 // DebugDatabase creates the base for the database query
-func (this Replayer) DebugDatabase(log *logrus.Logger) *gorm.DB {
-	if log.IsLevelEnabled(logrus.DebugLevel) {
+func (this Replayer) DebugDatabase() *gorm.DB {
+	if this.Log.IsLevelEnabled(logrus.DebugLevel) {
 		return this.Db.DB.Debug()
 	}
 	return this.Db.DB
 }
 
 // Start starts the replaying
-func (this Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
-	this.log = log.WithField("source", this.TableName)
-	this.log.Info("Starting to produce")
+func (this Replayer) Start(query *gorm.DB) error {
+	logEntry := this.Log.WithFields(logrus.Fields{
+		"source": this.TableName,
+		"action": "starting",
+	})
+
+	logEntry.Info("Starting to produce")
 	// brokerList := []string{"localhost:29092"}
 	var err error
 	this.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(this.Brokers)
 	if err != nil {
-		log.Warnf("Failed to start kafka producer: %s", err.Error())
-		log.Fatal("Cannot produce events")
+		logEntry.Warnf("Failed to start kafka producer: %s", err.Error())
+		logEntry.Fatal("Cannot produce events")
 	}
 	defer func() {
 		if err := this.producer.Close(); err != nil {
-			this.log.Println("Failed to close server", err)
+			logEntry.Println("Failed to close server", err)
 		}
 	}()
 	err = this.produce(query)
@@ -133,6 +141,10 @@ func (this Replayer) Start(log *logrus.Logger, query *gorm.DB) error {
 }
 
 func (this Replayer) produce(query *gorm.DB) error {
+	logEntry := this.Log.WithFields(logrus.Fields{
+		"source": this.TableName,
+		"action": "producing",
+	})
 
 	rows, err := query.Rows()
 	if err == nil {
@@ -154,7 +166,7 @@ func (this Replayer) produce(query *gorm.DB) error {
 					rows, err = query.Rows()
 					// defer rows.Close()
 					if err != nil {
-						this.log.Error("Cannot reset")
+						logEntry.Error("Cannot reset")
 					}
 				}
 			default:
@@ -164,25 +176,25 @@ func (this Replayer) produce(query *gorm.DB) error {
 					var eventData libdb.LiveTrainData
 					err := this.Db.DB.ScanRows(rows, &eventData)
 					if err != nil {
-						this.log.Debugf("%v", err)
+						logEntry.Debugf("%v", err)
 						continue
 					}
-					this.log.Debugf("%v", eventData)
+					logEntry.Debugf("%v", eventData)
 					newTime := eventData.GetActualTime()
 					if !recentTime.IsZero() {
 						passedTime = newTime.Sub(recentTime)
 					}
-					this.log.Infof("%v have passed since the last event", passedTime)
+					logEntry.Infof("%v have passed since the last event", passedTime)
 
 					// Serialize event
 					event := eventData.ToEvent()
 					eventBytes, err := proto.Marshal(event)
 					if err != nil {
-						this.log.Fatalf("Failed to marshal proto:", err)
+						logEntry.Fatalf("Failed to marshal proto:", err)
 					}
 					topic := eventData.GetTopic()
 					this.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
-					this.log.Debugf("Speed is %d, mode is %s", *this.Speed, *this.Mode)
+					logEntry.Debugf("Speed is %d, mode is %s", *this.Speed, *this.Mode)
 
 					waitTime := int64(0) // time.Duration(0)
 					switch *this.Mode {
@@ -194,14 +206,14 @@ func (this Replayer) produce(query *gorm.DB) error {
 						waitTime = 10 // * time.Second
 					}
 
-					this.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
+					logEntry.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
 					time.Sleep(time.Duration(waitTime))
 					recentTime = newTime
 
 				} else if this.Repeat {
 					rows, err = query.Rows()
 					if err != nil {
-						this.log.Error("Cannot repeat replay")
+						logEntry.Error("Cannot repeat replay")
 					}
 					// defer rows.Close()
 				}

@@ -190,7 +190,8 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		replayer.GetParent().Mode = &replayerServer.mode
 		replayer.GetParent().Repeat = ctx.Bool("repeat")
 		replayer.GetParent().Brokers = kafkaConfig.Brokers
-		go replayer.Start(log)
+		replayer.GetParent().Log = log
+		go replayer.Start()
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
