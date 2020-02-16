@@ -181,12 +181,14 @@ func (this Replayer) produce(query *gorm.DB) error {
 			case ctrlMessage := <-this.Ctrl:
 				switch ctrlMessage {
 				case pb.InternalControlMessageType_SHUTDOWN:
+					logEntry.Info("Shutting down ...")
 					// Acknowledge shutdown
 					// rows.Close()
 					this.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 					return err
 				case pb.InternalControlMessageType_RESET:
 					// Recreate the query and row cursor
+					logEntry.Info("resetting ...")
 					query = this.enrichQuery(query)
 					rows, err = query.Rows()
 					// defer rows.Close()
@@ -232,7 +234,8 @@ func (this Replayer) produce(query *gorm.DB) error {
 					}
 
 					logEntry.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
-					time.Sleep(time.Duration(waitTime))
+					// time.Sleep(time.Duration(waitTime))
+					time.Sleep(5 * time.Second)
 					recentTime = newTime
 
 				} else if this.Repeat {
