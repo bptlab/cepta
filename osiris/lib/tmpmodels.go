@@ -81,3 +81,41 @@ func toTimestamp(t time.Time) *tspb.Timestamp {
 	ts, _ := ptypes.TimestampProto(t)
 	return ts
 }
+
+func WeatherData struct {
+	Class string
+	Latitude float64
+	Longitude float64
+	Starttimestamp time.Time
+	Endtimestamp time.Time
+	Detectiontimestamp time.Time
+	Title string
+	Description string
+	Temperature float64
+	Rain float64
+	Windspeed float64
+	Cloudpercentage float64
+	Cityname string
+	Identifier string
+	Pressure float64
+	Ozone float64
+	Humidity float64
+	Windbearing int64
+	Precipprobability float64
+	Preciptype string
+	Dewpoint float64
+	Neareststormbearing int64
+	Neareststormdistance int64
+	Visibility float64
+}
+
+func (weatherdata WeatherData) TableName() string {
+	return "public.weather"
+}
+
+func (weatherdata WeatherData) GetTopic() string {
+	return constants.Topics_WEATHER_DATA.String()
+}
+func (weatherdata WeatherData) GetActualTime() time.Time {
+	return weatherdata.Starttimestamp
+}
