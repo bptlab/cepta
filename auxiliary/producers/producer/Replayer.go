@@ -114,7 +114,7 @@ func (this Replayer) DebugDatabase() *gorm.DB {
 }
 
 // Start starts the replaying
-func (this Replayer) Start(query *gorm.DB) error {
+func (this Replayer) Start() error {
 	logEntry := this.Log.WithFields(logrus.Fields{
 		"source": this.TableName,
 		"action": "starting",
@@ -122,6 +122,9 @@ func (this Replayer) Start(query *gorm.DB) error {
 
 	logEntry.Info("Starting to produce")
 	// brokerList := []string{"localhost:29092"}
+
+	query := this.getQueryAfterModel()
+
 	var err error
 	this.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(this.Brokers)
 	if err != nil {
@@ -136,6 +139,28 @@ func (this Replayer) Start(query *gorm.DB) error {
 	err = this.produce(query)
 	if err != nil {
 		panic(err)
+	}
+	return nil
+}
+
+func (this *Replayer) getQueryAfterModel() *gorm.DB {
+	switch this.TableName {
+	case "public.live":
+		{
+			return this.DebugDatabase().Model(&libdb.LiveTrainData{})
+		}
+		//add other cases for e.g weather
+	}
+	return nil
+}
+
+func (this Replayer) getDataStruct() EventData {
+	switch this.TableName {
+	case "public.live":
+		{
+			return new(libdb.LiveTrainData)
+		}
+		//add other cases for e.g weather
 	}
 	return nil
 }
@@ -173,7 +198,7 @@ func (this Replayer) produce(query *gorm.DB) error {
 				if !*this.Active {
 					time.Sleep(1 * time.Second)
 				} else if rows.Next() {
-					var eventData libdb.LiveTrainData
+					eventData := this.getDataStruct()
 					err := this.Db.DB.ScanRows(rows, &eventData)
 					if err != nil {
 						logEntry.Debugf("%v", err)

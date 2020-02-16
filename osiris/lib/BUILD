@@ -26,6 +26,7 @@ go_library(
         ":cli",
         "//models/events:live_train_data_go_proto",
         "//models/constants:constants_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
         "@com_github_jinzhu_gorm//:go_default_library",

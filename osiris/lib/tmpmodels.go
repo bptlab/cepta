@@ -5,6 +5,7 @@ import (
 
 	"github.com/bptlab/cepta/constants"
 	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -36,7 +37,7 @@ func (livetraindataevent LiveTrainData) GetTopic() string {
 func (livetraindataevent LiveTrainData) GetActualTime() time.Time {
 	return livetraindataevent.Actual_time
 }
-func (livetraindata LiveTrainData) ToEvent() *livetraindataevent.LiveTrainData {
+func (livetraindata LiveTrainData) ToEvent() proto.Message {
 	return &livetraindataevent.LiveTrainData{
 		Id:                      livetraindata.Id,
 		TrainId:                 livetraindata.Train_id,

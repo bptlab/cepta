@@ -20,8 +20,7 @@ func (this LiveTrainReplayer) completeQuery() *gorm.DB {
 
 // Start starts the replayer
 func (this LiveTrainReplayer) Start() error {
-	query := this.completeQuery()
-	return this.Parent.Start(query)
+	return this.Parent.Start()
 }
 
 // GetParent returns the parent replayer
