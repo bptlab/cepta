@@ -25,6 +25,7 @@ go_library(
     deps = [
         ":cli",
         "//models/events:live_train_data_go_proto",
+        "//models/events:weather_data_go_proto",
         "//models/constants:constants_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",

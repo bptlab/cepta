@@ -27,14 +27,6 @@ go_proto_library(
 )
 
 
-
-
-
-
-
-
-
-
 proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
@@ -141,6 +133,7 @@ proto_library(
     name = "weather_data_proto",
     srcs = ["WeatherData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(

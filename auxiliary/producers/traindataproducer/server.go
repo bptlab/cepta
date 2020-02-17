@@ -167,9 +167,14 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		TableName:  "public.live",
 		SortColumn: "ACTUAL_TIME",
 	}
+	weather := &replayer.Replayer{
+		TableName:  "public.weather",
+		SortColumn: "STARTTIMESTAMP",
+	}
 
 	replayers = []*replayer.Replayer{
 		liveTrain,
+		weather,
 	}
 
 	fmt.Print("Server: ")

@@ -149,6 +149,10 @@ func (this *Replayer) getQueryAfterModel() *gorm.DB {
 		{
 			return this.DebugDatabase().Model(&libdb.LiveTrainData{})
 		}
+	case "public.weather":
+		{
+			return this.DebugDatabase().Model(&libdb.WeatherData{})
+		}
 		//add other cases for e.g weather
 	}
 	return nil
@@ -159,6 +163,10 @@ func (this Replayer) getDataStruct() EventData {
 	case "public.live":
 		{
 			return new(libdb.LiveTrainData)
+		}
+	case "public.weather":
+		{
+			return new(libdb.WeatherData)
 		}
 		//add other cases for e.g weather
 	}

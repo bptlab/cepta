@@ -5,6 +5,7 @@ import (
 
 	"github.com/bptlab/cepta/constants"
 	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
+	weatherevent "github.com/bptlab/cepta/models/events/weatherdataevent"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -82,31 +83,31 @@ func toTimestamp(t time.Time) *tspb.Timestamp {
 	return ts
 }
 
-func WeatherData struct {
-	Class string
-	Latitude float64
-	Longitude float64
-	Starttimestamp time.Time
-	Endtimestamp time.Time
-	Detectiontimestamp time.Time
-	Title string
-	Description string
-	Temperature float64
-	Rain float64
-	Windspeed float64
-	Cloudpercentage float64
-	Cityname string
-	Identifier string
-	Pressure float64
-	Ozone float64
-	Humidity float64
-	Windbearing int64
-	Precipprobability float64
-	Preciptype string
-	Dewpoint float64
-	Neareststormbearing int64
+type WeatherData struct {
+	Class                string
+	Latitude             float64
+	Longitude            float64
+	Starttimestamp       time.Time
+	Endtimestamp         time.Time
+	Detectiontimestamp   time.Time
+	Title                string
+	Description          string
+	Temperature          float64
+	Rain                 float64
+	Windspeed            float64
+	Cloudpercentage      float64
+	Cityname             string
+	Identifier           string
+	Pressure             float64
+	Ozone                float64
+	Humidity             float64
+	Windbearing          int64
+	Precipprobability    float64
+	Preciptype           string
+	Dewpoint             float64
+	Neareststormbearing  int64
 	Neareststormdistance int64
-	Visibility float64
+	Visibility           float64
 }
 
 func (weatherdata WeatherData) TableName() string {
@@ -118,4 +119,33 @@ func (weatherdata WeatherData) GetTopic() string {
 }
 func (weatherdata WeatherData) GetActualTime() time.Time {
 	return weatherdata.Starttimestamp
+}
+
+func (weatherData WeatherData) ToEvent() proto.Message {
+	return &weatherevent.WeatherData{
+		Eventclass:           weatherData.Class,
+		Latitude:             weatherData.Latitude,
+		Longitude:            weatherData.Longitude,
+		Starttimestamp:       toTimestamp(weatherData.Starttimestamp),
+		Endtimestamp:         toTimestamp(weatherData.Endtimestamp),
+		Detectiontimestamp:   toTimestamp(weatherData.Detectiontimestamp),
+		Title:                weatherData.Title,
+		Description:          weatherData.Description,
+		Temperature:          weatherData.Temperature,
+		Rain:                 weatherData.Rain,
+		Windspeed:            weatherData.Windspeed,
+		Cloudpercentage:      weatherData.Cloudpercentage,
+		Cityname:             weatherData.Cityname,
+		Identifier:           weatherData.Identifier,
+		Pressure:             weatherData.Pressure,
+		Ozone:                weatherData.Ozone,
+		Humidity:             weatherData.Humidity,
+		Windbearing:          weatherData.Windbearing,
+		Precippropability:    weatherData.Precipprobability,
+		Preciptype:           weatherData.Preciptype,
+		Dewpoint:             weatherData.Dewpoint,
+		Neareststormbearing:  weatherData.Neareststormbearing,
+		Neareststormdistance: weatherData.Neareststormdistance,
+		Visibility:           weatherData.Visibility,
+	}
 }
