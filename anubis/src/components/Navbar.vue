@@ -326,7 +326,8 @@ export default class NavigationBar extends Vue {
 
   mounted(): void {
     GrpcModule.queryReplayer().then(() => {
-      if (this.replayingSpeed != undefined) this.replaySpeed = this.replayingSpeed?.getSpeed();
+      if (this.replayingSpeed != undefined)
+        this.replaySpeed = this.replayingSpeed?.getSpeed();
     });
   }
 
