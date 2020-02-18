@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bptlab/cepta/constants"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -146,20 +147,38 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 	replayerServer := server{
 		active:    true,
-		speed:     5000,
 		limit:     100,
 		mode:      startMode,
 		timerange: timeRange,
 		ids:       strings.Split(ctx.String("include"), ","),
 	}
 
-	// Live train data replayer
+	switch startMode {
+	case pb.ReplayType_CONSTANT:
+		replayerServer.speed = int32(ctx.Int("pause"))
+	case pb.ReplayType_PROPORTIONAL:
+		replayerServer.speed = int32(ctx.Int("frequency"))
+	default:
+		replayerServer.speed = 5000
+	}
+
 	live := &Replayer{
 		TableName:  "public.live",
 		SortColumn: "ACTUAL_TIME",
+		DbModel:    libdb.LiveTrainData{},
+		Topic:      constants.Topics_LIVE_TRAIN_DATA.String(),
 	}
+
+	weather := &Replayer{
+		TableName:  "public.weather",
+		SortColumn: "STARTTIMESTAMP",
+		DbModel:    libdb.WeatherData{},
+		Topic:      constants.Topics_WEATHER_DATA.String(),
+	}
+
 	replayers = []*Replayer{
 		live,
+		weather,
 	}
 
 	// Set common replayer parameters
@@ -241,14 +260,14 @@ func main() {
 		},
 		&cli.IntFlag{
 			Name:    "frequency",
-			Value:   200,
+			Value:   5000,
 			Aliases: []string{"freq", "speed"},
 			EnvVars: []string{"FREQENCY", "SPEED", "FREQ"},
 			Usage:   "speedup factor for proportional replay (as integer)",
 		},
 		&cli.IntFlag{
 			Name:    "pause",
-			Value:   2 * 1000,
+			Value:   2,
 			Aliases: []string{"wait"},
 			EnvVars: []string{"PAUSE"},
 			Usage:   "pause between sending events when using constant replay (in milliseconds)",

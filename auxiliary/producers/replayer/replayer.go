@@ -1,21 +1,24 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/bptlab/cepta/constants"
-	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
+
+type DbExtractor interface {
+	GetAll(*sql.Rows, *gorm.DB) (time.Time, proto.Message, error)
+	GetInstance() interface{}
+}
 
 type Replayer struct {
 	Ctrl       chan pb.InternalControlMessageType
@@ -30,15 +33,12 @@ type Replayer struct {
 	Mode       *pb.ReplayType
 	Offset     int
 	Db         *libdb.DB
+	DbModel    DbExtractor
+	Topic      string
 	Brokers    []string
 	log        *logrus.Entry
 	running    bool
 	producer   *kafkaproducer.KafkaProducer
-}
-
-func toTimestamp(t time.Time) *tspb.Timestamp {
-	ts, _ := ptypes.TimestampProto(t)
-	return ts
 }
 
 func buildQuery(column string, timerange *pb.Timerange) []string {
@@ -53,7 +53,7 @@ func buildQuery(column string, timerange *pb.Timerange) []string {
 	return query
 }
 
-func DebugDatabase(r *Replayer) *gorm.DB {
+func debugDatabase(r *Replayer) *gorm.DB {
 	if r.log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		return r.Db.DB.Debug()
 	}
@@ -61,7 +61,7 @@ func DebugDatabase(r *Replayer) *gorm.DB {
 }
 
 func (r Replayer) makeQuery() *gorm.DB {
-	query := DebugDatabase(&r).Model(&libdb.LiveTrainData{})
+	query := debugDatabase(&r).Model(r.DbModel.GetInstance())
 	// Match ERRIDs
 	if r.MustMatch != nil {
 		for _, condition := range *(r.MustMatch) {
@@ -122,56 +122,36 @@ func (r Replayer) produce() error {
 				if !*r.Active {
 					time.Sleep(1 * time.Second)
 				} else if rows.Next() {
-					var livetraindata libdb.LiveTrainData
-					err := r.Db.DB.ScanRows(rows, &livetraindata)
+					newTime, event, err := r.DbModel.GetAll(rows, r.Db.DB)
 					if err != nil {
-						r.log.Debugf("%v", err)
+						r.log.Errorf("Fail: %s", err.Error())
 						continue
 					}
-					r.log.Debugf("%v", livetraindata)
+					r.log.Debugf("%v", event)
+					eventBytes, err := proto.Marshal(event)
+					if err != nil {
+						r.log.Errorf("Failed to marshal proto:", err)
+						continue
+					}
 
-					newTime := livetraindata.Actual_time
 					if !recentTime.IsZero() {
 						passedTime = newTime.Sub(recentTime)
 					}
 					r.log.Infof("%v have passed since the last event", passedTime)
-
-					// Serialize event
-					event := &livetraindataevent.LiveTrainData{
-						Id:                      livetraindata.Id,
-						TrainId:                 livetraindata.Train_id,
-						LocationId:              livetraindata.Location_id,
-						ActualTime:              toTimestamp(livetraindata.Actual_time),
-						Status:                  livetraindata.Status,
-						FirstTrainNumber:        livetraindata.First_train_number,
-						TrainNumberReference:    livetraindata.Train_number_reference,
-						ArrivalTimeReference:    toTimestamp(livetraindata.Arrival_time_reference),
-						PlannedArrivalDeviation: livetraindata.Planned_arrival_deviation,
-						TransferLocationId:      livetraindata.Transfer_location_id,
-						ReportingImId:           livetraindata.Reporting_im_id,
-						NextImId:                livetraindata.Next_im_id,
-						MessageStatus:           livetraindata.Message_status,
-						MessageCreation:         toTimestamp(livetraindata.Message_creation),
-					}
-					eventBytes, err := proto.Marshal(event)
-					if err != nil {
-						r.log.Fatalf("Failed to marshal proto:", err)
-					}
-					topic := constants.Topics_LIVE_TRAIN_DATA.String()
-					r.producer.Send(topic, topic, sarama.ByteEncoder(eventBytes))
+					r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
 					r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
 
 					waitTime := int64(0) // time.Duration(0)
 					switch *r.Mode {
 					case pb.ReplayType_CONSTANT:
-						waitTime = 10 // * time.Second
+						waitTime = int64(*r.Speed) * time.Second.Nanoseconds()
 					case pb.ReplayType_PROPORTIONAL:
 						waitTime = passedTime.Nanoseconds() / max(1, int64(*r.Speed))
 					default:
 						waitTime = 10 // * time.Second
 					}
 
-					r.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
+					r.log.Infof("Produced a message to %s and will sleep for %v seconds", r.Topic, time.Duration(waitTime))
 					time.Sleep(time.Duration(waitTime))
 					recentTime = newTime
 
