@@ -16,7 +16,7 @@ then
     # Now copy all generated typescript files
     # find ../bazel-bin/models/ -type f -path '**/models/**/*.js'
     # find ../bazel-bin/models/ -type f -path '**/models/**/*.ts'
-    rm -f $DIR/src/generated/protobuf
+    rm -rf $DIR/src/generated/protobuf
     echo "Creating $DIR/src/generated/protobuf"
     mkdir -p $DIR/src/generated/protobuf
     find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec /bin/cp -rf '{}' $DIR/src/generated/protobuf ';'
