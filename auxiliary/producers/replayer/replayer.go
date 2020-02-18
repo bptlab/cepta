@@ -1,4 +1,4 @@
-package replayer
+package main
 
 import (
 	"fmt"

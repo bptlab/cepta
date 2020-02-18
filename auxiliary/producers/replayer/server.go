@@ -1,10 +1,5 @@
 package main
 
-/*
-It would be prettier to move this to the producer, i think.
-That would propably need some adjustments somewhere else.
-*/
-
 import (
 	"context"
 	"fmt"
@@ -15,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	replayer "github.com/bptlab/cepta/auxiliary/producers/producer/replayer"
+	// replayer "github.com/bptlab/cepta/auxiliary/producers/producer/replayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -28,12 +23,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-// var done = sync.WaitGroup{}
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var db *libdb.DB
 var log *logrus.Logger
-var replayers []*replayer.Replayer
+var replayers []*Replayer
 
 type server struct {
 	pb.UnimplementedReplayerServer
@@ -163,37 +157,35 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	// kafkaBrokers := strings.Split(ctx.String("kafka-brokers"), ",")
 
 	// Live train data replayer
-	liveTrain := &replayer.Replayer{
+	liveTrain := &Replayer{
 		TableName:  "public.live",
 		SortColumn: "ACTUAL_TIME",
 	}
-	weather := &replayer.Replayer{
+	weather := &Replayer{
 		TableName:  "public.weather",
 		SortColumn: "STARTTIMESTAMP",
 	}
 
-	replayers = []*replayer.Replayer{
+	replayers = []*Replayer{
 		liveTrain,
 		weather,
 	}
 
-	fmt.Print("Server: ")
-	fmt.Println(replayerServer)
 	// Set common replayer parameters
-	for _, replayer := range replayers {
-		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.MustMatch = &replayerServer.ids
-		replayer.Timerange = &replayerServer.timerange
-		replayer.Limit = &replayerServer.limit
-		replayer.Offset = 0
-		replayer.Db = db
-		replayer.Active = &replayerServer.active
-		replayer.Speed = &replayerServer.speed
-		replayer.Mode = &replayerServer.mode
-		replayer.Repeat = ctx.Bool("repeat")
-		replayer.Brokers = kafkaConfig.Brokers
-		replayer.Log = log
-		go replayer.Start()
+	for _, r := range replayers {
+		r.Ctrl = make(chan pb.InternalControlMessageType)
+		r.MustMatch = &replayerServer.ids
+		r.Timerange = &replayerServer.timerange
+		r.Limit = &replayerServer.limit
+		r.Offset = 0
+		r.Db = db
+		r.Active = &replayerServer.active
+		r.Speed = &replayerServer.speed
+		r.Mode = &replayerServer.mode
+		r.Repeat = ctx.Bool("repeat")
+		r.Brokers = kafkaConfig.Brokers
+		r.Log = log
+		go r.Start()
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
@@ -222,13 +214,13 @@ func main() {
 		<-shutdown
 		log.Info("Graceful shutdown")
 		log.Info("Sending SHUTDOWN signal to all replaying topics")
-		for _, replayer := range replayers {
-			log.Debugf("Sending SHUTDOWN signal to %s", replayer.TableName)
-			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+		for _, r := range replayers {
+			log.Debugf("Sending SHUTDOWN signal to %s", r.TableName)
+			r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 			// Wait for ack
-			log.Debugf("Waiting for ack from %s", replayer.TableName)
-			<-replayer.Ctrl
-			log.Debugf("Shutdown complete for %s", replayer.TableName)
+			log.Debugf("Waiting for ack from %s", r.TableName)
+			<-r.Ctrl
+			log.Debugf("Shutdown complete for %s", r.TableName)
 		}
 
 		log.Info("Stopping GRPC server")
