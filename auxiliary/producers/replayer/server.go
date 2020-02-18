@@ -6,15 +6,14 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"syscall"
 	"strings"
+	"syscall"
 	"time"
 
-	livetraindatareplayer "github.com/bptlab/cepta/aux/producers/traindataproducer/livetraindatareplayer"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
-	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -23,13 +22,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-// var done = sync.WaitGroup{}
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var db *libdb.DB
 var log *logrus.Logger
-var replayers = []*livetraindatareplayer.Replayer{}
-
+var replayers = []*Replayer{}
 
 type server struct {
 	pb.UnimplementedReplayerServer
@@ -38,7 +35,7 @@ type server struct {
 	mode      pb.ReplayType
 	timerange pb.Timerange
 	ids       []string
-	active		bool
+	active    bool
 }
 
 func (s *server) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
@@ -110,16 +107,16 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 	log.Info("Handling query for current replay options")
 	return &pb.ReplayStartOptions{
 		Speed: &pb.Speed{Speed: s.speed},
-		Type: s.mode,
+		Type:  s.mode,
 		Range: &s.timerange,
-		Ids: s.ids,
+		Ids:   s.ids,
 	}, nil
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
-	
+
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
@@ -157,14 +154,14 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	}
 
 	// Live train data replayer
-	live := &livetraindatareplayer.Replayer{
+	live := &Replayer{
 		TableName:  "public.live",
 		SortColumn: "ACTUAL_TIME",
 	}
-	replayers = []*livetraindatareplayer.Replayer{
+	replayers = []*Replayer{
 		live,
 	}
-	
+
 	// Set common replayer parameters
 	for _, replayer := range replayers {
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
@@ -189,7 +186,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	}
 	grpcServer = grpc.NewServer()
 	pb.RegisterReplayerServer(grpcServer, &replayerServer)
-	
+
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
@@ -204,7 +201,7 @@ func main() {
 	shutdown := make(chan os.Signal)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-        <-shutdown
+		<-shutdown
 		log.Info("Graceful shutdown")
 		log.Info("Sending SHUTDOWN signal to all replaying topics")
 		for _, replayer := range replayers {
@@ -212,10 +209,10 @@ func main() {
 			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 			// Wait for ack
 			log.Debugf("Waiting for ack from %s", replayer.TableName)
-			<- replayer.Ctrl
+			<-replayer.Ctrl
 			log.Debugf("Shutdown complete for %s", replayer.TableName)
 		}
-		
+
 		log.Info("Stopping GRPC server")
 		grpcServer.Stop()
 	}()
@@ -277,7 +274,7 @@ func main() {
 			Usage:   "end timestamp",
 		},
 	}...)
-	
+
 	log = logrus.New()
 	go func() {
 		app := &cli.App{
@@ -300,7 +297,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	
+
 	<-done
 	log.Info("Exiting")
 }

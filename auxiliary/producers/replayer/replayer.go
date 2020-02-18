@@ -1,4 +1,4 @@
-package livetraindatareplayer
+package main
 
 import (
 	"fmt"
@@ -18,15 +18,15 @@ import (
 )
 
 type Replayer struct {
-	Ctrl	   chan pb.InternalControlMessageType
+	Ctrl       chan pb.InternalControlMessageType
 	TableName  string
 	MustMatch  *[]string
 	Timerange  *pb.Timerange
 	SortColumn string
 	Limit      *int
 	Speed      *int32
-	Active	   *bool
-	Repeat	   bool
+	Active     *bool
+	Repeat     bool
 	Mode       *pb.ReplayType
 	Offset     int
 	Db         *libdb.DB
@@ -138,20 +138,20 @@ func (r Replayer) produce() error {
 
 					// Serialize event
 					event := &livetraindataevent.LiveTrainData{
-						Id: livetraindata.Id,
-						TrainId: livetraindata.Train_id,            
-						LocationId: livetraindata.Location_id,
-						ActualTime: toTimestamp(livetraindata.Actual_time),
-						Status: livetraindata.Status,
-						FirstTrainNumber: livetraindata.First_train_number,
-						TrainNumberReference: livetraindata.Train_number_reference,
-						ArrivalTimeReference: toTimestamp(livetraindata.Arrival_time_reference),
+						Id:                      livetraindata.Id,
+						TrainId:                 livetraindata.Train_id,
+						LocationId:              livetraindata.Location_id,
+						ActualTime:              toTimestamp(livetraindata.Actual_time),
+						Status:                  livetraindata.Status,
+						FirstTrainNumber:        livetraindata.First_train_number,
+						TrainNumberReference:    livetraindata.Train_number_reference,
+						ArrivalTimeReference:    toTimestamp(livetraindata.Arrival_time_reference),
 						PlannedArrivalDeviation: livetraindata.Planned_arrival_deviation,
-						TransferLocationId: livetraindata.Transfer_location_id,
-						ReportingImId: livetraindata.Reporting_im_id,
-						NextImId: livetraindata.Next_im_id,
-						MessageStatus: livetraindata.Message_status,
-						MessageCreation: toTimestamp(livetraindata.Message_creation),
+						TransferLocationId:      livetraindata.Transfer_location_id,
+						ReportingImId:           livetraindata.Reporting_im_id,
+						NextImId:                livetraindata.Next_im_id,
+						MessageStatus:           livetraindata.Message_status,
+						MessageCreation:         toTimestamp(livetraindata.Message_creation),
 					}
 					eventBytes, err := proto.Marshal(event)
 					if err != nil {
@@ -174,7 +174,7 @@ func (r Replayer) produce() error {
 					r.log.Infof("Produced a message to %s and will sleep for %v seconds", topic, time.Duration(waitTime))
 					time.Sleep(time.Duration(waitTime))
 					recentTime = newTime
-				
+
 				} else if r.Repeat {
 					rows, err = query.Rows()
 					if err != nil {
