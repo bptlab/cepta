@@ -29,7 +29,6 @@ class App extends VuexModule implements IAppState {
   public addDelay(event: TrainDelayNotification) {
     this.delays.push(event);
   }
-
 }
 
 export const AppModule = getModule(App);
