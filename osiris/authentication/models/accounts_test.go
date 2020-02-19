@@ -10,7 +10,6 @@ import (
 
 func SetupTests() { // or *gorm.DB
 	mocket.Catcher.Register() // Safe register. Allowed multiple calls to save
-	mocket.Catcher.Logging = true
 	// GORM
 	db, err := gorm.Open(mocket.DriverName, "connection_string") // Can be any connection string
 	if err != nil {
@@ -24,7 +23,6 @@ func SetupTests() { // or *gorm.DB
 func TestGetAndLogin(t *testing.T) {
 	SetupTests()
 	t.Run("Test GetUser", func(t *testing.T) {
-		mocket.Catcher.Logging = true
 		//	testAccount := Account{Email: "test"}
 		commonReply := []map[string]interface{}{{"email": "test", "password": "password"}}
 		mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "accounts"  WHERE "accounts"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "accounts"."id" ASC LIMIT 1`).WithReply(commonReply)
@@ -38,7 +36,6 @@ func TestGetAndLogin(t *testing.T) {
 	})
 
 	t.Run("Test Correct Login", func(t *testing.T) {
-		mocket.Catcher.Logging = true
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 		testPassword := string(hashedPassword)
 		commonReply := []map[string]interface{}{{"email": "test", "password": testPassword}}
@@ -50,7 +47,6 @@ func TestGetAndLogin(t *testing.T) {
 	})
 
 	t.Run("Test Wrong Email Login", func(t *testing.T) {
-		mocket.Catcher.Logging = true
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 		testPassword := string(hashedPassword)
 		commonReply := []map[string]interface{}{{"email": "test", "password": testPassword}}
@@ -62,7 +58,6 @@ func TestGetAndLogin(t *testing.T) {
 	})
 
 	t.Run("Test Wrong Password Login", func(t *testing.T) {
-		mocket.Catcher.Logging = true
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 		testPassword := string(hashedPassword)
 		commonReply := []map[string]interface{}{{"email": "test", "password": testPassword}}
@@ -78,7 +73,6 @@ func TestGetAndLogin(t *testing.T) {
 func TestCreate(t *testing.T) {
 	SetupTests()
 	t.Run("Test Create User", func(t *testing.T) {
-		mocket.Catcher.Logging = true
 		testAccount := Account{Email: "email@email", Password: "password"}
 		result := testAccount.Create()
 		if (result["message"]) != "Account has been created" && result["status"] != true {
@@ -87,14 +81,39 @@ func TestCreate(t *testing.T) {
 	})
 }
 
-func TestValidate(t *testing.T) {
+func TestValidateUser(t *testing.T) {
 	SetupTests()
-	t.Run("Test Correct Validate User", func(t *testing.T) {
-		mocket.Catcher.Logging = true
+	t.Run("Test Correct", func(t *testing.T) {
 		testAccount := Account{Email: "email@email", Password: "password"}
 		result, _ := testAccount.Validate()
 		if (result["message"]) != "Requirement passed" && result["status"] != true {
 			t.Errorf("Message should be: Requirement passed. Got '%v'", result["message"])
+		}
+	})
+
+	t.Run("Test Wrong Email", func(t *testing.T) {
+		testAccount := Account{Email: "email", Password: "password"}
+		result, _ := testAccount.Validate()
+		if (result["message"]) != "Email address is required" && result["status"] != false {
+			t.Errorf("Message should be: Email address is required. Got '%v'", result["message"])
+		}
+	})
+
+	t.Run("Test Wrong Email", func(t *testing.T) {
+		testAccount := Account{Email: "email@email", Password: "pass"}
+		result, _ := testAccount.Validate()
+		if (result["message"]) != "Password is required" && result["status"] != false {
+			t.Errorf("Message should be: Password address is required. Got '%v'", result["message"])
+		}
+	})
+
+	t.Run("Test Already Taken Email", func(t *testing.T) {
+		testAccount := Account{Email: "email@email", Password: "password"}
+		commonReply := []map[string]interface{}{{"email": "email@email", "password": "passowrd"}}
+		mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "accounts"  WHERE "accounts"."deleted_at" IS NULL AND ((email = email@email)) ORDER BY "accounts"."id" ASC LIMIT 1`).WithReply(commonReply)
+		result, _ := testAccount.Validate()
+		if (result["message"]) != "Email address already in use by another user." && result["status"] != false {
+			t.Errorf("Message should be: Email address already in use by another user. Got '%v'", result["message"])
 		}
 	})
 }
