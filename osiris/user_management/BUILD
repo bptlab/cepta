@@ -3,7 +3,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 go_binary(
-    name = "user-management",
+    name = "user_management",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -19,7 +19,7 @@ container_push(
   format = "Docker",
   image = ":image",
   registry = "index.docker.io",
-  repository = "ceptaorg/user-management",
+  repository = "ceptaorg/user_management",
   tag = "master",
   visibility = ["//visibility:public"],
 )
@@ -29,12 +29,14 @@ go_library(
     srcs = [
         "server.go"
     ],
-    importpath = "github.com/bptlab/cepta/osiris/user-management",
+    importpath = "github.com/bptlab/cepta/osiris/user_management",
     visibility = ["//visibility:private"],
     deps = [
-        # "//osiris/user-management/utils:go_default_library",
-        # "//osiris/user-management/models:go_default_library",
-        # "@com_github_dgrijalva_jwt_go//:go_default_library",
+        "//models/grpc:user_management_go_proto",
+        "//osiris/lib:db",
+        "@com_github_sirupsen_logrus//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
     ],
 )

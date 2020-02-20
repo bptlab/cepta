@@ -1,0 +1,61 @@
+syntax = "proto3";
+package user_management;
+option go_package = "github.com/bptlab/cepta/models/grpc/user_management";
+
+// option java_multiple_files = true;
+// option java_package = "org.bptlab.cepta.producers.replayer";
+// option java_outer_classname = "UserManagementProto";
+
+
+service UserManagement {
+
+  // Configuration
+  rpc SetEmail(UserId, string) returns (Success) {}
+  rpc AddTrain(UserId, Train) returns (Success) {}
+  rpc RemoveTrain(UserId, Train) returns (Success) {}
+  rpc AddUser(User) returns (Success) {}
+  rpc RemoveUser(UserId) returns (Success) {}
+
+  // Query
+  rpc GetUser(UserId) returns (User) {}
+  rpc GetTrains(UserId) returns (Trains) {}
+}
+
+message SetEmailIntput {
+  UserId user_id = 0
+  string email = "a"
+}
+
+message AddTrainIntput {
+  UserId user_id = 0
+  Train train = 1
+}
+
+message RemoveTrainIntput {
+  UserId user_id = 0
+  Train train = 1
+}
+
+message Train {
+  int train_id = 0
+}
+
+message Trains {
+  repeated Train trains = 0
+}
+
+message UserId {
+  int user_id = 0
+}
+
+message User {
+  UserId user_id = 0
+  string email = "a"
+  Trains trains = 0
+}
+
+message Empty {}
+
+message Success {
+  bool success = 1;
+}
