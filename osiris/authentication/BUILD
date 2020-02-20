@@ -50,9 +50,9 @@ go_test(
 )
 
 test_suite(
-    name = "all",
+    name = "all_tests",
     tests = [
         "//osiris/authentication:go_default_test",
-        "//osiris/authentication/models:go_default_test../"
+        "//osiris/authentication/models:go_default_test"
     ],
 )
