@@ -5,6 +5,7 @@ import (
 	"time"
 
 	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
+	plannedtraindataevent "github.com/bptlab/cepta/models/events/plannedtraindataevent"
 	weatherdataevent "github.com/bptlab/cepta/models/events/weatherdataevent"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -166,4 +167,39 @@ type PlannedTrainData struct {
 
 func (PlannedTrainData) TableName() string {
 	return "public.planned"
+}
+
+
+func (ptd PlannedTrainData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Message, error) {
+	var instance PlannedTrainData
+	err := db.ScanRows(rows, &instance)
+	if err != nil {
+		return time.Time{}, nil, err
+	}
+	newTime := instance.Actual_time
+	event := instance.AsProtoMessage()
+	return newTime, event, err
+}
+
+func (ptd PlannedTrainData) GetInstance() interface{} {
+	return &PlannedTrainData{}
+}
+
+func (ptd PlannedTrainData) AsProtoMessage() proto.Message {
+	return &plannedtraindataevent.PlannedTrainData{
+		Id:                      ptd.Id,
+		TrainId:                 ptd.Train_id,
+		LocationId:              ptd.Location_id,
+		ActualTime:              toTimestamp(ptd.Actual_time),
+		Status:                  ptd.Status,
+		FirstTrainNumber:        ptd.First_train_number,
+		TrainNumberReference:    ptd.Train_number_reference,
+		ArrivalTimeReference:    toTimestamp(ptd.Arrival_time_reference),
+		PlannedArrivalDeviation: ptd.Planned_arrival_deviation,
+		TransferLocationId:      ptd.Transfer_location_id,
+		ReportingImId:           ptd.Reporting_im_id,
+		NextImId:                ptd.Next_im_id,
+		MessageStatus:           ptd.Message_status,
+		MessageCreation:         toTimestamp(ptd.Message_creation),
+	}
 }
