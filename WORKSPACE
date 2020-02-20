@@ -744,3 +744,10 @@ go_repository(
     sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
     version = "v1.0.2",
 )
+
+go_repository(
+    name = "com_github_selvatico_go_mocket",
+    importpath = "github.com/Selvatico/go-mocket",
+    sum = "h1:sXuFMnMfVL9b/Os8rGXPgbOFbr4HJm8aHsulD/uMTUk=",
+    version = "v1.0.7",
+)
