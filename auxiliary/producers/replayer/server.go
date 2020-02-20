@@ -25,7 +25,7 @@ import (
 
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
-var db *libdb.DB
+var db *libdb.PostgresDB
 var log *logrus.Logger
 var replayers = []*Replayer{}
 
@@ -115,7 +115,8 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
-	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
+	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
+	// mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
 	var err error
@@ -238,7 +239,8 @@ func main() {
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
-	cliFlags = append(cliFlags, libdb.DatabaseCliOptions...)
+	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
+	cliFlags = append(cliFlags, libdb.MongoDatabaseCliOptions...)
 	cliFlags = append(cliFlags, kafkaproducer.KafkaProducerCliOptions...)
 	cliFlags = append(cliFlags, []cli.Flag{
 		&cli.StringFlag{
@@ -270,7 +272,7 @@ func main() {
 			Value:   2,
 			Aliases: []string{"wait"},
 			EnvVars: []string{"PAUSE"},
-			Usage:   "pause between sending events when using constant replay (in milliseconds)",
+			Usage:   "pause between sending events when using constant replay (in seconds)",
 		},
 		&cli.BoolFlag{
 			Name:    "repeat",

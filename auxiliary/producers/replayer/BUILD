@@ -34,7 +34,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//models/grpc:replayer_go_proto",
-        "//osiris/lib:db",
+        "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",
         "//osiris/lib/kafka:producer",
         "//osiris/lib:utils",

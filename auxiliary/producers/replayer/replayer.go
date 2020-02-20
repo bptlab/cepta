@@ -15,11 +15,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// DbExtractor ...
 type DbExtractor interface {
 	GetAll(*sql.Rows, *gorm.DB) (time.Time, proto.Message, error)
 	GetInstance() interface{}
 }
 
+// Replayer ...
 type Replayer struct {
 	Ctrl       chan pb.InternalControlMessageType
 	TableName  string
@@ -32,7 +34,7 @@ type Replayer struct {
 	Repeat     bool
 	Mode       *pb.ReplayType
 	Offset     int
-	Db         *libdb.DB
+	Db         *libdb.PostgresDB
 	DbModel    DbExtractor
 	Topic      string
 	Brokers    []string
@@ -168,6 +170,7 @@ func (r Replayer) produce() error {
 	return err
 }
 
+// Start ...
 func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.TableName)
 	r.log.Info("Starting to produce")

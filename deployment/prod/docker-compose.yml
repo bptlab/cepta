@@ -121,8 +121,8 @@ services:
     command:
       - --broker=kafka:9092
       - --grpc-port=9000
-      - --db-host=postgres
-      - --db-port=5432
+      - --postgres-host=postgres
+      - --postgres-port=5432
       - --must-match='train_id=47298333'
 
   envoy:

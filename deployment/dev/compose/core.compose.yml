@@ -164,8 +164,10 @@ services:
     command:
       - --brokers=kafka:9092
       - --port=9000
-      - --db-host=postgres
-      - --db-port=${CEPTA_POSTGRES_PORT}
+      - --postgres-host=postgres
+      - --postgres-port=${CEPTA_POSTGRES_PORT}
+      - --mongodb-host=mongodb
+      - --mongodb-port=${CEPTA_MONGODB_PORT}
       # Do not use quotation here as this will be used in the postgres query
       # - --must-match=train_id=47298333
     ports:
