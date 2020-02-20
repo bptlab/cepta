@@ -176,9 +176,25 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
 
+	planned := &Replayer{
+		TableName: "public.planned",
+		SortColumn: "MESSAGE_CREATION",
+		DbModel: 	libdb.PlannedTrainData{},
+		Topic:		constants.Topics_PLANNED_TRAIN_DATA.String(),
+	}
+
+	// gps := &Replayer{
+	// 	TableName: "public.gps",
+	// 	SortColumn: "EVENTTIME",
+	// 	DbModel: 	libdb.GpsTrainData{},
+	// 	Topic:		constants.Topics_GPS_TRAIN_DATA.String(),
+	// }
+
 	replayers = []*Replayer{
 		live,
 		weather,
+		planned,
+		gps,
 	}
 
 	// Set common replayer parameters

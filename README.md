@@ -22,8 +22,13 @@ bazel build //auxiliary/producers/traindataproducer  # Example
 #### Running
 To run a specific executable:
 ```bash
-bazel run //auxiliary/producers/traindataproducer -- --port 8080  # Example
+bazel run //auxiliary/producers/replayer -- --port 8080  # Example
 ```
+ Same example with debug log and constant time mode
+```bash
+bazel run //auxiliary/producers/replayer -- --port 8080 --mode constant --log debug  # Example
+```
+ for more start with --help
 
 #### Testing
 ```bash
