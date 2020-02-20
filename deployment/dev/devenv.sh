@@ -7,6 +7,7 @@ docker-compose \
   -f core.compose.yml \
   -f cockpit.compose.yml \
   -f envoy.compose.yml \
+  -f mongo.compose.yml \
   -f anubis.compose.yml \
   -f rabbitmq.compose.yml \
   -f monitoring.compose.yml \
