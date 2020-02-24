@@ -10,48 +10,56 @@ option go_package = "github.com/bptlab/cepta/models/grpc/user_management";
 service UserManagement {
 
   // Configuration
-  rpc SetEmail(UserId, string) returns (Success) {}
-  rpc AddTrain(UserId, Train) returns (Success) {}
-  rpc RemoveTrain(UserId, Train) returns (Success) {}
+  rpc SetEmail(UserIdEmailIntput) returns (Success) {}
+  rpc AddTrain(UserIdTrainIntput) returns (Success) {}
+  rpc RemoveTrain(UserIdTrainIdIntput) returns (Success) {}
   rpc AddUser(User) returns (Success) {}
   rpc RemoveUser(UserId) returns (Success) {}
 
   // Query
   rpc GetUser(UserId) returns (User) {}
-  rpc GetTrains(UserId) returns (Trains) {}
+  rpc GetTrainIds(UserId) returns (TrainIds) {}
 }
 
-message SetEmailIntput {
-  UserId user_id = 0
-  string email = "a"
+message UserIdEmailIntput {
+  UserId user_id = 1;
+  string email = 2;
 }
 
-message AddTrainIntput {
-  UserId user_id = 0
-  Train train = 1
+message UserIdTrainIntput {
+  UserId user_id = 1;
+  Train train = 2;
 }
 
-message RemoveTrainIntput {
-  UserId user_id = 0
-  Train train = 1
+message UserIdTrainIdIntput {
+  UserId user_id = 1;
+  TrainId train = 2;
 }
-
 message Train {
-  int train_id = 0
+  TrainId train_id = 1;
+}
+message TrainId {
+  int32 train_id = 1;
 }
 
-message Trains {
-  repeated Train trains = 0
+message TrainIds {
+  repeated TrainId trains = 1;
 }
 
 message UserId {
-  int user_id = 0
+  int32 user_id = 1;
 }
 
 message User {
-  UserId user_id = 0
-  string email = "a"
-  Trains trains = 0
+  UserId user_id = 1;
+  string email = 2;
+  TrainIds trains = 3;
+}
+
+enum InternalControlMessageType {
+  RESET = 0;
+  SEEK = 1;
+  SHUTDOWN = 2;
 }
 
 message Empty {}
