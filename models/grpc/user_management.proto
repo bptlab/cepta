@@ -11,7 +11,7 @@ service UserManagement {
 
   // Configuration
   rpc SetEmail(UserIdEmailInput) returns (Success) {}
-  rpc AddTrain(UserIdTrainInput) returns (Success) {}
+  rpc AddTrain(UserIdTrainIdInput) returns (Success) {}
   rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
   rpc AddUser(User) returns (Success) {}
   rpc RemoveUser(UserId) returns (Success) {}
@@ -22,38 +22,38 @@ service UserManagement {
 }
 
 message UserIdEmailInput {
-  UserId userId = 1;
+  UserId user = 1;
   string email = 2;
 }
 
 message UserIdTrainInput {
-  UserId userId = 1;
+  UserId user = 1;
   Train train = 2;
 }
 
 message UserIdTrainIdInput {
-  UserId userId = 1;
+  UserId user = 1;
   TrainId train = 2;
 }
 message Train {
   TrainId trainId = 1;
 }
 message TrainId {
-  int64 trainId = 1;
+  int64 id = 1;
 }
-
 message TrainIds {
-  repeated TrainId trains = 1;
+  repeated TrainId ids = 1;
 }
 
 message UserId {
-  int64 userId = 1;
+  int64 id = 1;
 }
 
 message User {
-  UserId userId = 1;
+  int64 id = 1;
   string email = 2;
-  TrainIds trains = 3;
+  string password = 3;
+  repeated TrainId trains = 4;
 }
 
 enum InternalControlMessageType {

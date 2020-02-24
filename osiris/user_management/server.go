@@ -32,6 +32,7 @@ type server struct {
 //Account is a struct to rep user account
 type Account struct {
 	gorm.Model
+	ID       int
 	Email    string         `json:"email"`
 	TrainIds pq.StringArray `gorm:"type:int[]"`
 	Password string         `json:"password"`
@@ -51,11 +52,52 @@ rpc GetTrains(UserId) returns (Trains) {}
 
 // SetEmail sets a users email
 func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
-	var id int = int(in.GetUserId().GetUserId())
+	var id int = int(in.GetUser().GetId())
 	var email string = in.GetEmail()
 	var account Account
-	db.DB.First(&account, "id = ?", id)
-	db.DB.Model(&account).Update("Email", email)
+	errors := db.DB.First(&account, "id = ?", id).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not fetch account")
+	}
+	errors = db.DB.Model(&account).Update("Email", email).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not update account")
+	}
+	return &pb.Success{Success: true}, nil
+}
+
+// AddTrain adds a train to a user
+func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
+	var userID int = int(in.GetUser().GetId())
+	var trainID int = int(in.GetTrain().GetId())
+	var account Account
+	errors := db.DB.First(&account, "id = ?", userID).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not fetch account")
+	}
+	trains := append(account.TrainIds, string(trainID))
+	errors = db.DB.Model(&account).Update("TrainIds", trains).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not update account")
+	}
+	return &pb.Success{Success: true}, nil
+}
+
+// RemoveTrain removes a train from a user
+func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
+	// TODO: do this... I am clueless how to nicely handle the array
+	return &pb.Success{Success: true}, nil
+}
+
+// AddUser adds a new user
+func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
+	user := Account{
+		Email:    in.GetEmail(),
+		ID:       int(in.GetId()),
+		Password: in.GetPassword(),
+	}
+	db.DB.NewRecord(user)
+	db.DB.Create(&user)
 	return &pb.Success{Success: true}, nil
 }
 
@@ -132,4 +174,16 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	listener.Close()
 	done <- true
 	return nil
+}
+
+func handleErrors(errors []error, message string) (*pb.Success, error) {
+	log.Println(message)
+	for _, err := range errors {
+		fmt.Println(err)
+	}
+	return &pb.Success{Success: false}, errors[0]
+}
+
+func removeTrainID(slice pq.StringArray, s int) pq.StringArray {
+	return append(slice[:s], slice[s+1:]...)
 }
