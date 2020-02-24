@@ -41,5 +41,8 @@ go_library(
         "@com_github_urfave_cli_v2//:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_jinzhu_gorm//:go_default_library",
+        "@com_github_lib_pq//:go_default_library"
+        
     ],
 )

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -11,6 +12,8 @@ import (
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 
+	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
@@ -24,6 +27,36 @@ var log *logrus.Logger
 type server struct {
 	pb.UnimplementedUserManagementServer
 	active bool
+}
+
+//Account is a struct to rep user account
+type Account struct {
+	gorm.Model
+	Email    string         `json:"email"`
+	TrainIds pq.StringArray `gorm:"type:int[]"`
+	Password string         `json:"password"`
+	Token    string         `json:"token";sql:"-"`
+}
+
+/*
+rpc SetEmail(UserId, string) returns (Success) {}
+rpc AddTrain(UserId, Train) returns (Success) {}
+rpc RemoveTrain(UserId, Train) returns (Success) {}
+rpc AddUser(User) returns (Success) {}
+rpc RemoveUser(UserId) returns (Success) {}
+
+rpc GetUser(UserId) returns (User) {}
+rpc GetTrains(UserId) returns (Trains) {}
+*/
+
+// SetEmail sets a users email
+func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
+	var id int = int(in.GetUserId().GetUserId())
+	var email string = in.GetEmail()
+	var account Account
+	db.DB.First(&account, "id = ?", id)
+	db.DB.Model(&account).Update("Email", email)
+	return &pb.Success{Success: true}, nil
 }
 
 func main() {
@@ -67,11 +100,14 @@ func main() {
 	<-done
 	log.Info("Exiting")
 }
+
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
 
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
+	db.DB.Debug().AutoMigrate(&Account{})
+
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}

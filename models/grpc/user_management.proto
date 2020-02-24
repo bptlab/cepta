@@ -10,9 +10,9 @@ option go_package = "github.com/bptlab/cepta/models/grpc/user_management";
 service UserManagement {
 
   // Configuration
-  rpc SetEmail(UserIdEmailIntput) returns (Success) {}
-  rpc AddTrain(UserIdTrainIntput) returns (Success) {}
-  rpc RemoveTrain(UserIdTrainIdIntput) returns (Success) {}
+  rpc SetEmail(UserIdEmailInput) returns (Success) {}
+  rpc AddTrain(UserIdTrainInput) returns (Success) {}
+  rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
   rpc AddUser(User) returns (Success) {}
   rpc RemoveUser(UserId) returns (Success) {}
 
@@ -21,25 +21,25 @@ service UserManagement {
   rpc GetTrainIds(UserId) returns (TrainIds) {}
 }
 
-message UserIdEmailIntput {
-  UserId user_id = 1;
+message UserIdEmailInput {
+  UserId userId = 1;
   string email = 2;
 }
 
-message UserIdTrainIntput {
-  UserId user_id = 1;
+message UserIdTrainInput {
+  UserId userId = 1;
   Train train = 2;
 }
 
-message UserIdTrainIdIntput {
-  UserId user_id = 1;
+message UserIdTrainIdInput {
+  UserId userId = 1;
   TrainId train = 2;
 }
 message Train {
-  TrainId train_id = 1;
+  TrainId trainId = 1;
 }
 message TrainId {
-  int32 train_id = 1;
+  int64 trainId = 1;
 }
 
 message TrainIds {
@@ -47,11 +47,11 @@ message TrainIds {
 }
 
 message UserId {
-  int32 user_id = 1;
+  int64 userId = 1;
 }
 
 message User {
-  UserId user_id = 1;
+  UserId userId = 1;
   string email = 2;
   TrainIds trains = 3;
 }
