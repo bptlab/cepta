@@ -149,26 +149,27 @@ func (wd WeatherData) AsProtoMessage() proto.Message {
 }
 
 type PlannedTrainData struct {
-	Id                        int64
-	Train_id                  int64
-	Location_id               int64
-	Actual_time               time.Time
-	Status                    int64
-	First_train_number        int64
-	Train_number_reference    int64
-	Arrival_time_reference    time.Time
-	Planned_arrival_deviation int64
-	Transfer_location_id      int64
-	Reporting_im_id           int64
-	Next_im_id                int64
-	Message_status            int64
-	Message_creation          time.Time
+	Id                          int64
+	Train_id                    int64
+	Location_id                 int64
+	Planned_time                time.Time
+	Status                      int64
+	First_train_number          int64
+	Train_number_reference      int64
+	Planned_departure_reference time.Time
+	Planned_arrival_reference   time.Time
+	Train_operator_id           int64
+	Transfer_location_id        int64
+	Reporting_im_id             int64
+	Next_im_id                  int64
+	Message_status              int64
+	Message_creation            time.Time
+	Original_train_number       int64
 }
 
 func (PlannedTrainData) TableName() string {
 	return "public.planned"
 }
-
 
 func (ptd PlannedTrainData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Message, error) {
 	var instance PlannedTrainData
@@ -176,7 +177,7 @@ func (ptd PlannedTrainData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, prot
 	if err != nil {
 		return time.Time{}, nil, err
 	}
-	newTime := instance.Actual_time
+	newTime := instance.Message_creation
 	event := instance.AsProtoMessage()
 	return newTime, event, err
 }
@@ -187,19 +188,21 @@ func (ptd PlannedTrainData) GetInstance() interface{} {
 
 func (ptd PlannedTrainData) AsProtoMessage() proto.Message {
 	return &plannedtraindataevent.PlannedTrainData{
-		Id:                      ptd.Id,
-		TrainId:                 ptd.Train_id,
-		LocationId:              ptd.Location_id,
-		ActualTime:              toTimestamp(ptd.Actual_time),
-		Status:                  ptd.Status,
-		FirstTrainNumber:        ptd.First_train_number,
-		TrainNumberReference:    ptd.Train_number_reference,
-		ArrivalTimeReference:    toTimestamp(ptd.Arrival_time_reference),
-		PlannedArrivalDeviation: ptd.Planned_arrival_deviation,
-		TransferLocationId:      ptd.Transfer_location_id,
-		ReportingImId:           ptd.Reporting_im_id,
-		NextImId:                ptd.Next_im_id,
-		MessageStatus:           ptd.Message_status,
-		MessageCreation:         toTimestamp(ptd.Message_creation),
+		Id:                        ptd.Id,
+		TrainId:                   ptd.Train_id,
+		LocationId:                ptd.Location_id,
+		PlannedTime:               toTimestamp(ptd.Planned_time),
+		Status:                    ptd.Status,
+		FirstTrainNumber:          ptd.First_train_number,
+		TrainNumberReference:      ptd.Train_number_reference,
+		PlannedDepartureReference: toTimestamp(ptd.Planned_departure_reference),
+		PlannedArrivalReference:   toTimestamp(ptd.Planned_arrival_reference),
+		TrainOperatorId:           ptd.Train_operator_id,
+		TransferLocationId:        ptd.Transfer_location_id,
+		ReportingImId:             ptd.Reporting_im_id,
+		NextImId:                  ptd.Next_im_id,
+		MessageStatus:             ptd.Message_status,
+		MessageCreation:           toTimestamp(ptd.Message_creation),
+		OriginalTrainNumber:       ptd.Original_train_number,
 	}
 }

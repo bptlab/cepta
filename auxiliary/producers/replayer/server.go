@@ -194,7 +194,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		live,
 		weather,
 		planned,
-		gps,
+		//gps,
 	}
 
 	// Set common replayer parameters

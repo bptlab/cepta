@@ -39,6 +39,7 @@ proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
