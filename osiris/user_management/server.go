@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
@@ -39,20 +40,9 @@ type Account struct {
 	Token    string         `json:"token";sql:"-"`
 }
 
-/*
-rpc SetEmail(UserId, string) returns (Success) {}
-rpc AddTrain(UserId, Train) returns (Success) {}
-rpc RemoveTrain(UserId, Train) returns (Success) {}
-rpc AddUser(User) returns (Success) {}
-rpc RemoveUser(UserId) returns (Success) {}
-
-rpc GetUser(UserId) returns (User) {}
-rpc GetTrains(UserId) returns (Trains) {}
-*/
-
 // SetEmail sets a users email
 func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
-	var id int = int(in.GetUser().GetId())
+	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
 	var account Account
 	errors := db.DB.First(&account, "id = ?", id).GetErrors()
@@ -68,8 +58,8 @@ func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 
 // AddTrain adds a train to a user
 func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
-	var userID int = int(in.GetUser().GetId())
-	var trainID int = int(in.GetTrain().GetId())
+	var userID int = int(in.GetUserId().GetValue())
+	var trainID int = int(in.GetTrainId().GetValue())
 	var account Account
 	errors := db.DB.First(&account, "id = ?", userID).GetErrors()
 	if errors != nil {
@@ -92,13 +82,62 @@ func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput
 // AddUser adds a new user
 func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
 	user := Account{
+		ID:       int(in.GetId().GetValue()),
 		Email:    in.GetEmail(),
-		ID:       int(in.GetId()),
 		Password: in.GetPassword(),
 	}
 	db.DB.NewRecord(user)
 	db.DB.Create(&user)
 	return &pb.Success{Success: true}, nil
+}
+
+// RemoveUser removes a user
+func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
+	var user Account
+	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not find that account")
+	}
+	errors = db.DB.Delete(&user).GetErrors()
+	if errors != nil {
+		return handleErrors(errors, "Could not delete that user")
+	}
+	return &pb.Success{Success: true}, nil
+}
+
+// GetUser fetches all information to a user
+func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, error) {
+	var user Account
+	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	if errors != nil {
+		printErrors(errors)
+		return &pb.User{}, errors[0]
+	}
+	var ids []*pb.TrainId
+	for _, id := range user.TrainIds {
+		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
+	}
+	return &pb.User{
+		Id:       &pb.UserId{Value: int64(user.ID)},
+		Email:    user.Email,
+		Password: user.Password,
+		Trains:   ids}, nil
+}
+
+// GetTrains fetches all information to a user
+func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
+	var user Account
+	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	if errors != nil {
+		printErrors(errors)
+		return &pb.TrainIds{}, errors[0]
+	}
+	var ids []*pb.TrainId
+	for _, id := range user.TrainIds {
+		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
+	}
+	return &pb.TrainIds{
+		Ids: ids}, nil
 }
 
 func main() {
@@ -178,12 +217,21 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 func handleErrors(errors []error, message string) (*pb.Success, error) {
 	log.Println(message)
-	for _, err := range errors {
-		fmt.Println(err)
-	}
+	printErrors(errors)
 	return &pb.Success{Success: false}, errors[0]
 }
 
 func removeTrainID(slice pq.StringArray, s int) pq.StringArray {
 	return append(slice[:s], slice[s+1:]...)
+}
+
+func printErrors(errors []error) {
+	for _, err := range errors {
+		fmt.Println(err)
+	}
+}
+
+func int64FromString(text string) int64 {
+	integer, _ := strconv.Atoi(text)
+	return int64(integer)
 }

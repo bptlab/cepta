@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
@@ -28,7 +28,6 @@ go_library(
     name = "go_default_library",
     srcs = [
         "server.go",
-        "user_management.go"
     ],
     importpath = "github.com/bptlab/cepta/osiris/user_management",
     visibility = ["//visibility:private"],
@@ -42,7 +41,23 @@ go_library(
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
         "@com_github_jinzhu_gorm//:go_default_library",
-        "@com_github_lib_pq//:go_default_library"
+        "@com_github_lib_pq//:go_default_library",
+        "@com_github_selvatico_go_mocket//:go_default_library",
+        "@com_github_grpc_grpc_go//test/bufconn:go_default_library"
         
     ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["server_test.go"],
+    embed = [":go_default_library"],
+    size = "medium"
+)
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//osiris/user_management:go_default_test",
+        # "//osiris/user_management/models:go_default_test"
+    ]
 )

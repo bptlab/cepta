@@ -1,6 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-
 http_archive(
     name = "rules_proto",
     sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
@@ -10,13 +9,12 @@ http_archive(
         "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
     ],
 )
+
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
 rules_proto_dependencies()
+
 rules_proto_toolchains()
-
-
-
-
 
 http_archive(
     name = "build_bazel_rules_nodejs",
@@ -25,9 +23,6 @@ http_archive(
 )
 
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
-
-
-
 
 http_archive(
     name = "rules_proto_grpc",
@@ -54,26 +49,18 @@ rules_closure_dependencies(
 
 rules_closure_toolchains()
 
-
-
-
-
 http_archive(
     name = "rules_typescript_proto",
     sha256 = "0c76ae0d04eaa4d4c5f12556615cb70d294082ee672aee6dd849fea4ec2075ee",
     strip_prefix = "rules_typescript_proto-0.0.3",
     urls = [
-	"https://github.com/Dig-Doug/rules_typescript_proto/archive/0.0.3.tar.gz",
+        "https://github.com/Dig-Doug/rules_typescript_proto/archive/0.0.3.tar.gz",
     ],
 )
 
 load("@rules_typescript_proto//:index.bzl", "rules_typescript_proto_dependencies")
 
 rules_typescript_proto_dependencies()
-
-
-
-
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
@@ -87,9 +74,6 @@ git_repository(
 load("@com_github_atlassian_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
 
 multirun_dependencies()
-
-
-
 
 # Download the rules_docker repository at release v0.14.1
 http_archive(
@@ -120,18 +104,12 @@ load(
 
 _go_image_repos()
 
-
-
-
-
-
 http_archive(
     name = "go_proto_gql",
     urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
     sha256 = "7ae7e80b0e76e82e136053461144d8038faee9a2bf4d2c89cba1358ab16da3c6",
     strip_prefix = "go-proto-gql-0.7.4",
 )
-
 
 FLINK_VERSION = "1.9.0"
 
@@ -758,4 +736,18 @@ go_repository(
     importpath = "github.com/gorilla/mux",
     sum = "h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=",
     version = "v1.7.3",
+)
+
+go_repository(
+    name = "com_github_selvatico_go_mocket",
+    importpath = "github.com/selvatico/go-mocket",
+    sum = "h1:jbVa7RkoOCzBanQYiYF+VWgySHZogg25fOIKkM38q5k=",
+    version = "v1.0.7",
+)
+
+go_repository(
+    name = "com_github_grpc_grpc_go",
+    importpath = "github.com/grpc/grpc-go",
+    sum = "h1:EluyjU5nlbuNJSEktNl600PIpzbO2OcvZWfWV1jFvKM=",
+    version = "v1.27.1",
 )

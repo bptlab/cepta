@@ -22,38 +22,38 @@ service UserManagement {
 }
 
 message UserIdEmailInput {
-  UserId user = 1;
+  UserId userId = 1;
   string email = 2;
 }
 
 message UserIdTrainInput {
-  UserId user = 1;
+  UserId userId = 1;
   Train train = 2;
 }
 
 message UserIdTrainIdInput {
-  UserId user = 1;
-  TrainId train = 2;
+  UserId userId = 1;
+  TrainId trainId = 2;
 }
 message Train {
   TrainId trainId = 1;
 }
 message TrainId {
-  int64 id = 1;
+  int64 value = 1;
 }
 message TrainIds {
   repeated TrainId ids = 1;
 }
 
-message UserId {
-  int64 id = 1;
-}
-
 message User {
-  int64 id = 1;
+  UserId id = 1;
   string email = 2;
   string password = 3;
   repeated TrainId trains = 4;
+}
+
+message UserId {
+  int64 value = 1;
 }
 
 enum InternalControlMessageType {
