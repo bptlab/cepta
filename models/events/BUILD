@@ -55,7 +55,25 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+proto_library(
+    name = "gps_train_data_proto",
+    srcs = ["GpsTrainData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
 
+java_proto_library(
+    name = "gps_train_data_java_proto",
+    deps = [":gps_train_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "gps_train_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/gpstraindataevent",
+    proto = ":gps_train_data_proto",
+    visibility = ["//visibility:public"],
+)
 
 
 
@@ -170,6 +188,7 @@ filegroup(
     srcs = [
         ":live_train_data_go_proto", ":live_train_data_java_proto",
         ":planned_train_data_go_proto", ":planned_train_data_java_proto",
+        ":gps_train_data_go_proto", ":gps_train_data_java_proto",
         ":predicted_train_data_go_proto", ":predicted_train_data_java_proto",
         ":train_delay_notification_go_proto", ":train_delay_notification_java_proto", ":train_delay_notification_ts_proto", ":train_delay_notification_nodejs_proto",
         ":train_information_data_go_proto", ":train_information_data_java_proto",
