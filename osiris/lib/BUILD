@@ -26,6 +26,7 @@ go_library(
         ":cli",
         "//models/events:live_train_data_go_proto",
         "//models/events:planned_train_data_go_proto",
+        "//models/events:gps_wagon_data_go_proto",
         "//models/events:weather_data_go_proto",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",

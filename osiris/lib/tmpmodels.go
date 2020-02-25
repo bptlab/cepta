@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 
+	gpswagondataevent "github.com/bptlab/cepta/models/events/gpswagondataevent"
 	livetraindataevent "github.com/bptlab/cepta/models/events/livetraindataevent"
 	plannedtraindataevent "github.com/bptlab/cepta/models/events/plannedtraindataevent"
 	weatherdataevent "github.com/bptlab/cepta/models/events/weatherdataevent"
@@ -204,5 +205,70 @@ func (ptd PlannedTrainData) AsProtoMessage() proto.Message {
 		MessageStatus:             ptd.Message_status,
 		MessageCreation:           toTimestamp(ptd.Message_creation),
 		OriginalTrainNumber:       ptd.Original_train_number,
+	}
+}
+
+type GpsWagonData struct {
+	Message_header_message_version       float64
+	Message_header_message_creation_time time.Time
+	Message_header_message_type          string
+
+	Wagon_tracking_event_train_trip                  int64 //Id?
+	Wagon_tracking_event_train_id                    int64
+	Wagon_tracking_event_planned_departure_reference time.Time
+	Wagon_tracking_event_gps_coordinates_latitude    float32
+	Wagon_tracking_event_gps_coordinates_longitude   float32
+	Wagon_tracking_event_gps_coordinates_altitude    float32
+	Wagon_tracking_event_wagon_id                    int64
+	Wagon_tracking_event_time                        time.Time
+	Wagon_tracking_event_speed                       float64
+}
+
+//TODO MongoDB
+func (GpsWagonData) TableName() string {
+	return "public.gps"
+}
+
+func (wtm GpsWagonData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Message, error) {
+	var instance GpsWagonData
+	err := db.ScanRows(rows, &instance)
+	if err != nil {
+		return time.Time{}, nil, err
+	}
+	newTime := instance.Message_header_message_creation_time
+	event := instance.AsProtoMessage()
+	return newTime, event, err
+}
+
+func (wtm GpsWagonData) GetInstance() interface{} {
+	return &GpsWagonData{}
+}
+
+func (wtm GpsWagonData) AsProtoMessage() proto.Message {
+	mh := &gpswagondataevent.GpsWagonData_MessageHeader{
+		MessageVersion:      wtm.Message_header_message_version,
+		MessageCreationTime: toTimestamp(wtm.Message_header_message_creation_time),
+		MessageType:         wtm.Message_header_message_type,
+	}
+
+	gps := &gpswagondataevent.GpsWagonData_WagonTrackingEvent_GpsCoordinates{
+		Latitude:  wtm.Wagon_tracking_event_gps_coordinates_latitude,
+		Longitude: wtm.Wagon_tracking_event_gps_coordinates_longitude,
+		Altitude:  wtm.Wagon_tracking_event_gps_coordinates_altitude,
+	}
+
+	wte := &gpswagondataevent.GpsWagonData_WagonTrackingEvent{
+		TrainTrip:                 wtm.Wagon_tracking_event_train_trip,
+		TrainId:                   wtm.Wagon_tracking_event_train_id,
+		PlannedDepartureReference: toTimestamp(wtm.Wagon_tracking_event_planned_departure_reference),
+		GpsCoordinates:            gps,
+		WagonId:                   wtm.Wagon_tracking_event_wagon_id,
+		Time:                      toTimestamp(wtm.Wagon_tracking_event_time),
+		Speed:                     wtm.Wagon_tracking_event_speed,
+	}
+
+	return &gpswagondataevent.GpsWagonData{
+		MessageHeader:      mh,
+		WagonTrackingEvent: wte,
 	}
 }

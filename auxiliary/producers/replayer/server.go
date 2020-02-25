@@ -177,24 +177,24 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	}
 
 	planned := &Replayer{
-		TableName: "public.planned",
+		TableName:  "public.planned",
 		SortColumn: "MESSAGE_CREATION",
-		DbModel: 	libdb.PlannedTrainData{},
-		Topic:		constants.Topics_PLANNED_TRAIN_DATA.String(),
+		DbModel:    libdb.PlannedTrainData{},
+		Topic:      constants.Topics_PLANNED_TRAIN_DATA.String(),
 	}
 
-	// gps := &Replayer{
-	// 	TableName: "public.gps",
-	// 	SortColumn: "EVENTTIME",
-	// 	DbModel: 	libdb.GpsTrainData{},
-	// 	Topic:		constants.Topics_GPS_TRAIN_DATA.String(),
-	// }
+	gps := &Replayer{
+		TableName:  "public.gps",
+		SortColumn: "MESSAGE_CREATION_TIME",
+		DbModel:    libdb.GpsWagonData{},
+		Topic:      constants.Topics_GPS_WAGON_DATA.String(),
+	}
 
 	replayers = []*Replayer{
 		live,
 		weather,
 		planned,
-		//gps,
+		gps,
 	}
 
 	// Set common replayer parameters

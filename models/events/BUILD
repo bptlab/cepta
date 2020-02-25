@@ -56,22 +56,22 @@ go_proto_library(
 )
 
 proto_library(
-    name = "gps_train_data_proto",
-    srcs = ["GpsTrainData.proto"],
+    name = "gps_wagon_data_proto",
+    srcs = ["GpsWagonData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
-    name = "gps_train_data_java_proto",
-    deps = [":gps_train_data_proto"],
+    name = "gps_wagon_data_java_proto",
+    deps = [":gps_wagon_data_proto"],
     visibility = ["//visibility:public"],
 )
 
 go_proto_library(
-    name = "gps_train_data_go_proto",
-    importpath = "github.com/bptlab/cepta/models/events/gpstraindataevent",
-    proto = ":gps_train_data_proto",
+    name = "gps_wagon_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/gpswagondataevent",
+    proto = ":gps_wagon_data_proto",
     visibility = ["//visibility:public"],
 )
 

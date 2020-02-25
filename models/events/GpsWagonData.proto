@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package train;
+option java_multiple_files = true;
+option go_package = "github.com/bptlab/cepta/models/events/train";
+option java_package = "org.bptlab.cepta.models.events.train";
+option java_outer_classname = "GpsWagonDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+//naming is almost all from origin by jost, replaced place with gps, was not sure how the naming is important
+message GpsWagonData {
+    message MessageHeader {
+        double message_version = 1;
+        google.protobuf.Timestamp message_creation_time= 2;
+        string message_type = 3;
+    }
+
+    MessageHeader message_header = 1;
+
+    message WagonTrackingEvent {
+        int64 train_trip = 1;
+        int64 train_id = 2;
+        google.protobuf.Timestamp planned_departure_reference = 3;
+
+        message GpsCoordinates {
+            float latitude = 1;
+            float longitude = 2;
+            float altitude = 3;
+        }
+
+        GpsCoordinates gps_coordinates = 4;
+
+        int64 wagon_id = 5;
+        google.protobuf.Timestamp time = 6;
+        double speed = 7;
+    }
+
+    WagonTrackingEvent wagon_tracking_event = 2;
+}
