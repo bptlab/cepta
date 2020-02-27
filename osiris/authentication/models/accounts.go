@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -43,10 +42,6 @@ func (account *Account) Validate() (map[string]interface{}, bool) {
 	temp := &Account{}
 
 	//check for errors and duplicate emails
-
-	db := GetDB()
-	fmt.Println("DB DEBUG")
-	db.Debug().Where("email = ?", account.Email).First(temp)
 	err := GetDB().Table("accounts").Where("email = ?", account.Email).First(temp).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return u.Message(false, "Connection error. Please retry"), false
