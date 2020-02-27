@@ -9,6 +9,7 @@
       cellspacing="0"
       :table-data="testDelays"
     ></basic-table>
+    <p>More Information is coming...</p>
   </div>
 </template>
 

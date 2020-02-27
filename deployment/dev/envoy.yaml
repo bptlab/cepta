@@ -23,15 +23,15 @@ static_resources:
                         - match: { prefix: "/api" }
                           route:
                             cluster: osiris_service
-                        - match: { prefix: "/ws" }
+                        - match: { prefix: "/ws/userdata" }
                           route:
                             upgrade_configs:
                               - upgrade_type: websocket
                                 enabled: true
-                            cluster: osiris_service
+                            cluster: notification_service
                         - match: { prefix: "/sockjs-node/" }
                           route:
-                            cluster: osiris_service
+                            cluster: notification_service
                             upgrade_configs:
                               - upgrade_type: websocket
                                 enabled: true
@@ -55,6 +55,12 @@ static_resources:
       type: logical_dns
       lb_policy: round_robin
       hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_WEBUI_BACKEND_PORT} }}]
+
+    - name: notification_service
+      connect_timeout: 15.0s
+      type: logical_dns
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_NOTIFICATION_BACKEND_PORT} }}]
 
     - name: anubis_service
       connect_timeout: 15.0s
