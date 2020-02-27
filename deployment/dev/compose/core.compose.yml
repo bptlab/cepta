@@ -16,6 +16,7 @@ services:
       - ${CEPTA_KAFKA_PORT}:9092
       - 29092:29092
     environment:
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT:  zookeeper:${CEPTA_ZOOKEEPER_PORT}
@@ -31,8 +32,8 @@ services:
       # KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       # KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
       # KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-    depends_on:
-      - zookeeper
+    # depends_on:
+    #   - zookeeper
 
   kafka-manager:
     image: sheepkiller/kafka-manager
@@ -138,7 +139,7 @@ services:
       - flink-jobmanager
       - flink-taskmanager
       - kafka
-      - traindataproducer
+      - replayer
 
   notification:
     image: bazel/osiris/notification:image
@@ -150,15 +151,15 @@ services:
       - flink-jobmanager
       - flink-taskmanager
       - kafka
-      - traindataproducer
+      - replayer
 
-  traindataproducer:
+  replayer:
     # build:
     #   context: ../../../
     #   dockerfile: deployment/common/java.exec.dockerfile
     #   args:
     #     MODULE: producers/train-replayer
-    image: bazel/auxiliary/producers/traindataproducer:image
+    image: bazel/auxiliary/producers/replayer:image
     depends_on:
       - kafka
       - postgres

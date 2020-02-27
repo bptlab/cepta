@@ -2,7 +2,7 @@ filegroup(
     name = "auxiliary",
     srcs = [
         "//auxiliary/producers/mockkafkaproducer",
-        "//auxiliary/producers/traindataproducer",
+        "//auxiliary/producers/replayer",
     ],
     visibility = ["//visibility:public"],
 )

@@ -107,6 +107,11 @@ ts_grpc_compile(
   deps = ["train_delay_notification_proto"],
 )
 
+nodejs_proto_compile(
+    name = "train_delay_notification_nodejs_proto",
+    deps = ["train_delay_notification_proto"],
+)
+
 
 
 
@@ -141,6 +146,7 @@ proto_library(
     name = "weather_data_proto",
     srcs = ["WeatherData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
@@ -164,7 +170,7 @@ filegroup(
         ":live_train_data_go_proto", ":live_train_data_java_proto",
         ":planned_train_data_go_proto", ":planned_train_data_java_proto",
         ":predicted_train_data_go_proto", ":predicted_train_data_java_proto",
-        ":train_delay_notification_go_proto", ":train_delay_notification_java_proto", ":train_delay_notification_ts_proto",
+        ":train_delay_notification_go_proto", ":train_delay_notification_java_proto", ":train_delay_notification_ts_proto", ":train_delay_notification_nodejs_proto",
         ":train_information_data_go_proto", ":train_information_data_java_proto",
         ":weather_data_go_proto", ":weather_data_java_proto",
     ],
