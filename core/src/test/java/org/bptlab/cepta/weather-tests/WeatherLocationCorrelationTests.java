@@ -12,10 +12,11 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
-public class WeatherLocationCorrelationTests {
+@Ignore ("Integration tests") public class WeatherLocationCorrelationTests {
   private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
 
   @Test
