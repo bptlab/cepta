@@ -2,6 +2,7 @@ package org.bptlab.cepta.providers;
 
 import java.util.ArrayList;
 import org.javatuples.Pair;
+import com.google.protobuf.Timestamp;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -14,21 +15,24 @@ import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 public class LiveTrainDataProvider {
 
   public static LiveTrainData getDefaultLiveTrainDataEvent() {
+    long millis = System.currentTimeMillis();
+    Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+         .setNanos((int) ((millis % 1000) * 1000000)).build();
     LiveTrainData.Builder builder = LiveTrainData.newBuilder();
     builder.setId(1);
     builder.setTrainId(1);
     builder.setLocationId(1);
-    builder.setActualTime(1L);
+    builder.setActualTime(timestamp);
     builder.setStatus(1);
     builder.setFirstTrainNumber(1);
     builder.setTrainNumberReference(1);
-    builder.setArrivalTimeReference(1L);
+    builder.setArrivalTimeReference(timestamp);
     builder.setPlannedArrivalDeviation(1);
     builder.setTransferLocationId(1);
     builder.setReportingImId(1);
     builder.setNextImId(1);
     builder.setMessageStatus(1);
-    builder.setMessageCreation(1L);
+    builder.setMessageCreation(timestamp);
     return builder.build();
   }
 
@@ -44,7 +48,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return (long)liveTrainData.getMessageCreation();
+                return liveTrainData.getMessageCreation().getSeconds();
               }
         });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -57,7 +61,7 @@ public class LiveTrainDataProvider {
             @Override
             public long extractAscendingTimestamp(
                 Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-              return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
+              return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
             }
         });
     liveTrainStream.print();
@@ -80,7 +84,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return (long) liveTrainData.getMessageCreation();
+                return liveTrainData.getMessageCreation().getSeconds();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -96,7 +100,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
+                return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
               }
             });
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
@@ -115,7 +119,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return (long) liveTrainData.getMessageCreation();
+                return liveTrainData.getMessageCreation().getSeconds();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -128,7 +132,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return (long) weatherDataIntegerTuple2.f0.getStarttimestamp();
+                return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
               }
             });
     liveTrainStream.print();

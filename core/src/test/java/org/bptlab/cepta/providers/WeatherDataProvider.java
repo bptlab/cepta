@@ -1,6 +1,7 @@
 package org.bptlab.cepta.providers;
 
 import java.util.ArrayList;
+import com.google.protobuf.Timestamp;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
@@ -8,13 +9,16 @@ import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 public class WeatherDataProvider {
 
   public static WeatherData getDefaultWeatherEvent() {
+    long millis = System.currentTimeMillis();
+    Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+         .setNanos((int) ((millis % 1000) * 1000000)).build();
     WeatherData.Builder builder = WeatherData.newBuilder();
     builder.setEventclass("");
     builder.setLatitude(49.577);
     builder.setLongitude(3.0067);
-    builder.setStarttimestamp(1l);
-    builder.setEndtimestamp(1l);
-    builder.setDetectiontimestamp(1l);
+    builder.setStarttimestamp(timestamp);
+    builder.setEndtimestamp(timestamp);
+    builder.setDetectiontimestamp(timestamp);
     builder.setTitle("");
     builder.setDescription("");
     builder.setTemperature(1d);
