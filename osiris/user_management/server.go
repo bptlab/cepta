@@ -22,12 +22,13 @@ import (
 
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
-var db *libdb.DB
 var log *logrus.Logger
+var db *libdb.DB
 
 type server struct {
 	pb.UnimplementedUserManagementServer
 	active bool
+	db     *libdb.DB
 }
 
 //Account is a struct to rep user account
@@ -45,11 +46,11 @@ func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
 	var account Account
-	errors := db.DB.First(&account, "id = ?", id).GetErrors()
+	errors := server.db.DB.First(&account, "id = ?", id).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not fetch account")
 	}
-	errors = db.DB.Model(&account).Update("Email", email).GetErrors()
+	errors = server.db.DB.Model(&account).Update("Email", email).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not update account")
 	}
@@ -61,12 +62,12 @@ func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (
 	var userID int = int(in.GetUserId().GetValue())
 	var trainID int = int(in.GetTrainId().GetValue())
 	var account Account
-	errors := db.DB.First(&account, "id = ?", userID).GetErrors()
+	errors := server.db.DB.First(&account, "id = ?", userID).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not fetch account")
 	}
 	trains := append(account.TrainIds, string(trainID))
-	errors = db.DB.Model(&account).Update("TrainIds", trains).GetErrors()
+	errors = server.db.DB.Model(&account).Update("TrainIds", trains).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not update account")
 	}
@@ -86,19 +87,22 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
 	}
-	db.DB.NewRecord(user)
-	db.DB.Create(&user)
-	return &pb.Success{Success: true}, nil
+	if server.db != nil {
+		server.db.DB.NewRecord(user)
+		server.db.DB.Create(&user)
+		return &pb.Success{Success: true}, nil
+	}
+	return &pb.Success{Success: false}, nil
 }
 
 // RemoveUser removes a user
 func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user Account
-	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not find that account")
 	}
-	errors = db.DB.Delete(&user).GetErrors()
+	errors = server.db.DB.Delete(&user).GetErrors()
 	if errors != nil {
 		return handleErrors(errors, "Could not delete that user")
 	}
@@ -108,7 +112,7 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 // GetUser fetches all information to a user
 func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, error) {
 	var user Account
-	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
 	if errors != nil {
 		printErrors(errors)
 		return &pb.User{}, errors[0]
@@ -127,7 +131,7 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 // GetTrains fetches all information to a user
 func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
 	var user Account
-	errors := db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
+	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
 	if errors != nil {
 		printErrors(errors)
 		return &pb.TrainIds{}, errors[0]
@@ -184,7 +188,6 @@ func main() {
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
-
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
 	db.DB.Debug().AutoMigrate(&Account{})
@@ -195,6 +198,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 	userManagementServer := server{
 		active: true,
+		db:     db,
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))

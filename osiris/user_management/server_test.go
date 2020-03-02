@@ -7,6 +7,7 @@ import (
 	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
+	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/jinzhu/gorm"
 	mocket "github.com/selvatico/go-mocket"
@@ -15,7 +16,8 @@ import (
 )
 
 var successMessage *pb.Success = &pb.Success{Success: true}
-var DB *gorm.DB
+var gormDB *gorm.DB
+var ldb *libdb.DB
 
 const bufSize = 1024 * 1024
 
@@ -27,12 +29,13 @@ func SetUpDatabase() {
 	if err != nil {
 		print(err)
 	}
-	DB = db
+	gormDB = db
+	ldb = &libdb.DB{DB: gormDB}
 }
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterUserManagementServer(s, &server{})
+	pb.RegisterUserManagementServer(s, &server{db: ldb})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("Server exited with error: %v", err)
@@ -47,6 +50,7 @@ func bufDialer(string, time.Duration) (net.Conn, error) {
 func TestGetUser(t *testing.T) {}
 
 func TestAddUser(t *testing.T) {
+	SetUpDatabase()
 	SetUpServerConnection()
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
@@ -65,7 +69,7 @@ func TestAddUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("AddUser() should work without error.")
 	}
-	if response != successMessage {
-		t.Errorf("AddUser should return success message.")
+	if response.Success != true {
+		t.Errorf("AddUser should return success message. It was %v", response)
 	}
 }
