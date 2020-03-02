@@ -751,3 +751,10 @@ go_repository(
     sum = "h1:EluyjU5nlbuNJSEktNl600PIpzbO2OcvZWfWV1jFvKM=",
     version = "v1.27.1",
 )
+
+go_repository(
+    name = "com_github_konsorten_go_windows_terminal_sequences",
+    importpath = "github.com/konsorten/go-windows-terminal-sequences",
+    sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
+    version = "v1.0.2",
+)

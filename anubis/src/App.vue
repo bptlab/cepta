@@ -27,7 +27,9 @@ export default class App extends Vue {
   }
 
   connectWebsocket() {
-    let socket: WebSocket = new WebSocket("ws://localhost:5555/ws/userdata");
+    let socket: WebSocket = new WebSocket(
+      "ws://" + window.location.hostname + "/ws/userdata"
+    );
     socket.binaryType = "arraybuffer";
     console.log("Attempting Connection...");
     socket.onopen = () => {

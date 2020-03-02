@@ -114,7 +114,7 @@ export default class GridTable extends Vue {
 </script>
 
 <style lang="sass" scoped>
-fullsize
+.fullsize
   width: 100%
 
 .grid-table

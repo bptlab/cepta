@@ -1,6 +1,6 @@
 dist: trusty
 sudo: required
-osx_image: xcode8
+osx_image: xcode8.3
 language: java
 
 os:
@@ -40,4 +40,4 @@ script:
   # Test docker compose regressions
   # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
-  - bazel test :all
+  - bazel test :all --test_output=all

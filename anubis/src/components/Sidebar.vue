@@ -35,16 +35,26 @@
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu pos-r">
         <!-- Websockets -->
-        <sidebar-element title="Websockets" :route="{ name: 'websockets' }">
+        <sidebar-element title="Dashboard" :route="{ name: 'home' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-rocket"></i>
           </template>
         </sidebar-element>
 
-        <!-- User Home -->
-        <sidebar-element title="Trains" :route="{ name: 'home' }">
+        <!-- User -->
+        <sidebar-element
+          title="Trainmanagement"
+          :route="{ name: 'trainmanagement' }"
+        >
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
+          </template>
+        </sidebar-element>
+
+        <!-- Map -->
+        <sidebar-element title="Live map" :route="{ name: 'map' }">
+          <template v-slot:icon>
+            <i class="c-green-500 icon-map"></i>
           </template>
         </sidebar-element>
 
@@ -145,7 +155,7 @@ export default class Sidebar extends Vue {
   top: 0
   transition: all 0.2s ease
   width: $offscreen-size
-  z-index: 1000
+  z-index: 1002
 
   ul
     list-style-type: none
@@ -309,9 +319,11 @@ export default class Sidebar extends Vue {
     &.dropdown
       .arrow
         font-size: 10px
-        line-height: 40px
+        line-height: 45px
+        height: auto
+        right: 20px
+        top: 0px
         position: absolute
-        right: 30px
         transition: all 0.05s ease-in
 
         +to($breakpoint-md)

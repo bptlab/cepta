@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
@@ -39,5 +39,20 @@ go_library(
         "//osiris/authentication/models:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["controllers_test.go"],
+    embed = [":go_default_library"],
+    size = "medium"
+)
+
+test_suite(
+    name = "all_tests",
+    tests = [
+        "//osiris/authentication:go_default_test",
+        "//osiris/authentication/models:go_default_test"
     ],
 )

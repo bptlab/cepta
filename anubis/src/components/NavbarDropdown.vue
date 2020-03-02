@@ -1,10 +1,6 @@
 <template>
   <li class="generic-dropdown dropdown">
     <!-- Toggle -->
-    <span v-if="number" class="counter bgc-red">{{ number }}</span>
-    <!--<a class="dropdown-toggle no-after" data-toggle="dropdown">
-      <slot name="icon"></slot>
-    </a>-->
     <a class="dropdown-toggle no-after fxw-nw ai-c lh-1" data-toggle="dropdown">
       <slot name="icon"></slot>
     </a>
