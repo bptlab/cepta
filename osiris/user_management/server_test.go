@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"net"
-	"strconv"
 	"testing"
 	"time"
 
@@ -22,10 +21,11 @@ var ldb *libdb.DB
 // constants for testing
 var emailParam string = "example@mail.de"
 var passwordParam string = "password"
-var idParam int64 = 1
-var userIDParam *pb.UserId = &pb.UserId{Value: idParam}
-var userParam *pb.User = &pb.User{Id: userIDParam, Email: emailParam, Password: passwordParam, Trains: nil}
-var userStringResponseDB map[string]interface{} = map[string]interface{}{"id": strconv.Itoa(int(idParam)), "email": emailParam, "password": passwordParam}
+var userIDProto *pb.UserId = &pb.UserId{Value: 1}
+var userWithoutTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: nil}
+var userStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
+var trainIDProto *pb.TrainId = &pb.TrainId{Value: 1}
+var trainIdsProto *pb.TrainIds = &pb.TrainIds{Ids: []*pb.TrainId{&pb.TrainId{Value: 1}, &pb.TrainId{Value: 2}}}
 
 const bufSize = 1024 * 1024
 
@@ -35,7 +35,6 @@ func SetUpAll() {
 	SetUpDatabase()
 	SetUpServerConnection()
 }
-
 func SetUpDatabase() {
 	mocket.Catcher.Register()
 	// mocket.Catcher.Logging = true
@@ -57,8 +56,54 @@ func SetUpServerConnection() {
 	}()
 }
 
-func bufDialer(string, time.Duration) (net.Conn, error) {
-	return lis.Dial()
+func TestAddTrain(t *testing.T) {
+	SetUpAll()
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+
+	gormDB.LogMode(true)
+	userReply := []map[string]interface{}{userStringResponseDB}
+	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
+	request := &pb.UserIdTrainIdInput{
+		UserId:  userIDProto,
+		TrainId: trainIDProto,
+	}
+	response, err := client.AddTrain(context.Background(), request)
+	if err != nil {
+		t.Errorf("AddTrain() should work without error. Error: %v", err)
+	}
+	if response.Success != true {
+		t.Errorf("AddTrain() should return success message, but it was %v", response)
+	}
+}
+
+func TestAddUser(t *testing.T) {
+	SetUpAll()
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+	// gormDB.LogMode(true)
+	request := &pb.User{
+		Id:       userIDProto,
+		Email:    emailParam,
+		Password: passwordParam,
+	}
+	response, err := client.AddUser(context.Background(), request)
+	if err != nil {
+		t.Errorf("AddUser() should work without error.")
+	}
+	if response.Success != true {
+		t.Errorf("AddUser should return success message. It was %v", response)
+	}
 }
 
 func TestGetUser(t *testing.T) {
@@ -76,39 +121,19 @@ func TestGetUser(t *testing.T) {
 	}
 
 	userReply := []map[string]interface{}{userStringResponseDB}
-	gormDB.LogMode(true)
+	// gormDB.LogMode(true)
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 
 	response, err := client.GetUser(context.Background(), request)
 	if err != nil {
 		t.Errorf("GetUser should work without error. Got: %v", err)
 	}
-	if !EqualUser(response, userParam) {
-		t.Errorf("GetUser should return the user information: %v, but it was %v", userParam, response)
+	if !EqualUser(response, userWithoutTrainsProto) {
+		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithoutTrainsProto, response)
 	}
-	// t.Errorf("expected: %v, got: %v", userParam, response)
+	// t.Errorf("expected: %v, got: %v", userWithoutTrainsProto, response)
 }
 
-func TestAddUser(t *testing.T) {
-	SetUpAll()
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-
-	request := &pb.User{
-		Id:       &pb.UserId{Value: 1},
-		Email:    "test@user.com",
-		Password: "password",
-	}
-	response, err := client.AddUser(context.Background(), request)
-	if err != nil {
-		t.Errorf("AddUser() should work without error.")
-	}
-	if response.Success != true {
-		t.Errorf("AddUser should return success message. It was %v", response)
-	}
+func bufDialer(string, time.Duration) (net.Conn, error) {
+	return lis.Dial()
 }

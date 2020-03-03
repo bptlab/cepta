@@ -40,22 +40,6 @@ type User struct {
 	Token      string         `json:"token";sql:"-"`
 }
 
-// SetEmail sets a users email
-func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
-	var id int = int(in.GetUserId().GetValue())
-	var email string = in.GetEmail()
-	var user User
-	err := server.db.DB.First(&user, id).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	err = server.db.DB.Model(&user).Update("Email", email).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	return &pb.Success{Success: true}, nil
-}
-
 // AddTrain adds a train to a user
 func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
 	var userID int = int(in.GetUserId().GetValue())
@@ -70,12 +54,6 @@ func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	return &pb.Success{Success: true}, nil
-}
-
-// RemoveTrain removes a train from a user
-func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
-	// TODO: do this... I am clueless how to nicely handle the array
 	return &pb.Success{Success: true}, nil
 }
 
@@ -94,18 +72,19 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	return &pb.Success{Success: true}, nil
 }
 
-// RemoveUser removes a user
-func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
+// GetTrains fetches all information to a user
+func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
 	var user User
 	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
 	if err != nil {
-		return &pb.Success{Success: false}, err
+		return &pb.TrainIds{}, err
 	}
-	err = server.db.DB.Delete(&user).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
+	var ids []*pb.TrainId
+	for _, id := range user.TrainIds {
+		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
 	}
-	return &pb.Success{Success: true}, nil
+	return &pb.TrainIds{
+		Ids: ids}, nil
 }
 
 // GetUser fetches all information to a user
@@ -130,19 +109,40 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 		Trains:   ids}, nil
 }
 
-// GetTrains fetches all information to a user
-func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
+// RemoveTrain removes a train from a user
+func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
+	// TODO: do this... I am clueless how to nicely handle the array
+	return &pb.Success{Success: true}, nil
+}
+
+// RemoveUser removes a user
+func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
 	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
 	if err != nil {
-		return &pb.TrainIds{}, err
+		return &pb.Success{Success: false}, err
 	}
-	var ids []*pb.TrainId
-	for _, id := range user.TrainIds {
-		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
+	err = server.db.DB.Delete(&user).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
-	return &pb.TrainIds{
-		Ids: ids}, nil
+	return &pb.Success{Success: true}, nil
+}
+
+// SetEmail sets a users email
+func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
+	var id int = int(in.GetUserId().GetValue())
+	var email string = in.GetEmail()
+	var user User
+	err := server.db.DB.First(&user, id).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	err = server.db.DB.Model(&user).Update("Email", email).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	return &pb.Success{Success: true}, nil
 }
 
 func main() {
