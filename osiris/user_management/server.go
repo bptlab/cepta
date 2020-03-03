@@ -73,7 +73,7 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 }
 
 // GetTrains fetches all information to a user
-func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
+func (server *server) GetTrainIds(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
 	var user User
 	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
 	if err != nil {
@@ -241,6 +241,46 @@ func EqualUser(u1 *pb.User, u2 *pb.User) bool {
 
 // EqualUserID returns true if the given ids have the same attribute values
 func EqualUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
+	if id1 == nil && id2 == nil {
+		return true
+	} else if id1 == nil || id2 == nil {
+		return false
+	} else if id1.Value != id2.Value {
+		return false
+	}
+	return true
+}
+
+// EqualTrainIDs returns true if the given repeated train ids have the same attribute values
+func EqualTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
+	if ids1.GetIds() == nil && ids2.GetIds() == nil {
+		return true
+	} else if ids1.GetIds() == nil || ids2.GetIds() == nil {
+		return false
+	} else if ids1 == nil && ids2 == nil {
+		return true
+	} else if ids1 == nil || ids2 == nil {
+		return false
+	}
+	for _, id1 := range ids1.GetIds() {
+		var found bool
+		for _, id2 := range ids2.GetIds() {
+			found = false
+			if EqualTrainID(id1, id2) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+
+	}
+	return true
+}
+
+// EqualTrainID returns true if the given train ids have the same attribute values
+func EqualTrainID(id1 *pb.TrainId, id2 *pb.TrainId) bool {
 	if id1 == nil && id2 == nil {
 		return true
 	} else if id1 == nil || id2 == nil {

@@ -23,7 +23,8 @@ var emailParam string = "example@mail.de"
 var passwordParam string = "password"
 var userIDProto *pb.UserId = &pb.UserId{Value: 1}
 var userWithoutTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: nil}
-var userStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
+var userWithoutTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
+var userWithTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam, "trains": []int{1, 2}}
 var trainIDProto *pb.TrainId = &pb.TrainId{Value: 1}
 var trainIdsProto *pb.TrainIds = &pb.TrainIds{Ids: []*pb.TrainId{&pb.TrainId{Value: 1}, &pb.TrainId{Value: 2}}}
 
@@ -66,8 +67,8 @@ func TestAddTrain(t *testing.T) {
 	defer conn.Close()
 	client := pb.NewUserManagementClient(conn)
 
-	gormDB.LogMode(true)
-	userReply := []map[string]interface{}{userStringResponseDB}
+	//gormDB.LogMode(true)
+	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 	request := &pb.UserIdTrainIdInput{
 		UserId:  userIDProto,
@@ -106,6 +107,33 @@ func TestAddUser(t *testing.T) {
 	}
 }
 
+func TestGetTrainIds(t *testing.T) {
+	SetUpAll()
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+
+	request := userIDProto
+
+	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
+	mocket.Catcher.Logging = true
+	//gormDB.LogMode(true)
+	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
+	mocket.Catcher.NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
+	// SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "users"."id" ASC LIMIT 1
+	response, err := client.GetTrainIds(context.Background(), request)
+	if err != nil {
+		t.Errorf("GetTrainIds should work without error. Got: %v", err)
+	}
+	if !EqualTrainIDs(response, trainIdsProto) {
+		t.Errorf("GetTrainIds should return the user's train ids: %v, but it was %v", trainIdsProto, response)
+	}
+}
+
 func TestGetUser(t *testing.T) {
 	SetUpAll()
 	ctx := context.Background()
@@ -120,7 +148,7 @@ func TestGetUser(t *testing.T) {
 		Value: 1,
 	}
 
-	userReply := []map[string]interface{}{userStringResponseDB}
+	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
 	// gormDB.LogMode(true)
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 
