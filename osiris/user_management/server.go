@@ -31,28 +31,27 @@ type server struct {
 	db     *libdb.DB
 }
 
-//Account is a struct to rep user account
-type Account struct {
-	gorm.Model
-	ID       int
-	Email    string         `json:"email"`
-	TrainIds pq.StringArray `gorm:"type:int[]"`
-	Password string         `json:"password"`
-	Token    string         `json:"token";sql:"-"`
+// User is a struct to rep user account
+type User struct {
+	gorm.Model                // adds the fields ID, CreatedAt, UpdatedAt, DeletedAt automatically
+	Email      string         `json:"email"`
+	TrainIds   pq.StringArray `gorm:"type:int[]"`
+	Password   string         `json:"password"`
+	Token      string         `json:"token";sql:"-"`
 }
 
 // SetEmail sets a users email
 func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
 	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
-	var account Account
-	errors := server.db.DB.First(&account, "id = ?", id).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not fetch account")
+	var user User
+	err := server.db.DB.First(&user, id).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
-	errors = server.db.DB.Model(&account).Update("Email", email).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not update account")
+	err = server.db.DB.Model(&user).Update("Email", email).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -61,15 +60,15 @@ func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
 	var userID int = int(in.GetUserId().GetValue())
 	var trainID int = int(in.GetTrainId().GetValue())
-	var account Account
-	errors := server.db.DB.First(&account, "id = ?", userID).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not fetch account")
+	var user User
+	err := server.db.DB.First(&user, userID).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
-	trains := append(account.TrainIds, string(trainID))
-	errors = server.db.DB.Model(&account).Update("TrainIds", trains).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not update account")
+	trains := append(user.TrainIds, string(trainID))
+	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -82,40 +81,43 @@ func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput
 
 // AddUser adds a new user
 func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
-	user := Account{
-		ID:       int(in.GetId().GetValue()),
+	user := User{
+		//ID:       int(in.GetId().GetValue()),
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
 	}
-	if server.db != nil {
-		server.db.DB.NewRecord(user)
-		server.db.DB.Create(&user)
-		return &pb.Success{Success: true}, nil
+	server.db.DB.NewRecord(user)
+	err := server.db.DB.Create(&user).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
-	return &pb.Success{Success: false}, nil
+	return &pb.Success{Success: true}, nil
 }
 
 // RemoveUser removes a user
 func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
-	var user Account
-	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not find that account")
+	var user User
+	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
-	errors = server.db.DB.Delete(&user).GetErrors()
-	if errors != nil {
-		return handleErrors(errors, "Could not delete that user")
+	err = server.db.DB.Delete(&user).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
 	}
 	return &pb.Success{Success: true}, nil
 }
 
 // GetUser fetches all information to a user
 func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, error) {
-	var user Account
-	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
-	if errors != nil {
-		printErrors(errors)
-		return &pb.User{}, errors[0]
+	var user User
+	err := server.db.DB.First(&user, int(in.GetValue())).Error
+	if err != nil {
+		return &pb.User{
+			Id:       nil,
+			Email:    "",
+			Password: "",
+			Trains:   nil}, nil
 	}
 	var ids []*pb.TrainId
 	for _, id := range user.TrainIds {
@@ -130,11 +132,10 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 
 // GetTrains fetches all information to a user
 func (server *server) GetTrains(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
-	var user Account
-	errors := server.db.DB.First(&user, "id = ?", int(in.GetValue())).GetErrors()
-	if errors != nil {
-		printErrors(errors)
-		return &pb.TrainIds{}, errors[0]
+	var user User
+	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
+	if err != nil {
+		return &pb.TrainIds{}, err
 	}
 	var ids []*pb.TrainId
 	for _, id := range user.TrainIds {
@@ -190,7 +191,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
-	db.DB.Debug().AutoMigrate(&Account{})
+	db.DB.AutoMigrate(&User{})
 
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
@@ -219,23 +220,33 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	return nil
 }
 
-func handleErrors(errors []error, message string) (*pb.Success, error) {
-	log.Println(message)
-	printErrors(errors)
-	return &pb.Success{Success: false}, errors[0]
-}
-
 func removeTrainID(slice pq.StringArray, s int) pq.StringArray {
 	return append(slice[:s], slice[s+1:]...)
-}
-
-func printErrors(errors []error) {
-	for _, err := range errors {
-		fmt.Println(err)
-	}
 }
 
 func int64FromString(text string) int64 {
 	integer, _ := strconv.Atoi(text)
 	return int64(integer)
+}
+
+// EqualUser returns true if the given users have the same attribute values
+func EqualUser(u1 *pb.User, u2 *pb.User) bool {
+	if !EqualUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password {
+		return false
+	} // optional test for equality of train ids could be added
+
+	return true
+
+}
+
+// EqualUserID returns true if the given ids have the same attribute values
+func EqualUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
+	if id1 == nil && id2 == nil {
+		return true
+	} else if id1 == nil || id2 == nil {
+		return false
+	} else if id1.Value != id2.Value {
+		return false
+	}
+	return true
 }
