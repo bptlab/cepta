@@ -63,6 +63,7 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 		//ID:       int(in.GetId().GetValue()),
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
+		TrainIds: toStringArray(in.GetTrains()),
 	}
 	server.db.DB.NewRecord(user)
 	err := server.db.DB.Create(&user).Error
@@ -72,6 +73,14 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	return &pb.Success{Success: true}, nil
 }
 
+func toStringArray(trains *pb.TrainIds) pq.StringArray {
+	var array pq.StringArray
+	for _, id := range trains.GetIds() {
+		array = append(array, int64ToString(id.GetValue()))
+	}
+	return array
+}
+
 // GetTrains fetches all train ids to a user
 func (server *server) GetTrainIds(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
 	var user User
@@ -79,16 +88,8 @@ func (server *server) GetTrainIds(ctx context.Context, in *pb.UserId) (*pb.Train
 	if err != nil {
 		return &pb.TrainIds{}, err
 	}
-	var ids []*pb.TrainId
-	var trainIds pq.StringArray = user.TrainIds
-	if trainIds == nil {
-		return &pb.TrainIds{}, nil
-	}
-	for _, id := range trainIds {
-		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
-	}
-	return &pb.TrainIds{
-		Ids: ids}, nil
+	var ids *pb.TrainIds = toProtoTrainIds(user.TrainIds)
+	return ids, nil
 }
 
 // GetUser fetches all information to a user
@@ -102,10 +103,7 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 			Password: "",
 			Trains:   nil}, nil
 	}
-	var ids []*pb.TrainId
-	for _, id := range user.TrainIds {
-		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
-	}
+	var ids *pb.TrainIds = toProtoTrainIds(user.TrainIds)
 	return &pb.User{
 		Id:       &pb.UserId{Value: int64(user.ID)},
 		Email:    user.Email,
@@ -239,12 +237,10 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 // EqualUser returns true if the given users have the same attribute values
 func EqualUser(u1 *pb.User, u2 *pb.User) bool {
-	if !EqualUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password {
+	if !EqualUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password || !EqualTrainIDs(u1.Trains, u2.Trains) {
 		return false
-	} // optional test for equality of train ids could be added
-
+	}
 	return true
-
 }
 
 // EqualUserID returns true if the given ids have the same attribute values
@@ -282,7 +278,6 @@ func EqualTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
 		if !found {
 			return false
 		}
-
 	}
 	return true
 }
@@ -303,6 +298,10 @@ func int64FromString(text string) int64 {
 	integer, _ := strconv.Atoi(text)
 	return int64(integer)
 }
+func int64ToString(num int64) string {
+	text := strconv.Itoa(int(num))
+	return text
+}
 
 func removeElementFromStringArray(slice []string, element string) []string {
 	for index, elem := range slice {
@@ -315,4 +314,15 @@ func removeElementFromStringArray(slice []string, element string) []string {
 func removeIndexFromStringArray(slice []string, index int) []string {
 
 	return append(slice[:index], slice[index+1:]...)
+}
+
+func toProtoTrainIds(trainIds pq.StringArray) *pb.TrainIds {
+	if trainIds == nil {
+		return &pb.TrainIds{}
+	}
+	var ids []*pb.TrainId
+	for _, id := range trainIds {
+		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
+	}
+	return &pb.TrainIds{Ids: ids}
 }

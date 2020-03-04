@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ var emailParam string = "example@mail.de"
 var passwordParam string = "password"
 var userIDProto *pb.UserId = &pb.UserId{Value: 1}
 var userWithoutTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: nil}
+var userWithTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: trainIdsProto}
 var userWithoutTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
 var userWithTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam, "train_ids": "{1,2}"} // no space in the array!
 var trainIDProto *pb.TrainId = &pb.TrainId{Value: 1}
@@ -38,12 +40,15 @@ func SetUpAll() {
 }
 func SetUpDatabase() {
 	mocket.Catcher.Register()
+	// uncomment to log all catcher things. add to test to log only things happening there
 	// mocket.Catcher.Logging = true
 	db, err := gorm.Open(mocket.DriverName, "connection_string") // Can be any connection string
 	if err != nil {
 		print(err)
 	}
 	gormDB = db
+	// uncomment to log all queries asked to mock db. add to test to log only things happening there
+	// gormDB.LogMode(true)
 	ldb = &libdb.DB{DB: gormDB}
 }
 func SetUpServerConnection() {
@@ -52,7 +57,7 @@ func SetUpServerConnection() {
 	pb.RegisterUserManagementServer(s, &server{db: ldb})
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			log.Fatalf("Server exited with error: %v", err)
+			fmt.Printf("Server exited with error: %v", err)
 		}
 	}()
 }
@@ -66,8 +71,6 @@ func TestAddTrain(t *testing.T) {
 	}
 	defer conn.Close()
 	client := pb.NewUserManagementClient(conn)
-
-	gormDB.LogMode(true)
 	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 	request := &pb.UserIdTrainIdInput{
@@ -92,7 +95,6 @@ func TestAddUser(t *testing.T) {
 	}
 	defer conn.Close()
 	client := pb.NewUserManagementClient(conn)
-	// gormDB.LogMode(true)
 	request := &pb.User{
 		Id:       userIDProto,
 		Email:    emailParam,
@@ -120,10 +122,7 @@ func TestGetTrainIds(t *testing.T) {
 	request := userIDProto
 
 	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
-	// mocket.Catcher.Logging = true
-	//gormDB.LogMode(true)
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-	// SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "users"."id" ASC LIMIT 1
 	response, err := client.GetTrainIds(context.Background(), request)
 	if err != nil {
 		t.Errorf("GetTrainIds should work without error. Got: %v", err)
@@ -133,7 +132,7 @@ func TestGetTrainIds(t *testing.T) {
 	}
 }
 
-func TestGetUser(t *testing.T) {
+func TestGetUserWithoutTrains(t *testing.T) {
 	SetUpAll()
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
@@ -148,7 +147,6 @@ func TestGetUser(t *testing.T) {
 	}
 
 	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
-	// gormDB.LogMode(true)
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 
 	response, err := client.GetUser(context.Background(), request)
@@ -158,7 +156,31 @@ func TestGetUser(t *testing.T) {
 	if !EqualUser(response, userWithoutTrainsProto) {
 		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithoutTrainsProto, response)
 	}
-	// t.Errorf("expected: %v, got: %v", userWithoutTrainsProto, response)
+}
+func TestGetUserWithTrains(t *testing.T) {
+	SetUpAll()
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+
+	request := &pb.UserId{
+		Value: 1,
+	}
+
+	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
+	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
+
+	response, err := client.GetUser(context.Background(), request)
+	if err != nil {
+		t.Errorf("GetUser should work without error. Got: %v", err)
+	}
+	if !EqualUser(response, userWithTrainsProto) {
+		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithTrainsProto, response)
+	}
 }
 
 func TestRemoveTrain(t *testing.T) {
@@ -170,8 +192,6 @@ func TestRemoveTrain(t *testing.T) {
 	}
 	defer conn.Close()
 	client := pb.NewUserManagementClient(conn)
-
-	// gormDB.LogMode(true)
 	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 	request := &pb.UserIdTrainIdInput{
