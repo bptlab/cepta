@@ -49,8 +49,8 @@ func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	trains := append(user.TrainIds, string(trainID))
-	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
+	var trains []string = append(user.TrainIds, strconv.Itoa(trainID))
+	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error //trains).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -72,15 +72,19 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	return &pb.Success{Success: true}, nil
 }
 
-// GetTrains fetches all information to a user
+// GetTrains fetches all train ids to a user
 func (server *server) GetTrainIds(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
 	var user User
-	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
+	err := server.db.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.TrainIds{}, err
 	}
 	var ids []*pb.TrainId
-	for _, id := range user.TrainIds {
+	var trainIds pq.StringArray = user.TrainIds
+	if trainIds == nil {
+		return &pb.TrainIds{}, nil
+	}
+	for _, id := range trainIds {
 		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
 	}
 	return &pb.TrainIds{

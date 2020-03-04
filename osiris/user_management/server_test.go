@@ -24,7 +24,7 @@ var passwordParam string = "password"
 var userIDProto *pb.UserId = &pb.UserId{Value: 1}
 var userWithoutTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: nil}
 var userWithoutTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
-var userWithTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam, "trains": []int{1, 2}}
+var userWithTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam, "train_ids": "{1,2}"} // no space in the array!
 var trainIDProto *pb.TrainId = &pb.TrainId{Value: 1}
 var trainIdsProto *pb.TrainIds = &pb.TrainIds{Ids: []*pb.TrainId{&pb.TrainId{Value: 1}, &pb.TrainId{Value: 2}}}
 
@@ -67,7 +67,7 @@ func TestAddTrain(t *testing.T) {
 	defer conn.Close()
 	client := pb.NewUserManagementClient(conn)
 
-	//gormDB.LogMode(true)
+	gormDB.LogMode(true)
 	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 	request := &pb.UserIdTrainIdInput{
@@ -120,10 +120,9 @@ func TestGetTrainIds(t *testing.T) {
 	request := userIDProto
 
 	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
-	mocket.Catcher.Logging = true
+	// mocket.Catcher.Logging = true
 	//gormDB.LogMode(true)
 	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-	mocket.Catcher.NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
 	// SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND ((id = 1)) ORDER BY "users"."id" ASC LIMIT 1
 	response, err := client.GetTrainIds(context.Background(), request)
 	if err != nil {
