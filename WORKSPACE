@@ -739,15 +739,22 @@ go_repository(
 )
 
 go_repository(
+    name = "com_github_selvatico_go_mocket",
+    importpath = "github.com/selvatico/go-mocket",
+    sum = "h1:jbVa7RkoOCzBanQYiYF+VWgySHZogg25fOIKkM38q5k=",
+    version = "v1.0.7",
+)
+
+go_repository(
+    name = "com_github_grpc_grpc_go",
+    importpath = "github.com/grpc/grpc-go",
+    sum = "h1:EluyjU5nlbuNJSEktNl600PIpzbO2OcvZWfWV1jFvKM=",
+    version = "v1.27.1",
+)
+
+go_repository(
     name = "com_github_konsorten_go_windows_terminal_sequences",
     importpath = "github.com/konsorten/go-windows-terminal-sequences",
     sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
     version = "v1.0.2",
-)
-
-go_repository(
-    name = "com_github_selvatico_go_mocket",
-    importpath = "github.com/Selvatico/go-mocket",
-    sum = "h1:sXuFMnMfVL9b/Os8rGXPgbOFbr4HJm8aHsulD/uMTUk=",
-    version = "v1.0.7",
 )

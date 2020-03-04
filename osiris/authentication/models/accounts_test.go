@@ -3,8 +3,8 @@ package models
 import (
 	"testing"
 
-	mocket "github.com/Selvatico/go-mocket"
 	"github.com/jinzhu/gorm"
+	mocket "github.com/selvatico/go-mocket"
 	"golang.org/x/crypto/bcrypt"
 )
 
