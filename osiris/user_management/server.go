@@ -50,7 +50,7 @@ func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (
 		return &pb.Success{Success: false}, err
 	}
 	var trains []string = append(user.TrainIds, strconv.Itoa(trainID))
-	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error //trains).Error
+	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -115,14 +115,27 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 
 // RemoveTrain removes a train from a user
 func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
-	// TODO: do this... I am clueless how to nicely handle the array
+	var userID int = int(in.GetUserId().GetValue())
+	var trainID int = int(in.GetTrainId().GetValue())
+	var user User
+	err := server.db.DB.First(&user, userID).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+
+	var trains []string = removeElementFromStringArray(user.TrainIds, strconv.Itoa(trainID))
+
+	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
 	return &pb.Success{Success: true}, nil
 }
 
 // RemoveUser removes a user
 func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
-	err := server.db.DB.First(&user, "id = ?", int(in.GetValue())).Error
+	err := server.db.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -224,15 +237,6 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	return nil
 }
 
-func removeTrainID(slice pq.StringArray, s int) pq.StringArray {
-	return append(slice[:s], slice[s+1:]...)
-}
-
-func int64FromString(text string) int64 {
-	integer, _ := strconv.Atoi(text)
-	return int64(integer)
-}
-
 // EqualUser returns true if the given users have the same attribute values
 func EqualUser(u1 *pb.User, u2 *pb.User) bool {
 	if !EqualUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password {
@@ -293,4 +297,22 @@ func EqualTrainID(id1 *pb.TrainId, id2 *pb.TrainId) bool {
 		return false
 	}
 	return true
+}
+
+func int64FromString(text string) int64 {
+	integer, _ := strconv.Atoi(text)
+	return int64(integer)
+}
+
+func removeElementFromStringArray(slice []string, element string) []string {
+	for index, elem := range slice {
+		if elem == element {
+			return removeIndexFromStringArray(slice, index)
+		}
+	}
+	return slice
+}
+func removeIndexFromStringArray(slice []string, index int) []string {
+
+	return append(slice[:index], slice[index+1:]...)
 }

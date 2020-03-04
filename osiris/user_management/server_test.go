@@ -161,6 +161,31 @@ func TestGetUser(t *testing.T) {
 	// t.Errorf("expected: %v, got: %v", userWithoutTrainsProto, response)
 }
 
+func TestRemoveTrain(t *testing.T) {
+	SetUpAll()
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+
+	// gormDB.LogMode(true)
+	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
+	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
+	request := &pb.UserIdTrainIdInput{
+		UserId:  userIDProto,
+		TrainId: trainIDProto,
+	}
+	response, err := client.RemoveTrain(context.Background(), request)
+	if err != nil {
+		t.Errorf("RemoveTrain should work without error. Error: %v", err)
+	}
+	if response.Success != true {
+		t.Errorf("RemoveTrain should return success message, but it was %v", response)
+	}
+}
 func bufDialer(string, time.Duration) (net.Conn, error) {
 	return lis.Dial()
 }
