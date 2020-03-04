@@ -235,16 +235,16 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	return nil
 }
 
-// EqualUser returns true if the given users have the same attribute values
-func EqualUser(u1 *pb.User, u2 *pb.User) bool {
-	if !EqualUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password || !EqualTrainIDs(u1.Trains, u2.Trains) {
+// returns true if the given users have the same attribute values
+func equalUser(u1 *pb.User, u2 *pb.User) bool {
+	if !equalUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password || !equalTrainIDs(u1.Trains, u2.Trains) {
 		return false
 	}
 	return true
 }
 
-// EqualUserID returns true if the given ids have the same attribute values
-func EqualUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
+// equalUserID returns true if the given ids have the same attribute values
+func equalUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
 	if id1 == nil && id2 == nil {
 		return true
 	} else if id1 == nil || id2 == nil {
@@ -255,8 +255,8 @@ func EqualUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
 	return true
 }
 
-// EqualTrainIDs returns true if the given repeated train ids have the same attribute values
-func EqualTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
+// equalTrainIDs returns true if the given repeated train ids have the same attribute values
+func equalTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
 	if ids1.GetIds() == nil && ids2.GetIds() == nil {
 		return true
 	} else if ids1.GetIds() == nil || ids2.GetIds() == nil {
@@ -270,7 +270,7 @@ func EqualTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
 		var found bool
 		for _, id2 := range ids2.GetIds() {
 			found = false
-			if EqualTrainID(id1, id2) {
+			if equalTrainID(id1, id2) {
 				found = true
 				break
 			}
@@ -282,8 +282,8 @@ func EqualTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
 	return true
 }
 
-// EqualTrainID returns true if the given train ids have the same attribute values
-func EqualTrainID(id1 *pb.TrainId, id2 *pb.TrainId) bool {
+// equalTrainID returns true if the given train ids have the same attribute values
+func equalTrainID(id1 *pb.TrainId, id2 *pb.TrainId) bool {
 	if id1 == nil && id2 == nil {
 		return true
 	} else if id1 == nil || id2 == nil {

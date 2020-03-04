@@ -127,7 +127,7 @@ func TestGetTrainIds(t *testing.T) {
 	if err != nil {
 		t.Errorf("GetTrainIds should work without error. Got: %v", err)
 	}
-	if !EqualTrainIDs(response, trainIdsProto) {
+	if !equalTrainIDs(response, trainIdsProto) {
 		t.Errorf("GetTrainIds should return the user's train ids: %v, but it was %v", trainIdsProto, response)
 	}
 }
@@ -153,7 +153,7 @@ func TestGetUserWithoutTrains(t *testing.T) {
 	if err != nil {
 		t.Errorf("GetUser should work without error. Got: %v", err)
 	}
-	if !EqualUser(response, userWithoutTrainsProto) {
+	if !equalUser(response, userWithoutTrainsProto) {
 		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithoutTrainsProto, response)
 	}
 }
@@ -178,7 +178,7 @@ func TestGetUserWithTrains(t *testing.T) {
 	if err != nil {
 		t.Errorf("GetUser should work without error. Got: %v", err)
 	}
-	if !EqualUser(response, userWithTrainsProto) {
+	if !equalUser(response, userWithTrainsProto) {
 		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithTrainsProto, response)
 	}
 }
