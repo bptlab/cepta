@@ -8,8 +8,15 @@ os:
   - osx
 
 env:
-  # 1.2.1
   - V=2.0.0
+
+matrix:
+  # It's ok to fail on osx.
+  allow_failures:
+    - os: osx
+  # Don't wait for osx tests to finish.
+  # Mark the test run green if the tests pass on linux.
+  fast_finish: true
 
 before_install:
   - OS=linux
