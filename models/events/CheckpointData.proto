@@ -6,36 +6,36 @@ option java_outer_classname = "CheckpointDataProtos";
 
 import "google/protobuf/timestamp.proto";
 
-message WeatherData {
+message CheckpointData {
     int64 train_id = 1;
     google.protobuf.Timestamp prod_date = 2;
     string rl100 = 3;
 
     google.protobuf.Timestamp arrival_time = 4;
     int64 arrival_delay = 5;
-    int64google.protobuf.Timestamp arrival_status = 6;
+    int64 arrival_status = 6;
 
-    google.protobuf.Timestamp departure_time = 4;
-    int64 departure_delay = 5;
-    int64 departure_status = 6;
+    google.protobuf.Timestamp departure_time = 7;
+    int64 departure_delay = 8;
+    int64 departure_status = 9;
 
-    bool first_station = false;
-    bool last_station = false;
-    int64 station_country_code = 9;
-    string trip_type = 10;
-    string train_wagon_type = 11;
-    string train_type = 12;
-    bool turn_train_at_departure = 13;
-    bool turn_train_at_arrival = 14;
-    bool turn_train = 15;
-    bool crew_change = 16;
-    bool loco_change = 17;
-    bool train_wagon_dec = 18;
-    bool train_wagon_inc = 19;
-    bool wagon_check_depature = 20;
-    bool wagon_check_arrival = 21;
-    int64 trip_id = 22;
-    google.protobuf.Timestamp trip_start_date = 23;
-    int64 trip_start_country = 24;
+    bool first_station = 10;
+    bool last_station = 11;
+    int64 station_country_code = 12;
+    string trip_type = 13;
+    string train_wagon_type = 14;
+    string train_type = 15;
+    bool turn_train_at_departure = 16;
+    bool turn_train_at_arrival = 17;
+    bool turn_train = 18;
+    bool crew_change = 19;
+    bool loco_change = 20;
+    bool train_wagon_dec = 21;
+    bool train_wagon_inc = 22;
+    bool wagon_check_depature = 23;
+    bool wagon_check_arrival = 24;
+    int64 trip_id = 25;
+    google.protobuf.Timestamp trip_start_date = 26;
+    int64 trip_start_country = 27;
 
 }
