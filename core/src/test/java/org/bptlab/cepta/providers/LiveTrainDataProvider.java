@@ -54,8 +54,6 @@ public class LiveTrainDataProvider {
             });
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-
-    liveTrainStream.print();
     return liveTrainStream;
   }
 
@@ -77,8 +75,6 @@ public class LiveTrainDataProvider {
             });
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-
-    liveTrainStream.print();
     return liveTrainStream;
   }
 
@@ -110,8 +106,6 @@ public class LiveTrainDataProvider {
               return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
             }
         });
-    liveTrainStream.print();
-    weatherStream.print();
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
@@ -181,8 +175,6 @@ public class LiveTrainDataProvider {
                 return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
               }
             });
-    liveTrainStream.print();
-    weatherStream.print();
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
