@@ -44,7 +44,12 @@ public class LivePlannedCorrelationFunction extends
     config.setDatabase(postgresConfig.getName());
     // Having the same maximum amount of connections as concurrent asynchronous requests seems to work
     config.setMaxActiveConnections(12);
-    connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
+    try{
+      connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
+    }catch(Error e){
+      e.printStackTrace();
+    }
+    
   }
 
   @Override
@@ -76,8 +81,8 @@ public class LivePlannedCorrelationFunction extends
           QueryResult queryResult = future.get();
           RowData firstMatch = queryResult.getRows().get(0);
           return new PlannedTrainDataDatabaseConverter().fromRowData(firstMatch);
-        } catch (NullPointerException | InterruptedException | ExecutionException e) {
-          System.err.println(e.getMessage());
+        } catch (Exception e) {
+          e.printStackTrace();
           return null;
         }
       }

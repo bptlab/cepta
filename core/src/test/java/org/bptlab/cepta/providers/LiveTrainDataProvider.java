@@ -42,8 +42,8 @@ public class LiveTrainDataProvider {
     env.setParallelism(1);
     ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-    liveTrains.add(trainEventWithTrainID(42382923));
-    liveTrains.add(trainEventWithTrainID(42093766));
+    liveTrains.add(trainEventWithTrainIdLocationId(42382923, 11111111));
+    liveTrains.add(trainEventWithTrainIdLocationId(42093766, 11111111));
     DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
         .assignTimestampsAndWatermarks(
             new AscendingTimestampExtractor<LiveTrainData>() {
@@ -185,6 +185,10 @@ public class LiveTrainDataProvider {
   private static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainId(trainId).build();
+  }
+  private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+    return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+        .setTrainId(trainId).setLocationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
