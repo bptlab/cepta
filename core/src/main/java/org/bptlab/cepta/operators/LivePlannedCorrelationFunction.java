@@ -19,13 +19,13 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainD
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 
-public class PlannedLiveCorrelationFunction extends
+public class LivePlannedCorrelationFunction extends
     RichAsyncFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>> {
 
   private PostgresConfig postgresConfig = new PostgresConfig();
   private transient ConnectionPool<PostgreSQLConnection> connection;
 
-  public PlannedLiveCorrelationFunction(PostgresConfig postgresConfig) {
+  public LivePlannedCorrelationFunction(PostgresConfig postgresConfig) {
     this.postgresConfig = postgresConfig;
   }
 

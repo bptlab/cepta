@@ -33,7 +33,7 @@ import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.constants.Topics;
-import org.bptlab.cepta.operators.PlannedLiveCorrelationFunction;
+import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.slf4j.Logger;
@@ -94,7 +94,7 @@ public class Main implements Callable<Integer> {
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig),
+            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
