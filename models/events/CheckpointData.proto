@@ -32,10 +32,11 @@ message CheckpointData {
     bool loco_change = 20;
     bool train_wagon_dec = 21;
     bool train_wagon_inc = 22;
-    bool wagon_check_depature = 23;
-    bool wagon_check_arrival = 24;
-    int64 trip_id = 25;
-    google.protobuf.Timestamp trip_start_date = 26;
-    int64 trip_start_country = 27;
+    bool train_wagon_switch = 23;
+    bool wagon_check_depature = 24;
+    bool wagon_check_arrival = 25;
+    int64 trip_id = 26;
+    google.protobuf.Timestamp trip_start_date = 27;
+    int64 trip_start_country = 28;
 
 }
