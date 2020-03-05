@@ -1,0 +1,41 @@
+syntax = "proto3";
+package checkpoints;
+option go_package = "github.com/bptlab/cepta/models/events/checkpoints";
+option java_package = "org.bptlab.cepta.models.events.checkpoints";
+option java_outer_classname = "CheckpointDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message WeatherData {
+    int64 train_id = 1;
+    google.protobuf.Timestamp prod_date = 2;
+    string rl100 = 3;
+
+    google.protobuf.Timestamp arrival_time = 4;
+    int64 arrival_delay = 5;
+    int64google.protobuf.Timestamp arrival_status = 6;
+
+    google.protobuf.Timestamp departure_time = 4;
+    int64 departure_delay = 5;
+    int64 departure_status = 6;
+
+    bool first_station = false;
+    bool last_station = false;
+    int64 station_country_code = 9;
+    string trip_type = 10;
+    string train_wagon_type = 11;
+    string train_type = 12;
+    bool turn_train_at_departure = 13;
+    bool turn_train_at_arrival = 14;
+    bool turn_train = 15;
+    bool crew_change = 16;
+    bool loco_change = 17;
+    bool train_wagon_dec = 18;
+    bool train_wagon_inc = 19;
+    bool wagon_check_depature = 20;
+    bool wagon_check_arrival = 21;
+    int64 trip_id = 22;
+    google.protobuf.Timestamp trip_start_date = 23;
+    int64 trip_start_country = 24;
+
+}
