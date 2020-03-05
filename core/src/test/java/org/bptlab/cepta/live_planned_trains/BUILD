@@ -18,6 +18,7 @@ java_test(
         "@maven//:org_javatuples_javatuples",
         "@maven//:org_testcontainers_kafka",
         "@maven//:org_testcontainers_testcontainers",
+        "@maven//:org_testcontainers_postgresql",
     ],
 )
 

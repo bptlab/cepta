@@ -135,6 +135,7 @@ maven_install(
         "junit:junit:4.13",
         "org.testcontainers:testcontainers:1.12.5",
         "org.testcontainers:kafka:1.12.5",
+        "org.testcontainers:postgresql:1.12.5",
         "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
