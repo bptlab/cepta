@@ -164,6 +164,28 @@ go_proto_library(
 
 
 
+proto_library(
+    name = "checkpoint_data_proto",
+    srcs = ["CheckpointData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "checkpoint_data_java_proto",
+    deps = [":checkpoint_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "checkpoint_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/checkpointdataevent",
+    proto = ":checkpoint_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+
+
 filegroup(
     name = "events",
     srcs = [
