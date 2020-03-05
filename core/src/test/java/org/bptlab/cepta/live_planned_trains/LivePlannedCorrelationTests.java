@@ -1,6 +1,7 @@
 package org.bptlab.cepta;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -23,15 +24,16 @@ import org.junit.Test;
 public class LivePlannedCorrelationTests {
   //private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
 
+  // public initDatabaseStuff()
 
   @Test
   public void testIdMatch() throws IOException {
-    try(PostgreSQLContainer postgres = new PostgreSQLContainer<>()) {
+    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
 
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
-      PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword("");
+      PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port);
 
       DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas();
       DataStream<Tuple2<LiveTrainData, PlannedTrainData>> correlatedTrainStream = AsyncDataStream
@@ -50,16 +52,16 @@ public class LivePlannedCorrelationTests {
         }
       }
       Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42382923L, 42382923L)));
-      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766L, 42093766L)));// 42093766
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766L, 42093766L)));
     }
   }
   @Test
   public void testIdUnmatch() throws IOException {
-    try(PostgreSQLContainer postgres = new PostgreSQLContainer<>()) {
+    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
-      PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword("");
+      PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port);
 
       DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.unmatchingLiveTrainDatas();
       DataStream<Tuple2<LiveTrainData, PlannedTrainData>> correlatedTrainStream = AsyncDataStream
@@ -82,4 +84,7 @@ public class LivePlannedCorrelationTests {
     }
   }
 
+private PostgreSQLContainer newPostgreSQLContainer(){
+  return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
+}
 }
