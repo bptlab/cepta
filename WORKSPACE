@@ -146,6 +146,7 @@ maven_install(
         "org.slf4j:slf4j-api:1.7.28",
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
+        "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
