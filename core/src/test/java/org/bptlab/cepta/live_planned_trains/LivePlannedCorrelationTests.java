@@ -21,26 +21,34 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 @Ignore ("Integration tests") public class LivePlannedCorrelationTests {
-  private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
+  //private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
+
 
   @Test
   public void testIdMatch() throws IOException {
-    DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas();
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> correlatedTrainStream = AsyncDataStream
-        .unorderedWait(liveStream, new LivePlannedCorrelationFunction(postgresConfig),
-            100000, TimeUnit.MILLISECONDS, 1);
+    try(PostgreSQLContainer postgres = new PostgreSQLContainer<>()) {
+      postgres.start();
 
-    correlatedTrainStream.print();
-    Iterator<Tuple2<LiveTrainData, PlannedTrainData>> iterator = DataStreamUtils.collect(correlatedTrainStream);
-    ArrayList<Tuple2<Integer, Integer>> correlatedIds = new ArrayList<>();
-    while(iterator.hasNext()){
-      tuple = iterator.next()
-      correlatedIds.add();
+      String address = postgres.getContainerIpAddress();
+      Integer port = postgres.getFirstMappedPort();
+      PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port);
+
+      DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas();
+      DataStream<Tuple2<LiveTrainData, PlannedTrainData>> correlatedTrainStream = AsyncDataStream
+          .unorderedWait(liveStream, new LivePlannedCorrelationFunction(postgresConfig),
+              100000, TimeUnit.MILLISECONDS, 1);
+
+      correlatedTrainStream.print();
+      Iterator<Tuple2<LiveTrainData, PlannedTrainData>> iterator = DataStreamUtils.collect(correlatedTrainStream);
+      ArrayList<Tuple2<Integer, Integer>> correlatedIds = new ArrayList<>();
+      while(iterator.hasNext()){
+        tuple = iterator.next();
+        correlatedIds.add();
+      }
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42382923, 42382923)));
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766, 42093766)));// 42093766
     }
-    Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42382923, 42382923)));
-    Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766, 42093766)));// 42093766
   }
-
   @Test
   public void testIdUnmatch() throws IOException {
     DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.unmatchingLiveTrainDatas();

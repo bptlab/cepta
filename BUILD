@@ -30,6 +30,13 @@ filegroup(
     ],
 )
 
+filegroup(
+    name = "only_core",
+    srcs = [
+        "//core",
+    ],
+)
+
 multirun(
     name = "publish",
     commands = [
