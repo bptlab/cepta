@@ -195,6 +195,7 @@ filegroup(
         ":train_delay_notification_go_proto", ":train_delay_notification_java_proto", ":train_delay_notification_ts_proto", ":train_delay_notification_nodejs_proto",
         ":train_information_data_go_proto", ":train_information_data_java_proto",
         ":weather_data_go_proto", ":weather_data_java_proto",
+        ":checkpoint_data_go_proto", ":checkpoint_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
