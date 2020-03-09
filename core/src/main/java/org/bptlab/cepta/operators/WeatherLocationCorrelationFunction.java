@@ -38,7 +38,7 @@ public class WeatherLocationCorrelationFunction extends
       this must be set to transient, as flink will otherwise try to serialize it which it is not
      */
     super.open(parameters);
-    System.out.println(parameters.toString());
+    //System.out.println(parameters.toString());
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
     config.setUsername(postgresConfig.getUser());
     config.setPassword(postgresConfig.getPassword());
@@ -64,7 +64,7 @@ public class WeatherLocationCorrelationFunction extends
     String query = String
         .format("select id from public.location where "
                 + "%f - 0.02 < CAST(lat AS float)  and CAST(lat AS float) < %f + 0.02 and "
-                + "%f - 0.02 < CAST(lng AS float)  and CAST(lng AS float) < %f + 0.02;",
+                + "%f - 0.02 < CAST(lon AS float)  and CAST(lon AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
             weatherEvent.getLongitude(), weatherEvent.getLongitude());
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
