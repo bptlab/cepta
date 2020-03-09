@@ -1,6 +1,7 @@
 package org.bptlab.cepta.utils.converters;
 
 import java.sql.ResultSet;
+import java.time.*;
 import com.github.jasync.sql.db.RowData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
       if (result.getInt("reporting_im_id") != null) event.setReportingImId(result.getInt("reporting_im_id"));
       if (result.getInt("next_im_id") != null) event.setNextImId(result.getInt("next_im_id"));
       if (result.getInt("message_status") != null) event.setMessageStatus(result.getInt("message_status"));
-      if (result.<org.joda.time.LocalDate>getAs("message_creation") != null) convertLocalDate(result.<org.joda.time.LocalDate>getAs("message_creation"), event::setMessageCreation);
+      if (result.getAs("message_creation") != null) convertLocalDateTime(result.getAs("message_creation"), event::setMessageCreation);
       if (result.getInt("original_train_number") != null) event.setOriginalTrainNumber(result.getInt("original_train_number"));
     } catch (Exception e) {
       logger.error(e.toString());

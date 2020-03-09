@@ -95,11 +95,12 @@ public class LivePlannedCorrelationTests {
           .unorderedWait(liveStream, new LivePlannedCorrelationFunction(postgresConfig),
               100000, TimeUnit.MILLISECONDS, 1);
 
-      correlatedTrainStream.print();
+      //correlatedTrainStream.print();
       Iterator<Tuple2<LiveTrainData, PlannedTrainData>> iterator = DataStreamUtils.collect(correlatedTrainStream);
       ArrayList<Tuple2<Long, Long>> correlatedIds = new ArrayList<>();
       while(iterator.hasNext()){
         Tuple2<LiveTrainData, PlannedTrainData> tuple = iterator.next();
+        System.out.println("TUPLE");
         System.out.println(tuple);
         if (tuple.f1 == null){
           correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), null));
