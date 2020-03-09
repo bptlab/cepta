@@ -68,10 +68,6 @@ public class LivePlannedCorrelationFunction extends
     String query = String
         .format("select * from public.planned where train_id = %d and location_id = %d;",
             liveEvent.getTrainId(), liveEvent.getLocationId());
-    System.out.println("GET_TRAIN_ID");
-    System.out.println(liveEvent.getTrainId());
-    System.out.println("FIRST_TRAIN_NUMBER");
-    System.out.println(liveEvent.getFirstTrainNumber());
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     /*
