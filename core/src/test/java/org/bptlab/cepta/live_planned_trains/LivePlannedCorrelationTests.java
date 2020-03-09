@@ -115,7 +115,7 @@ public class LivePlannedCorrelationTests {
   }
   @Test
   public void testIdUnmatch() throws IOException {
-    /* try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+      try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
       initDatabaseStuff(postgres);
       String address = postgres.getContainerIpAddress();
@@ -137,11 +137,11 @@ public class LivePlannedCorrelationTests {
         } else{
           correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), tuple.f1.getTrainId()));
         }
-      } */
-      // Assert.assertTrue(correlatedIds.contains(new Tuple2<>(11111111L, null)));
-      // Assert.assertTrue(correlatedIds.contains(new Tuple2<>(22222222L, null)));
-    // }
-      Assert.assertTrue(true);
+      }
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(11111111L, null)));
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(22222222L, null)));
+    }
+      //Assert.assertTrue(true);
   }
 
   private PostgreSQLContainer newPostgreSQLContainer(){
