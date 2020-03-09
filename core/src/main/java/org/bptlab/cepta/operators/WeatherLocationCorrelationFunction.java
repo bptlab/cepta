@@ -67,6 +67,7 @@ public class WeatherLocationCorrelationFunction extends
                 + "%f - 0.02 < CAST(lon AS float)  and CAST(lon AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
             weatherEvent.getLongitude(), weatherEvent.getLongitude());
+    System.out.println("Query: " + query);
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     CompletableFuture.supplyAsync(new Supplier<ArrayList<Tuple2<WeatherData, Integer>>>() {
@@ -75,9 +76,11 @@ public class WeatherLocationCorrelationFunction extends
         try {
           QueryResult queryResult = future.get();
           ArrayList<Tuple2<WeatherData, Integer>> notifications = new ArrayList<>();
+          
           for (RowData row : queryResult.getRows()){
-            notifications.add(new Tuple2<>(weatherEvent, Integer.valueOf(row.getString("id"))));
+            notifications.add(new Tuple2<>(weatherEvent, row.getInt("id")));
           }
+          System.out.println(notifications);
           return notifications;
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());
