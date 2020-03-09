@@ -53,7 +53,7 @@ public class LivePlannedCorrelationTests {
       System.out.println("Inserting records into the table...");
       sql = insertTrainWithTrainIdLocationIdQuery(42382923, 11111111);
       stmt.executeUpdate(sql);
-      sql = insertTrainWithTrainIdLocationIdQuery(42093766, 11111111);
+      sql = insertTrainWithTrainIdLocationIdQuery(42093769, 11111111);
       stmt.executeUpdate(sql);
       System.out.println("Inserted records into the table...");
 

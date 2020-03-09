@@ -48,7 +48,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
       if (result.getInt("location_id") != null) event.setLocationId(result.getInt("location_id"));
       if (result.getDate("planned_time") != null) convertLocalDateTime(result.getDate("planned_time"), event::setPlannedTime);
       if (result.getInt("status") != null) event.setStatus(result.getInt("status"));
-      if (result.getInt("first_train_number") != null) event.setTrainId(result.getInt("first_train_number"));
+      if (result.getInt("first_train_number") != null) event.setFirstTrainNumber(result.getInt("first_train_number"));
       if (result.getInt("train_number_reference") != null) event.setTrainNumberReference(result.getInt("train_number_reference"));
       if (result.getDate("planned_departure_reference") != null) convertLocalDateTime(result.getDate("planned_departure_reference"), event::setPlannedDepartureReference);
       if (result.getDate("planned_arrival_reference") != null) convertLocalDateTime(result.getDate("planned_arrival_reference"), event::setPlannedArrivalReference);
