@@ -62,7 +62,7 @@ public class WeatherLocationCorrelationFunction extends
        0.02 is about 2 kilometers
     */
     String query = String
-        .format("select id from import.locations where "
+        .format("select id from public.location where "
                 + "%f - 0.02 < CAST(lat AS float)  and CAST(lat AS float) < %f + 0.02 and "
                 + "%f - 0.02 < CAST(lng AS float)  and CAST(lng AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
