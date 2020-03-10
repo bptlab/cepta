@@ -53,7 +53,7 @@ public class LivePlannedCorrelationTests {
       System.out.println("Inserting records into the table...");
       sql = insertTrainWithTrainIdLocationIdQuery(42382923, 11111111);
       stmt.executeUpdate(sql);
-      sql = insertTrainWithTrainIdLocationIdQuery(42093769, 11111111);
+      sql = insertTrainWithTrainIdLocationIdQuery(42093766, 11111111);
       stmt.executeUpdate(sql);
       System.out.println("Inserted records into the table...");
 
@@ -90,18 +90,15 @@ public class LivePlannedCorrelationTests {
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
       
-      DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas();
+      DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
       DataStream<Tuple2<LiveTrainData, PlannedTrainData>> correlatedTrainStream = AsyncDataStream
           .unorderedWait(liveStream, new LivePlannedCorrelationFunction(postgresConfig),
               100000, TimeUnit.MILLISECONDS, 1);
 
-      //correlatedTrainStream.print();
       Iterator<Tuple2<LiveTrainData, PlannedTrainData>> iterator = DataStreamUtils.collect(correlatedTrainStream);
       ArrayList<Tuple2<Long, Long>> correlatedIds = new ArrayList<>();
       while(iterator.hasNext()){
         Tuple2<LiveTrainData, PlannedTrainData> tuple = iterator.next();
-        System.out.println("TUPLE");
-        System.out.println(tuple);
         if (tuple.f1 == null){
           correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), null));
         } else{
@@ -109,10 +106,10 @@ public class LivePlannedCorrelationTests {
         }
       }
       Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42382923L, 42382923L)));
-      // Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766L, 42093766L)));
-      //Assert.assertTrue(true);
+      Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42093766L, 42093766L)));
     }
   }
+  
   @Test
   public void testIdUnmatch() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
@@ -127,7 +124,6 @@ public class LivePlannedCorrelationTests {
           .unorderedWait(liveStream, new LivePlannedCorrelationFunction(postgresConfig),
               100000, TimeUnit.MILLISECONDS, 1);
 
-      correlatedTrainStream.print();
       Iterator<Tuple2<LiveTrainData, PlannedTrainData>> iterator = DataStreamUtils.collect(correlatedTrainStream);
       ArrayList<Tuple2<Long, Long>> correlatedIds = new ArrayList<>();
       while(iterator.hasNext()){

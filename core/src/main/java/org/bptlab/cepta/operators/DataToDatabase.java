@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.sql.*;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -29,11 +30,13 @@ public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
   public DataToDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
     this.postgresConfig = postgresConfig;
+    System.out.print("KONSTRUKTOR");
   }
 
   @Override
   public T map(T dataSet) throws Exception {
     insert(dataSet);
+    System.out.print("MAP");
     return dataSet;
   }
 
@@ -137,7 +140,10 @@ public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
     // String[] values = new String[columns.length];
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
       System.out.println(entry.getKey() + "/" + entry.getValue());
-      if(entry.getValue() instanceof String){
+      if(entry.getValue() instanceof com.google.protobuf.Timestamp){
+        values.add(String.format("'%s'",PrototimestampToSqlTimestamp((com.google.protobuf.Timestamp)entry.getValue()).toString()));
+      }
+      else if(entry.getValue() instanceof String){
         // add ' ' around value if it's a string
         values.add(String.format("'%s'", entry.getValue().toString()));
       }else{
@@ -145,6 +151,12 @@ public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
       }
     }
     return values;
+  }
+
+  private java.sql.Timestamp PrototimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
+    long seconds = protoTimestamp.getSeconds();
+    java.sql.Timestamp timestamp = new Timestamp(seconds);
+    return timestamp;
   }
 
   private String arrayToQueryString(List<String> elements){

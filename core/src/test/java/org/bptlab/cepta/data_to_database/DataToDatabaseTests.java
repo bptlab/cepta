@@ -103,7 +103,6 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
        // Create table for planned data
        sql = createSelectQuery();
        rs = stmt.executeQuery(sql);
-       System.out.println(rs);
        while(rs.next()){
          count++;
        }
@@ -136,21 +135,24 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
   public void testIdMatch() throws IOException {
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+       initDatabaseStuff(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
       
       DataStream<PlannedTrainData> inputStream = PlannedTrainDataProvider.plannedTrainDatas();
-
-      DataStream<PlannedTrainData> PlannedTrainData = inputStream.map(new DataToDatabase<PlannedTrainData>("public.planned", postgresConfig));
       
+      inputStream.map(new DataToDatabase<PlannedTrainData>("public.planned", postgresConfig));
       
-      Assert.assertTrue(checkDatabaseInput(postgres) == 2);
-      System.out.println(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
-    
-    }
-     // Assert.assertTrue(true);
+      // We need a Iterator because otherwise the events aren't reachable in the Stream
+      // Iterator needs to be after every funtion (in this case .map), because ther iterator consumes the events
+      Iterator<PlannedTrainData> iterator = DataStreamUtils.collect(inputStream);
+      while(iterator.hasNext()){
+         PlannedTrainData temp = iterator.next();
+         }
+      // We insert 2 row into our Database with DataToDatabase() therefore we need to have 2 rows in our table
+       Assert.assertTrue(checkDatabaseInput(postgres) == 2);    
+      }
 }
       
 
