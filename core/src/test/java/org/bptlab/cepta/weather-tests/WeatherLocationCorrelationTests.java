@@ -160,7 +160,7 @@ public class WeatherLocationCorrelationTests {
   }
 
   private String createLocationDatabaseQuery(){
-    return "CREATE TABLE public.location ( " +
+    return "CREATE TABLE public.location( " +
         "id integer, " +
         "lon float, " +
         "lat float, " +
