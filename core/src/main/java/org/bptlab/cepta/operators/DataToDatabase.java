@@ -18,17 +18,17 @@ import java.util.concurrent.ExecutionException;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.bptlab.cepta.config.PostgresConfig;
+import com.google.protobuf.Message; 
 
-public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T, T> {
-  static final String HOST = "localhost";
-  static final String DATABASE = "dbs1_imdb";
-  static final String USER = "tester";
-  static final String PASSWORD = "password";
-  static final Integer PORT = 5432;
+public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
+
   private String table_name;
+  private PostgresConfig postgresConfig = new PostgresConfig();
 
-  public DataToDatabase(String table){
+  public DataToDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
+    this.postgresConfig = postgresConfig;
   }
 
   @Override
@@ -44,11 +44,12 @@ public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T
     ConnectionPool<PostgreSQLConnection> connection;
 
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
-    config.setUsername(USER);
-    config.setPassword(PASSWORD);
-    config.setHost(HOST);
-    config.setPort(PORT);
-    config.setDatabase(DATABASE);
+
+    config.setUsername(postgresConfig.getUser());
+    config.setPassword(postgresConfig.getPassword());
+    config.setHost(postgresConfig.getHost());
+    config.setPort(postgresConfig.getPort());
+    config.setDatabase(postgresConfig.getName());
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
