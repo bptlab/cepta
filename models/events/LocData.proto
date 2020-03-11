@@ -1,0 +1,28 @@
+syntax = "proto3";
+package loc_vehicle;
+option go_package = "github.com/bptlab/cepta/models/events/loc_vehicle";
+option java_package = "org.bptlab.cepta.models.events.loc_vehicle";
+option java_outer_classname = "Loc_VehicleDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message Loc_VehicleData {
+    int64 vehicle_id = 1;
+    int64 plan_id = 2;
+    int64 play_day = 3;
+    int64 service_number = 4;
+    google.protobuf.Timestamp departure_day = 5;
+    int64 intermediate_stations = 5;
+    int64 service_code_addition = 6;
+    int64 service_code = 7;
+    google.protobuf.Timestamp planned_departure = 8;
+    google.protobuf.Timestamp actual_departure = 9;
+    google.protobuf.Timestamp planned_arrival = 10;
+    google.protobuf.Timestamp actual_arrival = 11;
+    string destination_station = 12;
+    string departure_station = 13;
+    int64 track_length = 14;
+    int64 next_plan_id = 15;
+    int64 next_plan_day = 15;
+    int64 max_speed = 16;
+}
