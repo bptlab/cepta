@@ -1,8 +1,8 @@
 syntax = "proto3";
 package loc_vehicle;
-option go_package = "github.com/bptlab/cepta/models/events/loc_vehicle";
-option java_package = "org.bptlab.cepta.models.events.loc_vehicle";
-option java_outer_classname = "Loc_VehicleDataProtos";
+option go_package = "github.com/bptlab/cepta/models/events/locvehicle";
+option java_package = "org.bptlab.cepta.models.events.locvehicle";
+option java_outer_classname = "LocVehicleDataProtos";
 
 import "google/protobuf/timestamp.proto";
 
