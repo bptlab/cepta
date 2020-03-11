@@ -8,12 +8,6 @@ import "google/protobuf/timestamp.proto";
 
 message CrewActivityData {
     int64 id = 1;
-    int64 shift_id = 2;
-    string activity_type = 3;
-    google.protobuf.Timestamp departure_date = 4;
-    
-
-    int64 id = 1;
     string data_type = 2;
     string shift_type = 3;
     string personnel_department = 4;
@@ -32,9 +26,4 @@ message CrewActivityData {
     string infrastructure_company = 18;
     int64 production_series = 19;
     int64 contract_id = 20;
-
-
-    
-
-
 }
