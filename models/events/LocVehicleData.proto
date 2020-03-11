@@ -6,7 +6,7 @@ option java_outer_classname = "LocVehicleDataProtos";
 
 import "google/protobuf/timestamp.proto";
 
-message Loc_VehicleData {
+message LocVehicleData {
     int64 vehicle_id = 1;
     int64 plan_id = 2;
     int64 play_day = 3;
