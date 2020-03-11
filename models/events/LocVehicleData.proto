@@ -7,8 +7,8 @@ option java_outer_classname = "LocVehicleDataProtos";
 import "google/protobuf/timestamp.proto";
 
 message LocVehicleData {
-    int64 vehicle_id = 1;
-    int64 plan_id = 2;
+    string vehicle_id = 1;
+    string plan_id = 2;
     int64 plan_day = 3;
     int64 service_number = 4;
     google.protobuf.Timestamp departure_day = 5;
