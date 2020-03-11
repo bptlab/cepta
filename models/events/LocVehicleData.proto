@@ -13,8 +13,8 @@ message LocVehicleData {
     int64 service_number = 4;
     google.protobuf.Timestamp departure_day = 5;
     int64 intermediate_stations = 6;
-    int64 service_code_addition = 7;
-    int64 service_code = 8;
+    string service_code_addition = 7;
+    string service_code = 8;
     google.protobuf.Timestamp planned_departure = 9;
     google.protobuf.Timestamp actual_departure = 10;
     google.protobuf.Timestamp planned_arrival = 11;
@@ -22,7 +22,7 @@ message LocVehicleData {
     string destination_station = 13;
     string departure_station = 14;
     int64 track_length = 15;
-    int64 next_plan_id = 16;
+    string next_plan_id = 16;
     int64 next_plan_day = 17;
     int64 max_speed = 18;
 }
