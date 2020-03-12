@@ -11,10 +11,13 @@ import (
 	"time"
 
 	"github.com/bptlab/cepta/constants"
+	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+
+	cppb "github.com/bptlab/cepta/models/events/checkpointdataevent"
 
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -25,7 +28,6 @@ import (
 
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
-var db *libdb.PostgresDB
 var log *logrus.Logger
 var replayers = []*Replayer{}
 
@@ -115,14 +117,20 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
-	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
-	// mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
-	var err error
-	db, err = libdb.PostgresDatabase(&postgresConfig)
+	// /*
+	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
+	postgres, err := libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
-		log.Fatalf("failed to initialize database: %v", err)
+		log.Fatalf("failed to initialize postgres database: %v", err)
+	}
+	// */
+
+	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
+	mongo, err := libdb.MongoDatabase(&mongoConfig)
+	if err != nil {
+		log.Fatalf("failed to initialize mongo database: %v", err)
 	}
 
 	// Parse CLI replay type
@@ -163,33 +171,48 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		replayerServer.speed = 5000
 	}
 
+	/*
+	test := &cppb.CheckpointData{}
+	if _, ok := test.(proto.Message); !ok {
+		panic(ok)
+	}
+	*/
+
 	live := &Replayer{
-		TableName:  "public.live",
-		SortColumn: "ACTUAL_TIME",
-		DbModel:    libdb.LiveTrainData{},
+		// SourceName:  "public.live",
+		SourceName:  "checkpoints",
+		Query: &extractors.ReplayQuery{SortColumn: "departureTime"},
+		// SortColumn: "departureTime",
+		// SortColumn: "ACTUAL_TIME",
+		Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}), // (proto.Message)
+		// DbModel:    libdb.LiveTrainData{},
 		Topic:      constants.Topics_LIVE_TRAIN_DATA.String(),
 	}
 
+	// /*
 	weather := &Replayer{
-		TableName:  "public.weather",
-		SortColumn: "STARTTIMESTAMP",
-		DbModel:    libdb.WeatherData{},
+		SourceName:  "public.weather",
+		// SortColumn: "STARTTIMESTAMP",
+		Query: &extractors.ReplayQuery{SortColumn: "STARTTIMESTAMP"},
+		Extractor:	extractors.NewPostgresExtractor(postgres, libdb.WeatherData{}),
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
+	// */
+
+	fmt.Println(weather)
 
 	replayers = []*Replayer{
 		live,
-		weather,
+		// weather,
 	}
 
 	// Set common replayer parameters
 	for _, replayer := range replayers {
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.MustMatch = &replayerServer.ids
-		replayer.Timerange = &replayerServer.timerange
-		replayer.Limit = &replayerServer.limit
-		replayer.Offset = 0
-		replayer.Db = db
+		replayer.Query.MustMatch = &replayerServer.ids
+		replayer.Query.Timerange = &replayerServer.timerange
+		replayer.Query.Limit = &replayerServer.limit
+		replayer.Query.Offset = 0
 		replayer.Active = &replayerServer.active
 		replayer.Speed = &replayerServer.speed
 		replayer.Mode = &replayerServer.mode
@@ -225,12 +248,12 @@ func main() {
 		log.Info("Graceful shutdown")
 		log.Info("Sending SHUTDOWN signal to all replaying topics")
 		for _, replayer := range replayers {
-			log.Debugf("Sending SHUTDOWN signal to %s", replayer.TableName)
+			log.Debugf("Sending SHUTDOWN signal to %s", replayer.SourceName)
 			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
 			// Wait for ack
-			log.Debugf("Waiting for ack from %s", replayer.TableName)
+			log.Debugf("Waiting for ack from %s", replayer.SourceName)
 			<-replayer.Ctrl
-			log.Debugf("Shutdown complete for %s", replayer.TableName)
+			log.Debugf("Shutdown complete for %s", replayer.SourceName)
 		}
 
 		log.Info("Stopping GRPC server")
