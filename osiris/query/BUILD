@@ -38,7 +38,7 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/query",
     visibility = ["//visibility:private"],
     deps = [
-        "//osiris/lib:db",
+        "//osiris/lib/db:go_default_library",
         "//models/gql:query_go_proto",
         "//osiris/query/resolvers:go_default_library",
         "@com_github_friendsofgo_graphiql//:go_default_library",
