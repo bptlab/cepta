@@ -4,6 +4,8 @@ option go_package = "github.com/bptlab/cepta/models/events/train";
 option java_package = "org.bptlab.cepta.models.events.train";
 option java_outer_classname = "PlannedTrainDataProtos";
 
+import "google/protobuf/timestamp.proto";
+
 message PlannedTrainData {
     int64 id = 1;
     int64 train_id = 2;
