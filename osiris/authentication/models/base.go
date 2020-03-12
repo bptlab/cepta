@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var db *gorm.DB
+var DB *gorm.DB
 
 func init() {
 
@@ -31,10 +31,10 @@ func init() {
 		fmt.Print(err)
 	}
 
-	db = conn
-	db.Debug().AutoMigrate(&Account{})
+	DB = conn
+	DB.Debug().AutoMigrate(&Account{})
 }
 
 func GetDB() *gorm.DB {
-	return db
+	return DB
 }

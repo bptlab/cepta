@@ -11,7 +11,7 @@ go_library(
     srcs = [
         "mockkafkaproducer.go"
     ],
-    importpath = "github.com/bptlab/cepta/aux/producers/mockkafkaproducer",
+    importpath = "github.com/bptlab/cepta/auxiliary/producers/mockkafkaproducer",
     visibility = ["//visibility:private"],
     deps = [
         "//osiris/lib/db:go_default_library",

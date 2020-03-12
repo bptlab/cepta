@@ -63,4 +63,9 @@ export default class AccountDropdown extends Vue {
 }
 </script>
 
-<style scoped lang="sass"></style>
+<style scoped lang="sass">
+.dropdown-menu
+  padding: 5px 20px
+  min-width: 100px
+  margin-left: -50px
+</style>

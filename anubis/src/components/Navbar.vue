@@ -347,6 +347,9 @@ export default class NavigationBar extends Vue {
 
 // TODO: Make scoped by adding styles to child components
 
+.header
+  z-index: 1001 !important
+
 #toggleReplayButton
   float: right
 

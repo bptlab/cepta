@@ -19,7 +19,7 @@ type Token struct {
 	jwt.StandardClaims
 }
 
-//a struct to rep user account
+//Account a struct to rep user account
 type Account struct {
 	gorm.Model
 	Email    string `json:"email"`
@@ -27,7 +27,7 @@ type Account struct {
 	Token    string `json:"token";sql:"-"`
 }
 
-//Validate incoming user details...
+//Validate incoming user details
 func (account *Account) Validate() (map[string]interface{}, bool) {
 
 	if !strings.Contains(account.Email, "@") {
@@ -50,7 +50,7 @@ func (account *Account) Validate() (map[string]interface{}, bool) {
 		return u.Message(false, "Email address already in use by another user."), false
 	}
 
-	return u.Message(false, "Requirement passed"), true
+	return u.Message(true, "Requirement passed"), true
 }
 
 // Create creates an user account with the given email and secret
@@ -82,6 +82,7 @@ func (account *Account) Create() map[string]interface{} {
 	return response
 }
 
+// Login logs in a user
 func Login(email, password string) map[string]interface{} {
 
 	account := &Account{}
@@ -111,10 +112,12 @@ func Login(email, password string) map[string]interface{} {
 	return resp
 }
 
+//GetUser gets a user by specific ID
 func GetUser(u uint) *Account {
 
+	db := GetDB()
 	acc := &Account{}
-	GetDB().Table("accounts").Where("id = ?", u).First(acc)
+	db.Table("accounts").Where("id = ?", u).First(acc)
 	if acc.Email == "" { //User not found!
 		return nil
 	}
