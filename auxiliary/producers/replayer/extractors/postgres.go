@@ -90,15 +90,8 @@ func (ex *PostgresExtractor) database() *gorm.DB {
 
 func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
 	query := ex.database().Model(ex.Extractor.GetInstance())
-	/* Match ERRIDs
-	if queryOptions.MustMatch != nil {
-		for _, condition := range *(queryOptions.MustMatch) {
-			if len(condition) > 0 {
-				query = query.Where(condition)
-			}
-		}
-	}
-	*/
+
+	// Macth ERRIDs
 	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
 		for _, id := range *(queryOptions.IncludeIds) {
 			query = query.Where(fmt.Sprintf("%s=%s", ex.IDFieldName, id))

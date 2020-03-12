@@ -119,13 +119,11 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
-	// /*
 	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
 	postgres, err := libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize postgres database: %v", err)
 	}
-	// */
 
 	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
 	mongo, err := libdb.MongoDatabase(&mongoConfig)
@@ -171,39 +169,32 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		replayerServer.speed = 5000
 	}
 
-	/*
-	test := &cppb.CheckpointData{}
-	if _, ok := test.(proto.Message); !ok {
-		panic(ok)
-	}
-	*/
-
 	live := &Replayer{
-		// SourceName:  "public.live",
-		SourceName:  "checkpoints",
-		Query: &extractors.ReplayQuery{SortColumn: "departureTime"},
-		// SortColumn: "departureTime",
-		// SortColumn: "ACTUAL_TIME",
-		Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}), // (proto.Message)
-		// DbModel:    libdb.LiveTrainData{},
+		SourceName:  "public.live",
+		Query: &extractors.ReplayQuery{SortColumn: "ACTUAL_TIME"},
+		// Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}),
+		Extractor:	extractors.NewPostgresExtractor(postgres, libdb.LiveTrainData{}),
 		Topic:      constants.Topics_LIVE_TRAIN_DATA.String(),
 	}
 
-	// /*
+	checkpoint := &Replayer{
+		SourceName:  "checkpoints",
+		Query: &extractors.ReplayQuery{SortColumn: "departureTime"},
+		Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}),
+		Topic:      constants.Topics_CHECKPOINT_DATA.String(),
+	}
+
 	weather := &Replayer{
 		SourceName:  "public.weather",
-		// SortColumn: "STARTTIMESTAMP",
 		Query: &extractors.ReplayQuery{SortColumn: "STARTTIMESTAMP"},
 		Extractor:	extractors.NewPostgresExtractor(postgres, libdb.WeatherData{}),
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
-	// */
-
-	fmt.Println(weather)
 
 	replayers = []*Replayer{
 		live,
-		// weather,
+		checkpoint,
+		weather,
 	}
 
 	// Set common replayer parameters

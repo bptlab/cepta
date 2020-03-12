@@ -91,18 +91,6 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 		ids := bson.A{}
 		for _, id := range *(queryOptions.IncludeIds) {
 			ids = append(ids, id)
-			/*
-			splitted = strings.SplitN(condition. "=", 2)
-			if !len(splitted) == 2 {
-				continue
-			}
-			fieldName := splitted[0]
-			value := splitted[1]
-			fmt.Printf("%s = %s", fieldName, value)
-			if len(condition) > 0 {
-				query = query.Where(condition)
-			}
-			*/
 		}
 		mustMatch = append(mustMatch, bson.E{ex.IDFieldName, bson.E{"$in", ids}})
 	}
