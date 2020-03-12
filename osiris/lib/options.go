@@ -129,7 +129,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 		case MongoHost:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name:    "mongodb-host",
-				Value:   "mongodb",
+				Value:   "localhost",
 				EnvVars: []string{"MONGODB_HOST", "MONGO_HOST"},
 				Usage:   "mongodb database host",
 			}}
@@ -143,7 +143,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 		case MongoDatabase:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name:    "mongodb-database",
-				Value:   "replaydata",
+				Value:   "replay",
 				Aliases: []string{"mongodb-name", "mongodb-db"},
 				EnvVars: []string{"MONGODB_DATABASE_NAME", "MONGODB_NAME"},
 				Usage:   "mongodb database name",
@@ -151,14 +151,14 @@ func CommonCliOptions(options ...int) []cli.Flag {
 		case MongoUser:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name:    "mongodb-user",
-				Value:   "",
+				Value:   "root",
 				EnvVars: []string{"MONGODB_USERNAME", "MONGODB_USER"},
 				Usage:   "mongodb database username",
 			}}
 		case MongoPassword:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name:    "mongodb-password",
-				Value:   "",
+				Value:   "example",
 				EnvVars: []string{"MONGODB_PASSWORD", "MONGO_PASS"},
 				Usage:   "mongodb database password",
 			}}
