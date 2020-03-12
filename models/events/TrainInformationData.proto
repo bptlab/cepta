@@ -18,6 +18,6 @@ message TrainInformationData {
     int64 euro_rail_run_id = 11;
     double train_production_date = 12;
     int64 first_train_number = 13;
-    double original_train_number = 14;
-    double im_id = 15;
+    int64 original_train_number = 14;
+    int64 im_id = 15;
 }
