@@ -164,7 +164,6 @@ go_proto_library(
 
 
 
-
 proto_library(
     name = "locvehicle_data_proto",
     srcs = ["LocVehicleData.proto"],
@@ -174,7 +173,7 @@ proto_library(
 
 java_proto_library(
     name = "locvehicle_data_java_proto",
-    deps = [":locvehicle_data_proto"],
+    deps = [":locvehicle_data_proto"],  
     visibility = ["//visibility:public"],
 )
 
@@ -182,6 +181,28 @@ go_proto_library(
     name = "locvehicle_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/locvehicledataevent",
     proto = ":locvehicle_data_proto",
+    visibility = ["//visibility:public"],
+)
+  
+  
+
+proto_library(
+    name = "checkpoint_data_proto",
+    srcs = ["CheckpointData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "checkpoint_data_java_proto",
+    deps = [":checkpoint_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "checkpoint_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/checkpointdataevent",
+    proto = ":checkpoint_data_proto",
     visibility = ["//visibility:public"],
 )
 
@@ -196,6 +217,7 @@ filegroup(
         ":train_information_data_go_proto", ":train_information_data_java_proto",
         ":weather_data_go_proto", ":weather_data_java_proto",
         ":locvehicle_data_go_proto", ":locvehicle_data_java_proto",
+        ":checkpoint_data_go_proto", ":checkpoint_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
