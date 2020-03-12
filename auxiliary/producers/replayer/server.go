@@ -209,7 +209,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	// Set common replayer parameters
 	for _, replayer := range replayers {
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.Query.MustMatch = &replayerServer.ids
+		replayer.Query.IncludeIds = &replayerServer.ids
 		replayer.Query.Timerange = &replayerServer.timerange
 		replayer.Query.Limit = &replayerServer.limit
 		replayer.Query.Offset = 0

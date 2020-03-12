@@ -20,7 +20,7 @@ type DbExtractor interface {
 // Extractor ...
 type Extractor interface {
 	Get() (time.Time, proto.Message, error)
-	StartQuery(sourceName string, query *ReplayQuery) error
+	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
 	Next() bool
 	Done()
 	SetDebug(bool)
@@ -28,7 +28,7 @@ type Extractor interface {
 
 // ReplayQuery ... 
 type ReplayQuery struct {
-	MustMatch  *[]string
+	IncludeIds *[]string
 	Timerange  *pb.Timerange
 	SortColumn string
 	Limit      *int
@@ -41,7 +41,7 @@ type PostgresExtractor struct {
 	DB *libdb.PostgresDB
 	debug bool
 	rows *sql.Rows
-	query *ReplayQuery
+	IDFieldName string
 }
 
 // NewPostgresExtractor ...
@@ -58,8 +58,8 @@ func (ex *PostgresExtractor) Get() (time.Time, proto.Message, error) {
 }
 
 // StartQuery ...
-func (ex *PostgresExtractor) StartQuery(tableName string, query *ReplayQuery) error {
-	ex.query = query
+func (ex *PostgresExtractor) StartQuery(tableName string, IDFieldName string, query *ReplayQuery) error {
+	ex.IDFieldName = IDFieldName
 	dbQuery := ex.makeQuery(query)
 	var err error
 	ex.rows, err = dbQuery.Rows()
@@ -90,7 +90,7 @@ func (ex *PostgresExtractor) database() *gorm.DB {
 
 func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
 	query := ex.database().Model(ex.Extractor.GetInstance())
-	// Match ERRIDs
+	/* Match ERRIDs
 	if queryOptions.MustMatch != nil {
 		for _, condition := range *(queryOptions.MustMatch) {
 			if len(condition) > 0 {
@@ -98,8 +98,15 @@ func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
 			}
 		}
 	}
+	*/
+	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
+		for _, id := range *(queryOptions.IncludeIds) {
+			query = query.Where(fmt.Sprintf("%s=%s", ex.IDFieldName, id))
+		}
+	}
+
 	// Match time range
-	for _, constraint := range buildQuery(queryOptions.SortColumn, queryOptions.Timerange) {
+	for _, constraint := range postgresTimerangeQuery(queryOptions.SortColumn, queryOptions.Timerange) {
 		query = query.Where(constraint)
 	}
 	// Order by column (ascending order)
@@ -113,7 +120,7 @@ func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
 	return query
 }
 
-func buildQuery(column string, timerange *pb.Timerange) []string {
+func postgresTimerangeQuery(column string, timerange *pb.Timerange) []string {
 	frmt := "2006-01-02 15:04:05" // Go want's this date!
 	query := []string{}
 	if start, err := ptypes.Timestamp(timerange.GetStart()); err != nil && start.Unix() > 0 {

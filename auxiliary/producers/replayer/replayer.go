@@ -21,13 +21,12 @@ import (
 type Replayer struct {
 	Ctrl       chan pb.InternalControlMessageType
 	SourceName  string
+	IDFieldName  string
 	Query 	*extractors.ReplayQuery
 	Speed      *int32
 	Active     *bool
 	Repeat     bool
 	Mode       *pb.ReplayType
-	// Db         *libdb.PostgresDB
-	// DbModel    DbExtractor
 	Extractor  extractors.Extractor
 	Topic      string
 	Brokers    []string
@@ -41,7 +40,7 @@ func (r Replayer) produce() error {
 		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
 
-	err := r.Extractor.StartQuery(r.SourceName, r.Query)
+	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
 	if err != nil {
 		return err
 	}
@@ -58,7 +57,7 @@ func (r Replayer) produce() error {
 				return err
 			case pb.InternalControlMessageType_RESET:
 				// Recreate the query
-				err := r.Extractor.StartQuery(r.SourceName, r.Query)
+				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
 				if err != nil {
 					r.log.Error("Cannot reset")
 				}
@@ -67,7 +66,7 @@ func (r Replayer) produce() error {
 			if !*r.Active {
 				time.Sleep(1 * time.Second)
 			} else if r.Extractor.Next() {
-				newTime, event, err := r.Extractor.Get() //  r.Db.DB)
+				newTime, event, err := r.Extractor.Get()
 				if err != nil {
 					r.log.Errorf("Fail: %s", err.Error())
 					continue
@@ -101,7 +100,7 @@ func (r Replayer) produce() error {
 				recentTime = newTime
 
 			} else if r.Repeat {
-				err := r.Extractor.StartQuery(r.SourceName, r.Query)
+				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
 				if err != nil {
 					r.log.Error("Cannot repeat replay")
 				}

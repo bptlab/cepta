@@ -21,6 +21,7 @@ go_library(
         # "@org_golang_google_grpc//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@org_mongodb_go_mongo_driver//bson:go_default_library",
+        "@org_mongodb_go_mongo_driver//bson/primitive:go_default_library",
         "@org_mongodb_go_mongo_driver//mongo:go_default_library",
         "@com_github_romnnn_bsonpb//:go_default_library",
         # "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",

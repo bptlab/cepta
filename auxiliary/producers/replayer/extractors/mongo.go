@@ -8,8 +8,11 @@ import (
 	"github.com/golang/protobuf/proto"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/golang/protobuf/ptypes"
 	"go.mongodb.org/mongo-driver/mongo"
 	"github.com/romnnn/bsonpb"
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
 )
 
 // MongoExtractor ...
@@ -19,6 +22,7 @@ type MongoExtractor struct {
 	debug bool
 	cur *mongo.Cursor
 	unmarshaler bsonpb.Unmarshaler
+	IDFieldName string
 }
 
 // Get ...
@@ -47,7 +51,8 @@ func (ex *MongoExtractor) Get() (time.Time, proto.Message, error) {
 }
 
 // StartQuery ...
-func (ex *MongoExtractor) StartQuery(collectionName string, query *ReplayQuery) error {
+func (ex *MongoExtractor) StartQuery(collectionName string, IDFieldName string, query *ReplayQuery) error {
+	ex.IDFieldName = IDFieldName
 	ex.unmarshaler = bsonpb.Unmarshaler{AllowUnknownFields: true}
 	collection := ex.DB.DB.Collection(collectionName)
 	aggregation := ex.buildAggregation(query)
@@ -81,22 +86,31 @@ func NewMongoExtractor(db *libdb.MongoDB, proto proto.Message) *MongoExtractor {
 
 func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 	mustMatch := bson.D{}
-	/* Match ERRIDs
-	// TODO
-	if queryOptions.MustMatch != nil {
-		for _, condition := range *(queryOptions.MustMatch) {
+	// Match ERRIDs
+	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
+		ids := bson.A{}
+		for _, id := range *(queryOptions.IncludeIds) {
+			ids = append(ids, id)
+			/*
+			splitted = strings.SplitN(condition. "=", 2)
+			if !len(splitted) == 2 {
+				continue
+			}
+			fieldName := splitted[0]
+			value := splitted[1]
+			fmt.Printf("%s = %s", fieldName, value)
 			if len(condition) > 0 {
 				query = query.Where(condition)
 			}
+			*/
 		}
+		mustMatch = append(mustMatch, bson.E{ex.IDFieldName, bson.E{"$in", ids}})
 	}
-	*/
-	/* Match time range
-	// TODO
-	for _, constraint := range buildQuery(queryOptions.SortColumn, queryOptions.Timerange) {
-		query = query.Where(constraint)
+
+	// Match time range
+	if constraints := mongoTimerangeQuery(queryOptions.SortColumn, queryOptions.Timerange); len(constraints) > 0 {
+		mustMatch = append(mustMatch, bson.E{queryOptions.SortColumn, constraints})
 	}
-	*/
 
 	aggregation := bson.A{
 		bson.D{{"$match", mustMatch}},
@@ -109,5 +123,18 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 		aggregation = append(aggregation, bson.D{{"$limit", *(queryOptions.Limit)}})
 	}
 
+	fmt.Println(aggregation)
 	return aggregation
+}
+
+
+func mongoTimerangeQuery(column string, timerange *pb.Timerange) bson.D {
+	var constraints bson.D
+	if start, err := ptypes.Timestamp(timerange.GetStart()); err != nil && start.Unix() > 0 {
+		constraints = append(constraints, bson.E{"$gte", primitive.NewDateTimeFromTime(start)})
+	}
+	if end, err := ptypes.Timestamp(timerange.GetEnd()); err != nil && end.Unix() > 0 {
+		constraints = append(constraints, bson.E{"$lt", primitive.NewDateTimeFromTime(end)})
+	}
+	return constraints
 }
