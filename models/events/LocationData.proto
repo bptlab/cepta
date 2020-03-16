@@ -1,0 +1,14 @@
+syntax = "proto3";
+package location;
+option go_package = "github.com/bptlab/cepta/models/events/location";
+option java_package = "org.bptlab.cepta.models.events.location"; //should this be in events? since this is more a database thing
+option java_outer_classname = "LocationDataProtos";
+
+
+message LocationData {
+    int64 id = 1;
+    double longitude = 2;
+    double latitude = 3;
+    string name_short = 4;
+    string name_long = 5;
+}
