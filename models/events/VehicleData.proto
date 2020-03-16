@@ -1,12 +1,12 @@
 syntax = "proto3";
-package loc_vehicle;
-option go_package = "github.com/bptlab/cepta/models/events/locvehicle";
-option java_package = "org.bptlab.cepta.models.events.locvehicle";
-option java_outer_classname = "LocVehicleDataProtos";
+package vehicle_data;
+option go_package = "github.com/bptlab/cepta/models/events/vehicle";
+option java_package = "org.bptlab.cepta.models.events.vehicle";
+option java_outer_classname = "VehicleDataProtos";
 
 import "google/protobuf/timestamp.proto";
 
-message LocVehicleData {
+message VehicleData {
     string vehicle_id = 1;
     string plan_id = 2;
     int64 plan_day = 3;
@@ -25,4 +25,4 @@ message LocVehicleData {
     string next_plan_id = 16;
     int64 next_plan_day = 17;
     int64 max_speed = 18;
-}
+} 
