@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.Locale;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -62,7 +63,7 @@ public class WeatherLocationCorrelationFunction extends
        0.02 is about 2 kilometers
     */
     String query = String
-        .format("select id from public.location where "
+        .format(Locale.US,"select id from public.location where "
                 + "%f - 0.02 < CAST(lat AS float)  and CAST(lat AS float) < %f + 0.02 and "
                 + "%f - 0.02 < CAST(lon AS float)  and CAST(lon AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),

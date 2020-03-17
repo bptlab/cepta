@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.Locale;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -17,12 +18,14 @@ import org.junit.Test;
 import org.junit.Ignore;
 import org.testcontainers.containers.PostgreSQLContainer;
 import java.sql.*;
+import java.lang.*;
 
 public class WeatherLocationCorrelationTests {
   private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
 
   @Test
   public void testDirectLocationMatch() throws IOException {
+      System.out.println("Start testDirectLocationMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
       initDatabaseStuff(postgres);
@@ -47,6 +50,7 @@ public class WeatherLocationCorrelationTests {
 
   @Test
   public void testInsideBoxMatch() throws IOException {
+    System.out.println("Start testInsideBoxMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
       initDatabaseStuff(postgres);
@@ -71,6 +75,7 @@ public class WeatherLocationCorrelationTests {
 
   @Test
   public void testOutsideBoxMatch() throws IOException {
+    System.out.println("Start testOutsideBoxMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
       initDatabaseStuff(postgres);
@@ -92,6 +97,8 @@ public class WeatherLocationCorrelationTests {
   }
 
   public void initDatabaseStuff(PostgreSQLContainer container) {
+
+    System.out.println("Start initDatabaseStuff");
     // JDBC driver name and database URL
     String db_url = container.getJdbcUrl();
     String user = container.getUsername();
@@ -111,15 +118,22 @@ public class WeatherLocationCorrelationTests {
       stmt = conn.createStatement();
       String sql;
       // Create table for planned data
+      System.out.println("Create table...");
       sql = createLocationDatabaseQuery();
       stmt.executeUpdate(sql);
+      System.out.println("Created table!");
 
       // Execute insert queries
-      System.out.println("Inserting records into the table...");
+      /*System.out.println("Inserting records into the table...");
       sql = insertLocationWithIdLatLonCodeQuery(4012656, 3.0067, 49.577, "xxx");
       stmt.executeUpdate(sql);
-      System.out.println("Inserted records into the table...");
+      System.out.println("Inserted records into the table...");*/
 
+      System.out.println("Inserting records into the table...");
+      sql = insertDumpQuery();
+      stmt.executeUpdate(sql);
+      System.out.println("Inserted records into the table...");
+      
     }catch(SQLException se){
       //Handle errors for JDBC
       se.printStackTrace();
@@ -148,15 +162,26 @@ public class WeatherLocationCorrelationTests {
   }
 
   private String insertLocationWithIdLatLonCodeQuery(long locationId, double lon, double lat, String code){
-    return String.format(
+    return String.format(Locale.US,
       "INSERT INTO public.location(" +
-        "id, " +
+        "id," +
         "lon, " +
         "lat, " +
         "name, " +
         "code, " +
         "country_code)" +
-      "VALUES (%d, %f, %f, 'fancy name', '%s', 'country code')", locationId, lon, lat, code);
+        "VALUES (%d, %f, %f, 'fancy name', '%s', 'country code')", locationId, lon, lat, code);
+  }
+
+    private String insertDumpQuery(){
+    return "INSERT INTO public.location(" +
+        "id," +
+        "lon, " +
+        "lat, " +
+        "name, " +
+        "code, " +
+        "country_code)" +
+        "VALUES (4012656, 3.0067, 49.577, 'fancy name', 'xxx', 'country code')";
   }
 
   private String createLocationDatabaseQuery(){
@@ -168,4 +193,6 @@ public class WeatherLocationCorrelationTests {
         "code varchar(30), " +
         "country_code varchar(30))";
   }
+
+
 }
