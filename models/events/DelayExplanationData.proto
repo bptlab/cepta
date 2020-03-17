@@ -11,8 +11,8 @@ message DelayExplanationData {
     int64 train_id = 2;
     google.protobuf.Timestamp prod_date = 3;
     int64 country_code = 4;
-    string station_code = 5;
-    string station_number = 6;
+    string station_id = 5;
+    string station_id_number = 6;
     google.protobuf.Timestamp actual_time = 7;
     int64 status_code = 8;
     int64 delay_in_minutes = 9;
