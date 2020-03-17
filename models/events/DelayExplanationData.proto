@@ -21,7 +21,7 @@ message DelayExplanationData {
     string delay_string = 12;
     string delay_string_further = 13;
     string vehicle_number = 14;
-    int64 vehicle_1 = 15;
-    int64 vehicle_2 = 16;
-    int64 vehicle_3 = 17;
+    int64 loco_1 = 15;
+    int64 loco_2 = 16;
+    int64 loco_3 = 17;
 }
