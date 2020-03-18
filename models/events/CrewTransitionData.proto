@@ -10,8 +10,8 @@ message CrewTransitionData {
     int64 id = 1;
     int64 shift_id = 2;
     string service_type = 3;
-    google.protobuf.Timestamp time_start = 7;
-    google.protobuf.Timestamp time_end = 8;
-    google.protobuf.Timestamp break_start = 9;
-    google.protobuf.Timestamp break_end = 10;
+    google.protobuf.Timestamp time_start = 4;
+    google.protobuf.Timestamp time_end = 5;
+    google.protobuf.Timestamp break_start = 6;
+    google.protobuf.Timestamp break_end = 7;
 }
