@@ -6,32 +6,11 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/lib",
     visibility = ["//visibility:public"],
     deps = [
-        ":db",
         ":cli",
         ":utils",
+        "//osiris/lib/db:go_default_library",
         "//osiris/lib/kafka:producer",
         "//osiris/lib/kafka:consumer",
-    ],
-)
-
-go_library(
-    name = "db",
-    srcs = [
-        "db.go",
-        "tmpmodels.go"
-    ],
-    importpath = "github.com/bptlab/cepta/osiris/lib/db",
-    visibility = ["//visibility:public"],
-    deps = [
-        ":cli",
-        "//models/events:live_train_data_go_proto",
-        "//models/events:weather_data_go_proto",
-        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
-        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_jinzhu_gorm//:go_default_library",
-        "@com_github_jinzhu_gorm//dialects/postgres:go_default_library",
-        "@com_github_urfave_cli_v2//:go_default_library",
     ],
 )
 

@@ -113,7 +113,7 @@ public class Main implements Callable<Integer> {
           delay < 0 is good, the train might arrive earlier than planned
          */
                 try {
-                  double delay = observed.getActualTime().getSeconds() - expected.getPlannedTime();
+                  double delay = observed.getActualTime().getSeconds() - expected.getPlannedTime().getSeconds();
 
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {

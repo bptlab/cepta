@@ -23,12 +23,12 @@ import (
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var log *logrus.Logger
-var db *libdb.DB
+var db *libdb.PostgresDB
 
 type server struct {
 	pb.UnimplementedUserManagementServer
 	active bool
-	db     *libdb.DB
+	db     *libdb.PostgresDB
 }
 
 // User is a struct to rep user account
@@ -173,7 +173,7 @@ func main() {
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
-	cliFlags = append(cliFlags, libdb.DatabaseCliOptions...)
+	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 
 	log = logrus.New()
 	go func() {
@@ -203,7 +203,7 @@ func main() {
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
-	postgresConfig := libdb.DBConfig{}.ParseCli(ctx)
+	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
 	db.DB.AutoMigrate(&User{})
