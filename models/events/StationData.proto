@@ -1,0 +1,26 @@
+syntax = "proto3";
+package station;
+option go_package = "github.com/bptlab/cepta/models/events/station";
+option java_package = "org.bptlab.cepta.models.events.station";
+option java_outer_classname = "StationDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message StationData {
+    string primary_name = 1;
+    int64 primary_name_number = 2;
+    string rl100 = 3;
+    string name = 4;
+    int64 bst8 = 5;
+    int64 network_id = 6;
+    string country = 7;
+    int64 country_id = 8;
+    int64 cargo_id = 9;
+    google.protobuf.Timestamp begin_date = 10;
+    google.protobuf.Timestamp end_date = 11;
+    double latitude = 12;
+    double longitude = 13;
+    string station_type = 14;
+    int64 holiday_code = 15;
+    int64 primary_location_code = 16;
+}
