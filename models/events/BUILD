@@ -219,6 +219,77 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
+go_proto_library(
+    name = "crew_activity_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewactivitydataevent",
+    proto = ":crew_activity_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_activity_data_proto",
+    srcs = ["CrewActivityData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_activity_data_java_proto",
+    deps = [":crew_activity_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
+go_proto_library(
+    name = "crew_transition_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewatransitiondataevent",
+    proto = ":crew_transition_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_transition_data_proto",
+    srcs = ["CrewTransitionData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_transition_data_java_proto",
+    deps = [":crew_transition_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+go_proto_library(
+    name = "crew_prep_end_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewprependdataevent",
+    proto = ":crew_prep_end_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_prep_end_data_proto",
+    srcs = ["CrewPrepEndData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_prep_end_data_java_proto",
+    deps = [":crew_prep_end_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
 filegroup(
     name = "events",
     srcs = [
@@ -238,13 +309,18 @@ filegroup(
         ":weather_data_java_proto",
         ":vehicle_data_go_proto",
         ":vehicle_data_java_proto",
+        ":crew_activity_data_go_proto",
+        ":crew_activity_data_java_proto", 
+        ":crew_transition_data_go_proto",
+        ":crew_transition_data_java_proto",
+        ":crew_prep_end_data_go_proto",
+        ":crew_prep_end_data_java_proto",
         ":checkpoint_data_go_proto",
         ":checkpoint_data_java_proto",
         ":station_data_go_proto",
         ":station_data_java_proto",
         ":delay_explanation_data_go_proto",
         ":delay_explanation_data_java_proto",
-
     ],
     visibility = ["//visibility:public"],
 )
