@@ -4,20 +4,22 @@ option go_package = "github.com/bptlab/cepta/models/events/train";
 option java_package = "org.bptlab.cepta.models.events.train";
 option java_outer_classname = "TrainInformationDataProtos";
 
+import "google/protobuf/timestamp.proto";
+
 message TrainInformationData {
     int64 id = 1;
     int64 train_number_reference = 2;
-    double planned_departure_reference = 3;
-    double planned_arrival_reference = 4;
+    google.protobuf.Timestamp planned_departure_reference = 3;
+    google.protobuf.Timestamp planned_arrival_reference = 4;
     int64 start_location_id = 5;
-    double planned_departure = 6;
+    google.protobuf.Timestamp planned_departure = 6;
     int64 planned_departure_deviation = 7;
     int64 end_location_id = 8;
-    double planned_arrival = 9;
+    google.protobuf.Timestamp planned_arrival = 9;
     int64 planned_arrival_deviation = 10;
     int64 euro_rail_run_id = 11;
-    double train_production_date = 12;
+    google.protobuf.Timestamp train_production_date = 12;
     int64 first_train_number = 13;
-    double original_train_number = 14;
-    double im_id = 15;
+    int64 original_train_number = 14;
+    int64 im_id = 15;
 }

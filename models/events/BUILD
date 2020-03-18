@@ -14,8 +14,8 @@ proto_library(
 
 java_proto_library(
     name = "live_train_data_java_proto",
-    deps = [":live_train_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":live_train_data_proto"],
 )
 
 go_proto_library(
@@ -48,12 +48,13 @@ proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
     name = "planned_train_data_java_proto",
-    deps = [":planned_train_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":planned_train_data_proto"],
 )
 
 go_proto_library(
@@ -67,12 +68,13 @@ proto_library(
     name = "predicted_train_data_proto",
     srcs = ["PredictedTrainData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
     name = "predicted_train_data_java_proto",
-    deps = [":predicted_train_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":predicted_train_data_proto"],
 )
 
 go_proto_library(
@@ -86,12 +88,13 @@ proto_library(
     name = "train_delay_notification_proto",
     srcs = ["TrainDelayNotification.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
     name = "train_delay_notification_java_proto",
-    deps = [":train_delay_notification_proto"],
     visibility = ["//visibility:public"],
+    deps = [":train_delay_notification_proto"],
 )
 
 go_proto_library(
@@ -102,8 +105,8 @@ go_proto_library(
 )
 
 ts_grpc_compile(
-  name = "train_delay_notification_ts_proto",
-  deps = ["train_delay_notification_proto"],
+    name = "train_delay_notification_ts_proto",
+    deps = ["train_delay_notification_proto"],
 )
 
 nodejs_proto_compile(
@@ -111,22 +114,17 @@ nodejs_proto_compile(
     deps = ["train_delay_notification_proto"],
 )
 
-
-
-
-
-
-
 proto_library(
     name = "train_information_data_proto",
     srcs = ["TrainInformationData.proto"],
     visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
     name = "train_information_data_java_proto",
-    deps = [":train_information_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":train_information_data_proto"],
 )
 
 go_proto_library(
@@ -145,14 +143,34 @@ proto_library(
 
 java_proto_library(
     name = "weather_data_java_proto",
-    deps = [":weather_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":weather_data_proto"],
 )
 
 go_proto_library(
     name = "weather_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/weatherdataevent",
     proto = ":weather_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "vehicle_data_proto",
+    srcs = ["VehicleData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "vehicle_data_java_proto",
+    deps = [":vehicle_data_proto"],  
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "vehicle_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/vehicledataevent",
+    proto = ":vehicle_data_proto",
     visibility = ["//visibility:public"],
 )
 
@@ -165,8 +183,8 @@ proto_library(
 
 java_proto_library(
     name = "checkpoint_data_java_proto",
-    deps = [":checkpoint_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":checkpoint_data_proto"],
 )
 
 go_proto_library(
@@ -175,12 +193,121 @@ go_proto_library(
     proto = ":checkpoint_data_proto",
     visibility = ["//visibility:public"],
 )
+  
+  
+
+proto_library(
+    name = "station_data_proto",
+    srcs = ["StationData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "station_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":station_data_proto"],
+)
+
+go_proto_library(
+    name = "station_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/stationdataevent",
+    proto = ":station_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "delay_explanation_data_proto",
+    srcs = ["DelayExplanationData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "delay_explanation_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":delay_explanation_data_proto"],
+)
+
+go_proto_library(
+    name = "delay_explanation_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/delayexplanationdataevent",
+    proto = ":delay_explanation_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "crew_activity_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewactivitydataevent",
+    proto = ":crew_activity_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_activity_data_proto",
+    srcs = ["CrewActivityData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_activity_data_java_proto",
+    deps = [":crew_activity_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+
+go_proto_library(
+    name = "crew_transition_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewatransitiondataevent",
+    proto = ":crew_transition_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_transition_data_proto",
+    srcs = ["CrewTransitionData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_transition_data_java_proto",
+    deps = [":crew_transition_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+
+
+go_proto_library(
+    name = "crew_prep_end_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewprependdataevent",
+    proto = ":crew_prep_end_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_prep_end_data_proto",
+    srcs = ["CrewPrepEndData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_prep_end_data_java_proto",
+    deps = [":crew_prep_end_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
 
 filegroup(
     name = "events",
     srcs = [
-        ":checkpoint_data_go_proto",
-        ":checkpoint_data_java_proto",
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
         ":location_data_go_proto",
@@ -191,12 +318,24 @@ filegroup(
         ":predicted_train_data_java_proto",
         ":train_delay_notification_go_proto",
         ":train_delay_notification_java_proto",
-        ":train_delay_notification_nodejs_proto",
-        ":train_delay_notification_ts_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
+        ":vehicle_data_go_proto",
+        ":vehicle_data_java_proto",
+        ":crew_activity_data_go_proto",
+        ":crew_activity_data_java_proto", 
+        ":crew_transition_data_go_proto",
+        ":crew_transition_data_java_proto",
+        ":crew_prep_end_data_go_proto",
+        ":crew_prep_end_data_java_proto",
+        ":checkpoint_data_go_proto",
+        ":checkpoint_data_java_proto",
+        ":station_data_go_proto",
+        ":station_data_java_proto",
+        ":delay_explanation_data_go_proto",
+        ":delay_explanation_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )

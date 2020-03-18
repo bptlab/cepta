@@ -9,6 +9,16 @@ services:
     ports:
       - 9001:80
 
+  mongodb:
+    image: "mongo"
+    volumes:
+        - mongodb_data:/data/db
+    expose:
+        - 27017
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: example
+
   zookeeper:
     image: bitnami/zookeeper:latest
     expose:
@@ -111,8 +121,8 @@ services:
     command:
       - --broker=kafka:9092
       - --grpc-port=9000
-      - --db-host=postgres
-      - --db-port=5432
+      - --postgres-host=postgres
+      - --postgres-port=5432
       - --must-match='train_id=47298333'
 
   envoy:
@@ -183,6 +193,8 @@ volumes:
   # kafka_data:
   #   driver: local
   postgres_data:
+    driver: local
+  mongodb_data:
     driver: local
   prometheus_data: {}
   grafana_data: {}

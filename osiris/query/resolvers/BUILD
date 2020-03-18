@@ -17,7 +17,7 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/query/resolvers",
     visibility = ["//visibility:public"],
     deps = [
-        "//osiris/lib:db",
+        "//osiris/lib/db:go_default_library",
         "//models/gql:query_go_proto",
         # "@com_github_friendsofgo_graphiql//:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library",

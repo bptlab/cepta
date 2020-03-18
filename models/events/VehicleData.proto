@@ -1,0 +1,28 @@
+syntax = "proto3";
+package vehicle_data;
+option go_package = "github.com/bptlab/cepta/models/events/vehicle";
+option java_package = "org.bptlab.cepta.models.events.vehicle";
+option java_outer_classname = "VehicleDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message VehicleData {
+    string vehicle_id = 1;
+    string plan_id = 2;
+    int64 plan_day = 3;
+    int64 service_number = 4;
+    google.protobuf.Timestamp departure_day = 5;
+    int64 intermediate_stations = 6;
+    string service_code_addition = 7;
+    string service_code = 8;
+    google.protobuf.Timestamp planned_departure = 9;
+    google.protobuf.Timestamp actual_departure = 10;
+    google.protobuf.Timestamp planned_arrival = 11;
+    google.protobuf.Timestamp actual_arrival = 12;
+    string destination_station = 13;
+    string departure_station = 14;
+    int64 track_length = 15;
+    string next_plan_id = 16;
+    int64 next_plan_day = 17;
+    int64 max_speed = 18;
+} 
