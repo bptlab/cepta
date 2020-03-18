@@ -289,7 +289,7 @@ java_proto_library(
 go_proto_library(
     name = "crew_shift_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/crewshiftdataevent",
-    proto = ":crew_prep_end_data_proto",
+    proto = ":crew_shift_data_proto",
     visibility = ["//visibility:public"],
 )
 
