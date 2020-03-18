@@ -26,6 +26,25 @@ go_proto_library(
 )
 
 proto_library(
+    name = "location_data_proto",
+    srcs = ["LocationData.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "location_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":location_data_proto"],
+)
+
+go_proto_library(
+    name = "location_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/locationdataevent",
+    proto = ":location_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
     visibility = ["//visibility:public"],
@@ -154,8 +173,6 @@ go_proto_library(
     proto = ":vehicle_data_proto",
     visibility = ["//visibility:public"],
 )
-  
-  
 
 proto_library(
     name = "checkpoint_data_proto",
@@ -288,21 +305,19 @@ java_proto_library(
 
 
 
-
-
 filegroup(
     name = "events",
     srcs = [
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
+        ":location_data_go_proto",
+        ":location_data_java_proto",
         ":planned_train_data_go_proto",
         ":planned_train_data_java_proto",
         ":predicted_train_data_go_proto",
         ":predicted_train_data_java_proto",
         ":train_delay_notification_go_proto",
         ":train_delay_notification_java_proto",
-        ":train_delay_notification_ts_proto",
-        ":train_delay_notification_nodejs_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
         ":weather_data_go_proto",
