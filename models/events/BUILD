@@ -193,9 +193,29 @@ java_proto_library(
 )
 
 go_proto_library(
-    name = "checkpoint_data_go_proto",
+    name = "station_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/checkpointdataevent",
     proto = ":station_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "delay_explanation_data_proto",
+    srcs = ["DelayExplanationData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "delay_explanation_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":delay_explanation_data_proto"],
+)
+
+go_proto_library(
+    name = "delay_explanation_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/delayexplanationdataevent",
+    proto = ":delay_explanation_data_proto",
     visibility = ["//visibility:public"],
 )
 
@@ -222,6 +242,8 @@ filegroup(
         ":checkpoint_data_java_proto",
         ":station_data_go_proto",
         ":station_data_java_proto",
+        ":delay_explanation_data_go_proto",
+        ":delay_explanation_data_java_proto",
 
     ],
     visibility = ["//visibility:public"],
