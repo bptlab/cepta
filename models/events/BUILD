@@ -286,6 +286,25 @@ java_proto_library(
     visibility = ["//visibility:public"],
 )
 
+go_proto_library(
+    name = "crew_shift_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/crewshiftdataevent",
+    proto = ":crew_prep_end_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "crew_shift_data_proto",
+    srcs = ["CrewShiftData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "crew_shift_data_java_proto",
+    deps = [":crew_shift_data_proto"],
+    visibility = ["//visibility:public"],
+)
 
 
 
@@ -315,6 +334,8 @@ filegroup(
         ":crew_transition_data_java_proto",
         ":crew_prep_end_data_go_proto",
         ":crew_prep_end_data_java_proto",
+        ":crew_shift_data_go_proto",
+        ":crew_shift_data_java_proto",
         ":checkpoint_data_go_proto",
         ":checkpoint_data_java_proto",
         ":station_data_go_proto",
