@@ -8,19 +8,19 @@ import "google/protobuf/timestamp.proto";
 
 message StationData {
     string primary_name = 1;
-    int primary_name_number = 2;
+    int64 primary_name_number = 2;
     string rl100 = 3;
     string name = 4;
-    int bst8 = 5;
-    int network_id = 6;
+    int64 bst8 = 5;
+    int64 network_id = 6;
     string country = 7;
-    int country_id = 8;
-    int cargo_id = 9;
+    int64 country_id = 8;
+    int64 cargo_id = 9;
     google.protobuf.Timestamp begin_date = 10;
     google.protobuf.Timestamp end_date = 11;
     double latitude = 12;
     double longitude = 13;
     string station_type = 14;
-    int holiday_code = 15;
-    int primary_location_code = 16;
+    int64 holiday_code = 15;
+    int64 primary_location_code = 16;
 }
