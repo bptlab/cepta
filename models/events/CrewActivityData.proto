@@ -8,10 +8,10 @@ import "google/protobuf/timestamp.proto";
 
 message CrewActivityData {
     int64 id = 1;
-    string shift_id = 2;
-    string activity_type = 3;
-    string departure_date = 4;
-    string infrastructure_at_start = 5;
+    int64_id = 2;
+    int64 activity_type = 3;
+    google.protobuf.Timestamp departure_date = 4;
+    int64 infrastructure_at_start = 5;
     int64 train_id = 6;
     google.protobuf.Timestamp activity_start = 7;
     string station_id_start = 8;
