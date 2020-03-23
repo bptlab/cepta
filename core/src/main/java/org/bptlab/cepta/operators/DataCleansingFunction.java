@@ -18,7 +18,7 @@ public class DataCleansingFunction {
         DataStream<Long> ResultStream = InputStream.filter(new FilterFunction<Long>() {
             @Override
             public boolean filter(Long value) throws Exception {
-              return (value != FilterLong);
+              return (!(value.equals(FilterLong)));
             }
           });
         return ResultStream;
@@ -28,7 +28,7 @@ public class DataCleansingFunction {
         DataStream<Float> ResultStream = InputStream.filter(new FilterFunction<Float>() {
             @Override
             public boolean filter(Float value) throws Exception {
-              return (value != FilterFloat);
+              return (!(value.equals(FilterFloat)));
             }
           });
         return ResultStream;
@@ -38,7 +38,7 @@ public class DataCleansingFunction {
         DataStream<Integer> ResultStream = InputStream.filter(new FilterFunction<Integer>() {
             @Override
             public boolean filter(Integer value) throws Exception {
-              return (value != FilterInteger);
+              return (!(value.equals(FilterInteger)));
             }
           });
         return ResultStream;
