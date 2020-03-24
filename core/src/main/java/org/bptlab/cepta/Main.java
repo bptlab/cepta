@@ -98,7 +98,7 @@ public class Main implements Callable<Integer> {
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new PlannedLiveCorrelationFunction(postgresConfig),
+            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream

@@ -43,7 +43,6 @@ go_proto_library(
     proto = ":location_data_proto",
     visibility = ["//visibility:public"],
 )
-
 proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
@@ -324,6 +323,53 @@ java_proto_library(
 )
 
 
+
+
+
+
+
+go_proto_library(
+    name = "infrastructure_manager_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent",
+    proto = ":infrastructure_manager_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "infrastructure_manager_data_proto",
+    srcs = ["InfrastructureManagerData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "infrastructure_manager_data_java_proto",
+    deps = [":infrastructure_manager_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
+go_proto_library(
+    name = "railway_undertaking_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/railwayundertakingdataevent",
+    proto = ":railway_undertaking_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "railway_undertaking_data_proto",
+    srcs = ["RailwayUntertakingData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "railway_undertaking_data_java_proto",
+    deps = [":railway_undertaking_data_proto"],
+    visibility = ["//visibility:public"],
+)
+
+
 filegroup(
     name = "events",
     srcs = [
@@ -355,6 +401,10 @@ filegroup(
         ":checkpoint_data_java_proto",
         ":station_data_go_proto",
         ":station_data_java_proto",
+        ":railway_undertaking_data_go_proto",
+        ":railway_undertaking_data_java_proto",
+        ":infrastructure_manager_data_go_proto",
+        ":infrastructure_manager_data_java_proto",
         ":delay_explanation_data_go_proto",
         ":delay_explanation_data_java_proto",
     ],
