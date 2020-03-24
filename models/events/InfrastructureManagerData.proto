@@ -5,12 +5,8 @@ option java_package = "org.bptlab.cepta.models.events.location"; //should this b
 option java_outer_classname = "LocationDataProtos";
 
 
-message LocationData {
+message InfrastructureManagerData {
     int64 id = 1;
-    double longitude = 2;
-    double latitude = 3;
-    string name_short = 4;
-    string name_long = 5;
-    string country = 6;
-    int64 imid = 7;
+    string country = 2;
+    string name = 3;
 }
