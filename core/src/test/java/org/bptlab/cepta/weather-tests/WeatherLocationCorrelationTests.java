@@ -28,7 +28,7 @@ public class WeatherLocationCorrelationTests {
       System.out.println("Start testDirectLocationMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+      initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
@@ -53,7 +53,7 @@ public class WeatherLocationCorrelationTests {
     System.out.println("Start testInsideBoxMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+      initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
@@ -78,7 +78,7 @@ public class WeatherLocationCorrelationTests {
     System.out.println("Start testOutsideBoxMatch");
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+      initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
@@ -96,9 +96,8 @@ public class WeatherLocationCorrelationTests {
     }    
   }
 
-  public void initDatabaseStuff(PostgreSQLContainer container) {
+  public void initDatabase(PostgreSQLContainer container) {
 
-    System.out.println("Start initDatabaseStuff");
     // JDBC driver name and database URL
     String db_url = container.getJdbcUrl();
     String user = container.getUsername();
@@ -124,13 +123,8 @@ public class WeatherLocationCorrelationTests {
       System.out.println("Created table!");
 
       // Execute insert queries
-      /*System.out.println("Inserting records into the table...");
-      sql = insertLocationWithIdLatLonCodeQuery(4012656, 3.0067, 49.577, "xxx");
-      stmt.executeUpdate(sql);
-      System.out.println("Inserted records into the table...");*/
-
       System.out.println("Inserting records into the table...");
-      sql = insertDumpQuery();
+      sql = insertLocationWithIdLatLonCodeQuery(4012656, 3.0067, 49.577, "xxx");
       stmt.executeUpdate(sql);
       System.out.println("Inserted records into the table...");
       
@@ -162,7 +156,7 @@ public class WeatherLocationCorrelationTests {
   }
 
   private String insertLocationWithIdLatLonCodeQuery(long locationId, double lon, double lat, String code){
-    return String.format(Locale.US,
+    return String(Locale.US,
       "INSERT INTO public.location(" +
         "id," +
         "lon, " +
@@ -171,17 +165,6 @@ public class WeatherLocationCorrelationTests {
         "code, " +
         "country_code)" +
         "VALUES (%d, %f, %f, 'fancy name', '%s', 'country code')", locationId, lon, lat, code);
-  }
-
-    private String insertDumpQuery(){
-    return "INSERT INTO public.location(" +
-        "id," +
-        "lon, " +
-        "lat, " +
-        "name, " +
-        "code, " +
-        "country_code)" +
-        "VALUES (4012656, 3.0067, 49.577, 'fancy name', 'xxx', 'country code')";
   }
 
   private String createLocationDatabaseQuery(){

@@ -26,7 +26,7 @@ import java.sql.*;
 public class LivePlannedCorrelationTests {
   //private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
 
-  public void initDatabaseStuff(PostgreSQLContainer container) {
+  public void initDatabase(PostgreSQLContainer container) {
        // JDBC driver name and database URL
    String db_url = container.getJdbcUrl();
    String user = container.getUsername();
@@ -85,7 +85,7 @@ public class LivePlannedCorrelationTests {
   public void testIdMatch() throws IOException {
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+      initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
@@ -114,7 +114,7 @@ public class LivePlannedCorrelationTests {
   public void testIdUnmatch() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-      initDatabaseStuff(postgres);
+      initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
