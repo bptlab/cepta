@@ -19,17 +19,18 @@ public class DataCleansingTests {
     @Test
     public void TestIntegerCleansing() throws IOException {
         boolean pass = true;
+        // get Stream of Integers with an element with the value of Integer.MIN_VALUE
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(Integer.MIN_VALUE);  
-    
+        // cleanse all Integer.MIN_VALUE elements from our Stream
         DataStream<Integer> cleansedStream = DataCleansingFunction.cleanseStream(integerStream, Integer.MIN_VALUE);
-
+        // add all remaining elements of the Stream in an ArrayList
         ArrayList<Integer> cleansedInteger = new ArrayList<>();
         Iterator<Integer> iterator = DataStreamUtils.collect(cleansedStream);
         while(iterator.hasNext()){
             Integer integer = iterator.next();
             cleansedInteger.add(integer);
         }
-
+        // check if remaining elements still have MIN.VALUE and fail if true
         int len = cleansedInteger.size();
         for (int i = 0; i < len; i++ ) {
             if (cleansedInteger.get(i) == Integer.MIN_VALUE) {
