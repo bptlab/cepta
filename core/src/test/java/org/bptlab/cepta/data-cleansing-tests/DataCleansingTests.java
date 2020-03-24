@@ -10,7 +10,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.providers.JavaDataProvider;
-import jdk.internal.jline.internal.TestAccessible;
 import sun.security.util.Length;
 
 public class DataCleansingTests {
