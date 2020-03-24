@@ -58,7 +58,7 @@ public class DataCleansingFunction {
         DataStream<Boolean> ResultStream = InputStream.filter(new FilterFunction<Boolean>() {
             @Override
             public boolean filter(Boolean value) throws Exception {
-              return (value != FilterBoolean);
+              return (!(value.equals(FilterString)));
             }
           });
         return ResultStream;
