@@ -45,6 +45,8 @@ java_test(
         "@maven//:junit_junit_4_13",
         "@maven//:org_testcontainers_testcontainers",
         "@maven//:org_testcontainers_kafka",
+        "@maven//:org_testcontainers_postgresql",
+        "@maven//:org_postgresql_postgresql",
     ],
 )
 
