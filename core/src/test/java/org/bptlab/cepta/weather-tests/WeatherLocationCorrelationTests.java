@@ -156,7 +156,7 @@ public class WeatherLocationCorrelationTests {
   }
 
   private String insertLocationWithIdLatLonCodeQuery(long locationId, double lon, double lat, String code){
-    return String(Locale.US,
+    return String.format(Locale.US,
       "INSERT INTO public.location(" +
         "id," +
         "lon, " +
