@@ -34,23 +34,37 @@ import java.sql.*;
 
 public class DataToDatabaseTests {
 
-    public void initDatabaseStuff(PostgreSQLContainer container) {
-        // CREATE TABLE
-        String db_url = container.getJdbcUrl();
-        String user = container.getUsername();
-        String password = container.getPassword();
+    public Connection createDatabaseConnection(PostgreSQLContainer container) {
+      String db_url = container.getJdbcUrl();
+      String user = container.getUsername();
+      String password = container.getPassword();
+      
+      Connection conn = null;
+
+      try{
+         // Register JDBC driver
+         Class.forName("org.postgresql.Driver");
+   
+         // Open a connection
+         System.out.println("Connecting to a database...");
+         conn = DriverManager.getConnection(db_url, user, password);
+         System.out.println("Connected database successfully...");
+            
+      }catch(SQLException se){
+         //Handle errors for JDBC
+         se.printStackTrace();
+      }catch(Exception e){
+         //Handle errors for Class.forName
+         e.printStackTrace();
+      }
+      return conn;
+    } 
+
+    public void initDatabase(PostgreSQLContainer container) {
         
-        Connection conn = null;
+        Connection conn = createDatabaseConnection(container);
         Statement stmt = null;
-        try{
-           // Register JDBC driver
-           Class.forName("org.postgresql.Driver");
-     
-           // Open a connection
-           System.out.println("Connecting to a database...");
-           conn = DriverManager.getConnection(db_url, user, password);
-           System.out.println("Connected database successfully...");
-           
+        try{        
            stmt = conn.createStatement();
            String sql;
            // Create table for planned data
@@ -79,28 +93,18 @@ public class DataToDatabaseTests {
         }//end try
         System.out.println("Goodbye!");
    }
+
 public int checkDatabaseInput(PostgreSQLContainer container) {
-    // CREATE TABLE
-    String db_url = container.getJdbcUrl();
-    String user = container.getUsername();
-    String password = container.getPassword();
     
-    Connection conn = null;
+    Connection conn = createDatabaseConnection(container);
     Statement stmt = null;
     ResultSet rs = null;
     int count = 0;
     try{
-       // Register JDBC driver
-       Class.forName("org.postgresql.Driver");
- 
-       // Open a connection
-       System.out.println("Connecting to a database...");
-       conn = DriverManager.getConnection(db_url, user, password);
-       System.out.println("Connected database successfully...");
        
        stmt = conn.createStatement();
        String sql;
-       // Create table for planned data
+       // Execute Select query to check if table contains data
        sql = createSelectQuery();
        rs = stmt.executeQuery(sql);
        while(rs.next()){
@@ -118,7 +122,8 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
           if(stmt!=null)
              conn.close();
        }catch(SQLException se){
-       }// do nothing
+          se.printStackTrace();
+       }
        try{
           if(conn!=null)
              conn.close();
@@ -127,7 +132,6 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
        }//end finally try
     }//end try
     System.out.println("Goodbye!");
-    System.out.println(count);
     return count;
 }
 
@@ -135,7 +139,7 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
   public void testIdMatch() throws IOException {
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-       initDatabaseStuff(postgres);
+       initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());

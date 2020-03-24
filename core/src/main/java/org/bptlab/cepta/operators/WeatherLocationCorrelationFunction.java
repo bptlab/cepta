@@ -39,7 +39,6 @@ public class WeatherLocationCorrelationFunction extends
       this must be set to transient, as flink will otherwise try to serialize it which it is not
      */
     super.open(parameters);
-    //System.out.println(parameters.toString());
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
     config.setUsername(postgresConfig.getUser());
     config.setPassword(postgresConfig.getPassword());

@@ -30,13 +30,11 @@ public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
   public DataToDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
     this.postgresConfig = postgresConfig;
-    System.out.print("KONSTRUKTOR");
   }
 
   @Override
   public T map(T dataSet) throws Exception {
     insert(dataSet);
-    System.out.print("MAP");
     return dataSet;
   }
 
