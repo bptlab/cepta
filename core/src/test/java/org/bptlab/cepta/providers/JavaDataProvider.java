@@ -42,7 +42,7 @@ public class JavaDataProvider {
         return ResultStream;
     }
 
-    public static DataStream<Double> doubleDataStreamWithElment(Double element) {
+    public static DataStream<Double> doubleDataStreamWithElement(Double element) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         DataStream<Double> ResultStream = env.fromElements(0.0, 1.1, 2.2, element);
@@ -62,5 +62,13 @@ public class JavaDataProvider {
         DataStream<String> ResultStream = env.fromElements("Eins", "Zwei", "Drei", element);
         return ResultStream;
     }
+
+    public static DataStream<Boolean> booleanDataStream() {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+        DataStream<Boolean> ResultStream = env.fromElements(true, true, false, false);
+        return ResultStream;
+    }
+
 
 }

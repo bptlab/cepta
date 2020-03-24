@@ -24,15 +24,15 @@ public class DataCleansingFunction {
         return ResultStream;
     }
 
-    public static DataStream<Float> cleanseStream(DataStream<Float> InputStream, Float FilterFloat) {
-        DataStream<Float> ResultStream = InputStream.filter(new FilterFunction<Float>() {
-            @Override
-            public boolean filter(Float value) throws Exception {
-              return (!(value.equals(FilterFloat)));
-            }
-          });
-        return ResultStream;
-    }
+    public static DataStream<Double> cleanseStream(DataStream<Double> InputStream, Double FilterDouble) {
+      DataStream<Double> ResultStream = InputStream.filter(new FilterFunction<Double>() {
+          @Override
+          public boolean filter(Double value) throws Exception {
+            return (!(value.equals(FilterDouble)));
+          }
+        });
+      return ResultStream;
+  }
     
     public static DataStream<Integer> cleanseStream(DataStream<Integer> InputStream, Integer FilterInteger) {
         DataStream<Integer> ResultStream = InputStream.filter(new FilterFunction<Integer>() {
