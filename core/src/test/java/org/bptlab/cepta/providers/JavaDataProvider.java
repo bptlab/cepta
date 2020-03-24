@@ -24,14 +24,28 @@ public class JavaDataProvider {
     public static DataStream<Long> longDataStream() {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        DataStream<Long> ResultStream = env.generateSequence(0, 1000);
+        DataStream<Long> ResultStream = env.fromElements(1L, 2L, 3L);
+        return ResultStream;
+    }
+
+    public static DataStream<Long> longDataStreamWithElement(Long element) {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+        DataStream<Long> ResultStream = env.fromElements(1L, 2L, 3L, element);
         return ResultStream;
     }
     
-    public static DataStream<Double> floatDataStream() {
+    public static DataStream<Double> doubleDataStream() {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         DataStream<Double> ResultStream = env.fromElements(0.0, 1.1, 2.2);
+        return ResultStream;
+    }
+
+    public static DataStream<Double> doubleDataStreamWithElment(Double element) {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+        DataStream<Double> ResultStream = env.fromElements(0.0, 1.1, 2.2, element);
         return ResultStream;
     }
 
@@ -39,6 +53,13 @@ public class JavaDataProvider {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         DataStream<String> ResultStream = env.fromElements("Eins", "Zwei", "Drei");
+        return ResultStream;
+    }
+
+    public static DataStream<String> stringDataStreamWithElement(String element) {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+        DataStream<String> ResultStream = env.fromElements("Eins", "Zwei", "Drei", element);
         return ResultStream;
     }
 
