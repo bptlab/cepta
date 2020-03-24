@@ -1,0 +1,69 @@
+syntax = "proto3";
+package user_management;
+option go_package = "github.com/bptlab/cepta/models/grpc/user_management";
+
+// option java_multiple_files = true;
+// option java_package = "org.bptlab.cepta.producers.replayer";
+// option java_outer_classname = "UserManagementProto";
+
+
+service UserManagement {
+
+  // Configuration
+  rpc SetEmail(UserIdEmailInput) returns (Success) {}
+  rpc AddTrain(UserIdTrainIdInput) returns (Success) {}
+  rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
+  rpc AddUser(User) returns (Success) {}
+  rpc RemoveUser(UserId) returns (Success) {}
+
+  // Query
+  rpc GetUser(UserId) returns (User) {}
+  rpc GetTrainIds(UserId) returns (TrainIds) {}
+}
+
+message UserIdEmailInput {
+  UserId userId = 1;
+  string email = 2;
+}
+
+message UserIdTrainInput {
+  UserId userId = 1;
+  Train train = 2;
+}
+
+message UserIdTrainIdInput {
+  UserId userId = 1;
+  TrainId trainId = 2;
+}
+message Train {
+  TrainId trainId = 1;
+}
+message TrainId {
+  int64 value = 1;
+}
+message TrainIds {
+  repeated TrainId ids = 1;
+}
+
+message User {
+  UserId id = 1;
+  string email = 2;
+  string password = 3;
+  TrainIds trains = 4;
+}
+
+message UserId {
+  int64 value = 1;
+}
+
+enum InternalControlMessageType {
+  RESET = 0;
+  SEEK = 1;
+  SHUTDOWN = 2;
+}
+
+message Empty {}
+
+message Success {
+  bool success = 1;
+}

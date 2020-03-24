@@ -135,6 +135,7 @@ maven_install(
         "junit:junit:4.13",
         "org.testcontainers:testcontainers:1.12.5",
         "org.testcontainers:kafka:1.12.5",
+        "org.testcontainers:postgresql:1.12.5",
         "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
@@ -145,6 +146,7 @@ maven_install(
         "org.slf4j:slf4j-api:1.7.28",
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
+        "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
@@ -739,15 +741,22 @@ go_repository(
 )
 
 go_repository(
+    name = "com_github_selvatico_go_mocket",
+    importpath = "github.com/selvatico/go-mocket",
+    sum = "h1:jbVa7RkoOCzBanQYiYF+VWgySHZogg25fOIKkM38q5k=",
+    version = "v1.0.7",
+)
+
+go_repository(
+    name = "com_github_grpc_grpc_go",
+    importpath = "github.com/grpc/grpc-go",
+    sum = "h1:EluyjU5nlbuNJSEktNl600PIpzbO2OcvZWfWV1jFvKM=",
+    version = "v1.27.1",
+)
+
+go_repository(
     name = "com_github_konsorten_go_windows_terminal_sequences",
     importpath = "github.com/konsorten/go-windows-terminal-sequences",
     sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
     version = "v1.0.2",
-)
-
-go_repository(
-    name = "com_github_selvatico_go_mocket",
-    importpath = "github.com/Selvatico/go-mocket",
-    sum = "h1:sXuFMnMfVL9b/Os8rGXPgbOFbr4HJm8aHsulD/uMTUk=",
-    version = "v1.0.7",
 )

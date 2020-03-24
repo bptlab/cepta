@@ -36,6 +36,48 @@ public class LiveTrainDataProvider {
     return builder.build();
   }
 
+  // @DataProvider(name = "live-train-data-provider")
+  public static DataStream<LiveTrainData> matchingLiveTrainDatas(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+    ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
+
+    liveTrains.add(trainEventWithTrainIdLocationId(42382923, 11111111));
+    liveTrains.add(trainEventWithTrainIdLocationId(42093766, 11111111));
+    DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
+        .assignTimestampsAndWatermarks(
+            new AscendingTimestampExtractor<LiveTrainData>() {
+              @Override
+              public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
+                return liveTrainData.getMessageCreation().getSeconds();
+              }
+            });
+
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    return liveTrainStream;
+  }
+
+  // @DataProvider(name = "live-train-data-provider")
+  public static DataStream<LiveTrainData> unmatchingLiveTrainDatas(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+    ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
+
+    liveTrains.add(trainEventWithTrainID(11111111));
+    liveTrains.add(trainEventWithTrainID(22222222));
+    DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
+        .assignTimestampsAndWatermarks(
+            new AscendingTimestampExtractor<LiveTrainData>() {
+              @Override
+              public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
+                return liveTrainData.getMessageCreation().getSeconds();
+              }
+            });
+
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    return liveTrainStream;
+  }
+
   // @DataProvider(name = "one-matching-live-train-weather-data-provider")
   public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> oneMatchingLiveTrainWeatherData() {
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -64,8 +106,6 @@ public class LiveTrainDataProvider {
               return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
             }
         });
-    liveTrainStream.print();
-    weatherStream.print();
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
@@ -135,14 +175,20 @@ public class LiveTrainDataProvider {
                 return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
               }
             });
-    liveTrainStream.print();
-    weatherStream.print();
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
   private static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-      .setLocationId(locationId).build();
+        .setLocationId(locationId).build();
+  }
+  private static LiveTrainData trainEventWithTrainID(int trainId){
+    return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+        .setTrainId(trainId).build();
+  }
+  private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+    return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+        .setTrainId(trainId).setLocationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
