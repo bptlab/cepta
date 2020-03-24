@@ -1,0 +1,24 @@
+syntax = "proto3";
+package crew;
+option go_package = "github.com/bptlab/cepta/models/events/crew";
+option java_package = "org.bptlab.cepta.models.events.crew";
+option java_outer_classname = "CrewDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message CrewActivityData {
+    int64 id = 1;
+    int64 shift_id = 2;
+    int64 activity_type = 3;
+    google.protobuf.Timestamp departure_date = 4;
+    int64 infrastructure_at_start = 5;
+    int64 train_id = 6;
+    google.protobuf.Timestamp activity_start = 7;
+    string station_id_start = 8;
+    google.protobuf.Timestamp activity_end = 9;
+    string station_id_end = 10;
+    int64 distance_outside_dbnetz = 11;
+    string infrastructure_company = 12;
+    int64 production_series = 13;
+    int64 contract_id = 14;
+}

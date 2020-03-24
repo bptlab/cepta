@@ -70,7 +70,7 @@ func serve(ctx *cli.Context) error {
 		panic(err)
 	}
 
-	config := libdb.DBConfig{}.ParseCli(ctx)
+	config := libdb.PostgresDBConfig{}.ParseCli(ctx)
 	db, err := libdb.PostgresDatabase(&config)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
@@ -99,7 +99,7 @@ func main() {
 	app := &cli.App{
 		Name:  "CEPTA Query service",
 		Usage: "Provides a GraphQL interface for querying transportation data",
-		Flags: append(libdb.DatabaseCliOptions, []cli.Flag{
+		Flags: append(libdb.PostgresDatabaseCliOptions, []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "debug",
 				Value:   false,

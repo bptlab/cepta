@@ -10,21 +10,17 @@ message PlannedTrainData {
     int64 id = 1;
     int64 train_id = 2;
     int64 location_id = 3;
-    //double planned_time = 4;
     google.protobuf.Timestamp planned_time = 4;
     int64 status = 5;
     int64 first_train_number = 6;
     int64 train_number_reference = 7;
-    //double planned_departure_reference = 8;
     google.protobuf.Timestamp planned_departure_reference = 8;
-    //double planned_arrival_reference = 9;
     google.protobuf.Timestamp planned_arrival_reference = 9;
     int64 train_operator_id = 10;
     int64 transfer_location_id = 11;
     int64 reporting_im_id = 12;
     int64 next_im_id = 13;
     int64 message_status = 14;
-    //double message_creation = 15;
     google.protobuf.Timestamp message_creation = 15;
     int64 original_train_number = 16;
 }

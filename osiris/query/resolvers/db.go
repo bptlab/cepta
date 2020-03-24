@@ -7,7 +7,7 @@ import (
 )
 
 type QueryDB struct {
-	DB *libdb.DB
+	DB *libdb.PostgresDB
 }
 
 func (qdb *QueryDB) getTransportsByID(ids []int64) error {
