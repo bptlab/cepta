@@ -15,20 +15,21 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.sql.*;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.bptlab.cepta.config.PostgresConfig;
+import com.google.protobuf.Message; 
 
-public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T, T> {
-  static final String HOST = "localhost";
-  static final String DATABASE = "dbs1_imdb";
-  static final String USER = "tester";
-  static final String PASSWORD = "password";
-  static final Integer PORT = 5432;
+public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
+
   private String table_name;
+  private PostgresConfig postgresConfig = new PostgresConfig();
 
-  public DataToDatabase(String table){
+  public DataToDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
+    this.postgresConfig = postgresConfig;
   }
 
   @Override
@@ -44,11 +45,12 @@ public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T
     ConnectionPool<PostgreSQLConnection> connection;
 
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
-    config.setUsername(USER);
-    config.setPassword(PASSWORD);
-    config.setHost(HOST);
-    config.setPort(PORT);
-    config.setDatabase(DATABASE);
+
+    config.setUsername(postgresConfig.getUser());
+    config.setPassword(postgresConfig.getPassword());
+    config.setHost(postgresConfig.getHost());
+    config.setPort(postgresConfig.getPort());
+    config.setDatabase(postgresConfig.getName());
     config.setMaxActiveConnections(100);
     connection = PostgreSQLConnectionBuilder.createConnectionPool(config);
 
@@ -136,7 +138,10 @@ public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T
     // String[] values = new String[columns.length];
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
       System.out.println(entry.getKey() + "/" + entry.getValue());
-      if(entry.getValue() instanceof String){
+      if(entry.getValue() instanceof com.google.protobuf.Timestamp){
+        values.add(String.format("'%s'",PrototimestampToSqlTimestamp((com.google.protobuf.Timestamp)entry.getValue()).toString()));
+      }
+      else if(entry.getValue() instanceof String){
         // add ' ' around value if it's a string
         values.add(String.format("'%s'", entry.getValue().toString()));
       }else{
@@ -144,6 +149,12 @@ public class DataToDatabase<T extends GeneratedMessage> implements MapFunction<T
       }
     }
     return values;
+  }
+
+  private java.sql.Timestamp PrototimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
+    long seconds = protoTimestamp.getSeconds();
+    java.sql.Timestamp timestamp = new Timestamp(seconds);
+    return timestamp;
   }
 
   private String arrayToQueryString(List<String> elements){

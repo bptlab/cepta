@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.Locale;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -38,7 +39,6 @@ public class WeatherLocationCorrelationFunction extends
       this must be set to transient, as flink will otherwise try to serialize it which it is not
      */
     super.open(parameters);
-    System.out.println(parameters.toString());
     ConnectionPoolConfigurationBuilder config = new ConnectionPoolConfigurationBuilder();
     config.setUsername(postgresConfig.getUser());
     config.setPassword(postgresConfig.getPassword());
@@ -62,11 +62,12 @@ public class WeatherLocationCorrelationFunction extends
        0.02 is about 2 kilometers
     */
     String query = String
-        .format("select id from import.locations where "
+        .format(Locale.US,"select id from public.location where "
                 + "%f - 0.02 < CAST(lat AS float)  and CAST(lat AS float) < %f + 0.02 and "
-                + "%f - 0.02 < CAST(lng AS float)  and CAST(lng AS float) < %f + 0.02;",
+                + "%f - 0.02 < CAST(lon AS float)  and CAST(lon AS float) < %f + 0.02;",
             weatherEvent.getLatitude(),  weatherEvent.getLatitude(),
             weatherEvent.getLongitude(), weatherEvent.getLongitude());
+    System.out.println("Query: " + query);
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     CompletableFuture.supplyAsync(new Supplier<ArrayList<Tuple2<WeatherData, Integer>>>() {
@@ -75,9 +76,11 @@ public class WeatherLocationCorrelationFunction extends
         try {
           QueryResult queryResult = future.get();
           ArrayList<Tuple2<WeatherData, Integer>> notifications = new ArrayList<>();
+          
           for (RowData row : queryResult.getRows()){
-            notifications.add(new Tuple2<>(weatherEvent, Integer.valueOf(row.getString("id"))));
+            notifications.add(new Tuple2<>(weatherEvent, row.getInt("id")));
           }
+          System.out.println(notifications);
           return notifications;
         } catch (NullPointerException | InterruptedException | ExecutionException e) {
           System.err.println(e.getMessage());

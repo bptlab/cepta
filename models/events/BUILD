@@ -43,7 +43,6 @@ go_proto_library(
     proto = ":location_data_proto",
     visibility = ["//visibility:public"],
 )
-
 proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
