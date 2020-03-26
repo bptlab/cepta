@@ -10,14 +10,29 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bptlab/cepta/constants"
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
+	"github.com/bptlab/cepta/constants"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 
-	cppb "github.com/bptlab/cepta/models/events/checkpointdataevent"
+	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
+	crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
+	crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
+	crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
+	crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
+	delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
+	infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
+	livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
+	locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
+	plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
+	predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
+	railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
+	stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
+	traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
+	vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
+	weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
 
 	"github.com/golang/protobuf/ptypes"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -119,11 +134,11 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
-	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
+	/* postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
 	postgres, err := libdb.PostgresDatabase(&postgresConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize postgres database: %v", err)
-	}
+	} */
 
 	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
 	mongo, err := libdb.MongoDatabase(&mongoConfig)
@@ -169,31 +184,138 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		replayerServer.speed = 5000
 	}
 
-	live := &Replayer{
-		SourceName:  "public.live",
-		Query: &extractors.ReplayQuery{SortColumn: "ACTUAL_TIME"},
-		// Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}),
-		Extractor:	extractors.NewPostgresExtractor(postgres, libdb.LiveTrainData{}),
-		Topic:      constants.Topics_LIVE_TRAIN_DATA.String(),
-	}
-
-	checkpoint := &Replayer{
-		SourceName:  "checkpoints",
-		Query: &extractors.ReplayQuery{SortColumn: "departureTime"},
-		Extractor:	extractors.NewMongoExtractor(mongo, &cppb.CheckpointData{}),
+	checkpoints := &Replayer{
+		SourceName: "checkpoints",
+		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &checkpointpb.CheckpointData{}),
 		Topic:      constants.Topics_CHECKPOINT_DATA.String(),
 	}
 
+	crewActivity := &Replayer{
+		SourceName: "crew_activity",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &crewactivitypb.CrewActivityData{}),
+		Topic:      constants.Topics_CREW_ACTIVITY_DATA.String(),
+	}
+	crewEnd := &Replayer{
+		SourceName: "crew_end",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
+		Topic:      constants.Topics_CREW_END_DATA.String(),
+	}
+	crewPrep := &Replayer{
+		SourceName: "crew_prep",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
+		Topic:      constants.Topics_CREW_PREP_DATA.String(),
+	}
+	crewShift := &Replayer{
+		SourceName: "crew_shift",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &crewshiftpb.CrewShiftData{}),
+		Topic:      constants.Topics_CREW_SHIFT_DATA.String(),
+	}
+	crewTransition := &Replayer{
+		SourceName: "crew_transition",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &crewtransitionpb.CrewTransitionData{}),
+		Topic:      constants.Topics_CREW_TRANSITION_DATA.String(),
+	}
+
+	delayExplanation := &Replayer{
+		SourceName: "vsp",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &delayexplanationpb.DelayExplanationData{}),
+		Topic:      constants.Topics_DELAY_EXPLANATION_DATA.String(),
+	}
+
+	infrastructureManager := &Replayer{
+		SourceName: "infrastructure_managerdata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &infrastructuremanagerpb.InfrastructureManagerData{}),
+		Topic:      constants.Topics_INFRASTRUCTURE_MANAGER_DATA.String(),
+	}
+
+	liveTrain := &Replayer{
+		SourceName: "livetraindata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &livetrainpb.LiveTrainData{}),
+		Topic:      constants.Topics_LIVE_TRAIN_DATA.String(),
+	}
+
+	location := &Replayer{
+		SourceName: "locationdata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &locationpb.LocationData{}),
+		Topic:      constants.Topics_LOCATION_DATA.String(),
+	}
+
+	plannedTrain := &Replayer{
+		SourceName: "plannedtraindata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &plannedtrainpb.PlannedTrainData{}),
+		Topic:      constants.Topics_PLANNED_TRAIN_DATA.String(),
+	}
+
+	predictedTrain := &Replayer{
+		SourceName: "predictedtraindata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &predictedtrainpb.PredictedTrainData{}),
+		Topic:      constants.Topics_PREDICTED_TRAIN_DATA.String(),
+	}
+
+	railwayUndertaking := &Replayer{
+		SourceName: "railwayundertakingdata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &railwayundertakingpb.RailwayUndertakingData{}),
+		Topic:      constants.Topics_RAILWAY_UNDERTAKING_DATA.String(),
+	}
+
+	station := &Replayer{
+		SourceName: "station",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &stationpb.StationData{}),
+		Topic:      constants.Topics_STATION_DATA.String(),
+	}
+
+	trainInformation := &Replayer{
+		SourceName: "traininformationdata",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &traininformationpb.TrainInformationData{}),
+		Topic:      constants.Topics_TRAIN_INFORMATION_DATA.String(),
+	}
+
+	vehicle := &Replayer{
+		SourceName: "vehicle",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &vehiclepb.VehicleData{}),
+		Topic:      constants.Topics_VEHICLE_DATA.String(),
+	}
+
 	weather := &Replayer{
-		SourceName:  "public.weather",
-		Query: &extractors.ReplayQuery{SortColumn: "STARTTIMESTAMP"},
-		Extractor:	extractors.NewPostgresExtractor(postgres, libdb.WeatherData{}),
+		SourceName: "weather",
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &weatherpb.WeatherData{}),
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
 
 	replayers = []*Replayer{
-		live,
-		checkpoint,
+		checkpoints,
+		crewActivity,
+		crewEnd,
+		crewPrep,
+		crewShift,
+		crewTransition,
+		delayExplanation,
+		infrastructureManager,
+		liveTrain,
+		location,
+		plannedTrain,
+		predictedTrain,
+		railwayUndertaking,
+		station,
+		trainInformation,
+		vehicle,
 		weather,
 	}
 
