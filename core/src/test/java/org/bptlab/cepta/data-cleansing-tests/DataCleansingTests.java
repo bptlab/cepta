@@ -147,6 +147,31 @@ public class DataCleansingTests {
         Assert.assertTrue(pass);
     }
 
-
+    @Test
+    public void TestLiveTrainDataCleansing() throws IOException {
+        boolean pass = true;
+        // get Stream of LiveTrainData with an element with the value of Double.MAX_VALUE
+        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.matchingLiveTrainDatas();  
+        // cleanse all LiveTrainData elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<LiveTrainData>();
+        LiveTrainData testElement = LiveTrainDataProvider.trainEventWithTrainIdLocationId(42382923, 11111111);
+        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, testElement);
+        // add all remaining elements of the Stream in an ArrayList
+        ArrayList<LiveTrainData> cleansedLiveTrainData = new ArrayList<>();
+        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(cleansedStream);
+        while(iterator.hasNext()){
+            LiveTrainData liveTrainDataValue = iterator.next();
+            cleansedLiveTrainData.add(liveTrainDataValue);
+        }
+        // check if remaining elements still have test Element and fail if true
+        int len = cleansedLiveTrainData.size();
+        for (int i = 0; i < len; i++ ) {
+            if (cleansedLiveTrainData.get(i).equals(testElement)) {
+                System.out.println("Failed cause test Element exist");
+                pass = false; 
+            }
+        }
+        Assert.assertTrue(pass);
+    }
 
 }

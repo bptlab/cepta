@@ -178,15 +178,15 @@ public class LiveTrainDataProvider {
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
-  private static LiveTrainData trainEventWithLocationID(int locationId){
+  public static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setLocationId(locationId).build();
   }
-  private static LiveTrainData trainEventWithTrainID(int trainId){
+  public static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainId(trainId).build();
   }
-  private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+  public static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainId(trainId).setLocationId(locationId).build();
   }
