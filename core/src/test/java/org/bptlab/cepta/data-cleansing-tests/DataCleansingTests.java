@@ -10,7 +10,9 @@ import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.providers.JavaDataProvider;
+import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import sun.security.util.Length;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class DataCleansingTests {
 
@@ -20,6 +22,7 @@ public class DataCleansingTests {
         // get Stream of Integers with an element with the value of Integer.MIN_VALUE
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(Integer.MIN_VALUE);  
         // cleanse all Integer.MIN_VALUE elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Integer>();        
         DataStream<Integer> cleansedStream = DataCleansingFunction.cleanseStream(integerStream, Integer.MIN_VALUE);
         // add all remaining elements of the Stream in an ArrayList
         ArrayList<Integer> cleansedInteger = new ArrayList<>();
@@ -39,12 +42,14 @@ public class DataCleansingTests {
         Assert.assertTrue(pass);
     }
 
+    
     @Test
     public void TestStringCleansing() throws IOException {
         boolean pass = true;
         // get Stream of String with an element with the value of "Test"
         DataStream<String> stringStream = JavaDataProvider.stringDataStreamWithElement("Test");  
         // cleanse all "Test" elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<String>(); 
         DataStream<String> cleansedStream = DataCleansingFunction.cleanseStream(stringStream, "Test");
         // add all remaining elements of the Stream in an ArrayList
         ArrayList<String> cleansedStrings = new ArrayList<>();
@@ -70,6 +75,7 @@ public class DataCleansingTests {
         // get Stream of Doubles with an element with the value of Double.MAX_VALUE
         DataStream<Double> stringStream = JavaDataProvider.doubleDataStreamWithElement(Double.MAX_VALUE);  
         // cleanse all Double.MAX_VALUE elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Double>(); 
         DataStream<Double> cleansedStream = DataCleansingFunction.cleanseStream(stringStream, Double.MAX_VALUE);
         // add all remaining elements of the Stream in an ArrayList
         ArrayList<Double> cleansedDoubles = new ArrayList<>();
@@ -95,6 +101,7 @@ public class DataCleansingTests {
         // get Stream of Longs with an element with the value of Long.MAX_VALUE
         DataStream<Long> longStream = JavaDataProvider.longDataStreamWithElement(Long.MAX_VALUE);  
         // cleanse all Long.MAX_VALUE elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Long>(); 
         DataStream<Long> cleansedStream = DataCleansingFunction.cleanseStream(longStream, Long.MAX_VALUE);
         // add all remaining elements of the Stream in an ArrayList
         ArrayList<Long> cleansedLongs = new ArrayList<>();
@@ -120,6 +127,7 @@ public class DataCleansingTests {
         // get Stream of Bools 
         DataStream<Boolean> booleanStream = JavaDataProvider.booleanDataStream();  
         // cleanse all false elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Boolean>(); 
         DataStream<Boolean> cleansedStream = DataCleansingFunction.cleanseStream(booleanStream, false);
         // add all remaining elements of the Stream in an ArrayList
         ArrayList<Boolean> cleansedBooleans = new ArrayList<>();
@@ -138,5 +146,7 @@ public class DataCleansingTests {
         }
         Assert.assertTrue(pass);
     }
+
+
 
 }
