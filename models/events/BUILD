@@ -261,7 +261,7 @@ java_proto_library(
 
 go_proto_library(
     name = "crew_transition_data_go_proto",
-    importpath = "github.com/bptlab/cepta/models/events/crewtransitiondataevent",
+    importpath = "github.com/bptlab/cepta/models/events/crewatransitiondataevent",
     proto = ":crew_transition_data_proto",
     visibility = ["//visibility:public"],
 )
