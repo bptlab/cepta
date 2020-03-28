@@ -13,6 +13,7 @@ import org.bptlab.cepta.providers.JavaDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import sun.security.util.Length;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import java.lang.reflect.*;
 
 public class DataCleansingTests {
 
@@ -44,6 +45,31 @@ public class DataCleansingTests {
 
     
     @Test
+    public void TestNoIntegerCleansing() throws IOException {
+        boolean pass = false;
+        // get Stream of Integers with an element with the value of Integer.MIN_VALUE
+        DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(Integer.MIN_VALUE);  
+        // cleanse all Integer.MIN_VALUE elements from our Stream
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Integer>();        
+        DataStream<Integer> cleansedStream = DataCleansingFunction.cleanseStream(integerStream, Integer.MIN_VALUE);
+        // add all remaining elements of the Stream in an ArrayList
+        ArrayList<Integer> cleansedInteger = new ArrayList<>();
+        Iterator<Integer> iterator = DataStreamUtils.collect(cleansedStream);
+        while(iterator.hasNext()){
+            Integer integer = iterator.next();
+            cleansedInteger.add(integer);
+        }
+        // check if remaining elements still have 1 and fail if not
+        int len = cleansedInteger.size();
+        for (int i = 0; i < len; i++ ) {
+            if (cleansedInteger.get(i).equals(1)) {
+                pass = true; 
+            }
+        }
+        Assert.assertTrue(pass);
+    }
+
+    @Test
     public void TestStringCleansing() throws IOException {
         boolean pass = true;
         // get Stream of String with an element with the value of "Test"
@@ -55,8 +81,8 @@ public class DataCleansingTests {
         ArrayList<String> cleansedStrings = new ArrayList<>();
         Iterator<String> iterator = DataStreamUtils.collect(cleansedStream);
         while(iterator.hasNext()){
-            String integer = iterator.next();
-            cleansedStrings.add(integer);
+            String stringValue = iterator.next();
+            cleansedStrings.add(stringValue);
         }
         // check if remaining elements still have "Test" and fail if true
         int len = cleansedStrings.size();
@@ -148,15 +174,14 @@ public class DataCleansingTests {
     }
 
     @Test
-    public void TestLiveTrainDataCleansing() throws IOException {
+    public void TestLiveTrainDataCleansing() throws Exception {
         boolean pass = true;
-        // get Stream of LiveTrainData with an element with the value of Double.MAX_VALUE
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.matchingLiveTrainDatas();  
-        // cleanse all LiveTrainData elements from our Stream
-        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<LiveTrainData>();
-        LiveTrainData testElement = LiveTrainDataProvider.trainEventWithTrainIdLocationId(42382923, 11111111);
-        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, testElement);
-        // add all remaining elements of the Stream in an ArrayList
+
+        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.LiveTrainDatStream();  
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<LiveTrainData>(); 
+    
+        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, 4, "TrainId");
+
         ArrayList<LiveTrainData> cleansedLiveTrainData = new ArrayList<>();
         Iterator<LiveTrainData> iterator = DataStreamUtils.collect(cleansedStream);
         while(iterator.hasNext()){
@@ -166,11 +191,39 @@ public class DataCleansingTests {
         // check if remaining elements still have test Element and fail if true
         int len = cleansedLiveTrainData.size();
         for (int i = 0; i < len; i++ ) {
-            if (cleansedLiveTrainData.get(i).equals(testElement)) {
-                System.out.println("Failed cause test Element exist");
+            if (cleansedLiveTrainData.get(i).getTrainId() == 4L) {
+                System.out.println("Failed cause trainId exist");
                 pass = false; 
             }
         }
+
+        Assert.assertTrue(pass);
+    }
+
+    @Test
+    public void TestNoLiveTrainDataCleansing() throws Exception {
+        boolean pass = false;
+
+        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.LiveTrainDatStream();  
+        DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<LiveTrainData>(); 
+       
+        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, 4, "TrainId");
+
+        ArrayList<LiveTrainData> cleansedLiveTrainData = new ArrayList<>();
+        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(cleansedStream);
+        while(iterator.hasNext()){
+            LiveTrainData liveTrainDataValue = iterator.next();
+            cleansedLiveTrainData.add(liveTrainDataValue);
+        }
+        // check if remaining elements still have test Element and fail if true
+        int len = cleansedLiveTrainData.size();
+        for (int i = 0; i < len; i++ ) {
+
+            if (cleansedLiveTrainData.get(i).getTrainId() == 3L) {
+                pass = true; 
+            }
+        }
+
         Assert.assertTrue(pass);
     }
 

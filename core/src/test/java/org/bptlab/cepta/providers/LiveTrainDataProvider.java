@@ -57,6 +57,19 @@ public class LiveTrainDataProvider {
     return liveTrainStream;
   }
 
+  public static DataStream<LiveTrainData> LiveTrainDatStream(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+
+    LiveTrainData ele1 = trainEventWithTrainID(2);
+    LiveTrainData ele2 = trainEventWithTrainID(3);
+    LiveTrainData ele3 = trainEventWithTrainID(4);
+
+    DataStream<LiveTrainData> liveTrainStream = env.fromElements(ele1, ele2, ele3);
+
+    return liveTrainStream;
+  }
+
   // @DataProvider(name = "live-train-data-provider")
   public static DataStream<LiveTrainData> unmatchingLiveTrainDatas(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -178,15 +191,15 @@ public class LiveTrainDataProvider {
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
-  public static LiveTrainData trainEventWithLocationID(int locationId){
+  private static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setLocationId(locationId).build();
   }
-  public static LiveTrainData trainEventWithTrainID(int trainId){
+  private static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainId(trainId).build();
   }
-  public static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+  private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainId(trainId).setLocationId(locationId).build();
   }
