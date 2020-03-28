@@ -218,12 +218,10 @@ public class DataCleansingTests {
         // check if remaining elements still have test Element and fail if true
         int len = cleansedLiveTrainData.size();
         for (int i = 0; i < len; i++ ) {
-
             if (cleansedLiveTrainData.get(i).getTrainId() == 3L) {
                 pass = true; 
             }
         }
-
         Assert.assertTrue(pass);
     }
 
