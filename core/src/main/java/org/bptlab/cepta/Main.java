@@ -23,17 +23,20 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.constants.Topics;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
+import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.slf4j.Logger;
@@ -69,6 +72,7 @@ public class Main implements Callable<Integer> {
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
 
+    
     FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
         new FlinkKafkaConsumer011<LiveTrainData>(
           Topics.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
