@@ -1,8 +1,8 @@
 syntax = "proto3";
-package gpstripupdate;
+package gps;
 option go_package = "github.com/bptlab/cepta/models/events/gpstripupdate";
 option java_package = "org.bptlab.cepta.models.events.gpstripupdate";
-option java_outer_classname = "GPSTripUpdate";
+option java_outer_classname = "GPSTripUpdateProtos";
 
 import "google/protobuf/timestamp.proto";
 
