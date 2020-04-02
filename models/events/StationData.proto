@@ -12,7 +12,6 @@ message StationData {
     string rl100 = 3;
     string name = 4;
     int64 bst8 = 5;
-    int64 network_id = 6;
     string country = 7;
     int64 country_id = 8;
     int64 cargo_id = 9;
