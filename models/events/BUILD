@@ -27,7 +27,7 @@ go_proto_library(
 
 proto_library(
     name = "gps_trip_update_proto",
-    srcs = ["LiveTrainData.proto"],
+    srcs = ["GPSTripUpdate.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
