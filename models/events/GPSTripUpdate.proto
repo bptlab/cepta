@@ -8,7 +8,7 @@ import "google/protobuf/timestamp.proto";
 
 message GPSTripUpdate {
     int64 wagon_id = 1; // Wagon UIC, like vehicle_id but for wagons, see https://de.wikipedia.org/wiki/UIC-Wagennummer
-    int64 trip_id = 2;
+    string trip_id = 2;
     int64 train_id = 3;
     int64 train_operator_id = 4; // Same as in planned
     google.protobuf.Timestamp planned_departure_reference = 5;
