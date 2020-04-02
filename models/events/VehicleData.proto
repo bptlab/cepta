@@ -7,7 +7,7 @@ option java_outer_classname = "VehicleDataProtos";
 import "google/protobuf/timestamp.proto";
 
 message VehicleData {
-    string vehicle_id = 1;
+    string vehicle_id = 1;  // UIC for the lok, see https://de.wikipedia.org/wiki/UIC-Kennzeichnung_der_Triebfahrzeuge
     string plan_id = 2;
     int64 plan_day = 3;
     int64 service_number = 4;
