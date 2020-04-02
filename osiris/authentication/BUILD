@@ -28,31 +28,36 @@ go_library(
     name = "go_default_library",
     srcs = [
         "server.go",
-        "auth.go",
-        "errors.go",
-        "controllers.go"
     ],
     importpath = "github.com/bptlab/cepta/osiris/authentication",
     visibility = ["//visibility:private"],
     deps = [
-        "//osiris/authentication/utils:go_default_library",
-        "//osiris/authentication/models:go_default_library",
+        "//models/grpc:authentication_go_proto",
+        "//osiris/lib/db:go_default_library",
+        "//osiris/lib:cli",
+        "@com_github_sirupsen_logrus//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@com_github_urfave_cli_v2//:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_jinzhu_gorm//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
+        "@com_github_selvatico_go_mocket//:go_default_library",
+        "@com_github_grpc_grpc_go//test/bufconn:go_default_library"
+        
     ],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = ["controllers_test.go"],
+    srcs = ["server_test.go"],
     embed = [":go_default_library"],
     size = "medium"
 )
-
 test_suite(
     name = "all_tests",
     tests = [
         "//osiris/authentication:go_default_test",
-        "//osiris/authentication/models:go_default_test"
-    ],
+        # "//osiris/user_management/models:go_default_test"
+    ]
 )

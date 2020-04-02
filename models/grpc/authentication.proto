@@ -1,0 +1,51 @@
+syntax = "proto3";
+package authentication;
+option go_package = "github.com/bptlab/cepta/models/grpc/authentication";
+
+// option java_multiple_files = true;
+// option java_package = "org.bptlab.cepta.producers.replayer";
+// option java_outer_classname = "AuthenticationProto";
+
+
+service Authentication {
+
+  // Configuration
+  rpc SetEmail(UserIdEmailInput) returns (Success) {}
+  rpc AddUser(User) returns (Success) {}
+  rpc RemoveUser(UserId) returns (Success) {}
+
+  // Query
+  rpc GetUser(UserId) returns (User) {}
+  rpc Login(UserId) returns (Validation) {}
+}
+
+message UserIdEmailInput {
+  UserId userId = 1;
+  string email = 2;
+}
+
+message User {
+  UserId id = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message UserId {
+  int64 value = 1;
+}
+
+message Validation {
+  bool value = 1;
+}
+
+enum InternalControlMessageType {
+  RESET = 0;
+  SEEK = 1;
+  SHUTDOWN = 2;
+}
+
+message Empty {}
+
+message Success {
+  bool success = 1;
+}
