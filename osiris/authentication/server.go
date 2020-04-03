@@ -53,22 +53,6 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	return &pb.Success{Success: true}, nil
 }
 
-// GetUser fetches all information to a user
-func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, error) {
-	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
-	if err != nil {
-		return &pb.User{
-			Id:       nil,
-			Email:    "",
-			Password: ""}, nil
-	}
-	return &pb.User{
-		Id:       &pb.UserId{Value: int64(user.ID)},
-		Email:    user.Email,
-		Password: user.Password}, nil
-}
-
 // Login logs in a user
 func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
 	var user User

@@ -15,7 +15,6 @@ service Authentication {
   rpc RemoveUser(UserId) returns (Success) {}
 
   // Query
-  rpc GetUser(UserId) returns (User) {}
   rpc Login(UserId) returns (Validation) {}
 }
 
