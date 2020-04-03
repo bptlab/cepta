@@ -70,15 +70,17 @@ func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, err
 }
 
 // Login logs in a user
-/*func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
+func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
 	var user User
 	err := server.db.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
-		return false, nil
+		return &pb.Validation{
+			Value: false}, nil
 	}
-	return true, nil
+	return &pb.Validation{
+		Value: true}, nil
 }
-*/
+
 // RemoveUser removes a user
 func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
