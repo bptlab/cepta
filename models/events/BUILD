@@ -26,6 +26,26 @@ go_proto_library(
 )
 
 proto_library(
+    name = "gps_trip_update_proto",
+    srcs = ["GPSTripUpdate.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "gps_trip_update_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":gps_trip_update_proto"],
+)
+
+go_proto_library(
+    name = "gps_trip_update_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/gpstripupdate",
+    proto = ":gps_trip_update_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
     name = "location_data_proto",
     srcs = ["LocationData.proto"],
     visibility = ["//visibility:public"],
@@ -43,6 +63,7 @@ go_proto_library(
     proto = ":location_data_proto",
     visibility = ["//visibility:public"],
 )
+
 proto_library(
     name = "planned_train_data_proto",
     srcs = ["PlannedTrainData.proto"],
@@ -162,8 +183,8 @@ proto_library(
 
 java_proto_library(
     name = "vehicle_data_java_proto",
-    deps = [":vehicle_data_proto"],  
     visibility = ["//visibility:public"],
+    deps = [":vehicle_data_proto"],
 )
 
 go_proto_library(
@@ -192,8 +213,6 @@ go_proto_library(
     proto = ":checkpoint_data_proto",
     visibility = ["//visibility:public"],
 )
-  
-  
 
 proto_library(
     name = "station_data_proto",
@@ -251,13 +270,9 @@ proto_library(
 
 java_proto_library(
     name = "crew_activity_data_java_proto",
-    deps = [":crew_activity_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":crew_activity_data_proto"],
 )
-
-
-
-
 
 go_proto_library(
     name = "crew_transition_data_go_proto",
@@ -275,12 +290,9 @@ proto_library(
 
 java_proto_library(
     name = "crew_transition_data_java_proto",
-    deps = [":crew_transition_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":crew_transition_data_proto"],
 )
-
-
-
 
 go_proto_library(
     name = "crew_prep_end_data_go_proto",
@@ -298,8 +310,8 @@ proto_library(
 
 java_proto_library(
     name = "crew_prep_end_data_java_proto",
-    deps = [":crew_prep_end_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":crew_prep_end_data_proto"],
 )
 
 go_proto_library(
@@ -318,15 +330,9 @@ proto_library(
 
 java_proto_library(
     name = "crew_shift_data_java_proto",
-    deps = [":crew_shift_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":crew_shift_data_proto"],
 )
-
-
-
-
-
-
 
 go_proto_library(
     name = "infrastructure_manager_data_go_proto",
@@ -344,10 +350,9 @@ proto_library(
 
 java_proto_library(
     name = "infrastructure_manager_data_java_proto",
-    deps = [":infrastructure_manager_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":infrastructure_manager_data_proto"],
 )
-
 
 go_proto_library(
     name = "railway_undertaking_data_go_proto",
@@ -365,14 +370,29 @@ proto_library(
 
 java_proto_library(
     name = "railway_undertaking_data_java_proto",
-    deps = [":railway_undertaking_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":railway_undertaking_data_proto"],
 )
-
 
 filegroup(
     name = "events",
     srcs = [
+        ":checkpoint_data_go_proto",
+        ":checkpoint_data_java_proto",
+        ":crew_activity_data_go_proto",
+        ":crew_activity_data_java_proto",
+        ":crew_prep_end_data_go_proto",
+        ":crew_prep_end_data_java_proto",
+        ":crew_shift_data_go_proto",
+        ":crew_shift_data_java_proto",
+        ":crew_transition_data_go_proto",
+        ":crew_transition_data_java_proto",
+        ":delay_explanation_data_go_proto",
+        ":delay_explanation_data_java_proto",
+        ":gps_trip_update_go_proto",
+        ":gps_trip_update_java_proto",
+        ":infrastructure_manager_data_go_proto",
+        ":infrastructure_manager_data_java_proto",
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
         ":location_data_go_proto",
@@ -381,32 +401,18 @@ filegroup(
         ":planned_train_data_java_proto",
         ":predicted_train_data_go_proto",
         ":predicted_train_data_java_proto",
+        ":railway_undertaking_data_go_proto",
+        ":railway_undertaking_data_java_proto",
+        ":station_data_go_proto",
+        ":station_data_java_proto",
         ":train_delay_notification_go_proto",
         ":train_delay_notification_java_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
-        ":weather_data_go_proto",
-        ":weather_data_java_proto",
         ":vehicle_data_go_proto",
         ":vehicle_data_java_proto",
-        ":crew_activity_data_go_proto",
-        ":crew_activity_data_java_proto", 
-        ":crew_transition_data_go_proto",
-        ":crew_transition_data_java_proto",
-        ":crew_prep_end_data_go_proto",
-        ":crew_prep_end_data_java_proto",
-        ":crew_shift_data_go_proto",
-        ":crew_shift_data_java_proto",
-        ":checkpoint_data_go_proto",
-        ":checkpoint_data_java_proto",
-        ":station_data_go_proto",
-        ":station_data_java_proto",
-        ":railway_undertaking_data_go_proto",
-        ":railway_undertaking_data_java_proto",
-        ":infrastructure_manager_data_go_proto",
-        ":infrastructure_manager_data_java_proto",
-        ":delay_explanation_data_go_proto",
-        ":delay_explanation_data_java_proto",
+        ":weather_data_go_proto",
+        ":weather_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )

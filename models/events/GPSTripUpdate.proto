@@ -1,0 +1,25 @@
+syntax = "proto3";
+package gps;
+option go_package = "github.com/bptlab/cepta/models/events/gpstripupdate";
+option java_package = "org.bptlab.cepta.models.events.gpstripupdate";
+option java_outer_classname = "GPSTripUpdateProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message GPSTripUpdate {
+    int64 wagon_id = 1; // Wagon UIC, like vehicle_id but for wagons, see https://de.wikipedia.org/wiki/UIC-Wagennummer
+    string trip_id = 2;
+    string train_id = 3;
+    int64 train_operator_id = 4; // Same as in planned
+    google.protobuf.Timestamp planned_departure_reference = 5;
+    google.protobuf.Timestamp actual_time = 6;
+    google.protobuf.Timestamp message_creation = 7; // For H only
+    double latitude = 8;
+    double longitude = 9;
+    int32 altitude = 10;
+    int32 cog = 11;  // KüG = Kurs über Grund, may be useful for maritime transports https://de.wikipedia.org/wiki/Kurs_(Navigation)#Bezeichnungen
+    int32 speed = 12;
+    // For the most recent station, see StationData.bst8 (8 chars for germany but 7 internationally)
+    // International numbers with 7 chars can be mapped to StationData.bst8 when padding the middle UIC part (after country code) with a leading zero 
+    int64 bst8 = 13;
+}

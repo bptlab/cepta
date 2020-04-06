@@ -8,7 +8,7 @@ os:
   - osx
 
 env:
-  - V=2.0.0
+  - V=2.2.0
 
 matrix:
   # It's ok to fail on osx.
@@ -39,9 +39,9 @@ before_install:
 #   - docker
 
 # before_script:
-  # Try to start pgadmin via docker
-  # As windows server cannot run linux docker containers we can only test this on linux
-  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
+# Try to start pgadmin via docker
+# As windows server cannot run linux docker containers we can only test this on linux
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
 
 script:
   # Test docker compose regressions
