@@ -63,7 +63,7 @@ test_suite(
     name = "all",
     tests = [
         "//core/src/test/java/org/bptlab/cepta:all",
-        "//osiris/authentication:all_tests"
+        "//osiris/authentication:all_tests",
         "//osiris/user_management:all_tests"
     ],
 )
