@@ -17,7 +17,7 @@ import (
 
 var successMessage *pb.Success = &pb.Success{Success: true}
 var gormDB *gorm.DB
-var ldb *libdb.DB
+var ldb *libdb.PostgresDB
 
 // constants for testing
 var emailParam string = "example@mail.de"
@@ -46,7 +46,7 @@ func SetUpDatabase() {
 	gormDB = db
 	// uncomment to log all queries asked to mock db. add to test to log only things happening there
 	// gormDB.LogMode(true)
-	ldb = &libdb.DB{DB: gormDB}
+	ldb = &libdb.PostgresDB{DB: gormDB}
 }
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
@@ -101,10 +101,10 @@ func TestLogin(t *testing.T) {
 
 	response, err := client.Login(context.Background(), request)
 	if err != nil {
-		t.Errorf("GetUser should work without error. Got: %v", err)
+		t.Errorf("Login should work without error. Got: %v", err)
 	}
-	if response != expectedValidation {
-		t.Errorf("GetUser should return the user information: %v, but it was %v", user, response)
+	if !equalValidation(response, expectedValidation) {
+		t.Errorf("Login should return a successful validation %v, but it was %v", expectedValidation, response)
 	}
 }
 

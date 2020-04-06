@@ -170,6 +170,14 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	return nil
 }
 
+// returns true if the given validations have the same values
+func equalValidation(v1 *pb.Validation, v2 *pb.Validation) bool {
+	if v1.Value == v2.Value {
+		return true
+	}
+	return false
+}
+
 // returns true if the given users have the same attribute values
 func equalUser(u1 *pb.User, u2 *pb.User) bool {
 	if !equalUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password {
@@ -208,6 +216,5 @@ func removeElementFromStringArray(slice []string, element string) []string {
 	return slice
 }
 func removeIndexFromStringArray(slice []string, index int) []string {
-
 	return append(slice[:index], slice[index+1:]...)
 }
