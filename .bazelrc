@@ -15,7 +15,7 @@ test --test_strategy=standalone --test_output=errors
 build --spawn_strategy=standalone --genrule_strategy=standalone
 
 # Include git version info
-build --workspace_status_command ci/print-workspace-status.sh
+build --stamp --workspace_status_command ci/print-workspace-status.sh
 
 # Below this line, .travis.yml will cat the default bazelrc.
 # This is needed so Bazel starts with the base workspace in its

@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/replayer",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -30,9 +30,14 @@ go_library(
         "replayer.go",
         "server.go",
     ],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     importpath = "github.com/bptlab/cepta/auxiliary/producers/replayer",
     visibility = ["//visibility:public"],
     deps = [
+        "//ci/versioning:go_default_library",
         "//models/grpc:replayer_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",

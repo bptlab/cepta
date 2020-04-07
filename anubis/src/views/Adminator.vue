@@ -16,7 +16,7 @@
 
       <!-- App Screen Footer -->
       <footer-component id="footer">
-        &#x24B8; CEPTA 2020
+        {{ version }} &#x24B8; CEPTA 2020
       </footer-component>
     </div>
   </div>
@@ -42,6 +42,11 @@ export default {
   computed: {
     isCollapsed() {
       return AppModule.isCollapsed;
+    },
+
+    version() {
+      console.log(process);
+      return process.env.STABLE_VERSION;
     }
   },
   mounted() {

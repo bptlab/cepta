@@ -13,6 +13,7 @@ import (
 	"time"
 
 	// "github.com/Shopify/sarama"
+
 	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/constants"
 	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
@@ -25,6 +26,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
+
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
 
 var marshaler = &jsonpb.Marshaler{EmitDefaults: true}
 
@@ -224,7 +231,7 @@ func main() {
 
 	app := &cli.App{
 		Name:    "CEPTA Notification service",
-		Version: versioning.GetVersion(),
+		Version: versioning.BinaryVersion(Version, BuildTime),
 		Usage:   "The service sets up the websocket connection and subscription to kafka",
 		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {

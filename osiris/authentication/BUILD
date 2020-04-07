@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/authentication",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -32,9 +32,14 @@ go_library(
         "errors.go",
         "controllers.go"
     ],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     importpath = "github.com/bptlab/cepta/osiris/authentication",
     visibility = ["//visibility:private"],
     deps = [
+        "//ci/versioning:go_default_library",
         "//osiris/authentication/utils:go_default_library",
         "//osiris/authentication/models:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",

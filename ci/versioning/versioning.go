@@ -64,3 +64,11 @@ func GetVersion() string {
 	}
 	return result
 }
+
+// BinaryVersion returns the default formatted version string for a binary
+func BinaryVersion(version string, buildTime string) string {
+	if buildTime != "" {
+		return fmt.Sprintf("%s (built on %s)", version, buildTime)
+	}
+	return version
+}

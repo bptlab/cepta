@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/notification",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -31,6 +31,10 @@ go_library(
     ],
     importpath = "github.com/bptlab/cepta/osiris/notification",
     visibility = ["//visibility:private"],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     deps = [
         "//models/constants:constants_go_proto",
         "//models/events:train_delay_notification_go_proto",

@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/user_management",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -29,12 +29,17 @@ go_library(
     srcs = [
         "server.go",
     ],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     importpath = "github.com/bptlab/cepta/osiris/user_management",
     visibility = ["//visibility:private"],
     deps = [
         "//models/grpc:user_management_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",
+        "//ci/versioning:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",

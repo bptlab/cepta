@@ -9,6 +9,7 @@ java_binary(
     resources = glob([
         "src/main/resources/**",
     ]),
+    stamp = True,
     visibility = ["//visibility:public"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators:operators",
@@ -84,6 +85,6 @@ container_push(
     image = ":image",
     registry = "index.docker.io",
     repository = "ceptaorg/core",
-    tag = "master",
+    tag = "{STABLE_DOCKER_TAG}",
     visibility = ["//visibility:public"],
 )
