@@ -12,7 +12,7 @@ message DelayExplanationData {
     google.protobuf.Timestamp prod_date = 3;
     int64 country_id = 4;
     string station_abbreviation = 5;
-    int64 db_station_id = 6;
+    string db_station_id = 6;
     google.protobuf.Timestamp event_time = 7;
     int64 status_code = 8;
     int64 delay = 9; // in minutes
