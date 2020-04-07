@@ -5,8 +5,8 @@ option java_package = "org.bptlab.cepta.models.events.info"; //should this be in
 option java_outer_classname = "InfoDataProtos";
 
 
-message RailwayUndertakingData {
-    int64 ru_id = 1;
-    int64 im_id = 2;
-    string ru_name = 3;
+message CountryData {
+    int64 country_im_id = 1;
+    string country = 2;
+    string country_code = 3;
 }
