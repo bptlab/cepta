@@ -17,7 +17,7 @@ import (
 
 var successMessage *pb.Success = &pb.Success{Success: true}
 var gormDB *gorm.DB
-var ldb *libdb.DB
+var ldb *libdb.PostgresDB
 
 // constants for testing
 var emailParam string = "example@mail.de"
@@ -49,7 +49,7 @@ func SetUpDatabase() {
 	gormDB = db
 	// uncomment to log all queries asked to mock db. add to test to log only things happening there
 	// gormDB.LogMode(true)
-	ldb = &libdb.DB{DB: gormDB}
+	ldb = &libdb.PostgresDB{DB: gormDB}
 }
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
