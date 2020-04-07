@@ -29,7 +29,7 @@ cepta::version::get_version_vars() {
             # We don't want to do them in pure shell, so disable SC2001
             # shellcheck disable=SC2001
 
-            echo ${CEPTA_GIT_VERSION}
+            # echo ${CEPTA_GIT_VERSION}
 
             DASHES_IN_VERSION=$(echo "${CEPTA_GIT_VERSION}" | sed "s/[^-]//g")
             if [[ "${DASHES_IN_VERSION}" == "---" ]] ; then
@@ -60,7 +60,7 @@ cepta::version::get_version_vars() {
             fi
             fi
 
-            echo ${CEPTA_GIT_VERSION}
+            # echo ${CEPTA_GIT_VERSION}
 
             # If CEPTA_GIT_VERSION is not a valid Semantic Version, then refuse to build.
             if ! [[ "${CEPTA_GIT_VERSION}" =~ ^v([0-9]+)\.([0-9]+)(\.[0-9]+)?(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then

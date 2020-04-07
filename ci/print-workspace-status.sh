@@ -7,7 +7,6 @@ set -o pipefail
 
 # export CEPTA_ROOT=$(dirname "${BASH_SOURCE}")/..
 export CEPTA_ROOT=$(realpath $(dirname $0)"/../")
-echo ${CEPTA_ROOT}
 
 source "${CEPTA_ROOT}/ci/versioning/query-git.sh"
 cepta::version::get_version_vars
