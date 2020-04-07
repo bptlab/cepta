@@ -24,8 +24,7 @@ import org.junit.Test;
 import java.sql.*;
 
 public class LivePlannedCorrelationTests {
-  //private PostgresConfig postgresConfig = new PostgresConfig().withHost("localhost");
-
+  
   public void initDatabase(PostgreSQLContainer container) {
        // JDBC driver name and database URL
    String db_url = container.getJdbcUrl();

@@ -10,7 +10,6 @@ import java.util.function.Function;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-// import com.google.protobuf.Timestamp;
 
 public abstract class DatabaseConverter<T> {
 

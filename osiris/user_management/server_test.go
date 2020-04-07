@@ -51,6 +51,7 @@ func SetUpDatabase() {
 	// gormDB.LogMode(true)
 	ldb = &libdb.PostgresDB{DB: gormDB}
 }
+
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
