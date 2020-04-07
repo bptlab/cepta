@@ -20,19 +20,19 @@ public class LiveTrainDataProvider {
          .setNanos((int) ((millis % 1000) * 1000000)).build();
     LiveTrainData.Builder builder = LiveTrainData.newBuilder();
     builder.setId(1);
-    builder.setTrainId(1);
-    builder.setLocationId(1);
-    builder.setActualTime(timestamp);
+    builder.setTrainSectionId(1);
+    builder.setEletaStationId(1);
+    builder.setEventTime(timestamp);
     builder.setStatus(1);
-    builder.setFirstTrainNumber(1);
-    builder.setTrainNumberReference(1);
-    builder.setArrivalTimeReference(timestamp);
-    builder.setPlannedArrivalDeviation(1);
-    builder.setTransferLocationId(1);
-    builder.setReportingImId(1);
-    builder.setNextImId(1);
+    builder.setFirstTrainId(1);
+    builder.setTrainId(1);
+    builder.setPlannedArrivalTimeEndStation(timestamp);
+    builder.setDelay(1);
+    builder.setEndEletaStationId(1);
+    builder.setImId(1);
+    builder.setFollowingImId(1);
     builder.setMessageStatus(1);
-    builder.setMessageCreation(timestamp);
+    builder.setIngestionTime(timestamp);
     return builder.build();
   }
 
@@ -49,7 +49,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation().getSeconds();
+                return liveTrainData.getIngestionTime().getSeconds();
               }
             });
 
@@ -83,7 +83,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation().getSeconds();
+                return liveTrainData.getIngestionTime().getSeconds();
               }
             });
 
@@ -103,7 +103,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation().getSeconds();
+                return liveTrainData.getIngestionTime().getSeconds();
               }
         });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -116,7 +116,7 @@ public class LiveTrainDataProvider {
             @Override
             public long extractAscendingTimestamp(
                 Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-              return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
+              return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
             }
         });
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
@@ -137,7 +137,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation().getSeconds();
+                return liveTrainData.getIngestionTime().getSeconds();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -153,7 +153,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
+                return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
               }
             });
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
@@ -172,7 +172,7 @@ public class LiveTrainDataProvider {
             new AscendingTimestampExtractor<LiveTrainData>() {
               @Override
               public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                return liveTrainData.getMessageCreation().getSeconds();
+                return liveTrainData.getIngestionTime().getSeconds();
               }
             });
     ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
@@ -185,7 +185,7 @@ public class LiveTrainDataProvider {
               @Override
               public long extractAscendingTimestamp(
                   Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
-                return weatherDataIntegerTuple2.f0.getStarttimestamp().getSeconds();
+                return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
               }
             });
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
@@ -193,20 +193,20 @@ public class LiveTrainDataProvider {
 
   private static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-        .setLocationId(locationId).build();
+        .setEletaStationId(locationId).build();
   }
   private static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-        .setTrainId(trainId).build();
+        .setTrainSectionId(trainId).build();
   }
   private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-        .setTrainId(trainId).setLocationId(locationId).build();
+        .setTrainSectionId(trainId).setEletaStationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
     WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
-      .setEventclass(eventClass).build();
+      .setEventClass(eventClass).build();
     return new Tuple2<>(weather, locationId);
   }
 
