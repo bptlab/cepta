@@ -24,18 +24,19 @@ message CheckpointData {
     int64 country_id = 12;
     string train_trip_type = 13;
     string train_wagon_type = 14;
-    bool turn_train_at_departure = 15;
-    bool turn_train_at_arrival = 16;
-    bool turn_train = 17;
-    bool crew_change = 18;
-    bool locomotive_change = 19;
-    bool wagon_dec = 20;
-    bool wagon_inc = 21;
-    bool wagon_switch = 22;
-    bool wagon_check_at_depature = 23;
-    bool wagon_check_at_arrival = 24;
-    int64 trip_seq_nr = 25;
-    google.protobuf.Timestamp start_date = 26;
-    int64 start_country_id = 27;
+    string train_type = 15;
+    bool turn_train_at_departure = 16;
+    bool turn_train_at_arrival = 17;
+    bool turn_train = 18;
+    bool crew_change = 19;
+    bool locomotive_change = 20;
+    bool wagon_dec = 21;
+    bool wagon_inc = 22;
+    bool wagon_switch = 23;
+    bool wagon_check_at_depature = 24;
+    bool wagon_check_at_arrival = 25;
+    int64 trip_seq_nr = 26;
+    google.protobuf.Timestamp start_date = 27;
+    int64 start_country_id = 28;
 
 }
