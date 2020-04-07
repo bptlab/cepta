@@ -30,7 +30,7 @@ go_library(
         "server.go",
     ],
     importpath = "github.com/bptlab/cepta/osiris/authentication",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
@@ -47,7 +47,6 @@ go_library(
         
     ],
 )
-
 go_test(
     name = "go_default_test",
     srcs = ["server_test.go"],

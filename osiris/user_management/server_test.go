@@ -7,7 +7,9 @@ import (
 	"testing"
 	"time"
 
+	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
+	authserv "github.com/bptlab/cepta/osiris/authentication"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/jinzhu/gorm"

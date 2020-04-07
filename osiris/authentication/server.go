@@ -24,7 +24,7 @@ var done = make(chan bool, 1)
 var log *logrus.Logger
 var db *libdb.PostgresDB
 
-type server struct {
+type Server struct {
 	pb.UnimplementedAuthenticationServer
 	active bool
 	db     *libdb.PostgresDB
@@ -39,7 +39,7 @@ type User struct {
 }
 
 // AddUser adds a new user
-func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
+func (server *Server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
 	user := User{
 		//ID:       int(in.GetId().GetValue()),
 		Email:    in.GetEmail(),
@@ -54,7 +54,7 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 }
 
 // Login logs in a user
-func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
+func (server *Server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
 	var user User
 	err := server.db.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
@@ -66,7 +66,7 @@ func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation,
 }
 
 // RemoveUser removes a user
-func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
+func (server *Server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
 	err := server.db.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
@@ -80,7 +80,7 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 }
 
 // SetEmail sets a users email
-func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
+func (server *Server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
 	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
 	var user User
@@ -147,7 +147,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
 
-	authenticationServer := server{
+	authenticationServer := Server{
 		active: true,
 		db:     db,
 	}
