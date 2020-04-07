@@ -36,6 +36,7 @@ go_library(
         "//models/events:train_delay_notification_go_proto",
         "//osiris/notification/websocket:go_default_library",
         "//osiris/lib/kafka:consumer",
+        "//ci/versioning:go_default_library",
         "//osiris/lib:cli",
         "@com_github_golang_protobuf//jsonpb:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
