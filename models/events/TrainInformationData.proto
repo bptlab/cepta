@@ -11,10 +11,10 @@ message TrainInformationData {
     int64 train_id = 2;
     google.protobuf.Timestamp planned_departure_time_start_station = 3;
     google.protobuf.Timestamp planned_arrival_time_end_station = 4;
-    int64 start_eleta_station_id = 5;
+    int64 start_station_id = 5;
     google.protobuf.Timestamp planned_departure_time = 6;
     int64 departure_delay = 7;
-    int64 end_eleta_station_id = 8;
+    int64 end_station_id = 8;
     google.protobuf.Timestamp planned_arrival_time = 9;
     int64 arrival_delay = 10;
     int64 euro_rail_run_id = 11;
