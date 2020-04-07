@@ -23,6 +23,6 @@ message VehicleData {
     string start_station = 14;
     int64 track_length = 15;
     string next_plan_id = 16;
-    int64 next_plan_date = 17;
+    google.protobuf.Timestamp next_plan_date = 17;
     int64 max_speed = 18;
 } 
