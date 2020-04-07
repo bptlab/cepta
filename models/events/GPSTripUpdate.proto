@@ -11,7 +11,7 @@ message GPSTripUpdate {
     string trip_id = 2;
     string train_id = 3;
     int64 ru_id = 4; // Same as in planned
-    google.protobuf.Timestamp planned_departure_reference = 5;
+    google.protobuf.Timestamp planned_departure_time = 5;
     google.protobuf.Timestamp event_time = 6;
     google.protobuf.Timestamp ingestion_time = 7; // For H only
     double latitude = 8;
