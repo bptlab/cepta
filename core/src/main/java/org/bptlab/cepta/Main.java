@@ -52,7 +52,7 @@ import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "1.0",
+    version = "0.0.1",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
