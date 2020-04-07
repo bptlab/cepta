@@ -16,6 +16,7 @@ import (
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	clivalues "github.com/romnnn/flags4urfavecli/values"
 
 	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
 	crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
@@ -156,12 +157,12 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 	// Parse CLI timerange
 	timeRange := pb.Timerange{}
-	if startTime, err := time.Parse(libcli.DefaultTimestampFormat, ctx.String("start-timestamp")); err != nil {
+	if startTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("start-timestamp")); err != nil {
 		if protoStartTime, err := ptypes.TimestampProto(startTime); err != nil {
 			timeRange.Start = protoStartTime
 		}
 	}
-	if endTime, err := time.Parse(libcli.DefaultTimestampFormat, ctx.String("end-timestamp")); err != nil {
+	if endTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("end-timestamp")); err != nil {
 		if protoEndTime, err := ptypes.TimestampProto(endTime); err != nil {
 			timeRange.End = protoEndTime
 		}
@@ -388,7 +389,7 @@ func main() {
 		},
 		&cli.GenericFlag{
 			Name: "mode",
-			Value: &libcli.EnumValue{
+			Value: &clivalues.EnumValue{
 				Enum:    []string{"constant", "proportional"},
 				Default: "proportional",
 			},
@@ -418,14 +419,14 @@ func main() {
 		},
 		&cli.GenericFlag{
 			Name:    "start-timestamp",
-			Value:   &libcli.TimestampValue{},
+			Value:   &clivalues.TimestampValue{},
 			Aliases: []string{"start"},
 			EnvVars: []string{"START_TIMESTAMP", "START"},
 			Usage:   "start timestamp",
 		},
 		&cli.GenericFlag{
 			Name:    "end-timestamp",
-			Value:   &libcli.TimestampValue{},
+			Value:   &clivalues.TimestampValue{},
 			Aliases: []string{"end"},
 			EnvVars: []string{"END_TIMESTAMP", "END"},
 			Usage:   "end timestamp",

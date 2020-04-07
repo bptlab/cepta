@@ -17,13 +17,13 @@ go_library(
 go_library(
     name = "cli",
     srcs = [
-        "cli.go",
         "options.go",
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/cli",
     visibility = ["//visibility:public"],
     deps = [
         ":utils",
+        "@com_github_romnnn_flags4urfavecli//flags:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",
     ],
 )
