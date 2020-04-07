@@ -17,6 +17,7 @@ func toTimestamp(t time.Time) *tspb.Timestamp {
 	return ts
 }
 
+// LiveTrainData ...
 type LiveTrainData struct {
 	Id                        int64
 	Train_id                  int64
@@ -34,10 +35,12 @@ type LiveTrainData struct {
 	Message_creation          time.Time
 }
 
+// TableName ...
 func (LiveTrainData) TableName() string {
 	return "public.live"
 }
 
+// GetAll ...
 func (ltd LiveTrainData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Message, error) {
 	var instance LiveTrainData
 	err := db.ScanRows(rows, &instance)
@@ -49,29 +52,32 @@ func (ltd LiveTrainData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.M
 	return newTime, event, err
 }
 
+// GetInstance ...
 func (ltd LiveTrainData) GetInstance() interface{} {
 	return &LiveTrainData{}
 }
 
+// AsProtoMessage ..
 func (ltd LiveTrainData) AsProtoMessage() proto.Message {
 	return &livetraindataevent.LiveTrainData{
-		Id:                      ltd.Id,
-		TrainId:                 ltd.Train_id,
-		LocationId:              ltd.Location_id,
-		ActualTime:              toTimestamp(ltd.Actual_time),
-		Status:                  ltd.Status,
-		FirstTrainNumber:        ltd.First_train_number,
-		TrainNumberReference:    ltd.Train_number_reference,
-		ArrivalTimeReference:    toTimestamp(ltd.Arrival_time_reference),
-		PlannedArrivalDeviation: ltd.Planned_arrival_deviation,
-		TransferLocationId:      ltd.Transfer_location_id,
-		ReportingImId:           ltd.Reporting_im_id,
-		NextImId:                ltd.Next_im_id,
-		MessageStatus:           ltd.Message_status,
-		MessageCreation:         toTimestamp(ltd.Message_creation),
+		Id:                           ltd.Id,
+		TrainSectionId:               ltd.Train_id,
+		EletaStationId:               ltd.Location_id,
+		EventTime:                    toTimestamp(ltd.Actual_time),
+		Status:                       ltd.Status,
+		FirstTrainId:                 ltd.First_train_number,
+		TrainId:                      ltd.Train_number_reference,
+		PlannedArrivalTimeEndStation: toTimestamp(ltd.Arrival_time_reference),
+		Delay:                        ltd.Planned_arrival_deviation,
+		EndEletaStationId:            ltd.Transfer_location_id,
+		ImId:                         ltd.Reporting_im_id,
+		FollowingImId:                ltd.Next_im_id,
+		MessageStatus:                ltd.Message_status,
+		IngestionTime:                toTimestamp(ltd.Message_creation),
 	}
 }
 
+// WeatherData ...
 type WeatherData struct {
 	Class                string
 	Latitude             float64
@@ -99,10 +105,12 @@ type WeatherData struct {
 	Visibility           float64
 }
 
+// TableName ...
 func (wd WeatherData) TableName() string {
 	return "public.weather"
 }
 
+// GetAll ...
 func (wd WeatherData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Message, error) {
 	var instance WeatherData
 	err := db.ScanRows(rows, &instance)
@@ -114,39 +122,42 @@ func (wd WeatherData) GetAll(rows *sql.Rows, db *gorm.DB) (time.Time, proto.Mess
 	return newTime, event, err
 }
 
+// GetInstance ...
 func (wd WeatherData) GetInstance() interface{} {
 	return &WeatherData{}
 }
 
+// AsProtoMessage ...
 func (wd WeatherData) AsProtoMessage() proto.Message {
 	return &weatherdataevent.WeatherData{
-		Eventclass:           wd.Class,
+		EventClass:           wd.Class,
 		Latitude:             wd.Latitude,
 		Longitude:            wd.Longitude,
-		Starttimestamp:       toTimestamp(wd.Starttimestamp),
-		Endtimestamp:         toTimestamp(wd.Endtimestamp),
-		Detectiontimestamp:   toTimestamp(wd.Detectiontimestamp),
+		StartTime:            toTimestamp(wd.Starttimestamp),
+		EndTime:              toTimestamp(wd.Endtimestamp),
+		DetectionTime:        toTimestamp(wd.Detectiontimestamp),
 		Title:                wd.Title,
 		Description:          wd.Description,
 		Temperature:          wd.Temperature,
 		Rain:                 wd.Rain,
-		Windspeed:            wd.Windspeed,
-		Cloudpercentage:      wd.Cloudpercentage,
-		Cityname:             wd.Cityname,
+		WindSpeed:            wd.Windspeed,
+		CloudPercentage:      wd.Cloudpercentage,
+		CityName:             wd.Cityname,
 		Identifier:           wd.Identifier,
 		Pressure:             wd.Pressure,
 		Ozone:                wd.Ozone,
 		Humidity:             wd.Humidity,
-		Windbearing:          wd.Windbearing,
-		Precippropability:    wd.Precipprobability,
-		Preciptype:           wd.Preciptype,
-		Dewpoint:             wd.Dewpoint,
-		Neareststormbearing:  wd.Neareststormbearing,
-		Neareststormdistance: wd.Neareststormdistance,
+		WindBearing:          wd.Windbearing,
+		PrecipPropability:    wd.Precipprobability,
+		PrecipType:           wd.Preciptype,
+		DewPoint:             wd.Dewpoint,
+		NearestStormBearing:  wd.Neareststormbearing,
+		NearestStormDistance: wd.Neareststormdistance,
 		Visibility:           wd.Visibility,
 	}
 }
 
+// PlannedTrainData ...
 type PlannedTrainData struct {
 	Id                        int64
 	Train_id                  int64
@@ -164,6 +175,7 @@ type PlannedTrainData struct {
 	Message_creation          time.Time
 }
 
+// TableName ...
 func (PlannedTrainData) TableName() string {
 	return "public.planned"
 }

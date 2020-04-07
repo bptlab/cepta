@@ -29,7 +29,7 @@ public class DataCleansingFunction <T extends Object> {
         @Override
         public boolean filter(T element) throws Exception {
           Class c = element.getClass();
-          Method method = c.getDeclaredMethod("getTrainId");
+          Method method = c.getDeclaredMethod("getTrainSectionId");
           String value = method.invoke(element).toString();
           return (!(value.equals(filterValue.toString())));
         }

@@ -100,9 +100,9 @@ public class LivePlannedCorrelationTests {
       while(iterator.hasNext()){
         Tuple2<LiveTrainData, PlannedTrainData> tuple = iterator.next();
         if (tuple.f1 == null){
-          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), null));
+          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainSectionId(), null));
         } else{
-          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), tuple.f1.getTrainId()));
+          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainSectionId(), tuple.f1.getTrainSectionId()));
         }
       }
       Assert.assertTrue(correlatedIds.contains(new Tuple2<>(42382923L, 42382923L)));
@@ -129,9 +129,9 @@ public class LivePlannedCorrelationTests {
       while(iterator.hasNext()){
         Tuple2<LiveTrainData, PlannedTrainData> tuple = iterator.next();
         if (tuple.f1 == null){
-          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), null));
+          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainSectionId(), null));
         } else{
-          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainId(), tuple.f1.getTrainId()));
+          correlatedIds.add(new Tuple2<>(tuple.f0.getTrainSectionId(), tuple.f1.getTrainSectionId()));
         }
       }
       Assert.assertTrue(correlatedIds.contains(new Tuple2<>(11111111L, null)));

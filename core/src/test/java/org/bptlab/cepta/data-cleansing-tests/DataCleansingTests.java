@@ -191,7 +191,7 @@ public class DataCleansingTests {
         // check if remaining elements still have test Element and fail if true
         int len = cleansedLiveTrainData.size();
         for (int i = 0; i < len; i++ ) {
-            if (cleansedLiveTrainData.get(i).getTrainId() == 4L) {
+            if (cleansedLiveTrainData.get(i).getTrainSectionId() == 4L) {
                 System.out.println("Failed cause trainId exist");
                 pass = false; 
             }
@@ -218,7 +218,7 @@ public class DataCleansingTests {
         // check if remaining elements still have test Element and fail if true
         int len = cleansedLiveTrainData.size();
         for (int i = 0; i < len; i++ ) {
-            if (cleansedLiveTrainData.get(i).getTrainId() == 3L) {
+            if (cleansedLiveTrainData.get(i).getTrainSectionId() == 3L) {
                 pass = true; 
             }
         }
