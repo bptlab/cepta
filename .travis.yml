@@ -47,4 +47,5 @@ script:
   # Test docker compose regressions
   # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
   # Check if the project builds successfully
+  - bazel build //osiris/authentication && ./bazel-bin/osiris/authentication/linux_amd64_stripped/authentication --port 8080
   - bazel test :all --test_output=all
