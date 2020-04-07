@@ -21,14 +21,14 @@ public class LiveTrainDataProvider {
     LiveTrainData.Builder builder = LiveTrainData.newBuilder();
     builder.setId(1);
     builder.setTrainSectionId(1);
-    builder.setEletaStationId(1);
+    builder.setStationId(1);
     builder.setEventTime(timestamp);
     builder.setStatus(1);
     builder.setFirstTrainId(1);
     builder.setTrainId(1);
     builder.setPlannedArrivalTimeEndStation(timestamp);
     builder.setDelay(1);
-    builder.setEndEletaStationId(1);
+    builder.setEndStationId(1);
     builder.setImId(1);
     builder.setFollowingImId(1);
     builder.setMessageStatus(1);
@@ -193,7 +193,7 @@ public class LiveTrainDataProvider {
 
   private static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-        .setEletaStationId(locationId).build();
+        .setStationId(locationId).build();
   }
   private static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
@@ -201,7 +201,7 @@ public class LiveTrainDataProvider {
   }
   private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-        .setTrainSectionId(trainId).setEletaStationId(locationId).build();
+        .setTrainSectionId(trainId).setStationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){

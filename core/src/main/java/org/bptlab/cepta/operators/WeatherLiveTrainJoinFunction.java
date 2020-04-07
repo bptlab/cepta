@@ -21,7 +21,7 @@ public class WeatherLiveTrainJoinFunction {
         }).equalTo(new KeySelector<LiveTrainData, Integer>() {
           @Override
           public Integer getKey(LiveTrainData liveTrainData) throws Exception {
-            return (int) liveTrainData.getEletaStationId();
+            return (int) liveTrainData.getStationId();
           }
         })
         .window(SlidingEventTimeWindows.of(Time.seconds(60), Time.seconds(60)))
@@ -32,7 +32,7 @@ public class WeatherLiveTrainJoinFunction {
             return TrainDelayNotification.newBuilder()
                 .setDelay(delayFromWeather(weatherDataIntegerTuple2.f0))
                 .setTrainId(liveTrainData.getTrainId())
-                .setLocationId(liveTrainData.getEletaStationId())
+                .setLocationId(liveTrainData.getStationId())
                 .build();
           }
         });

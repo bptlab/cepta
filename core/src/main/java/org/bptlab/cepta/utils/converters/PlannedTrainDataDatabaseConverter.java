@@ -16,7 +16,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
     try {
       event.setId(result.getInt("id"));
       event.setTrainSectionId(result.getInt("train_id"));
-      event.setEletaStationId(result.getInt("location_id"));
+      event.setStationId(result.getInt("location_id"));
       event.setPlannedEventTime(sqlTimestampToPrototimestamp(result.getTimestamp("planned_time")));
       event.setStatus(result.getInt("status"));
       event.setFirstTrainId(result.getInt("first_train_number"));
@@ -24,7 +24,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
       event.setPlannedDepartureTimeStartStation(sqlTimestampToPrototimestamp(result.getTimestamp("planned_departure_reference")));
       event.setPlannedArrivalTimeEndStation(sqlTimestampToPrototimestamp(result.getTimestamp("planned_arrival_reference")));
       event.setRuId(result.getInt("train_operator_id"));
-      event.setEndEletaStationId(result.getInt("transfer_location_id"));
+      event.setEndStationId(result.getInt("transfer_location_id"));
       event.setImId(result.getInt("reporting_im_id"));
       event.setFollowingImId(result.getInt("next_im_id"));
       event.setMessageStatus(result.getInt("message_status"));
@@ -46,7 +46,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
     try {
       if (result.getInt("id") != null) event.setId(result.getInt("id"));
       if (result.getInt("train_id") != null) event.setTrainSectionId(result.getInt("train_id"));
-      if (result.getInt("location_id") != null) event.setEletaStationId(result.getInt("location_id"));
+      if (result.getInt("location_id") != null) event.setStationId(result.getInt("location_id"));
       if (result.getDate("planned_time") != null) event.setPlannedEventTime(localDateTimeToPrototimestamp(result.getDate("planned_time")));
       if (result.getInt("status") != null) event.setStatus(result.getInt("status"));
       if (result.getInt("first_train_number") != null) event.setFirstTrainId(result.getInt("first_train_number"));
@@ -54,7 +54,7 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
       if (result.getDate("planned_departure_reference") != null) event.setPlannedDepartureTimeStartStation(localDateTimeToPrototimestamp(result.getDate("planned_departure_reference")));
       if (result.getDate("planned_arrival_reference") != null) event.setPlannedArrivalTimeEndStation(localDateTimeToPrototimestamp(result.getDate("planned_arrival_reference")));
       if (result.getInt("train_operator_id") != null) event.setRuId(result.getInt("train_operator_id"));
-      if (result.getInt("transfer_location_id") != null) event.setEndEletaStationId(result.getInt("transfer_location_id"));
+      if (result.getInt("transfer_location_id") != null) event.setEndStationId(result.getInt("transfer_location_id"));
       if (result.getInt("reporting_im_id") != null) event.setImId(result.getInt("reporting_im_id"));
       if (result.getInt("next_im_id") != null) event.setFollowingImId(result.getInt("next_im_id"));
       if (result.getInt("message_status") != null) event.setMessageStatus(result.getInt("message_status"));

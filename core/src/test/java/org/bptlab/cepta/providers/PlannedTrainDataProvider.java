@@ -22,7 +22,7 @@ public class PlannedTrainDataProvider {
     PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
     builder.setId(1);
     builder.setTrainSectionId(1);
-    builder.setEletaStationId(1);
+    builder.setStationId(1);
     builder.setPlannedEventTime(timestamp);
     builder.setStatus(1);
     builder.setFirstTrainId(1);
@@ -30,7 +30,7 @@ public class PlannedTrainDataProvider {
     builder.setPlannedDepartureTimeStartStation(timestamp);
     builder.setPlannedArrivalTimeEndStation(timestamp);
     builder.setRuId(1);
-    builder.setEndEletaStationId(1);
+    builder.setEndStationId(1);
     builder.setImId(1);
     builder.setFollowingImId(1);
     builder.setMessageStatus(1);
@@ -61,7 +61,7 @@ public class PlannedTrainDataProvider {
 
   private static PlannedTrainData trainEventWithLocationID(int locationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setEletaStationId(locationId).build();
+        .setStationId(locationId).build();
   }
   private static PlannedTrainData trainEventWithTrainID(int trainId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
@@ -69,7 +69,7 @@ public class PlannedTrainDataProvider {
   }
   private static PlannedTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setTrainId(trainId).setEletaStationId(locationId).build();
+        .setTrainId(trainId).setStationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
