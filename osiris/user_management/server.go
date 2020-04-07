@@ -154,6 +154,19 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
+
+	// send user removal to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := auth.NewAuthenticationClient(conn)
+	_, errr := client.RemoveUser(ctx, &auth.UserId{Value: in.GetValue()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+
 	return &pb.Success{Success: true}, nil
 }
 
@@ -170,6 +183,19 @@ func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
+
+	// send email to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := auth.NewAuthenticationClient(conn)
+	_, errr := client.SetEmail(ctx, &auth.UserIdEmailInput{UserId: &auth.UserId{Value: in.GetUserId().GetValue()}, Email: in.GetEmail()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+
 	return &pb.Success{Success: true}, nil
 }
 
