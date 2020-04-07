@@ -299,6 +299,13 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
 
+	gps := &Replayer{
+		SourceName: "gpsupdates",
+		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &gpstripupdatespb.GPSTripUpdate{}),
+		Topic:      constants.Topics_GPS_TRIP_UPDATE_DATA.String(),
+	}
+
 	replayers = []*Replayer{
 		checkpoints,
 		crewActivity,
@@ -317,6 +324,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		trainInformation,
 		vehicle,
 		weather,
+		gps,
 	}
 
 	// Set common replayer parameters
