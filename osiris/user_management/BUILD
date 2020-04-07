@@ -33,6 +33,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//models/grpc:user_management_go_proto",
+        "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",
         "@com_github_sirupsen_logrus//:go_default_library",
@@ -47,6 +48,7 @@ go_library(
         
     ],
 )
+
 
 go_test(
     name = "go_default_test",

@@ -1,4 +1,4 @@
-load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 filegroup(
     name = "osiris",
@@ -22,6 +22,36 @@ multirun(
     ],
     parallel = True,
     visibility = ["//visibility:public"],
+)
+
+command(
+    name = "run_auth",
+    command = "//osiris/authentication",
+    arguments = [
+        # "--",
+        "--port",
+        "-8080",
+    ],
+)
+command(
+    name = "run_user_management",
+    command = "//osiris/user_management",
+    arguments = [
+        # "--",
+        "--port",
+        "-8079",
+    ],
+)
+
+multirun(
+    name = "run_all",
+    commands = [
+        # "//osiris/query:image",
+        # "//osiris/notification:image",
+        ":run_auth",
+        ":run_user_management",
+    ],
+    parallel = True,
 )
 
 multirun(

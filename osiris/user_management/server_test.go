@@ -102,7 +102,7 @@ func TestAddUser(t *testing.T) {
 	}
 	response, err := client.AddUser(context.Background(), request)
 	if err != nil {
-		t.Errorf("AddUser() should work without error.")
+		t.Errorf("AddUser() should work without error. Error: %v", err)
 	}
 	if response.Success != true {
 		t.Errorf("AddUser should return success message. It was %v", response)

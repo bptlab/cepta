@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -70,7 +71,19 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	return &pb.Success{Success: true}, nil
+
+	// send user to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := auth.NewAuthenticationClient(conn)
+	_, errr := client.AddUser(ctx, &auth.User{Email: in.GetEmail(), Password: in.GetPassword()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+	return &pb.Success{Success: true}, err
 }
 
 func toStringArray(trains *pb.TrainIds) pq.StringArray {
