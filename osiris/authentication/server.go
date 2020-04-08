@@ -206,15 +206,3 @@ func int64ToString(num int64) string {
 	text := strconv.Itoa(int(num))
 	return text
 }
-
-func removeElementFromStringArray(slice []string, element string) []string {
-	for index, elem := range slice {
-		if elem == element {
-			return removeIndexFromStringArray(slice, index)
-		}
-	}
-	return slice
-}
-func removeIndexFromStringArray(slice []string, index int) []string {
-	return append(slice[:index], slice[index+1:]...)
-}
