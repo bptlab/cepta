@@ -8,9 +8,7 @@ env:
     - V=2.2.0
     - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
 
-script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then TEST_FILTER="--test_tag_filters="-docker""; fi
-  - bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors ${TEST_FILTER}
+script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors ${TEST_FILTER}
 
 matrix:
   # It's ok to fail on osx as linux is the primary target
@@ -20,24 +18,41 @@ matrix:
   # Mark the test run green as soon as the tests pass on linux.
   fast_finish: true
   include:
+    # Linux: Smoke Tests
     - stage: Unit Tests
       name: Smoke Tests
       env: TEST_TARGET=":smoke"
-      os:
-        - linux
-        - osx
+      os: linux
+
+    # OSX: Smoke Tests
+    - stage: Unit Tests
+      name: Smoke Tests
+      env: TEST_TARGET=":smoke" TEST_FILTER='--test_tag_filters="-docker"'
+      os: osx
+    
+    # Linux: Unit Tests
     - stage: Unit Tests
       name: Unit Tests
       env: TEST_TARGET=":unit"
-      os:
-        - linux
-        - osx
+      os: linux
+
+    # OSX: Unit Tests
+    - stage: Unit Tests
+      name: Unit Tests
+      env: TEST_TARGET=":unit" TEST_FILTER='--test_tag_filters="-docker"'
+      os: osx
+
+    # Linux: Integration Tests
     - stage: Integration Tests
       name: Integration Tests
       env: TEST_TARGET=":integration"
-      os:
-        - linux
-        - osx
+      os: linux
+
+    # OSX: Integration Tests
+    - stage: Integration Tests
+      name: Integration Tests
+      env: TEST_TARGET=":integration" TEST_FILTER='--test_tag_filters="-docker"'
+      os: osx
 
 before_install:
   - echo "Installing bazel"
