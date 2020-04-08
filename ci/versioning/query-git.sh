@@ -22,13 +22,6 @@ cepta::version::get_version_vars() {
             # compatible semantic version that looks something like this:
             #   v1.1.0-alpha.0.6+84c76d1142ea4d
             #
-            # TODO: We continue calling this "git version" because so many
-            # downstream consumers are expecting it there.
-            #
-            # These regexes are painful enough in sed...
-            # We don't want to do them in pure shell, so disable SC2001
-            # shellcheck disable=SC2001
-
             # echo ${CEPTA_GIT_VERSION}
 
             DASHES_IN_VERSION=$(echo "${CEPTA_GIT_VERSION}" | sed "s/[^-]//g")
