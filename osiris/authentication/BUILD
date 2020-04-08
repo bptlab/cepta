@@ -58,6 +58,5 @@ test_suite(
     name = "all_tests",
     tests = [
         "//osiris/authentication:go_default_test",
-        # "//osiris/user_management/models:go_default_test"
     ]
 )
