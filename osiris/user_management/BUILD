@@ -60,7 +60,6 @@ go_test(
 test_suite(
     name = "all_tests",
     tests = [
-        "//osiris/user_management:go_default_test",
-        # "//osiris/user_management/models:go_default_test"
+        "//osiris/user_management:go_default_test"
     ]
 )
