@@ -1,16 +1,16 @@
-# Changelog
+## Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+#### [Unreleased]
 
-## [0.1.0] - 2019-04-10
-### Added
+#### [0.1.0] - 2020-04-10
+##### Added
 - Bla
 
-### Changed
+##### Changed
 - Bla
 
-### Removed
+##### Removed
 - Bla
 
 [Unreleased]: https://github.com/bptlab/cepta/compare/v0.2.0...HEAD
