@@ -3,10 +3,6 @@ sudo: required
 osx_image: xcode9.4
 language: java
 
-os:
-  - linux
-  - osx
-
 env:
   global:
     - V=2.2.0
@@ -24,15 +20,24 @@ matrix:
   # Mark the test run green as soon as the tests pass on linux.
   fast_finish: true
   include:
-    - stage: Test
+    - stage: Unit Tests
       name: Smoke Tests
       env: TEST_TARGET=":smoke"
-    - stage: Test
+      os:
+        - linux
+        - osx
+    - stage: Unit Tests
       name: Unit Tests
       env: TEST_TARGET=":unit"
-    - stage: Test
+      os:
+        - linux
+        - osx
+    - stage: Integration Tests
       name: Integration Tests
       env: TEST_TARGET=":integration"
+      os:
+        - linux
+        - osx
 
 before_install:
   - echo "Installing bazel"
