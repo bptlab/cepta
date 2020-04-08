@@ -57,3 +57,8 @@ go_library(
         "@com_github_sirupsen_logrus//:go_default_library",
     ],
 )
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

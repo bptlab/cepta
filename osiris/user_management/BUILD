@@ -54,15 +54,14 @@ go_library(
 )
 
 go_test(
-    name = "go_default_test",
+    name = "server-test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
-    size = "medium"
+    size = "small",
+    tags = ["unit"],
 )
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//osiris/user_management:go_default_test",
-        # "//osiris/user_management/models:go_default_test"
-    ]
-)
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

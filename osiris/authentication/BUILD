@@ -48,16 +48,22 @@ go_library(
 )
 
 go_test(
-    name = "go_default_test",
+    name = "controllers-test",
     srcs = ["controllers_test.go"],
     embed = [":go_default_library"],
-    size = "medium"
+    size = "small",
+    tags = ["unit"],
 )
 
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//osiris/authentication:go_default_test",
-        "//osiris/authentication/models:go_default_test"
-    ],
+go_test(
+    name = "accounts-test",
+    srcs = ["//osiris/authentication/models:accounts_test.go"],
+    embed = ["//osiris/authentication/models:go_default_library"],
+    size = "small",
+    tags = ["unit"],
 )
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")
