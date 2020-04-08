@@ -24,13 +24,13 @@ matrix:
   # Mark the test run green as soon as the tests pass on linux.
   fast_finish: true
   include:
-    - stage: Unit Tests
+    - stage: Test
       name: Smoke Tests
       env: TEST_TARGET=":smoke"
-    - stage: Unit Tests
+    - stage: Test
       name: Unit Tests
       env: TEST_TARGET=":unit"
-    - stage: Integration Tests
+    - stage: Test
       name: Integration Tests
       env: TEST_TARGET=":integration"
 
