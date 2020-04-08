@@ -37,5 +37,5 @@ For instructions see `deployment/dev` or `deployment/prod` respectively.
 
 Summary: To run the latest version, run 
 ```bash
-docker-compose -e CEPTA_VERSION="v0.0.6" deployment/prod/docker-compose.yml
+docker-compose -e CEPTA_VERSION="v0.0.7" deployment/prod/docker-compose.yml
 ```
