@@ -51,7 +51,7 @@ func SetUpDatabase() {
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterAuthenticationServer(s, &server{db: ldb})
+	pb.RegisterAuthenticationServer(s, &Server{DB: ldb})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			fmt.Printf("Server exited with error: %v", err)

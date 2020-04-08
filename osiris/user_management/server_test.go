@@ -9,7 +9,7 @@ import (
 
 	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
-	// authserv "github.com/bptlab/cepta/osiris/authentication"
+	authserv "github.com/bptlab/cepta/osiris/authentication"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/jinzhu/gorm"
@@ -36,9 +36,9 @@ const bufSize = 1024 * 1024
 
 var lis *bufconn.Listener
 
-func SetUpAll() {
+func SetUpAll(t *testing.T) {
 	SetUpDatabase()
-	SetUpServerConnection()
+	SetUpServerConnection(t)
 }
 func SetUpDatabase() {
 	mocket.Catcher.Register()
@@ -53,12 +53,18 @@ func SetUpDatabase() {
 	// gormDB.LogMode(true)
 	ldb = &libdb.PostgresDB{DB: gormDB}
 }
-func SetUpServerConnection() {
+func SetUpServerConnection(t *testing.T) {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
+	ctx := context.Background()
+	auth.RegisterAuthenticationServer(s, &authserv.Server{DB: ldb})
 	pb.RegisterUserManagementServer(s, &server{
 		db: ldb,
-		authClient: func(conn *grpc.ClientConn) auth.AuthenticationClient {
+		authClient: func(inconn *grpc.ClientConn) auth.AuthenticationClient {
+			conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+			if err != nil {
+				t.Fatalf("Failed to dial bufnet: %v", err)
+			}
 			return auth.NewAuthenticationClient(conn)
 		},
 	})
@@ -70,7 +76,7 @@ func SetUpServerConnection() {
 }
 
 func TestAddTrain(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -94,7 +100,7 @@ func TestAddTrain(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
@@ -118,7 +124,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestGetTrainIds(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -141,7 +147,7 @@ func TestGetTrainIds(t *testing.T) {
 }
 
 func TestGetUserWithoutTrains(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -166,7 +172,7 @@ func TestGetUserWithoutTrains(t *testing.T) {
 	}
 }
 func TestGetUserWithTrains(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -192,7 +198,7 @@ func TestGetUserWithTrains(t *testing.T) {
 }
 
 func TestRemoveTrain(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {

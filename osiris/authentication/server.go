@@ -27,7 +27,7 @@ var db *libdb.PostgresDB
 type Server struct {
 	pb.UnimplementedAuthenticationServer
 	active bool
-	db     *libdb.PostgresDB
+	DB     *libdb.PostgresDB
 }
 
 // User is a struct to rep user account
@@ -45,8 +45,8 @@ func (server *Server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
 	}
-	server.db.DB.NewRecord(user)
-	err := server.db.DB.Create(&user).Error
+	server.DB.DB.NewRecord(user)
+	err := server.DB.DB.Create(&user).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -56,7 +56,7 @@ func (server *Server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 // Login logs in a user
 func (server *Server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
 	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
+	err := server.DB.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.Validation{
 			Value: false}, nil
@@ -68,11 +68,11 @@ func (server *Server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation,
 // RemoveUser removes a user
 func (server *Server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
+	err := server.DB.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	err = server.db.DB.Delete(&user).Error
+	err = server.DB.DB.Delete(&user).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -84,11 +84,11 @@ func (server *Server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
 	var user User
-	err := server.db.DB.First(&user, id).Error
+	err := server.DB.DB.First(&user, id).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	err = server.db.DB.Model(&user).Update("Email", email).Error
+	err = server.DB.DB.Model(&user).Update("Email", email).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -149,7 +149,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 
 	authenticationServer := Server{
 		active: true,
-		db:     db,
+		DB:     db,
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
