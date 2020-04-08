@@ -220,6 +220,27 @@ func TestRemoveTrain(t *testing.T) {
 		t.Errorf("RemoveTrain should return success message, but it was %v", response)
 	}
 }
+
+func TestRemoveUser(t *testing.T) {
+	SetUpAll(t)
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+	request := userIDProto
+	response, err := client.RemoveUser(context.Background(), request)
+	if err != nil {
+		t.Errorf("RemoveUser() should work without error. Error: %v", err)
+	}
+	if response.Success != true {
+		t.Errorf("RemoveUser should return success message. It was %v", response)
+	}
+}
+
 func bufDialer(string, time.Duration) (net.Conn, error) {
 	return lis.Dial()
 }

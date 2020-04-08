@@ -164,7 +164,7 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	client := auth.NewAuthenticationClient(conn)
+	client := server.authClient(conn)
 	_, errr := client.RemoveUser(ctx, &auth.UserId{Value: in.GetValue()})
 	if errr != nil {
 		return &pb.Success{Success: false}, errr
