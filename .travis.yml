@@ -10,11 +10,11 @@ os:
 env:
   global:
     - V=2.2.0
-    - BAZELOPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+    - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
 
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then TEST_FILTER="--test_tag_filters="-docker""; fi
-  - bazel test ${TESTENV} --test_output=errors ${TEST_FILTER}
+  - bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors ${TEST_FILTER}
 
 matrix:
   # It's ok to fail on osx as linux is the primary target
@@ -26,18 +26,13 @@ matrix:
   include:
     - stage: Unit Tests
       name: Smoke Tests
-      env: TESTENV="smoke"
-      # bazel test //osiris/authentication:tests --test_tag_filters="-unit"
-      # script: bazel test ${BAZELOPTS} :smoke --test_output=errors
+      env: TEST_TARGET=":smoke"
     - stage: Unit Tests
       name: Unit Tests
-      os: linux
-      env: TESTENV="unit"
-      # script: bazel test ${BAZELOPTS} :unit --test_output=errors
+      env: TEST_TARGET=":unit"
     - stage: Integration Tests
       name: Integration Tests
-      env: TESTENV="integration"
-      # script: bazel test ${BAZELOPTS} :integration --test_output=errors
+      env: TEST_TARGET=":integration"
 
 before_install:
   - echo "Installing bazel"
@@ -60,4 +55,3 @@ before_install:
 stages:
   - name: Unit Tests
   - name: Integration Tests
-    # if: os = linux
