@@ -26,10 +26,14 @@ var done = make(chan bool, 1)
 var log *logrus.Logger
 var db *libdb.PostgresDB
 
+// AuthClientFunc is fancy
+type AuthClientFunc func(*grpc.ClientConn) auth.AuthenticationClient
+
 type server struct {
 	pb.UnimplementedUserManagementServer
-	active bool
-	db     *libdb.PostgresDB
+	active     bool
+	authClient AuthClientFunc
+	db         *libdb.PostgresDB
 }
 
 // User is a struct to rep user account
@@ -77,7 +81,7 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	client := auth.NewAuthenticationClient(conn)
+	client := server.authClient(conn) //auth.NewAuthenticationClient(conn)
 	_, errr := client.AddUser(ctx, &auth.User{Email: in.GetEmail(), Password: in.GetPassword()})
 	if errr != nil {
 		return &pb.Success{Success: false}, errr
@@ -254,6 +258,9 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	userManagementServer := server{
 		active: true,
 		db:     db,
+		authClient: func(conn *grpc.ClientConn) auth.AuthenticationClient {
+			return auth.NewAuthenticationClient(conn)
+		},
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))

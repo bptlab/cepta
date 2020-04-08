@@ -9,7 +9,7 @@ import (
 
 	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
-	authserv "github.com/bptlab/cepta/osiris/authentication"
+	// authserv "github.com/bptlab/cepta/osiris/authentication"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/jinzhu/gorm"
@@ -56,7 +56,12 @@ func SetUpDatabase() {
 func SetUpServerConnection() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterUserManagementServer(s, &server{db: ldb})
+	pb.RegisterUserManagementServer(s, &server{
+		db: ldb,
+		authClient: func(conn *grpc.ClientConn) auth.AuthenticationClient {
+			return auth.NewAuthenticationClient(conn)
+		},
+	})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			fmt.Printf("Server exited with error: %v", err)
@@ -92,6 +97,7 @@ func TestAddUser(t *testing.T) {
 	SetUpAll()
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 	}
