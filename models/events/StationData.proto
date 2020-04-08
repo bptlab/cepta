@@ -7,19 +7,14 @@ option java_outer_classname = "StationDataProtos";
 import "google/protobuf/timestamp.proto";
 
 message StationData {
-    string primary_name = 1;
-    int64 primary_name_number = 2;
-    string rl100 = 3;
-    string name = 4;
-    int64 bst8 = 5;
-    string country = 7;
-    int64 country_id = 8;
-    int64 cargo_id = 9;
-    google.protobuf.Timestamp begin_date = 10;
-    google.protobuf.Timestamp end_date = 11;
+    string station_name = 1; // when number we can probably ignore the value
+    int64 station_name_seq_nr = 2; // Failed values are often strings (additional to the station name or a " too much
+    string station_abbreviation = 3; // Failed values are often in the following format: RB-Gr km xx,xxx
+    int64 station_code = 5;
+    int64 country_id = 8; // seperate mapping lets you compare country code and country id
+    google.protobuf.Timestamp valid_start_date = 10;
+    google.protobuf.Timestamp valid_end_date = 11;
     double latitude = 12;
     double longitude = 13;
     string station_type = 14;
-    int64 holiday_code = 15;
-    int64 primary_location_code = 16;
 }

@@ -9,20 +9,20 @@ import "google/protobuf/timestamp.proto";
 message VehicleData {
     string vehicle_id = 1;  // UIC for the lok, see https://de.wikipedia.org/wiki/UIC-Kennzeichnung_der_Triebfahrzeuge
     string plan_id = 2;
-    int64 plan_day = 3;
-    int64 service_number = 4;
-    google.protobuf.Timestamp departure_day = 5;
+    int64 plan_date = 3;
+    int64 service_block_number = 4;
+    google.protobuf.Timestamp planned_departure_date = 5;
     int64 intermediate_stations = 6;
     string service_code_addition = 7;
     string service_code = 8;
-    google.protobuf.Timestamp planned_departure = 9;
-    google.protobuf.Timestamp actual_departure = 10;
-    google.protobuf.Timestamp planned_arrival = 11;
-    google.protobuf.Timestamp actual_arrival = 12;
-    string destination_station = 13;
-    string departure_station = 14;
+    google.protobuf.Timestamp planned_departure_time = 9;
+    google.protobuf.Timestamp event_departure_time = 10;
+    google.protobuf.Timestamp planned_arrival_time = 11;
+    google.protobuf.Timestamp event_arrival_time = 12;
+    string end_station = 13;
+    string start_station = 14;
     int64 track_length = 15;
     string next_plan_id = 16;
-    int64 next_plan_day = 17;
+    google.protobuf.Timestamp next_plan_date = 17;
     int64 max_speed = 18;
 } 

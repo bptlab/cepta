@@ -21,21 +21,21 @@ public class PlannedTrainDataProvider {
          .setNanos((int) ((millis % 1000) * 1000000)).build();
     PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
     builder.setId(1);
-    builder.setTrainId(1);
-    builder.setLocationId(1);
-    builder.setPlannedTime(timestamp);
+    builder.setTrainSectionId(1);
+    builder.setStationId(1);
+    builder.setPlannedEventTime(timestamp);
     builder.setStatus(1);
-    builder.setFirstTrainNumber(1);
-    builder.setTrainNumberReference(1);
-    builder.setPlannedDepartureReference(timestamp);
-    builder.setPlannedArrivalReference(timestamp);
-    builder.setTrainOperatorId(1);
-    builder.setTransferLocationId(1);
-    builder.setReportingImId(1);
-    builder.setNextImId(1);
+    builder.setFirstTrainId(1);
+    builder.setTrainId(1);
+    builder.setPlannedDepartureTimeStartStation(timestamp);
+    builder.setPlannedArrivalTimeEndStation(timestamp);
+    builder.setRuId(1);
+    builder.setEndStationId(1);
+    builder.setImId(1);
+    builder.setFollowingImId(1);
     builder.setMessageStatus(1);
-    builder.setMessageCreation(timestamp);
-    builder.setOriginalTrainNumber(1);
+    builder.setIngestionTime(timestamp);
+    builder.setOriginalTrainId(1);
     return builder.build();
   }
 
@@ -51,7 +51,7 @@ public class PlannedTrainDataProvider {
             new AscendingTimestampExtractor<PlannedTrainData>() {
               @Override
               public long extractAscendingTimestamp(PlannedTrainData plannedTrainData) {
-                return plannedTrainData.getMessageCreation().getSeconds();
+                return plannedTrainData.getIngestionTime().getSeconds();
               }
             });
 
@@ -61,7 +61,7 @@ public class PlannedTrainDataProvider {
 
   private static PlannedTrainData trainEventWithLocationID(int locationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setLocationId(locationId).build();
+        .setStationId(locationId).build();
   }
   private static PlannedTrainData trainEventWithTrainID(int trainId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
@@ -69,12 +69,12 @@ public class PlannedTrainDataProvider {
   }
   private static PlannedTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setTrainId(trainId).setLocationId(locationId).build();
+        .setTrainId(trainId).setStationId(locationId).build();
   }
 
   private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
     WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
-      .setEventclass(eventClass).build();
+      .setEventClass(eventClass).build();
     return new Tuple2<>(weather, locationId);
   }
 
