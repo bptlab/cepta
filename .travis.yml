@@ -3,22 +3,59 @@ sudo: required
 osx_image: xcode9.4
 language: java
 
-os:
-  - linux
-  - osx
-
 env:
-  - V=2.2.0
+  global:
+    - V=2.2.0
+    - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+
+script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
 
 matrix:
-  # It's ok to fail on osx.
+  # It's ok to fail on osx as linux is the primary target
   allow_failures:
     - os: osx
   # Don't wait for osx tests to finish.
-  # Mark the test run green if the tests pass on linux.
+  # Mark the test run green as soon as the tests pass on linux.
   fast_finish: true
+  include:
+    # Linux: Smoke Tests
+    - stage: Unit Tests
+      name: Smoke Tests
+      env: TEST_TARGET=":smoke"
+      os: linux
+
+    # OSX: Smoke Tests
+    - stage: Unit Tests
+      name: Smoke Tests
+      env: TEST_TARGET=":smoke" TEST_FILTER=-docker
+      os: osx
+    
+    # Linux: Unit Tests
+    - stage: Unit Tests
+      name: Unit Tests
+      env: TEST_TARGET=":unit"
+      os: linux
+
+    # OSX: Unit Tests
+    - stage: Unit Tests
+      name: Unit Tests
+      env: TEST_TARGET=":unit" TEST_FILTER=-docker
+      os: osx
+
+    # Linux: Integration Tests
+    - stage: Integration Tests
+      name: Integration Tests
+      env: TEST_TARGET=":integration"
+      os: linux
+
+    # OSX: Integration Tests
+    - stage: Integration Tests
+      name: Integration Tests
+      env: TEST_TARGET=":integration" TEST_FILTER=-docker
+      os: osx
 
 before_install:
+  - echo "Installing bazel"
   - OS=linux
   - ARCH=x86_64
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then OS=darwin; fi
@@ -35,16 +72,7 @@ before_install:
   - ./install.sh --user
   - rm -f install.sh
 
-# services:
-#   - docker
-
-# before_script:
-# Try to start pgadmin via docker
-# As windows server cannot run linux docker containers we can only test this on linux
-# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then deployment/dev/devenv.sh -p test up -d pgadmin ; fi
-
-script:
-  # Test docker compose regressions
-  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker ps | grep -q pgadmin ; fi
-  # Check if the project builds successfully
-  - bazel test :all --test_output=all
+stages:
+  - name: Unit Tests
+  # Integration Tests require Unit Tests to succeed
+  - name: Integration Tests

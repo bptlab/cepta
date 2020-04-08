@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/notification",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -31,11 +31,16 @@ go_library(
     ],
     importpath = "github.com/bptlab/cepta/osiris/notification",
     visibility = ["//visibility:private"],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     deps = [
         "//models/constants:constants_go_proto",
         "//models/events:train_delay_notification_go_proto",
         "//osiris/notification/websocket:go_default_library",
         "//osiris/lib/kafka:consumer",
+        "//ci/versioning:go_default_library",
         "//osiris/lib:cli",
         "@com_github_golang_protobuf//jsonpb:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
@@ -44,3 +49,8 @@ go_library(
         "@com_github_sirupsen_logrus//:go_default_library",
     ],
 )
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
 	"time"
 
+	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/constants"
 	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
@@ -19,6 +21,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
+
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
 
 var marshaler = &jsonpb.Marshaler{EmitDefaults: true}
 
@@ -66,7 +74,6 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 		for {
 			select {
 			case msg := <-kafkaConsumer.Messages:
-
 				delayEvent := &delay.TrainDelayNotification{}
 				err = proto.Unmarshal(msg.Value, delayEvent)
 				if err != nil {
@@ -100,7 +107,6 @@ func serve(cliCtx *cli.Context) error {
 	port := fmt.Sprintf(":%d", cliCtx.Int("port"))
 	log.Printf("Server ready at %s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
-
 	return nil
 }
 
@@ -110,9 +116,10 @@ func main() {
 	cliFlags = append(cliFlags, kafkaconsumer.KafkaConsumerCliOptions...)
 
 	app := &cli.App{
-		Name:  "CEPTA Notification service",
-		Usage: "The service sets up the websocket connection and subscription to kafka",
-		Flags: cliFlags,
+		Name:    "CEPTA Notification service",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "The service sets up the websocket connection and subscription to kafka",
+		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {
 			level, err := log.ParseLevel(ctx.String("log"))
 			if err != nil {
