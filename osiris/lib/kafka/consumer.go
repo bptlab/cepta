@@ -1,40 +1,37 @@
 package kafkaconsumer
 
 import (
-	// "os/signal"
-	"strings"
 	"context"
-	"sync"
 	"fmt"
-	// "os"
-	// "syscall"
+	"strings"
+	"sync"
 
-	"github.com/urfave/cli/v2"
-	log "github.com/sirupsen/logrus"
 	"github.com/Shopify/sarama"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 var KafkaConsumerCliOptions = libcli.CommonCliOptions(libcli.Kafka)
 
 type KafkaConsumerOptions struct {
-	Brokers 	[]string
-	Group		string
-	Version		string
-	Topics		[]string
+	Brokers []string
+	Group   string
+	Version string
+	Topics  []string
 }
 
 func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptions {
 	return KafkaConsumerOptions{
 		Brokers: strings.Split(ctx.String("kafka-brokers"), ","),
-		Group: ctx.String("kafka-group"),
+		Group:   ctx.String("kafka-group"),
 		Version: ctx.String("kafka-version"),
-		Topics: strings.Split(ctx.String("kafka-topics"), ","),
+		Topics:  strings.Split(ctx.String("kafka-topics"), ","),
 	}
 }
 
 type KafkaConsumer struct {
-	ready chan bool
+	ready    chan bool
 	Messages chan *sarama.ConsumerMessage
 }
 
@@ -56,7 +53,6 @@ func (consumer *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-
 func ConsumeKafkaGroup(ctx context.Context, options KafkaConsumerOptions) (KafkaConsumer, error) {
 	config := sarama.NewConfig()
 	version, err := sarama.ParseKafkaVersion(options.Version)
@@ -64,13 +60,12 @@ func ConsumeKafkaGroup(ctx context.Context, options KafkaConsumerOptions) (Kafka
 		log.Panicf("Error parsing Kafka version: %v", err)
 	}
 	config.Version = version
-	
+
 	consumer := KafkaConsumer{
-		ready: make(chan bool),
+		ready:    make(chan bool),
 		Messages: make(chan *sarama.ConsumerMessage),
 	}
 
-	// ctx, cancel := context.WithCancel(context.Background())
 	client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
 	if err != nil {
 		log.Panicf("Error creating consumer group client: %v", err)
@@ -94,23 +89,6 @@ func ConsumeKafkaGroup(ctx context.Context, options KafkaConsumerOptions) (Kafka
 
 	<-consumer.ready // Await till the consumer has been set up
 	log.Debug("Sarama consumer up and running!...")
-
-	/*
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-ctx.Done():
-		log.Info("terminating: context cancelled")
-	case <-sigterm:
-		log.Info("terminating: via signal")
-	}
-	cancel()
-	wg.Wait()
-	if err = client.Close(); err != nil {
-		log.Panicf("Error closing client: %v", err)
-	}
-	return nil
-	*/
 	return consumer, err
 }
 
@@ -125,7 +103,7 @@ func ConsumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.Par
 	if len(options.Topics) != 1 {
 		return nil, fmt.Errorf("Need exactly one topic!")
 	}
-	
+
 	consumer := KafkaConsumer{
 		ready: make(chan bool),
 	}
@@ -154,22 +132,5 @@ func ConsumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.Par
 
 	<-consumer.ready // Await till the consumer has been set up
 	log.Debug("Sarama consumer up and running!...")
-
-	/*
-	sigterm := make(chan os.Signal, 1)
-	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-ctx.Done():
-		log.Info("terminating: context cancelled")
-	case <-sigterm:
-		log.Info("terminating: via signal")
-	}
-	cancel()
-	wg.Wait()
-	if err = client.Close(); err != nil {
-		log.Panicf("Error closing client: %v", err)
-	}
-	return nil
-	*/
 	return kafkaConsumer, err
 }

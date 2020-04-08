@@ -9,8 +9,8 @@ import "google/protobuf/timestamp.proto";
 message CrewTransitionData {
     int64 activity_id = 1;
     int64 transition_type = 2;
-    google.protobuf.Timestamp time_start = 3;
-    google.protobuf.Timestamp time_end = 4;
-    google.protobuf.Timestamp break_start = 5;
-    google.protobuf.Timestamp break_end = 6;
+    google.protobuf.Timestamp start_time = 3;
+    google.protobuf.Timestamp end_time = 4;
+    google.protobuf.Timestamp start_break_time = 5;
+    google.protobuf.Timestamp end_break_time = 6;
 }

@@ -788,3 +788,10 @@ go_repository(
     sum = "h1:Id1oYhizudmN8jN+74D2u9mahka6zaZgcrPWIMEp3BA=",
     version = "v0.0.0-20200304155412-6da328480240",
 )
+
+go_repository(
+    name = "com_github_romnnn_flags4urfavecli",
+    importpath = "github.com/romnnn/flags4urfavecli",
+    sum = "h1:jm3PWa/6Q9AUXNUFjeIjOAtlPwJ3JTlKVrCmbQbP3yQ=",
+    version = "v0.1.0",
+)

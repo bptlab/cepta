@@ -22,28 +22,28 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import NavigationBar from "../components/Navbar";
 import { AppModule } from "../store/modules/app";
 
-export default {
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
   name: "Adminator",
   components: {
     "sidebar-component": Sidebar,
     "footer-component": Footer,
     "navbar-component": NavigationBar
   },
-  props: {},
-  data() {
-    return {};
-  },
-  computed: {
-    isCollapsed() {
-      return AppModule.isCollapsed;
-    }
-  },
+  props: {}
+})
+export default class Adminator extends Vue {
+  get isCollapsed() {
+    return AppModule.isCollapsed;
+  }
+
   mounted() {
     /*
       window.addEventListener("load", () => {
@@ -57,7 +57,7 @@ export default {
       });
       */
   }
-};
+}
 </script>
 
 <style scoped lang="sass">
