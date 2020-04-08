@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "postgres.go",
         "mongo.go",
+        "tmpmodels.go",
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/db",
     visibility = ["//visibility:public"],

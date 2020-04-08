@@ -168,7 +168,7 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
     return "CREATE TABLE public.planned ( " +
         "id integer, " +
         "train_section_id integer, " +
-        "eleta_station_id integer, " +
+        "station_id integer, " +
         "planned_event_time timestamp, " +
         "status integer, " +
         "first_train_id integer, " +
@@ -176,7 +176,7 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
         "planned_departure_time_start_station timestamp, " +
         "planned_arrival_time_end_station timestamp, " +
         "ru_id integer, " +
-        "end_eleta_station_id integer, " +
+        "end_station_id integer, " +
         "im_id integer, " +
         "following_im_id integer, " +
         "message_status integer, " +
