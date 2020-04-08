@@ -40,11 +40,10 @@ import { Component, Vue } from "vue-property-decorator";
   props: {}
 })
 export default class Adminator extends Vue {
-  
   get isCollapsed() {
     return AppModule.isCollapsed;
   }
-  
+
   mounted() {
     /*
       window.addEventListener("load", () => {
@@ -58,7 +57,7 @@ export default class Adminator extends Vue {
       });
       */
   }
-};
+}
 </script>
 
 <style scoped lang="sass">
