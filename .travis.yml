@@ -8,7 +8,7 @@ env:
     - V=2.2.0
     - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
 
-script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors ${TEST_FILTER}
+script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
 
 matrix:
   # It's ok to fail on osx as linux is the primary target
@@ -27,7 +27,7 @@ matrix:
     # OSX: Smoke Tests
     - stage: Unit Tests
       name: Smoke Tests
-      env: TEST_TARGET=":smoke" TEST_FILTER='--test_tag_filters="-docker"'
+      env: TEST_TARGET=":smoke" TEST_FILTER=-docker
       os: osx
     
     # Linux: Unit Tests
@@ -39,7 +39,7 @@ matrix:
     # OSX: Unit Tests
     - stage: Unit Tests
       name: Unit Tests
-      env: TEST_TARGET=":unit" TEST_FILTER='--test_tag_filters="-docker"'
+      env: TEST_TARGET=":unit" TEST_FILTER=-docker
       os: osx
 
     # Linux: Integration Tests
@@ -51,7 +51,7 @@ matrix:
     # OSX: Integration Tests
     - stage: Integration Tests
       name: Integration Tests
-      env: TEST_TARGET=":integration" TEST_FILTER='--test_tag_filters="-docker"'
+      env: TEST_TARGET=":integration" TEST_FILTER=-docker
       os: osx
 
 before_install:
@@ -74,4 +74,5 @@ before_install:
 
 stages:
   - name: Unit Tests
+  # Integration Tests require Unit Tests to succeed
   - name: Integration Tests
