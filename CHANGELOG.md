@@ -1,9 +1,9 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
 
-#### [Unreleased]
+### [Unreleased]
 
-#### [0.1.0] - 2020-04-10
+### [0.1.0] - 2020-04-10
 ##### Added
 - Bla
 
