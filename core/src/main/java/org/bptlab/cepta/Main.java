@@ -138,12 +138,12 @@ public class Main implements Callable<Integer> {
           delay < 0 is good, the train might arrive earlier than planned
          */
                 try {
-                  double delay = observed.getActualTime().getSeconds() - expected.getPlannedTime().getSeconds();
+                  double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
 
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {
                     collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                        .setTrainId(observed.getTrainId()).setLocationId(observed.getLocationId())
+                        .setTrainId(observed.getTrainSectionId()).setLocationId(observed.getStationId())
                         .build());
                   }
                 } catch ( NullPointerException e ) {

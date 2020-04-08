@@ -61,6 +61,5 @@ func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
 		log.Fatalf("Could not ping database within 10 seconds: %s (%s:%s)", err.Error(), databaseConnectionURI, databaseName)
 	}
 	database := client.Database(databaseName)
-	// return &MongoDB{DB: database}, nil
 	return &MongoDB{DB: database}, nil
 }

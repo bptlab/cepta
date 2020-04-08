@@ -355,6 +355,26 @@ java_proto_library(
 )
 
 go_proto_library(
+    name = "country_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/countrydataevent",
+    proto = ":country_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "country_data_proto",
+    srcs = ["InfrastructureManagerData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "country_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":country_data_proto"],
+)
+
+go_proto_library(
     name = "railway_undertaking_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/railwayundertakingdataevent",
     proto = ":railway_undertaking_data_proto",
@@ -395,6 +415,8 @@ filegroup(
         ":infrastructure_manager_data_java_proto",
         ":train_delay_notification_ts_proto",
         ":train_delay_notification_nodejs_proto",
+        ":country_data_go_proto",
+        ":country_data_java_proto",
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
         ":location_data_go_proto",

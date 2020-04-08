@@ -7,12 +7,7 @@ import (
 	"os"
 	"strings"
 
-	// "syscall"
-	// "os/signal"
-	// "encoding/json"
 	"time"
-
-	// "github.com/Shopify/sarama"
 
 	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/constants"
@@ -78,14 +73,7 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 		defer func() { subscriberDone <- true }()
 		for {
 			select {
-			case msg := <-kafkaConsumer.Messages: // kafkaConsumer.Messages():
-				// payload := msg.Value
-				// log.Info("Got delay message")
-				// log.Info(string(msg.Value))
-				// Converting []byte payload to JSON
-				// var message Message
-				// json.Unmarshal(payload, &message)
-
+			case msg := <-kafkaConsumer.Messages:
 				delayEvent := &delay.TrainDelayNotification{}
 				err = proto.Unmarshal(msg.Value, delayEvent)
 				if err != nil {
@@ -93,27 +81,10 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 				}
 				log.Info(delayEvent)
 				pool.Broadcast <- msg.Value
-
-				/*
-					jsonMessage, err := marshaler.MarshalToString(delayEvent)
-					if err != nil {
-						log.Errorf("json marshal error: ", err)
-					} else {
-						pool.Broadcast <- jsonMessage
-					}
-				*/
-				/*
-					for client, _ := range pool.Clients {
-						if client.ID == message.UID {
-							client.Conn.WriteJSON(websocket.Message{Type: 4, Body: string(payload)})
-						}
-					}
-				*/
 				break
 
 			case <-noopTicker.C:
-				// message := websocket.Message{Type: 2, Body: "ping"}
-				// pool.Broadcast <- message
+				// Noop
 			case <-stopSubscriber:
 				return
 			}
@@ -121,75 +92,6 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 	}()
 	<-subscriberDone
 	noopTicker.Stop()
-
-	/*
-		consumer, err := kafkaClient.Consume(ctx, topics, 0, sarama.OffsetOldest)
-		if err != nil {
-			log.Fatalf("Failed to consume topic %s: %s", topic, err.Error())
-		}
-	*/
-
-	/*
-		config := sarama.NewConfig()
-		config.Consumer.Return.Errors = true
-
-		// Specify brokers address
-		// brokers := []string{"localhost:29092"}
-
-		// Create new consumer
-		master, err := sarama.NewConsumer(brokers, config)
-		if err != nil {
-			panic(err)
-		}
-
-		defer func() {
-			if err := master.Close(); err != nil {
-				panic(err)
-			}
-		}()
-
-		topic := "news_for_leo"
-
-		consumer, err := master.ConsumePartition(topic, 0, sarama.OffsetOldest)
-		if err != nil {
-			panic(err)
-		}
-
-		// start consumer, emit to ws
-		noopTicker := time.NewTicker(time.Second * 10)
-		subscriberDone := make(chan bool, 1)
-		stopSubscriber := make(chan bool, 1)
-
-		go func() {
-			defer func() { subscriberDone <- true }()
-
-			for {
-				select {
-				case msg := <-consumer.Messages():
-					payload := msg.Value
-
-					// Converting []byte payload to JSON
-					var message Message
-					json.Unmarshal(payload, &message)
-
-					for client, _ := range pool.Clients {
-						if client.ID == message.UID {
-							client.Conn.WriteJSON(websocket.Message{Type: 4, Body: string(payload)})
-						}
-					}
-					break
-
-				case <-noopTicker.C:
-					message := websocket.Message{Type: 2, Body: "ping"}
-					pool.Broadcast <- message
-				case <-stopSubscriber:
-					return
-				}
-			}
-		}()
-		<-subscriberDone
-		noopTicker.Stop()
-	*/
 }
 
 func serve(cliCtx *cli.Context) error {
@@ -205,22 +107,6 @@ func serve(cliCtx *cli.Context) error {
 	port := fmt.Sprintf(":%d", cliCtx.Int("port"))
 	log.Printf("Server ready at %s", port)
 	log.Fatal(http.ListenAndServe(port, nil))
-
-	/*
-		sigterm := make(chan os.Signal, 1)
-		signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
-		select {
-		case <-ctx.Done():
-			log.Info("terminating: context cancelled")
-		case <-sigterm:
-			log.Info("terminating: via signal")
-		}
-		cancel()
-		wg.Wait()
-		if err = client.Close(); err != nil {
-			log.Panicf("Error closing client: %v", err)
-		}
-	*/
 	return nil
 }
 

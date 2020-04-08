@@ -10,10 +10,10 @@ message GPSTripUpdate {
     int64 wagon_id = 1; // Wagon UIC, like vehicle_id but for wagons, see https://de.wikipedia.org/wiki/UIC-Wagennummer
     string trip_id = 2;
     string train_id = 3;
-    int64 train_operator_id = 4; // Same as in planned
-    google.protobuf.Timestamp planned_departure_reference = 5;
-    google.protobuf.Timestamp actual_time = 6;
-    google.protobuf.Timestamp message_creation = 7; // For H only
+    int64 ru_id = 4; // Same as in planned
+    google.protobuf.Timestamp planned_departure_time = 5;
+    google.protobuf.Timestamp event_time = 6;
+    google.protobuf.Timestamp ingestion_time = 7; // For H only
     double latitude = 8;
     double longitude = 9;
     int32 altitude = 10;
@@ -21,5 +21,5 @@ message GPSTripUpdate {
     int32 speed = 12;
     // For the most recent station, see StationData.bst8 (8 chars for germany but 7 internationally)
     // International numbers with 7 chars can be mapped to StationData.bst8 when padding the middle UIC part (after country code) with a leading zero 
-    int64 bst8 = 13;
+    int64 station_code = 13; // DB Bst8 (dont get confused with locationdata.station_id)
 }

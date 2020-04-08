@@ -5,7 +5,7 @@ go_library(
     srcs = [
         "postgres.go",
         "mongo.go",
-        "tmpmodels.go",
+        "tmpmodels.go",  # TODO: Drop, currently only used by the query microservice?
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/db",
     visibility = ["//visibility:public"],

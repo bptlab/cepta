@@ -2,6 +2,7 @@ package cli
 
 import (
 	libutils "github.com/bptlab/cepta/osiris/lib/utils"
+	"github.com/romnnn/flags4urfavecli/flags"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,7 +37,7 @@ const (
 )
 
 func CommonCliOptions(options ...int) []cli.Flag {
-	flags := []cli.Flag{}
+	commonFlags := []cli.Flag{}
 	uniqueOptions := libutils.Unique(options)
 	for _, option := range uniqueOptions {
 		newOptions := []cli.Flag{}
@@ -164,16 +165,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 			}}
 
 		case ServiceLogLevel:
-			newOptions = []cli.Flag{&cli.GenericFlag{
-				Name: "log",
-				Value: &EnumValue{
-					Enum:    []string{"info", "debug", "warn", "fatal", "trace", "error", "panic"},
-					Default: "info",
-				},
-				Aliases: []string{"log-level"},
-				EnvVars: []string{"LOG", "LOG_LEVEL"},
-				Usage:   "Log level",
-			}}
+			newOptions = []cli.Flag{&flags.LogLevelFlag}
 		case ServicePort:
 			newOptions = []cli.Flag{&cli.IntFlag{
 				Name:    "port",
@@ -186,7 +178,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 			// Do not add any
 			continue
 		}
-		flags = append(flags, newOptions...)
+		commonFlags = append(commonFlags, newOptions...)
 	}
-	return flags
+	return commonFlags
 }

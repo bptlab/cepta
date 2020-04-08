@@ -70,5 +70,6 @@ go_library(
         "@com_github_shopify_sarama//:go_default_library",
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_jinzhu_gorm//dialects/postgres:go_default_library",
+        "@com_github_romnnn_flags4urfavecli//values:go_default_library",
     ],
 )
