@@ -25,6 +25,7 @@ import (
 	crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
 	crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
 	delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
+	gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
 	infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
 	livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
 	locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
@@ -307,6 +308,13 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		Topic:      constants.Topics_WEATHER_DATA.String(),
 	}
 
+	gps := &Replayer{
+		SourceName: "gpsupdates",
+		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
+		Extractor:  extractors.NewMongoExtractor(mongo, &gpstripupdatespb.GPSTripUpdate{}),
+		Topic:      constants.Topics_GPS_TRIP_UPDATE_DATA.String(),
+	}
+
 	replayers = []*Replayer{
 		checkpoints,
 		crewActivity,
@@ -325,6 +333,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		trainInformation,
 		vehicle,
 		weather,
+		gps,
 	}
 
 	// Set common replayer parameters

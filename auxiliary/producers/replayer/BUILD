@@ -61,6 +61,7 @@ go_library(
         "//models/events:train_information_data_go_proto",
         "//models/events:vehicle_data_go_proto",
         "//models/events:weather_data_go_proto",
+        "//models/events:gps_trip_update_go_proto",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
