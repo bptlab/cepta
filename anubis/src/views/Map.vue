@@ -1,5 +1,17 @@
 <template>
-  <masonry-layout>
+  <div class="map-container">
+    <div class="transport-list">
+      <ul>
+        <li>HEY 1</li>
+        <li>HEY 2</li>
+        <li>HEY 3</li>
+        <li>HEY 4</li>
+      </ul>
+    </div>
+    <div class="map">
+      <map-visualisation></map-visualisation>
+    </div>
+  </div>
     <!--
     <masonry-layout-tile section="Train ID's" layoutStyle='{"col-md-2": true}'>
       <table>
@@ -15,7 +27,7 @@
       <map-visualisation></map-visualisation>
     </masonry-layout-tile>
     -->
-  </masonry-layout>
+  
 </template>
 
 <script lang="ts">
@@ -38,20 +50,39 @@ export default class Dashboard extends Vue {
 </script>
 
 <style lang="sass">
-table
-  border-collapse: collapse
+.map-container
+  height: 100%
+  position: relative
+  width: 100%
 
-tr
-  border: 1px solid black
-  text-align: center
+  .map
+    top: 0
+    float: left
+    position: relative
+    width: 75%
+    height: 100%
+    position: relative
 
-td, th
-  padding: 10px
+  .transport-list
+    top: 0
+    float: left
+    position: relative
+    width: 25%
+    height: 100%
 
-th
-  background-color: black
-  color: white
+    ul
+      text-decoration: none
+      list-style: none
+      padding: 0
+      li
+        +theme-color-lighten(background-color, bgc-body, 5)
+        padding: 20px
+        margin: 10px
+        border-radius: 10px
 
-td:hover
-  background-color: #bbb
+        &:hover
+          +theme-color-lighten(background-color, bgc-body, 15)
+          // box-shadow: 0 10px 20px rgba(255,255,255,0.19), 0 6px 6px rgba(1,1,1,0.23)
+          box-shadow: 0 10px 20px rgba(0,0,0,1), 0 6px 6px rgba(0,0,0,1)
+          // box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)
 </style>

@@ -8,16 +8,15 @@
       <navbar-component />
 
       <!-- App Screen Content -->
-      <main class="main-content">
-        <transition id="mainContent" name="fade" mode="out-in">
+      <div class="main-content">
+        <transition name="fade" mode="out-in">
           <router-view />
         </transition>
-      </main>
-
+      </div>
       <!-- App Screen Footer -->
-      <footer-component id="footer">
-        {{ version }} &#x24B8; CEPTA 2020
-      </footer-component>
+        <footer-component>
+          <span id="footer">{{ version }} &#x24B8; CEPTA 2020</span>
+        </footer-component>
     </div>
   </div>
 </template>
@@ -66,8 +65,11 @@ export default class Adminator extends Vue {
 <style scoped lang="sass">
 #footer
   z-index: 1
-  position: relative
+  line-height: 30px
+  vertical-align: middle
+  display: inline-block
 
 .main-content
   +theme(background-color, bgc-content)
+  // height: 500px !important
 </style>

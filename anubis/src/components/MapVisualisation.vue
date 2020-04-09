@@ -63,7 +63,7 @@ export default class Visualisation extends Vue {
 @import "~leaflet/dist/leaflet.css";
 
 #map
-  height: 400px
+  height: 100%
   margin: 0
 
 .leaflet-top

@@ -1,5 +1,5 @@
 <template>
-  <footer class="bdT ta-c p-30 lh-0 fsz-sm">
+  <footer class="bdT ta-c lh-0 fsz-sm">
     <span>
       <slot></slot>
     </span>
@@ -19,5 +19,4 @@ export default class Footer extends Vue {
 <style scoped lang="sass">
 footer
   z-index: 1
-  position: relative
 </style>

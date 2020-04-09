@@ -4,10 +4,8 @@
       <live-train-data-feed></live-train-data-feed>
     </masonry-layout-tile>
     <masonry-layout-tile section="Live Map">
-      <router-link to="/dashboard/map">
-        <p>Click for full page view</p>
-        <map-visualisation></map-visualisation>
-      </router-link>
+      <p>Click for full page view</p>
+      <map-visualisation></map-visualisation>
     </masonry-layout-tile>
     <masonry-layout-tile section="Train Data info">
       <traindata-info></traindata-info>
