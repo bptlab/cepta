@@ -49,10 +49,15 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainD
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "1.0",
+    version = "0.0.7",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
@@ -67,6 +72,22 @@ public class Main implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     logger.info("Starting cepta core...");
+
+    try (InputStream input = new FileInputStream("build-data.properties")) {
+
+      Properties prop = new Properties();
+
+      // load a properties file
+      prop.load(input);
+
+      // get the property value and print it out
+      System.out.println(prop.getProperty("db.url"));
+      System.out.println(prop.getProperty("db.user"));
+      System.out.println(prop.getProperty("db.password"));
+
+    } catch (IOException ex) {
+        ex.printStackTrace();
+    }
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

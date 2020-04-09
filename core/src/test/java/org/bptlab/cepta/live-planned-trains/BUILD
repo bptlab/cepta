@@ -1,9 +1,11 @@
-load("@rules_java//java:defs.bzl", "java_library", "java_test")
+load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "data-to-database",
-    srcs = ["DataToDatabaseTests.java"],
-    test_class = "org.bptlab.cepta.DataToDatabaseTests",
+    name = "live-planned-train-correlation",
+    srcs = ["LivePlannedCorrelationTests.java"],
+    test_class = "org.bptlab.cepta.LivePlannedCorrelationTests",
+    size = "medium",
+    tags = ["integration", "docker"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config",
         "//core/src/main/java/org/bptlab/cepta/operators",
@@ -20,13 +22,10 @@ java_test(
         "@maven//:org_testcontainers_testcontainers",
         "@maven//:org_testcontainers_postgresql",
         "@maven//:org_postgresql_postgresql",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
-test_suite(
-    name = "all",
-    tests = [
-        ":data-to-database",
-    ],
-)
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

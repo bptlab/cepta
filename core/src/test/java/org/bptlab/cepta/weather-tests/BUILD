@@ -1,10 +1,12 @@
-load("@rules_java//java:defs.bzl", "java_test", "java_library")
+load("@rules_java//java:defs.bzl", "java_test")
 
 
 java_test(
     name = "weather-live-train-join",
     srcs = ["WeatherLiveTrainJoinTests.java"],
     test_class = "org.bptlab.cepta.WeatherLiveTrainJoinTests",
+    size = "small",
+    tags = ["unit"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators",
         "//core/src/main/java/org/bptlab/cepta/config",
@@ -19,16 +21,15 @@ java_test(
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:junit_junit_4_13",
-        "@maven//:org_testcontainers_testcontainers",
-        "@maven//:org_testcontainers_kafka",
     ],
 )
-
 
 java_test(
     name = "weather-location-correlation",
     srcs = ["WeatherLocationCorrelationTests.java"],
     test_class = "org.bptlab.cepta.WeatherLocationCorrelationTests",
+    size = "medium",
+    tags = ["integration", "docker"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators",
         "//core/src/main/java/org/bptlab/cepta/config",
@@ -50,10 +51,7 @@ java_test(
     ],
 )
 
-test_suite(
-    name = "all",
-    tests = [
-        ":weather-live-train-join",
-        ":weather-location-correlation",
-    ],
-)
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

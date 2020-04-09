@@ -1,15 +1,16 @@
 package main
 
 import (
-	"time"
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
+	"time"
+
 	"github.com/Shopify/sarama"
+	log "github.com/sirupsen/logrus"
 )
 
 type Message struct {
-	Name	string
-	Age		int32
+	Name string
+	Age  int32
 }
 
 func (m *Message) Length() int {
@@ -37,11 +38,11 @@ func newDataCollector(brokerList []string) sarama.SyncProducer {
 	config.Producer.Retry.Max = 10                   // Retry up to 10 times to produce the message
 	config.Producer.Return.Successes = true
 	/*
-	tlsConfig := createTlsConfiguration()
-	if tlsConfig != nil {
-		config.Net.TLS.Config = tlsConfig
-		config.Net.TLS.Enable = true
-	}
+		tlsConfig := createTlsConfiguration()
+		if tlsConfig != nil {
+			config.Net.TLS.Config = tlsConfig
+			config.Net.TLS.Enable = true
+		}
 	*/
 
 	// On the broker side, you may want to change the following settings to get
@@ -63,11 +64,11 @@ func newAccessLogProducer(brokerList []string) sarama.AsyncProducer {
 	// By creating batches of compressed messages, we reduce network I/O at a cost of more latency.
 	config := sarama.NewConfig()
 	/*
-	tlsConfig := createTlsConfiguration()
-	if tlsConfig != nil {
-		config.Net.TLS.Enable = true
-		config.Net.TLS.Config = tlsConfig
-	}
+		tlsConfig := createTlsConfiguration()
+		if tlsConfig != nil {
+			config.Net.TLS.Enable = true
+			config.Net.TLS.Config = tlsConfig
+		}
 	*/
 	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
 	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
@@ -105,8 +106,8 @@ func (s *Server) Produce() error {
 	log.Info("Producing")
 	for {
 		entry := &Message{
-			Name:	"Romanski",
-			Age:	20,
+			Name: "Romanski",
+			Age:  20,
 		}
 
 		// We will use the client's IP address as key. This will cause

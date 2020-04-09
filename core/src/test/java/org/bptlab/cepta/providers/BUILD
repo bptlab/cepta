@@ -5,11 +5,6 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
-        # "//protos:person_java_proto",
-        # "@maven//:junit_junit_4_13",
-        # "@maven//:org_testcontainers_testcontainers",
-        # "@maven//:org_testcontainers_kafka",
-        # "//models/events:train_delay_notification_java_proto",
         "//models/events:weather_data_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
@@ -21,3 +16,8 @@ java_library(
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
     ],
 )
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

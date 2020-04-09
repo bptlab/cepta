@@ -20,7 +20,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/authentication",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -29,12 +29,17 @@ go_library(
     srcs = [
         "server.go",
     ],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     importpath = "github.com/bptlab/cepta/osiris/authentication",
     visibility = ["//visibility:private"],
     deps = [
         "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",
+        "//ci/versioning:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",
@@ -44,7 +49,6 @@ go_library(
         "@com_github_lib_pq//:go_default_library",
         "@com_github_selvatico_go_mocket//:go_default_library",
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library"
-        
     ],
 )
 
@@ -52,11 +56,11 @@ go_test(
     name = "go_default_test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
-    size = "medium"
+    size = "small",
+    tags = ["unit"],
 )
-test_suite(
-    name = "all_tests",
-    tests = [
-        "//osiris/authentication:go_default_test",
-    ]
-)
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

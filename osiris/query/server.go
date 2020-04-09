@@ -13,6 +13,7 @@ import (
 	// "github.com/golang/protobuf/proto"
 	// "github.com/bptlab/cepta/schemas/types/basic"
 	// "/schemas/types/basic"
+	"github.com/bptlab/cepta/ci/versioning"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/query/resolvers"
 	"github.com/friendsofgo/graphiql"
@@ -38,6 +39,12 @@ func ExampleDB_QueryRowContext() {
 	}
 }
 */
+
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
 
 func loadSchema(path string) (string, error) {
 	b, err := ioutil.ReadFile(path)
@@ -97,8 +104,9 @@ func serve(ctx *cli.Context) error {
 
 func main() {
 	app := &cli.App{
-		Name:  "CEPTA Query service",
-		Usage: "Provides a GraphQL interface for querying transportation data",
+		Name:    "CEPTA Query service",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "Provides a GraphQL interface for querying transportation data",
 		Flags: append(libdb.PostgresDatabaseCliOptions, []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "debug",

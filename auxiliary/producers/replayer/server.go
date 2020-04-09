@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
+	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/constants"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
@@ -41,6 +42,12 @@ import (
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
+
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
 
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
@@ -436,9 +443,10 @@ func main() {
 	log = logrus.New()
 	go func() {
 		app := &cli.App{
-			Name:  "CEPTA Train data replayer producer",
-			Usage: "Produces train data events by replaying a database dump",
-			Flags: cliFlags,
+			Name:    "CEPTA Train data replayer producer",
+			Version: versioning.BinaryVersion(Version, BuildTime),
+			Usage:   "Produces train data events by replaying a database dump",
+			Flags:   cliFlags,
 			Action: func(ctx *cli.Context) error {
 				level, err := logrus.ParseLevel(ctx.String("log"))
 				if err != nil {
