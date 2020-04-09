@@ -3,7 +3,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 go_binary(
-    name = "user_management",
+    name = "usermgmt",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -19,7 +19,7 @@ container_push(
   format = "Docker",
   image = ":image",
   registry = "index.docker.io",
-  repository = "ceptaorg/user_management",
+  repository = "ceptaorg/usermgmt",
   tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
@@ -33,10 +33,10 @@ go_library(
         "Version": "{STABLE_VERSION}",
         "BuildTime": "{buildDate}",
     },
-    importpath = "github.com/bptlab/cepta/osiris/user_management",
+    importpath = "github.com/bptlab/cepta/osiris/usermgmt",
     visibility = ["//visibility:private"],
     deps = [
-        "//models/grpc:user_management_go_proto",
+        "//models/grpc:usermgmt_go_proto",
         "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/authentication:go_default_library",

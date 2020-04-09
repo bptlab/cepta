@@ -11,7 +11,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	auth "github.com/bptlab/cepta/models/grpc/authentication"
-	pb "github.com/bptlab/cepta/models/grpc/user_management"
+	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 

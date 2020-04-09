@@ -8,7 +8,7 @@ import (
 	"time"
 
 	auth "github.com/bptlab/cepta/models/grpc/authentication"
-	pb "github.com/bptlab/cepta/models/grpc/user_management"
+	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	authserv "github.com/bptlab/cepta/osiris/authentication"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"

@@ -6,7 +6,7 @@ filegroup(
         "//osiris/query",
         "//osiris/notification",
         "//osiris/authentication",
-        "//osiris/user_management",
+        "//osiris/usermgmt",
         "//osiris/lib",
     ],
     visibility = ["//visibility:public"],
@@ -18,7 +18,7 @@ multirun(
         "//osiris/query:image",
         "//osiris/notification:image",
         "//osiris/authentication:image",
-        "//osiris/user_management:image",
+        "//osiris/usermgmt:image",
     ],
     parallel = True,
     visibility = ["//visibility:public"],
@@ -28,16 +28,14 @@ command(
     name = "run_auth",
     command = "//osiris/authentication",
     arguments = [
-        # "--",
         "--port",
         "-8080",
     ],
 )
 command(
-    name = "run_user_management",
-    command = "//osiris/user_management",
+    name = "run_usermgmt",
+    command = "//osiris/usermgmt",
     arguments = [
-        # "--",
         "--port",
         "-8079",
     ],
@@ -46,10 +44,8 @@ command(
 multirun(
     name = "run_all",
     commands = [
-        # "//osiris/query:image",
-        # "//osiris/notification:image",
         ":run_auth",
-        ":run_user_management",
+        ":run_usermgmt",
     ],
     parallel = True,
 )
@@ -60,7 +56,7 @@ multirun(
         "//osiris/query:publish",
         "//osiris/notification:publish",
         "//osiris/authentication:publish",
-        "//osiris/user_management:publish",
+        "//osiris/usermgmt:publish",
     ],
     parallel = True,
     visibility = ["//visibility:public"],
