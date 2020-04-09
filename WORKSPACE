@@ -246,15 +246,15 @@ go_repository(
 go_repository(
     name = "org_mongodb_go_mongo_driver",
     importpath = "go.mongodb.org/mongo-driver",
-    sum = "h1:ANAlYXXM5XmOdW/Nc38jOr+wS5nlk7YihT24U1imiWM=",
-    version = "v1.2.1",
+    sum = "h1:IYppNjEV/C+/3VPbhHVxQ4t04eVW0cLp0/pNdW++6Ug=",
+    version = "v1.3.2",
 )
 
 go_repository(
     name = "com_github_datadog_zstd",
     importpath = "github.com/DataDog/zstd",
-    sum = "h1:+IawcoXhCBylN7ccwdwf8LOH2jKq7NavGpEPanrlTzE=",
-    version = "v1.4.4",
+    sum = "h1:EndNeuB0l9syBZhut0wns3gV1hL8zX8LIu6ZiVHWLIQ=",
+    version = "v1.4.5",
 )
 
 go_repository(
