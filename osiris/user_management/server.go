@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/bptlab/cepta/ci/versioning"
+	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -32,10 +33,14 @@ var done = make(chan bool, 1)
 var log *logrus.Logger
 var db *libdb.PostgresDB
 
+// AuthClientFunc is fancy
+type AuthClientFunc func(*grpc.ClientConn) auth.AuthenticationClient
+
 type server struct {
 	pb.UnimplementedUserManagementServer
-	active bool
-	db     *libdb.PostgresDB
+	active     bool
+	authClient AuthClientFunc
+	db         *libdb.PostgresDB
 }
 
 // User is a struct to rep user account
@@ -77,7 +82,19 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	return &pb.Success{Success: true}, nil
+
+	// send user to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := server.authClient(conn) //auth.NewAuthenticationClient(conn)
+	_, errr := client.AddUser(ctx, &auth.User{Email: in.GetEmail(), Password: in.GetPassword()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+	return &pb.Success{Success: true}, err
 }
 
 func toStringArray(trains *pb.TrainIds) pq.StringArray {
@@ -148,6 +165,19 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
+
+	// send user removal to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := server.authClient(conn)
+	_, errr := client.RemoveUser(ctx, &auth.UserId{Value: in.GetValue()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+
 	return &pb.Success{Success: true}, nil
 }
 
@@ -164,6 +194,19 @@ func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*p
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
+
+	// send email to auth microservice
+	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
+	if err != nil {
+		return &pb.Success{Success: false}, err
+	}
+	client := auth.NewAuthenticationClient(conn)
+	_, errr := client.SetEmail(ctx, &auth.UserIdEmailInput{UserId: &auth.UserId{Value: in.GetUserId().GetValue()}, Email: in.GetEmail()})
+	if errr != nil {
+		return &pb.Success{Success: false}, errr
+	}
+	defer conn.Close()
+
 	return &pb.Success{Success: true}, nil
 }
 
@@ -223,6 +266,9 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	userManagementServer := server{
 		active: true,
 		db:     db,
+		authClient: func(conn *grpc.ClientConn) auth.AuthenticationClient {
+			return auth.NewAuthenticationClient(conn)
+		},
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
