@@ -12,7 +12,7 @@
       <map-visualisation></map-visualisation>
     </div>
   </div>
-    <!--
+  <!--
     <masonry-layout-tile section="Train ID's" layoutStyle='{"col-md-2": true}'>
       <table>
         <tr>
@@ -27,7 +27,6 @@
       <map-visualisation></map-visualisation>
     </masonry-layout-tile>
     -->
-  
 </template>
 
 <script lang="ts">

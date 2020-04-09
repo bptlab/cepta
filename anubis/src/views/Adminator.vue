@@ -14,9 +14,9 @@
         </transition>
       </div>
       <!-- App Screen Footer -->
-        <footer-component>
-          <span id="footer">{{ version }} &#x24B8; CEPTA 2020</span>
-        </footer-component>
+      <footer-component>
+        <span id="footer">{{ version }} &#x24B8; CEPTA 2020</span>
+      </footer-component>
     </div>
   </div>
 </template>
