@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/user_management"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -19,6 +20,12 @@ import (
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
+
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
 
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
@@ -178,9 +185,10 @@ func main() {
 	log = logrus.New()
 	go func() {
 		app := &cli.App{
-			Name:  "CEPTA User management server",
-			Usage: "manages the user database",
-			Flags: cliFlags,
+			Name:    "CEPTA User management server",
+			Version: versioning.BinaryVersion(Version, BuildTime),
+			Usage:   "manages the user database",
+			Flags:   cliFlags,
 			Action: func(ctx *cli.Context) error {
 				level, err := logrus.ParseLevel(ctx.String("log"))
 				if err != nil {

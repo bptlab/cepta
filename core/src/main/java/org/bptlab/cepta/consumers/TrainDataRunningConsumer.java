@@ -18,7 +18,6 @@ public class TrainDataRunningConsumer extends Consumer {
 
   public void shutdown() {
     close();
-    // logger.info("Consumer shutting down");
   }
 
   public void start() {
@@ -27,22 +26,15 @@ public class TrainDataRunningConsumer extends Consumer {
     while (true) {
       final ConsumerRecords<Long, LiveTrainData> consumerRecords = poll(timeout);
       if (consumerRecords.count() < 1) {
-        // logger.warn(String.format("Did not receive any records in %d milliseconds", timeout));
         continue;
       }
       consumerRecords.forEach(
-          record -> {
-            /* logger.debug(
-            String.format(
-                "Consumer Record:(%d, %s, %d, %d)\n",
-                record.key(), record.value(), record.partition(), record.offset())); */
-          });
+          record -> {});
       commitAsync();
     }
   }
 
   public void stop() {
     this.running = false;
-    // logger.info("Consumer stopping");
   }
 }

@@ -1,9 +1,11 @@
-load("@rules_java//java:defs.bzl", "java_test", "java_library")
+load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
     name = "data-cleansing",
     srcs = ["DataCleansingTests.java"],
     test_class = "org.bptlab.cepta.DataCleansingTests",
+    size = "small",
+    tags = ["unit"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators",
         "//core/src/main/java/org/bptlab/cepta/config",
@@ -18,9 +20,7 @@ java_test(
     ],
 )
 
-test_suite(
-    name = "all",
-    tests = [
-        ":data-cleansing",
-    ],
-)
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

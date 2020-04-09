@@ -9,6 +9,7 @@ java_binary(
     resources = glob([
         "src/main/resources/**",
     ]),
+    stamp = True,
     visibility = ["//visibility:public"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators:operators",
@@ -84,6 +85,19 @@ container_push(
     image = ":image",
     registry = "index.docker.io",
     repository = "ceptaorg/core",
-    tag = "master",
+    tag = "{STABLE_DOCKER_TAG}",
     visibility = ["//visibility:public"],
 )
+
+sub_tests = [
+    "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation",
+    "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-live-train-join",
+    "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
+    "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
+    "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
+]
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"], tests=sub_tests)
+test_suite(name = "unit", tags = ["unit", "-internal"], tests=sub_tests)
+test_suite(name = "integration", tags = ["integration", "-internal"], tests=sub_tests)
+test_suite(name = "internal", tests=sub_tests)

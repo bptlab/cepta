@@ -6,7 +6,7 @@ option java_outer_classname = "InfoDataProtos";
 
 
 message LocationData {
-    int64 eleta_station_id = 1;
+    int64 station_id = 1;
     double longitude = 2;
     double latitude = 3;
     string station_abbreviation = 4;
