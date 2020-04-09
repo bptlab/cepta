@@ -26,7 +26,7 @@ container_push(
   image = ":image",
   registry = "index.docker.io",
   repository = "ceptaorg/query",
-  tag = "master",
+  tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
 
@@ -35,11 +35,16 @@ go_library(
     srcs = [
         "server.go",
     ],
+    x_defs = {
+        "Version": "{STABLE_VERSION}",
+        "BuildTime": "{buildDate}",
+    },
     importpath = "github.com/bptlab/cepta/osiris/query",
     visibility = ["//visibility:private"],
     deps = [
         "//osiris/lib/db:go_default_library",
         "//models/gql:query_go_proto",
+        "//ci/versioning:go_default_library",
         "//osiris/query/resolvers:go_default_library",
         "@com_github_friendsofgo_graphiql//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
@@ -52,3 +57,8 @@ go_library(
         "@com_github_sirupsen_logrus//:go_default_library",
     ],
 )
+
+test_suite(name = "smoke", tags = ["-docker", "-internal"])
+test_suite(name = "unit", tags = ["unit", "-internal"])
+test_suite(name = "integration", tags = ["integration", "-internal"])
+test_suite(name = "internal")

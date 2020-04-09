@@ -413,6 +413,8 @@ filegroup(
         ":gps_trip_update_java_proto",
         ":infrastructure_manager_data_go_proto",
         ":infrastructure_manager_data_java_proto",
+        ":train_delay_notification_ts_proto",
+        ":train_delay_notification_nodejs_proto",
         ":country_data_go_proto",
         ":country_data_java_proto",
         ":live_train_data_go_proto",
