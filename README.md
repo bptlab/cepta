@@ -2,6 +2,7 @@ CEPTA - Complex Event Processing Transportation Analysis
 
 [![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
 ![GitHub](https://img.shields.io/github/license/bptlab/cepta)
+[![Release](https://img.shields.io/github/release/bptlab/cepta)](https://github.com/bptlab/cepta/releases/latest)
 
 The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
