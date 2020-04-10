@@ -7,7 +7,7 @@
     <div v-if="!isRedirecting && appAllowsRegister">
       <form @submit.prevent="signup">
         <div class="form-group">
-          <label class="text-normal text-dark">Username</label>
+          <label>Username</label>
           <input
             type="text"
             class="form-control"
@@ -16,7 +16,7 @@
           />
         </div>
         <div class="form-group">
-          <label class="text-normal text-dark">Email Address</label>
+          <label>Email Address</label>
           <input
             type="email"
             class="form-control"
@@ -25,7 +25,7 @@
           />
         </div>
         <div class="form-group">
-          <label class="text-normal text-dark">Password</label>
+          <label>Password</label>
           <input
             type="password"
             class="form-control"
@@ -34,12 +34,12 @@
           />
         </div>
         <div class="form-group">
-          <label class="text-normal text-dark">Confirm Password</label>
+          <label>Confirm Password</label>
           <input
             type="password"
             class="form-control"
             placeholder="Password"
-            v-model="conf_password"
+            v-model="passwordConfirm"
           />
         </div>
         <div class="form-group">
@@ -70,7 +70,7 @@ export default class SignUp extends Vue {
   username: string = "";
   email: string = "";
   password: string = "";
-  conf_password: string = "";
+  passwordConfirm: string = "";
 
   //computed
   get appAllowsRegister() {
