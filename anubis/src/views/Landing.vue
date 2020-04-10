@@ -14,9 +14,7 @@
         </div>
       </div>
     </div>
-    <div
-      class="landing-content col-12 col-md-4 peer pX-40 pY-80 h-100 pos-r"
-    >
+    <div class="landing-content col-12 col-md-4 peer pX-40 pY-80 h-100 pos-r">
       <router-view />
     </div>
   </div>
