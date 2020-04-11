@@ -110,7 +110,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "vue-cli-service lint"
+      "pre-commit": "vue-cli-service lint --no-fix"
     }
   },
   "browserslist": [
