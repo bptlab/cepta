@@ -15,7 +15,11 @@
       </div>
       <!-- App Screen Footer -->
       <footer-component>
-        <span id="footer">{{ version }} &#x24B8; CEPTA 2020</span>
+        <span id="footer"
+          >{{ version }} &#x24B8; CEPTA 2020
+          <a href="https://github.com/bptlab/cepta"
+            >GitHub <span class="icon icon-new-window"></span></a
+        ></span>
       </footer-component>
     </div>
   </div>
@@ -30,14 +34,14 @@ import { AppModule } from "@/store/modules/app";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "Adminator",
+  name: "Main",
   components: {
     "sidebar-component": Sidebar,
     "footer-component": Footer,
     "navbar-component": NavigationBar
   }
 })
-export default class Adminator extends Vue {
+export default class Main extends Vue {
   get isCollapsed() {
     return AppModule.isCollapsed;
   }

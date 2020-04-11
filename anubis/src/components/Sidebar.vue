@@ -37,63 +37,30 @@
         <!-- Websockets -->
         <sidebar-element title="Dashboard" :route="{ name: 'home' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-rocket"></i>
+            <i class="sidebar-icon-dashboard icon-dashboard"></i>
           </template>
         </sidebar-element>
 
         <!-- User -->
-        <sidebar-element
-          title="Trainmanagement"
-          :route="{ name: 'trainmanagement' }"
-        >
+        <sidebar-element title="Manage Transports" :route="{ name: 'manage' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-book"></i>
+            <i class="sidebar-icon-manage icon-book"></i>
           </template>
         </sidebar-element>
 
         <!-- Map -->
-        <sidebar-element title="Live map" :route="{ name: 'map' }">
+        <sidebar-element title="Live Feed" :route="{ name: 'feed' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-map"></i>
+            <i class="sidebar-icon-feed icon-rss-alt"></i>
           </template>
         </sidebar-element>
 
-        <!-- Multiple Levels -->
-        <sidebar-dropdown title="Examples">
+        <!-- Map -->
+        <sidebar-element title="Overview Map" :route="{ name: 'map' }">
           <template v-slot:icon>
-            <i class="c-teal-500 icon-view-list-alt"></i>
+            <i class="sidebar-icon-map icon-map-alt"></i>
           </template>
-          <template v-slot:entries>
-            <!-- Pages -->
-            <sidebar-dropdown title="Pages">
-              <template v-slot:icon>
-                <i class="c-red-500 icon-files"></i>
-              </template>
-              <template v-slot:entries>
-                <sidebar-dropdown-element
-                  title="Blank"
-                  :route="{ name: 'blank' }"
-                />
-                <sidebar-dropdown-element
-                  title="404 Error"
-                  :route="{ name: 'error404' }"
-                />
-                <sidebar-dropdown-element
-                  title="500 Error"
-                  :route="{ name: 'error500' }"
-                />
-                <sidebar-dropdown-element
-                  title="Log In"
-                  :route="{ name: 'login' }"
-                />
-                <sidebar-dropdown-element
-                  title="Sign Up"
-                  :route="{ name: 'signup' }"
-                />
-              </template>
-            </sidebar-dropdown>
-          </template>
-        </sidebar-dropdown>
+        </sidebar-element>
       </ul>
     </div>
   </div>
@@ -156,6 +123,16 @@ export default class Sidebar extends Vue {
   transition: all 0.2s ease
   width: $offscreen-size
   z-index: 1002
+
+  // Custom icon coloring
+  .sidebar-icon-dashboard
+    +theme(color, c-sidebar-icon-dashboard)
+  .sidebar-icon-manage
+    +theme(color, c-sidebar-icon-manage)
+  .sidebar-icon-feed
+    +theme(color, c-sidebar-icon-feed)
+  .sidebar-icon-map
+    +theme(color, c-sidebar-icon-map)
 
   ul
     list-style-type: none
@@ -337,23 +314,13 @@ export default class Sidebar extends Vue {
         .arrow
           line-height: 25px
 
-      &.lol
-        > a
-          +theme(color, c-default-text)
-
-          .icon-holder
-            +theme(color, c-default-text)
-
-          .arrow
-            transform: rotate(90deg)
-
     a
-      +theme(color, c-default-text)
+      +theme-color-diff(color, c-default-text, 50)
       transition: all 0.3s ease
 
       &:hover,
       &:focus
-        color: $default-dark
+        +theme(color, c-default-text)
         text-decoration: none
 
         .icon-holder

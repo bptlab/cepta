@@ -1,7 +1,7 @@
 import Vue from "vue";
 import store from "@/store";
 import Router, { Route, RouteConfig } from "vue-router";
-import Adminator from "@/views/Adminator.vue";
+import Main from "@/views/Main.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
 
@@ -59,24 +59,28 @@ export const routes: RouteConfig[] = [
 
   {
     path: "/user",
-    redirect: "/user/trainmanagement",
+    redirect: "/user/settings",
     meta: { requiresAuth: true },
     beforeEnter: ifAuthenticated,
-    component: Adminator,
+    component: Main,
     children: [
       {
-        path: "trainmanagement",
-        name: "trainmanagement",
+        path: "manage/transports",
+        name: "manage",
         meta: { requiresAuth: true },
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/TrainManagement.vue")
+          import(
+            /* webpackChunkName: "transportmanager" */ "@/views/TransportManager.vue"
+          )
       },
       {
         path: "settings",
         name: "settings",
         meta: { requiresAuth: true },
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/UserSettings.vue")
+          import(
+            /* webpackChunkName: "usersettings" */ "@/views/UserSettings.vue"
+          )
       }
     ]
   },
@@ -85,7 +89,7 @@ export const routes: RouteConfig[] = [
     redirect: "/dashboard/home",
     meta: { requiresAuth: true },
     beforeEnter: ifAuthenticated,
-    component: Adminator,
+    component: Main,
     children: [
       {
         path: "home",
@@ -93,31 +97,33 @@ export const routes: RouteConfig[] = [
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Dashboard.vue")
+          import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
+      },
+      {
+        path: "feed",
+        name: "feed",
+        meta: { requiresAuth: true },
+        beforeEnter: ifAuthenticated,
+        component: () =>
+          import(/* webpackChunkName: "feed" */ "@/views/Feed.vue")
       },
       {
         path: "map",
         name: "map",
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, useSearchToFilter: true },
         beforeEnter: ifAuthenticated,
         component: () => import(/* webpackChunkName: "map" */ "@/views/Map.vue")
       },
       {
-        path: "blank",
-        name: "blank",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
-        component: () =>
-          import(/* webpackChunkName: "blank" */ "@/views/Blank.vue")
-      },
-      {
-        path: "traindata/:id",
-        name: "traindata",
+        path: "transport/:transportid",
+        name: "transport",
         props: true,
         meta: { requiresAuth: true },
         beforeEnter: ifAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "TrainData" */ "@/views/Traindata.vue")
+          import(
+            /* webpackChunkName: "transportdetail" */ "@/views/TransportDetail.vue"
+          )
       }
     ]
   },
@@ -131,14 +137,12 @@ export const routes: RouteConfig[] = [
       {
         path: "404",
         name: "error404",
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/404.vue")
+        component: () => import(/* webpackChunkName: "404" */ "@/views/404.vue")
       },
       {
         path: "500",
         name: "error500",
-        component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/500.vue")
+        component: () => import(/* webpackChunkName: "500" */ "@/views/500.vue")
       }
     ]
   },
