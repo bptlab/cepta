@@ -1,3 +1,15 @@
 @import "@/style/spec/settings/index.sass"
 @import "@/style/spec/tools/index.sass"
 @import "@/style/themes.scss"
+
+/* Transform with all browsers */
+=transform($property)
+  -webkit-transform: $property
+      -ms-transform: $property
+          transform: $property
+
+/* Transitions with all browsers */
+=transition($property)
+  -webkit-transition: $property
+      -ms-transition: $property
+          transition: $property
