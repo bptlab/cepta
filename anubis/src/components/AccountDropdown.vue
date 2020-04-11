@@ -2,7 +2,7 @@
   <li class="dropdown">
     <!-- User account dropdown toggle -->
     <a
-      class="dropdown-toggle no-after peers fxw-nw ai-c lh-1"
+      class="dropdown-toggle no-after peers fxw-nw ai-c"
       data-toggle="dropdown"
     >
       <div class="peer mR-10">
@@ -64,8 +64,17 @@ export default class AccountDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
-.dropdown-menu
-  padding: 5px 20px
-  min-width: 100px
-  margin-left: -50px
+.dropdown
+  position: relative
+  display: block
+  line-height: $header-height
+  height: $header-height
+  cursor: pointer
+  margin-left: 15px
+
+  .dropdown-menu
+    +theme(background-color, bgc-navbar)
+    padding: 5px 20px
+    min-width: 100px
+    margin-left: -50px
 </style>

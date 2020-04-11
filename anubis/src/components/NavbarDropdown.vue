@@ -1,7 +1,7 @@
 <template>
   <li class="generic-dropdown dropdown">
     <!-- Toggle -->
-    <a class="dropdown-toggle no-after fxw-nw ai-c lh-1" data-toggle="dropdown">
+    <a class="dropdown-toggle no-after fxw-nw ai-c" data-toggle="dropdown">
       <slot name="icon"></slot>
     </a>
     <!-- Dropdown menu -->
@@ -34,11 +34,16 @@ export default class NavbarDropdown extends Vue {
 
 <style scoped lang="sass">
 .dropdown
+  cursor: pointer
+  line-height: $header-height
+  height: $header-height
   margin-left: 15px
 
 .dropdown-menu
+  +theme(background-color, bgc-navbar)
   left: auto
   right: 0
+  color: inherit
 
   > li
     width: 100%

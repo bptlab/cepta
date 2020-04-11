@@ -1,12 +1,12 @@
 <template>
   <li class="notifications dropdown">
     <!-- Toggle -->
-    <div data-toggle="dropdown">
+    <a data-toggle="dropdown">
       <span class="counter bgc-red">{{ number }}</span>
       <a class="dropdown-toggle no-after">
         <slot name="icon"></slot>
       </a>
-    </div>
+    </a>
     <!-- Dropdown menu -->
     <ul class="dropdown-menu">
       <li class="pX-20 pY-15 bdB">
@@ -54,33 +54,39 @@ export default class NotificationsDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
-.dropdown-menu
-  left: auto
-  right: 0
+.dropdown
+  display: block
+  line-height: $header-height
+  height: $header-height
+  cursor: pointer
+  margin-left: 15px
 
-  > li
-    width: 100%
+  .dropdown-menu
+    left: auto
+    right: 0
 
-    > a
-      line-height: 1.5
-      min-height: auto
-      padding: 10px 15px
+    > li
+      width: 100%
+
+      > a
+        padding: 10px 15px
 
 .notifications
   position: relative
-  padding: 7px
 
   .counter
     background-color: $default-danger
-    border-radius: 50px
+    border-radius: 10px
     color: $default-white
     font-size: 10px
-    line-height: 1
-    padding: 3px 5.5px
+    line-height: 20px
+    text-align: center
+    display: block
+    width: 20px
+    height: 20px
     position: absolute
-    right: 16px
-    top: 16px
-    opacity: 0.8
+    left: calc(50% - 20px)
+    bottom: calc(50% - 17px)
 
   .dropdown-menu
     min-width: 350px

@@ -20,4 +20,8 @@ export default class extends Vue {
 }
 </script>
 
-<style scoped lang="sass"></style>
+<style scoped lang="sass">
+a
+  +theme(color, c-default-text)
+  color: inherit
+</style>

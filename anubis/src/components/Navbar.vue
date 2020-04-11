@@ -15,7 +15,10 @@
         <!-- Search -->
         <li class="search-box" :class="{ active: searchToggled }">
           <a class="search-toggle no-pdd-right" @click.prevent="toggleSearch">
-            <i class="search-icon icon-search pdd-right-10"></i>
+            <i
+              class="search-icon pdd-right-10"
+              :class="isFilter ? 'icon-filter' : 'icon-search'"
+            ></i>
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
@@ -29,18 +32,44 @@
             ref="searchInput"
             v-model="search"
             type="text"
-            placeholder="Search..."
+            :placeholder="isFilter ? 'Filter...' : 'Search...'"
           />
+          <div class="search-context">
+            <ul class="results">
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+            </ul>
+            <ul class="hints">
+              <li>
+                <div>Result 1 <span class="icon icon-plus"></span></div>
+              </li>
+            </ul>
+          </div>
         </li>
       </ul>
+
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
+        <li>
+          <a id="themeToggleBtn" @click="toggleTheme" class="btn">
+            <span class="icon icon-palette"></span>
+          </a>
+        </li>
+
+        <li>
+          <a id="reloadBtn" class="btn">
+            <span class="icon icon-reload"></span>
+          </a>
+        </li>
+
         <navbar-dropdown>
           <template v-slot:icon>
-            <span
+            <a
               id="replayBtn"
-              :class="{ btn: true, 'btn-danger': isReplaying }"
+              class="btn"
+              :class="isReplaying ? 'btn-danger' : 'inactive-replayer'"
             >
               {{ replayStatus }}
               <beat-loader
@@ -49,7 +78,7 @@
                 :color="'#ffffff'"
                 :size="'8px'"
               ></beat-loader>
-            </span>
+            </a>
           </template>
           <template v-slot:content>
             <form>
@@ -169,7 +198,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
 import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
@@ -207,10 +236,10 @@ export default class NavigationBar extends Vue {
     ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
   replayTypeInput: string = Object.keys(ReplayType)[0];
 
-  private equalArrays(a1: string[], a2: string[]): boolean {
-    return (
-      a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
-    );
+  private equalArrays(a1?: string[], a2?: string[]): boolean {
+    return a1 != undefined && a2 != undefined
+      ? a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
+      : false;
   }
 
   get replayerConfigChanged() {
@@ -281,6 +310,14 @@ export default class NavigationBar extends Vue {
     ); // Bitwise-OR the value with zero to get int
   }
 
+  get isFilter(): boolean {
+    return this.$route.meta.useSearchToFilter as boolean;
+  }
+
+  get themeClass(): string {
+    return AppModule.themeClass;
+  }
+
   get replayOptions() {
     let options = new ReplayStartOptions();
     let errids = this.replayIds || new Array<string>();
@@ -292,6 +329,19 @@ export default class NavigationBar extends Vue {
       options.setSpeed(speed);
     }
     return options;
+  }
+
+  toggleTheme() {
+    AppModule.toggleTheme();
+  }
+
+  @Watch("themeClass")
+  onThemeClassChanged(newValue: string) {
+    // Remove all classes first
+    document.body.classList.forEach(currentIndex => {
+      document.body.classList.remove(currentIndex);
+    });
+    document.body.classList.add(newValue);
   }
 
   toggleReplay() {
@@ -393,7 +443,9 @@ export default class NavigationBar extends Vue {
   .header-container
     +clearfix
 
-    height: $header-height
+    .btn
+      color: inherit
+      height: calc(#{$header-height} / 2)
 
     .nav-left,
     .nav-right
@@ -401,15 +453,15 @@ export default class NavigationBar extends Vue {
       margin-bottom: 0
       padding-left: 0
       position: relative
+      line-height: $header-height
 
       > li
         float: left
 
         > a
-          color: $default-text-color
           display: block
           line-height: $header-height
-          min-height: $header-height
+          height: $header-height
           padding: 0 15px
           transition: all 0.2s ease-in-out
 
@@ -418,7 +470,7 @@ export default class NavigationBar extends Vue {
 
           &:hover,
           &:focus
-            color: $default-dark
+            +theme(color, c-accent-text)
             text-decoration: none
 
           +to($breakpoint-md)
@@ -426,23 +478,25 @@ export default class NavigationBar extends Vue {
 
     .nav-left
       float: left
-      margin-left: 15px
+      width: calc(100% - 400px)
+      padding-left: 15px
       transition: 0.2s ease
 
       +from($breakpoint-xl)
         margin-left: 230px
 
     .nav-right
+      width: 400px
       float: right
-      margin-right: 10px
-      margin-top: 15px
+      padding-right: 10px
 
       #replayBtn
-        float: left
-        height: calc(#{$header-height} / 2)
         margin: 0
-        margin-right: 20px
-        width: auto
+
+        &.inactive-replayer:hover
+          +theme(color, c-accent-text)
+          // +theme-color-diff(background-color, bgc-navbar, 10)
+
 
   .search-box
     .search-icon-close
@@ -462,6 +516,7 @@ export default class NavigationBar extends Vue {
       display: inline-block
 
     input
+      +theme(color, c-default-text)
       background-color: transparent
       border: 0
       box-shadow: none
@@ -482,6 +537,48 @@ export default class NavigationBar extends Vue {
       +placeholder
         color: lighten($default-text-color, 20%)
         font-style: italic
+
+    .search-context
+      padding-bottom: 15px
+      .icon
+        font-size: 0.7rem
+      .results, .hints
+        list-style: none
+        width: 100%
+        display: inline-block
+        text-decoration: none
+        margin: 0
+        padding: 0
+
+      .results>li, .hints>li>div
+          +transition(all 0.2s ease-in)
+          line-height: 20px
+          vertical-align: middle
+          padding: 2px 6px
+          border-radius: 8px
+          margin: 2px
+          float: left
+          cursor: pointer
+
+    .search-context
+      .results
+        li
+          +theme-color-diff(background-color, bgc-navbar, 10)
+          &:hover
+            +theme-color-diff(background-color, bgc-navbar, 20)
+
+      .hints>li
+        div
+          border: 1px solid transparent
+          +transition(all 0.2s ease-in)
+          display: inline-block
+          .icon
+            opacity: 0
+        &:hover
+          div
+            +theme-color-diff(border-color, bgc-navbar, 20)
+            .icon
+              opacity: 1
 
 // ---------------------------------------------------------
 // @Collapsed State
