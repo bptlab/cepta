@@ -15,15 +15,18 @@
     <!-- Dropdown menu items -->
     <ul class="dropdown-menu fsz-sm">
       <!-- Profile page -->
-      <account-dropdown-element title="Profile" route="profile">
+      <account-dropdown-element title="Profile" :route="{ name: 'profile' }">
         <i class="icon-user mR-10"></i>
       </account-dropdown-element>
       <!-- Settings page -->
-      <account-dropdown-element title="Settings" route="/user/settings">
+      <account-dropdown-element title="Settings" :route="{ name: 'settings' }">
         <i class="icon-settings mR-10"></i>
       </account-dropdown-element>
       <!-- Messages page -->
-      <account-dropdown-element title="Messages" route="profile/messages">
+      <account-dropdown-element
+        title="Messages"
+        :route="{ name: 'notifications' }"
+      >
         <i class="icon-email mR-10"></i>
       </account-dropdown-element>
       <li role="separator" class="divider"></li>
