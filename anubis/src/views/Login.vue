@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h4 class="fw-300 c-grey-900 mB-40">Login</h4>
+    <h4 class="fw-300 mB-40">Login</h4>
     <div v-if="isRedirecting">
       <i class="fas fa-spinner fa-2x fa-spin"></i>
     </div>
@@ -87,7 +87,11 @@ export default class Login extends Vue {
   clearForm() {
     this.password = "";
   }
+
+  mounted() {}
+
   login() {
+    /* 
     this.hasError = false;
     AuthModule.authRequest({ email: this.email, password: this.password }).then(
       () => {
@@ -102,9 +106,12 @@ export default class Login extends Vue {
         this.errorMessage = message;
         this.clearForm();
       }
+     */
+    let jsonBody: string = `{ email: "${this.email}", password: "${this.password}"}`;
+    this.$http.post(
+      "http://warm-plains-47366.herokuapp.com/api/user/login",
+      jsonBody
     );
   }
-
-  mounted() {}
 }
 </script>

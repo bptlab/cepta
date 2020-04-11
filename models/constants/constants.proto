@@ -1,0 +1,29 @@
+syntax = "proto3";
+package constants;
+option go_package = "github.com/bptlab/cepta/constants";
+
+option java_multiple_files = true;
+option java_package = "org.bptlab.cepta.constants";
+// option java_outer_classname = "Constants";
+
+enum Topics {
+  CHECKPOINT_DATA = 0;
+  CREW_ACTIVITY_DATA = 1;
+  CREW_END_DATA = 2;
+  CREW_PREP_DATA = 3;
+  CREW_SHIFT_DATA = 4;
+  CREW_TRANSITION_DATA = 5;
+  DELAY_EXPLANATION_DATA = 6;
+  DELAY_NOTIFICATIONS = 7;
+  INFRASTRUCTURE_MANAGER_DATA = 8;
+  LIVE_TRAIN_DATA = 9;
+  LOCATION_DATA = 10;
+  PLANNED_TRAIN_DATA = 11;
+  PREDICTED_TRAIN_DATA = 12;
+  RAILWAY_UNDERTAKING_DATA = 13;
+  STATION_DATA = 14;
+  TRAIN_INFORMATION_DATA = 15;
+  VEHICLE_DATA = 16;
+  WEATHER_DATA = 17;
+  GPS_TRIP_UPDATE_DATA = 18;
+}

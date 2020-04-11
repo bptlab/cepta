@@ -10,8 +10,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
-import SockJS from "sockjs-client";
 import { AuthModule } from "@/store/modules/auth";
+import { AppModule } from "@/store/modules/app";
+import { TrainDelayNotification } from "./generated/protobuf/TrainDelayNotification_pb";
 
 @Component({
   name: "App",
@@ -26,42 +27,35 @@ export default class App extends Vue {
   }
 
   connectWebsocket() {
-    /*
-    this.socket = new SockJS("http://localhost:5000/ws");
-    this.$store.commit('setWebsocket', this.socket);
-      */
-
-    let socket: WebSocket = new WebSocket("ws://localhost:5555/ws");
+    let socket: WebSocket = new WebSocket(
+      "ws://" + window.location.hostname + "/ws/userdata"
+    );
+    socket.binaryType = "arraybuffer";
     console.log("Attempting Connection...");
-
     socket.onopen = () => {
       console.log("Successfully Connected");
       socket.send(this.generateRandomUserID(10));
     };
-
     socket.onmessage = event => {
-      var message = JSON.parse(event.data);
-
-      if (message.type == 4) {
-        console.log(JSON.parse(message.body))
-      } else {
-        console.log(message);
-      }
-    }
+      let deserializedEvent = TrainDelayNotification.deserializeBinary(
+        new Uint8Array(event.data)
+      );
+      console.log(deserializedEvent);
+      AppModule.addDelay(deserializedEvent);
+      // var message = JSON.parse(event.data);
+    };
 
     socket.onclose = event => {
       console.log("Socket Closed Connection: ", event);
-      socket.send("Client Closed!")
+      socket.send("Client Closed!");
     };
-
     socket.onerror = error => {
       console.log("Socket Error: ", error);
     };
+  }
 
-  } 
-
-  generateRandomUserID(quantity:number) :string {
-    var userId:string = Math.floor(Math.random() * quantity).toString()
+  generateRandomUserID(quantity: number): string {
+    var userId: string = Math.floor(Math.random() * quantity).toString();
     return userId;
   }
 
@@ -88,7 +82,7 @@ export default class App extends Vue {
     this.socket.close();
   }
   */
-};
+}
 </script>
 
 <style lang="scss">
@@ -133,66 +127,7 @@ export default class App extends Vue {
   background: #42b983
   height: 3px
 
-/* Base */
-html, html a, body
-  -webkit-font-smoothing: antialiased
-
-a
-  transition: all 0.3s ease-in-out
-
-body
-  font-family: $font-primary
-  font-size: 14px
-  color: $default-text-color
-  line-height: 1.5
-  letter-spacing: 0.2px
-  overflow-x: hidden
-h1,
-h2,
-h3,
-h4,
-h5,
-h6
-  font-family: $font-secondary
-  letter-spacing: 0.5px
-  line-height: 1.5
-
-  a
-    font-family: $font-secondary
-
-  small
-    font-weight: 300
-    color: lighten($default-dark, 5%)
-
-p
-  font-family: $font-primary
-  line-height: 1.9
-
-.lead
-  font-size: 18px
-
-ul
-  margin-bottom: 0
-
-a
-  color: $default-info
-
-  &:hover,
-  &:focus
-    text-decoration: none
-    color: darken($default-info, 10%)
-
-  &:focus
-    outline: none
-
-  &.text-gray
-    &:hover,
-    &:focus,
-    &.active
-      color: $default-dark !important
-
-\:focus
-  outline: none
-hr
-  border-top: 1px solid $border-color
+#app
+  +theme(background-color, bgc-body)
+  +theme(color, c-default-text)
 </style>

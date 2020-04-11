@@ -1,0 +1,16 @@
+syntax = "proto3";
+package crew;
+option go_package = "github.com/bptlab/cepta/models/events/crew";
+option java_package = "org.bptlab.cepta.models.events.crew";
+option java_outer_classname = "CrewDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message CrewTransitionData {
+    int64 activity_id = 1;
+    int64 transition_type = 2;
+    google.protobuf.Timestamp start_time = 3;
+    google.protobuf.Timestamp end_time = 4;
+    google.protobuf.Timestamp start_break_time = 5;
+    google.protobuf.Timestamp end_break_time = 6;
+}

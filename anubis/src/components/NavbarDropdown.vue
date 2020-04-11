@@ -1,10 +1,6 @@
 <template>
   <li class="generic-dropdown dropdown">
     <!-- Toggle -->
-    <span v-if="number" class="counter bgc-red">{{ number }}</span>
-    <!--<a class="dropdown-toggle no-after" data-toggle="dropdown">
-      <slot name="icon"></slot>
-    </a>-->
     <a class="dropdown-toggle no-after fxw-nw ai-c lh-1" data-toggle="dropdown">
       <slot name="icon"></slot>
     </a>
@@ -27,8 +23,8 @@ export default class NavbarDropdown extends Vue {
   @Prop({ default: "Notification Dropdown" }) private title!: string;
   @Prop({ default: "" }) private more!: string;
   @Prop({ default: 0 }) private number!: number;
-  
-  open: boolean = false
+
+  open: boolean = false;
 
   get uuid() {
     return this.title.replace(/\s+/g, "");

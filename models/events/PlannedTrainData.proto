@@ -1,0 +1,26 @@
+syntax = "proto3";
+package train;
+option go_package = "github.com/bptlab/cepta/models/events/train";
+option java_package = "org.bptlab.cepta.models.events.train";
+option java_outer_classname = "PlannedTrainDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message PlannedTrainData {
+    int64 id = 1;
+    int64 train_section_id = 2;
+    int64 station_id = 3;
+    google.protobuf.Timestamp planned_event_time = 4;
+    int64 status = 5;
+    int64 first_train_id = 6;
+    int64 train_id = 7;
+    google.protobuf.Timestamp planned_departure_time_start_station = 8;
+    google.protobuf.Timestamp planned_arrival_time_end_station = 9;
+    int64 ru_id = 10;
+    int64 end_station_id = 11; // Identifier of transfer location if continues with other train_id, or end location
+    int64 im_id = 12;
+    int64 following_im_id = 13;
+    int64 message_status = 14;
+    google.protobuf.Timestamp ingestion_time = 15;
+    int64 original_train_id = 16;
+}

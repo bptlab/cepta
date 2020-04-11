@@ -1,0 +1,84 @@
+syntax = "proto3";
+package replayer;
+option go_package = "github.com/bptlab/cepta/models/grpc/replayer";
+
+option java_multiple_files = true;
+option java_package = "org.bptlab.cepta.producers.replayer";
+option java_outer_classname = "ReplayerProto";
+
+import "google/protobuf/timestamp.proto";
+
+service Replayer {
+
+  // Basic controls
+  rpc SeekTo(google.protobuf.Timestamp) returns (Success) {}
+  rpc Reset(Empty) returns (Success) {}
+  rpc Start(ReplayStartOptions) returns (Success) {}
+  rpc Stop(Empty) returns (Success) {}
+
+  // Configuration
+  rpc SetSpeed(Speed) returns (Success) {}
+  rpc SetType(ReplayTypeOption) returns (Success) {}
+  rpc SetOptions(ReplayOptions) returns (Success) {}
+
+  // Query
+  rpc GetStatus(Empty) returns (ReplayStatus) {}
+  rpc GetOptions(Empty) returns (ReplayStartOptions) {}
+}
+
+enum InternalControlMessageType {
+  RESET = 0;
+  SEEK = 1;
+  SHUTDOWN = 2;
+}
+
+enum ReplayType {
+  // Proportional is default
+  PROPORTIONAL = 0;
+  CONSTANT = 1;
+}
+
+message ReplayTypeOption {
+  ReplayType type = 1;
+}
+
+message Speed {
+  int32 speed = 1;
+}
+
+
+/*message Timestamp {
+  string timestamp = 1;
+}*/
+
+message ReplayStatus {
+  bool active = 1;
+}
+
+message Timerange {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+}
+
+message ReplayOptions {
+  Speed speed = 2;
+  Timerange range = 3;
+  // google.protobuf.Timestamp startTimestamp = 3;
+  // google.protobuf.Timestamp endTimestamp = 4;
+  ReplayType type = 5;
+}
+
+message ReplayStartOptions {
+  repeated string ids = 1;
+  Speed speed = 2;
+  Timerange range = 3;
+  // google.protobuf.Timestamp startTimestamp = 3;
+  // google.protobuf.Timestamp endTimestamp = 4;
+  ReplayType type = 4;
+}
+
+message Empty {}
+
+message Success {
+  bool success = 1;
+}

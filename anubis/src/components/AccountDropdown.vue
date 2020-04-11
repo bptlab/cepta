@@ -9,7 +9,7 @@
         <img class="w-2r bdrs-50p" :src="picture" alt="" />
       </div>
       <div class="peer">
-        <span class="fsz-sm c-grey-900">{{ username }}</span>
+        <span class="fsz-sm">{{ username }}</span>
       </div>
     </a>
     <!-- Dropdown menu items -->
@@ -19,7 +19,7 @@
         <i class="icon-user mR-10"></i>
       </account-dropdown-element>
       <!-- Settings page -->
-      <account-dropdown-element title="Settings" route="profile/settings">
+      <account-dropdown-element title="Settings" route="/user/settings">
         <i class="icon-settings mR-10"></i>
       </account-dropdown-element>
       <!-- Messages page -->
@@ -63,4 +63,9 @@ export default class AccountDropdown extends Vue {
 }
 </script>
 
-<style scoped lang="sass"></style>
+<style scoped lang="sass">
+.dropdown-menu
+  padding: 5px 20px
+  min-width: 100px
+  margin-left: -50px
+</style>

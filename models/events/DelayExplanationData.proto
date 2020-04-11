@@ -1,0 +1,27 @@
+syntax = "proto3";
+package delay_explanation;
+option go_package = "github.com/bptlab/cepta/models/events/delay_explanation";
+option java_package = "org.bptlab.cepta.models.events.delay_explanation";
+option java_outer_classname = "DelayExplanationDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message DelayExplanationData {
+    google.protobuf.Timestamp ingestion_time = 1;
+    int64 train_id = 2;
+    google.protobuf.Timestamp prod_date = 3;
+    int64 country_id = 4;
+    string station_abbreviation = 5;
+    string station_code = 6;
+    google.protobuf.Timestamp event_time = 7;
+    int64 status_code = 8;
+    int64 delay = 9; // in minutes
+    google.protobuf.Timestamp planned_departure_time = 10;
+    int64 delay_code = 11;
+    string delay_reason = 12;
+    string delay_reason_addition = 13;
+    string defective_wagon_id = 14;
+    string vehicle_id_1 = 15;
+    string vehicle_id_2 = 16;
+    string vehicle_id_3 = 17;
+}

@@ -1,5 +1,5 @@
 <template>
-  <table>
+  <table class="grid-table table-striped table-interactive">
     <thead>
       <tr>
         <th
@@ -44,6 +44,8 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import MasonryLayout from "@/components/MasonryLayout.vue";
+import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue";
 
 @Component({
   name: "GridTable",
@@ -51,6 +53,10 @@ import { Component, Prop, Vue } from "vue-property-decorator";
     capitalize(str: string) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
+  },
+  components: {
+    MasonryLayout,
+    MasonryLayoutTile
   }
 })
 export default class GridTable extends Vue {
@@ -107,60 +113,47 @@ export default class GridTable extends Vue {
 }
 </script>
 
-<style lang="sass">
-body
-  font-size: 14px
-  color: #444
+<style lang="sass" scoped>
+.fullsize
+  width: 100%
 
-table
-   border: 2px solid #42b983
-   border-radius: 3px
-   background-color: #fff
-
-th
-   background-color: #42b983
-   color: rgba(255, 255, 255, 0.66)
-   cursor: pointer
-   -webkit-user-select: none
-   -moz-user-select: none
-   -ms-user-select: none
-   user-select: none
-
-td
-   background-color: #f9f9f9
-
-td.delay-red
+.grid-table
+  border: 2px solid black
+  border-radius: 3px
   color: red
-  font-weight: bold
 
-td.delay-green
-  color: green
+  th
+    cursor: pointer
+    -webkit-user-select: none
+    -moz-user-select: none
+    -ms-user-select: none
+    user-select: none
 
-th, td
-   min-width: 120px
-   padding: 10px 20px
+  td.delay-red
+    color: red
+    font-weight: bold
 
-th.active
-   color: #fff
+  td.delay-green
+    color: green
 
-th.active .arrow
-  opacity: 1
+  th.active .arrow
+    opacity: 1
 
-.arrow
-   display: inline-block
-   vertical-align: middle
-   width: 0
-   height: 0
-   margin-left: 5px
-   opacity: 0.33
+  .arrow
+    display: inline-block
+    vertical-align: middle
+    width: 0
+    height: 0
+    margin-left: 5px
+    opacity: 0.33
 
-   &.asc
-    border-left: 4px solid transparent
-    border-right: 4px solid transparent
-    border-bottom: 4px solid #fff
+    &.asc
+      border-left: 4px solid transparent
+      border-right: 4px solid transparent
+      border-bottom: 4px solid #fff
 
-   &.dsc
-    border-left: 4px solid transparent
-    border-right: 4px solid transparent
-    border-top: 4px solid #fff
+    &.dsc
+      border-left: 4px solid transparent
+      border-right: 4px solid transparent
+      border-top: 4px solid #fff
 </style>

@@ -1,6 +1,6 @@
 <template>
   <li>
-    <a class="peers fxw-nw td-n p-20 bdB c-grey-800 cH-blue bgcH-grey-100">
+    <a class="peers fxw-nw td-n p-20 bdB cH-blue">
       <div class="peer mR-15">
         <slot name="icon"></slot>
       </div>

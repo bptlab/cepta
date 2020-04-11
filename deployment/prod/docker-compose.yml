@@ -3,11 +3,21 @@ services:
   anubis:
     # build:
     #   context: ../../anubis
-    image: bptlab/cepta-anubis:master
+    image: ceptaorg/anubis:${CEPTA_VERSION}
     expose:
       - 80
     ports:
       - 9001:80
+
+  mongodb:
+    image: "mongo"
+    volumes:
+        - mongodb_data:/data/db
+    expose:
+        - 27017
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: example
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -20,14 +30,10 @@ services:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
   kafka:
-    # build: ../common/exporters/kafka
-    image: bptlab/cepta-kafka:master
+    image: romnn/jmxkafka
     expose:
       - 9092
       - 29092
-    # Enable volume for persistence
-    # volumes:
-    #   - kafka_data:/bitnami
     environment:
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
@@ -91,7 +97,7 @@ services:
     #  dockerfile: deployment/common/java.exec.dockerfile
     #  args:
     #    MODULE: core
-    image: bptlab/cepta-core:master
+    image: ceptaorg/core:${CEPTA_VERSION}
     command:
       - --broker=kafka:9092
     depends_on:
@@ -106,7 +112,7 @@ services:
     #  dockerfile: deployment/common/java.exec.dockerfile
     #  args:
     #    MODULE: producers/train-replayer
-    image: bptlab/cepta-traindatareplayer:master
+    image: ceptaorg/traindataproducer:${CEPTA_VERSION}
     depends_on:
       - kafka
       - postgres
@@ -115,16 +121,16 @@ services:
     command:
       - --broker=kafka:9092
       - --grpc-port=9000
-      - --db-host=postgres
-      - --db-port=5432
+      - --postgres-host=postgres
+      - --postgres-port=5432
       - --must-match='train_id=47298333'
 
   envoy:
     image: envoyproxy/envoy
     ports:
-      - ${CEPTA_ENVOY_ADMIN_PORT}:9901
-      - ${CEPTA_ENVOY_INGRESS_PORT}:80
-      - ${CEPTA_ENVOY_GRPC_PORT}:81
+      - ${CEPTA_ENVOY_ADMIN_PORT:-9901}:9901
+      - ${CEPTA_ENVOY_INGRESS_PORT:-80}:80
+      - ${CEPTA_ENVOY_GRPC_PORT:-90}:81
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
       - ../common/prepare-envoy.sh:/prepare.sh:ro
@@ -187,6 +193,8 @@ volumes:
   # kafka_data:
   #   driver: local
   postgres_data:
+    driver: local
+  mongodb_data:
     driver: local
   prometheus_data: {}
   grafana_data: {}

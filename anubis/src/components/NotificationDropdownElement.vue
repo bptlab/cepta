@@ -1,8 +1,5 @@
 <template>
   <navigation-bar-dropdown-element>
-    <template v-slot:icon>
-      <img class="w-3r bdrs-50p" :src="image" alt="DropDownElement Image" />
-    </template>
     <template v-slot:content>
       <span>
         <router-link class="fw-500" to="">
@@ -27,7 +24,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class NotificationDropdownElement extends Vue {
-  @Prop({ default: "../../assets/images/logo.png" }) private image!: string;
   @Prop({ default: "This is a notification headline!" })
   private headline!: string;
   @Prop({ default: "This is a notification sub-headline!" })

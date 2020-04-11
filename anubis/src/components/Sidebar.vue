@@ -35,16 +35,26 @@
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu pos-r">
         <!-- Websockets -->
-        <sidebar-element title="Websockets" :route="{ name: 'websockets' }">
+        <sidebar-element title="Dashboard" :route="{ name: 'home' }">
           <template v-slot:icon>
             <i class="c-green-500 icon-rocket"></i>
           </template>
         </sidebar-element>
 
-        <!-- Traindata -->
-        <sidebar-element title="Traindata" :route="{ name: 'traindatainfo' }">
+        <!-- User -->
+        <sidebar-element
+          title="Trainmanagement"
+          :route="{ name: 'trainmanagement' }"
+        >
           <template v-slot:icon>
             <i class="c-green-500 icon-book"></i>
+          </template>
+        </sidebar-element>
+
+        <!-- Map -->
+        <sidebar-element title="Live map" :route="{ name: 'map' }">
+          <template v-slot:icon>
+            <i class="c-green-500 icon-map"></i>
           </template>
         </sidebar-element>
 
@@ -136,17 +146,16 @@ export default class Sidebar extends Vue {
 .is-collapsed
   .sidebar-menu
     overflow: auto !important
-///////
 
 .sidebar
-  background-color: $default-white
+  +theme(background-color, bgc-sidebar)
   bottom: 0
   overflow: hidden
   position: fixed
   top: 0
   transition: all 0.2s ease
   width: $offscreen-size
-  z-index: 1000
+  z-index: 1002
 
   ul
     list-style-type: none
@@ -242,7 +251,7 @@ export default class Sidebar extends Vue {
         height: 60%
 
     .logo-text
-      color: $grey-900
+      +theme(color, c-logo-text)
       padding-left: 10px
 
   .mobile-toggle
@@ -252,7 +261,7 @@ export default class Sidebar extends Vue {
     line-height: calc(#{$header-height} - 1px)
 
     a
-      color: $default-text-color
+      +theme(color, c-default-text)
 
     +to($breakpoint-md)
       display: inline-block
@@ -287,8 +296,9 @@ export default class Sidebar extends Vue {
   .sidebar-link
     &.router-link-exact-active,
     &.router-link-active
+      +theme(background-color, c-accent-text)
       .dot-holder
-        background: $md-blue-500
+        +theme(background, c-accent-text)
         border-radius: 50%
         content: ''
         display: block
@@ -299,7 +309,7 @@ export default class Sidebar extends Vue {
         width: 8px
 
       .title
-        color: $default-dark
+        +theme(color, c-default-text)
         text-decoration: none
         font-weight: bold
 
@@ -309,9 +319,11 @@ export default class Sidebar extends Vue {
     &.dropdown
       .arrow
         font-size: 10px
-        line-height: 40px
+        line-height: 45px
+        height: auto
+        right: 20px
+        top: 0px
         position: absolute
-        right: 30px
         transition: all 0.05s ease-in
 
         +to($breakpoint-md)
@@ -327,16 +339,16 @@ export default class Sidebar extends Vue {
 
       &.lol
         > a
-          color: $default-dark
+          +theme(color, c-default-text)
 
           .icon-holder
-            color: $default-info
+            +theme(color, c-default-text)
 
           .arrow
             transform: rotate(90deg)
 
     a
-      color: $default-text-color
+      +theme(color, c-default-text)
       transition: all 0.3s ease
 
       &:hover,
@@ -351,6 +363,7 @@ export default class Sidebar extends Vue {
     &.dropdown
       ul
         &.dropdown-menu
+          background-color: inherit
           border-radius: 0
           border: 0
           box-shadow: none

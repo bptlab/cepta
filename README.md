@@ -2,6 +2,7 @@ CEPTA - Complex Event Processing Transportation Analysis
 
 [![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
 ![GitHub](https://img.shields.io/github/license/bptlab/cepta)
+[![Release](https://img.shields.io/github/release/bptlab/cepta)](https://github.com/bptlab/cepta/releases/latest)
 
 The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
@@ -10,31 +11,32 @@ The project is under active development and will regularly
 push updates to the [demo instance](https://bpt-lab.org/cepta). 
 
 #### Building
-To build the entire project with all modules:
+To build all executables of the entire project:
 ```bash
-mvn clean package
+bazel build //:cepta
 ```
-To `clean compile` a module, you can use the provided convenience script:
+To build only a specific module or executable:
 ```bash
-./run.sh <MODULE>
-./run.sh core  # Example
-./run.sh anubis --server.port=8085  # Example with arguments
+bazel build //auxiliary/producers/replayer  # Example
 ```
 
-To build only some modules:
+#### Running
+To run a specific executable:
 ```bash
-mvn -am -pl <MODULE> -am clean package
-mvn -am -pl backend -am clean package  # Example
+bazel run //auxiliary/producers/replayer -- --port 8080  # Example
 ```
-For a list of modules, check out the root level `pom.xml`.
 
 #### Testing
 ```bash
-mvn test
-mvn -am -pl <MODULE> test  # only test one module
-mvn -am -pl backend test  # Example
+bazel test :all
+bazel test //core:core-tests  # Only test core
 ``` 
 
 #### Deployment
 The project uses `docker` and `docker-compose` for deployment.
 For instructions see `deployment/dev` or `deployment/prod` respectively.
+
+Summary: To run the latest version, run 
+```bash
+CEPTA_VERSION="v0.1.0" docker-compose -f deployment/prod/docker-compose.yml up
+```

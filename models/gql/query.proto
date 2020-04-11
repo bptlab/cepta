@@ -1,0 +1,98 @@
+syntax = "proto3";
+package query;
+option go_package = "github.com/bptlab/cepta/models/gql/query;gql";
+
+import "models/gql/gql.proto";
+import "models/types/basic.proto";
+import "google/protobuf/timestamp.proto";
+
+/*
+Draft:
+{
+  getUser(id: 1000) {
+    name
+    transports {
+        operator
+    }
+  }
+}
+*/
+
+/*
+Draft:
+
+{
+  transport(id: "1000") {
+    # name
+    # im
+    # nextim
+    # operator
+    planned {
+        location {
+            position
+            name
+            country
+        }
+        arrival
+        departure
+    }
+    etas {
+        location
+        arrival
+        departure
+        reason
+    }
+  }
+}
+*/
+
+message Coordinates {
+    double lat = 1;
+    double lon = 2;
+}
+
+message Location {
+    Coordinates position = 1;
+    string name = 2;
+    string country = 3;
+}
+
+message PlannedTransportSchedule {
+    Location location = 1;
+    // google.protobuf.Timestamp arrival = 2;
+    // google.protobuf.Timestamp departure = 3;
+    string arrival = 2;
+    string departure = 3;
+}
+
+message TransportETA {
+    Location location = 1;
+    // google.protobuf.Timestamp arrival = 2;
+    // google.protobuf.Timestamp departure = 3;
+    string arrival = 2;
+    string departure = 3;
+    string reason = 4;
+}
+
+message Transport {
+    int32 id = 1 [(gql.field) = {required: true}];
+    repeated PlannedTransportSchedule planned = 2; // [(gql.field) = {required: true}];
+    repeated TransportETA etas = 3; // [(gql.field) = {required: true}];
+    string operator = 4;
+}
+
+message UserID {
+    int32 uid = 1 [(gql.field) = {required: true}];
+}
+
+message User {
+    int32 id = 1 [(gql.field) = {required: true}];
+    string name = 2;
+    repeated Transport transports = 3;
+}
+
+service Query {
+    option (gql.svc_type) = QUERY;
+    // rpc GetTransport(TransportID) returns (Transport);
+    rpc GetUser(UserID) returns (User);
+}

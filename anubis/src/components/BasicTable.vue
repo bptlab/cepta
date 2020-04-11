@@ -70,6 +70,9 @@ export default class BasicTable extends Vue {
   @Prop({ default: false }) private hoverable!: boolean;
   @Prop({ default: "_index" }) private sortKey!: string;
   @Prop({ default: "" }) private thead!: string;
+  @Prop({ default: false }) private headless!: boolean;
+
+  dataStartIndex: number = this.headless ? 0 : 1; // if not headless
 
   get firstRow(): Array<Number> {
     return this.tableData.length > 0 ? this.tableData[0] : [];
@@ -89,7 +92,7 @@ export default class BasicTable extends Vue {
 
   get sortedTableData() {
     return this.tableData
-      .slice(1)
+      .slice(this.dataStartIndex)
       .sort((a: { [key: string]: any }, b: { [key: string]: any }) => {
         return a[this.sortKey] > b[this.sortKey]
           ? 1
@@ -118,7 +121,8 @@ export default class BasicTable extends Vue {
 </script>
 
 <style lang="sass">
-table
+.table
+  color: inherit
   &.dataTable
     &.no-footer
       border-bottom: 1px solid $border-color
@@ -133,7 +137,6 @@ table
   padding-bottom: 5px
 
   .dataTables_length
-    color: $default-dark
     float: left
 
     +to($breakpoint-sm)
@@ -149,11 +152,9 @@ table
       padding: 5px
       margin-left: 5px
       margin-right: 5px
-      color: $default-text-color
       transition: all 0.2s ease-in
 
   .dataTables_filter
-    color: $default-dark
     float: right
 
     +to($breakpoint-sm)
@@ -168,11 +169,9 @@ table
       font-size: 14px
       margin-left: 15px
       padding: 5px
-      color: $default-text-color
       transition: all 0.2s ease-in
 
   .dataTables_info
-    color: $default-text-color
     float: left
 
   .dataTables_processing
