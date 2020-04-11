@@ -74,12 +74,30 @@ export const routes: RouteConfig[] = [
           )
       },
       {
-        path: "settings",
+        path: "profile",
+        name: "profile",
+        meta: { requiresAuth: true },
+        component: () =>
+          import(
+            /* webpackChunkName: "usersettings" */ "@/views/UserProfile.vue"
+          )
+      },
+      {
+        path: "profile/settings",
         name: "settings",
         meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "usersettings" */ "@/views/UserSettings.vue"
+          )
+      },
+      {
+        path: "notifications",
+        name: "notifications",
+        meta: { requiresAuth: true },
+        component: () =>
+          import(
+            /* webpackChunkName: "usersettings" */ "@/views/UserNotifications.vue"
           )
       }
     ]
