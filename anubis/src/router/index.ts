@@ -74,16 +74,7 @@ export const routes: RouteConfig[] = [
           )
       },
       {
-        path: "profile",
-        name: "profile",
-        meta: { requiresAuth: true },
-        component: () =>
-          import(
-            /* webpackChunkName: "usersettings" */ "@/views/UserProfile.vue"
-          )
-      },
-      {
-        path: "profile/settings",
+        path: "settings",
         name: "settings",
         meta: { requiresAuth: true },
         component: () =>
@@ -92,12 +83,21 @@ export const routes: RouteConfig[] = [
           )
       },
       {
+        path: "profile/settings",
+        name: "profile",
+        meta: { requiresAuth: true },
+        component: () =>
+          import(
+            /* webpackChunkName: "userprofilesettings" */ "@/views/UserProfileSettings.vue"
+          )
+      },
+      {
         path: "notifications",
         name: "notifications",
         meta: { requiresAuth: true },
         component: () =>
           import(
-            /* webpackChunkName: "usersettings" */ "@/views/UserNotifications.vue"
+            /* webpackChunkName: "usernotifications" */ "@/views/UserNotifications.vue"
           )
       }
     ]
@@ -112,7 +112,7 @@ export const routes: RouteConfig[] = [
       {
         path: "home",
         name: "home",
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, useSearchToFilter: true },
         beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
@@ -133,7 +133,7 @@ export const routes: RouteConfig[] = [
         component: () => import(/* webpackChunkName: "map" */ "@/views/Map.vue")
       },
       {
-        path: "transport/:transportid",
+        path: "transport/:transport",
         name: "transport",
         props: true,
         meta: { requiresAuth: true },
