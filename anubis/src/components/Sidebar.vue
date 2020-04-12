@@ -82,7 +82,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class Sidebar extends Vue {
-  @Prop({ default: "Cepta" }) private title!: string;
+  @Prop({ default: "CEPTA" }) private title!: string;
   @Prop({ default: "@/assets/images/logo.png" }) private logo!: string;
 
   toggleSidebar() {
@@ -172,7 +172,9 @@ export default class Sidebar extends Vue {
 
       .sidebar-inner
         .sidebar-logo
-          border-bottom: 1px solid $border-color
+          border-bottom-width: 1px
+          border-bottom-style: solid
+          +theme-color-diff(border-bottom-color, bgc-navbar, 6)
           padding: 0 20px
 
         .sidebar-menu
@@ -208,8 +210,12 @@ export default class Sidebar extends Vue {
 // ---------------------------------------------------------
 
 .sidebar-logo
-  border-bottom: 1px solid $border-color
-  border-right: 1px solid $border-color
+  border-bottom-width: 1px
+  border-bottom-style: solid
+  +theme-color-diff(border-bottom-color, bgc-navbar, 6)
+  border-right-width: 1px
+  border-right-style: solid
+  +theme-color-diff(border-right-color, bgc-navbar, 6)
   line-height: 0
   padding: 0 20px
   transition: all 0.2s ease
@@ -254,7 +260,9 @@ export default class Sidebar extends Vue {
 .sidebar-menu
   +clearfix
 
-  border-right: 1px solid $border-color
+  border-right-width: 1px
+  border-right-style: solid
+  +theme-color-diff(border-right-color, bgc-navbar, 6)
   height: calc(100vh - #{$header-height})
   list-style: none
   margin: 0
@@ -284,6 +292,9 @@ export default class Sidebar extends Vue {
         position: absolute
         top: calc(50% - 4px)
         width: 8px
+
+      i
+        color: white
 
       .title
         +theme(color, c-default-text)
@@ -411,7 +422,9 @@ export default class Sidebar extends Vue {
 
         .sidebar-inner
           .sidebar-logo
-            border-bottom: 1px solid $border-color
+            border-bottom-width: 1px
+            border-bottom-style: solid
+            +theme-color-diff(border-bottom-color, bgc-navbar, 6)
             padding: 0 20px
 
           .sidebar-menu
@@ -435,7 +448,9 @@ export default class Sidebar extends Vue {
 
       .sidebar-inner
         .sidebar-logo
-          border-bottom: 1px solid $border-color
+          border-bottom-width: 1px
+          border-bottom-style: solid
+          +theme-color-diff(border-bottom-color, bgc-navbar, 6)
           padding: 0 20px
 
           > a
