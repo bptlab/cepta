@@ -81,3 +81,4 @@ cmake-build-*/
 *.ipr
 out/
 target/
+./package-lock.json
