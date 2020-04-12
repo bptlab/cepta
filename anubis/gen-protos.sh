@@ -1,15 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-DIR=$(dirname $0)
+export PROTO_ROOT_REGEX="models/.*"
+export DIR=$(dirname $0)
+
 cd $DIR
 cmd="$@"
 
 if [ -z "$SKIPPROTOCOMPILATION" ]
 then
     # Build all models
-    # ../run.sh build //models
     echo "Compiling protos"
     bazel build //models
 
@@ -19,8 +20,9 @@ then
     rm -rf $DIR/src/generated/protobuf
     echo "Creating $DIR/src/generated/protobuf"
     mkdir -p $DIR/src/generated/protobuf
-    find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec /bin/cp -rf '{}' $DIR/src/generated/protobuf ';'
-    find ../bazel-bin/models/ -type f -path '**/models/**/*.js' -exec /bin/cp -rf '{}' $DIR/src/generated/protobuf ';'
+    # find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec sh -c "echo {}" ';'
+    find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec sh -c 'export PROTO_PATH=./src/generated/protobuf/$(echo {} | python reg.py "$PROTO_ROOT_REGEX") && mkdir -p $(dirname $PROTO_PATH) && /bin/cp -rf {} $PROTO_PATH' ';'
+    find ../bazel-bin/models/ -type f -path '**/models/**/*.js' -exec sh -c 'export PROTO_PATH=./src/generated/protobuf/$(echo {} | python reg.py "$PROTO_ROOT_REGEX") && mkdir -p $(dirname $PROTO_PATH) && /bin/cp -rf {} $PROTO_PATH' ';'
     chmod 777 -R $DIR/src/generated/protobuf
 fi
 

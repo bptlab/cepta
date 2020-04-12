@@ -10,9 +10,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
-import { AuthModule } from "@/store/modules/auth";
-import { AppModule } from "@/store/modules/app";
-import { TrainDelayNotification } from "./generated/protobuf/TrainDelayNotification_pb";
+import { AuthModule } from "./store/modules/auth";
+import { AppModule } from "./store/modules/app";
+import { TrainDelayNotification } from "./generated/protobuf/models/events/TrainDelayNotification_pb";
 
 @Component({
   name: "App",

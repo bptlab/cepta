@@ -6,7 +6,7 @@ import {
   getModule
 } from "vuex-module-decorators";
 import store from "@/store";
-import { TrainDelayNotification } from "@/generated/protobuf/TrainDelayNotification_pb";
+import { TrainDelayNotification } from "@/generated/protobuf/models/events/TrainDelayNotification_pb";
 
 const getThemeClass = (availableThemes: string[], theme: number): string => {
   return "theme-" + availableThemes[theme];

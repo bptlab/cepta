@@ -255,7 +255,7 @@ import {
   ReplayStartOptions,
   ReplayType,
   ReplayTypeOption
-} from "@/generated/protobuf/replayer_pb";
+} from "../generated/protobuf/models/grpc/replayer_pb";
 
 @Component({
   name: "NavigationBar",
