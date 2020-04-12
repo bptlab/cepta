@@ -42,11 +42,11 @@ multirun(
 
 # Build the docker images and tags them for use in local dev env
 multirun(
-    name = "images",
+    name = "build-images",
     commands = [
-        "//osiris:images",
-        "//core:image",
-        "//auxiliary/producers/replayer:image",
+        "//osiris:build-images",
+        "//core:build-image",
+        "//auxiliary/producers/replayer:build-image",
     ],
     parallel = True,
 )
