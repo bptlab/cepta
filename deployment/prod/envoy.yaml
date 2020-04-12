@@ -50,18 +50,18 @@ static_resources:
                   - name: envoy.cors
                   - name: envoy.router
   clusters:
-    - name: traindatareplayer_service
+    - name: replayer_service
       connect_timeout: 15.0s
       type: logical_dns
       http2_protocol_options: {}
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: traindatareplayer, port_value: 9000 }}]
+      hosts: [{ socket_address: { address: replayer, port_value: 9000 }}]
 
-    - name: osiris_service
+    - name: notification_service
       connect_timeout: 15.0s
       type: logical_dns
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: osiris, port_value: 80 }}]
+      hosts: [{ socket_address: { address: notification, port_value: 80 }}]
 
     - name: anubis_service
       connect_timeout: 15.0s
