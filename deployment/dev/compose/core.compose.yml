@@ -127,11 +127,6 @@ services:
       driver: none
 
   core:
-    # build:
-    #   context: ../../../
-    #   dockerfile: deployment/common/java.exec.dockerfile
-    #   args:
-    #     MODULE: core
     image: bazel/core:image
     command:
       - --broker=kafka:9092
@@ -154,11 +149,6 @@ services:
       - replayer
 
   replayer:
-    # build:
-    #   context: ../../../
-    #   dockerfile: deployment/common/java.exec.dockerfile
-    #   args:
-    #     MODULE: producers/train-replayer
     image: bazel/auxiliary/producers/replayer:image
     depends_on:
       - kafka
