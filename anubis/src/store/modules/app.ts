@@ -2,6 +2,7 @@ import {
   VuexModule,
   Module,
   Mutation,
+  Action,
   getModule
 } from "vuex-module-decorators";
 import store from "@/store";
@@ -72,6 +73,18 @@ class App extends VuexModule implements IAppState {
       this.themeClass = getThemeClass(this.availableThemes, theme);
       internalSetTheme(this.theme, this.themeClass);
     }
+  }
+
+  @Action
+  public async requestReload(): Promise<any> {
+    // TODO: Call notification service here
+    this.setLoading(true);
+    return new Promise<any>((resolve, _) => {
+      setTimeout(() => {
+        this.setLoading(false);
+        resolve(null);
+      }, 2000);
+    });
   }
 }
 

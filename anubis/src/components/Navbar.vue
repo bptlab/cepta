@@ -399,7 +399,9 @@ export default class NavigationBar extends Vue {
   }
 
   reload() {
-    // TODO
+    AppModule.requestReload()
+      .then(() => {})
+      .catch(() => {});
   }
 
   toggleTheme() {
