@@ -8,7 +8,9 @@
       :options="options"
     >
     </pie-chart>
-    <span class="pos-a centerXY">{{ validPercent }}%</span>
+    <span class="pos-a centerXY">{{
+      label != undefined && label != null ? label : validPercent + "%"
+    }}</span>
   </div>
 </template>
 
@@ -19,7 +21,7 @@ import PieChart from "@/components/PieChart.vue";
 @Component({
   name: "TachometerChart",
   components: {
-    PieChart,
+    PieChart
   }
 })
 export default class TachometerChart extends Vue {
@@ -28,7 +30,8 @@ export default class TachometerChart extends Vue {
   @Prop({ default: 5 }) private thickness!: number;
   @Prop({ default: "blue" }) private fillColor!: string;
   @Prop({ default: "rgba(0,0,0,0.1)" }) private remainingColor!: string;
-  
+  @Prop() private label?: string;
+
   protected options = {
     responsive: false,
     animation: {
@@ -42,12 +45,12 @@ export default class TachometerChart extends Vue {
       padding: 5
     },
     cutoutPercentage: 100
-  }
-  
+  };
+
   get validPercent() {
     return this.percent % 100;
   }
-  
+
   get chartData() {
     return {
       datasets: [
@@ -59,7 +62,7 @@ export default class TachometerChart extends Vue {
       ]
     };
   }
-};
+}
 </script>
 
 <style scoped lang="sass">

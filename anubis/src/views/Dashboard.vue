@@ -1,5 +1,66 @@
 <template>
-  <masonry-layout>
+  <div class="dashboard-container">
+    <masonry-layout>
+      <masonry-layout-tile
+        section="Statistics"
+        class="stats"
+        layoutStyle="col-md-12"
+      >
+        <!-- Pie Charts -->
+        <div class="peers jc-sb ta-c">
+          <div class="metric peer">
+            <p>Active Transports</p>
+            <p class="metric-value">23</p>
+          </div>
+          <div class="peer">
+            <tacho-chart :size="80" :percent="75" fillColor="#f44336" />
+            <h6 class="">Delayed transports</h6>
+          </div>
+          <div class="peer">
+            <tacho-chart
+              :size="80"
+              :percent="50"
+              label="130"
+              fillColor="#2196f3"
+            />
+            <h6 class="">Total delay minutes</h6>
+          </div>
+          <div class="peer">
+            <tacho-chart :size="80" :percent="90" fillColor="#ff9800" />
+            <h6 class="">Prediction Accuracy</h6>
+          </div>
+        </div>
+      </masonry-layout-tile>
+
+      <!--
+      <masonry-layout-tile section="Train Data info">
+      <traindata-info></traindata-info>
+    </masonry-layout-tile>
+    -->
+
+      <!--
+    <masonry-layout-tile section="Ranked Delays">
+      <ranked-delay></ranked-delay>
+    </masonry-layout-tile>
+    -->
+
+      <masonry-layout-tile
+        class="transports-overview"
+        section="Transports"
+        layoutStyle="col-md-12"
+      >
+        <p>You can use the navigation bar to filter</p>
+        <transports-table-view></transports-table-view>
+        <div class="view-all">
+          <router-link :to="{ name: 'map' }">
+            <div class="btn">
+              View all <span class="icon icon-new-window"></span>
+            </div>
+          </router-link>
+        </div>
+      </masonry-layout-tile>
+
+      <!--
     <masonry-layout-tile section="Live Train Data Feed">
       <live-train-data-feed></live-train-data-feed>
     </masonry-layout-tile>
@@ -7,39 +68,59 @@
       <p>Click for full page view</p>
       <map-visualisation></map-visualisation>
     </masonry-layout-tile>
-    <masonry-layout-tile section="Train Data info">
-      <traindata-info></traindata-info>
-    </masonry-layout-tile>
     <masonry-layout-tile section="Ranked Delays">
       <ranked-delay></ranked-delay>
     </masonry-layout-tile>
-  </masonry-layout>
+    -->
+    </masonry-layout>
+  </div>
 </template>
 
 <script lang="ts">
-import LiveTrainDataFeed from "@/components/LiveTrainDataFeed.vue";
+import TransportsTableView from "@/components/TransportsTableView.vue";
 import MapVisualisation from "@/components/MapVisualisation.vue";
 import TraindataInfo from "@/components/TraindataInfo.vue";
 import RankedDelay from "@/components/RankedDelay.vue";
 import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
+import TachoChart from "../components/TachoChart.vue";
 
 @Component({
   name: "Dashboard",
   components: {
-    LiveTrainDataFeed,
+    TransportsTableView,
     RankedDelay,
     TraindataInfo,
     MapVisualisation,
     MasonryLayout,
-    MasonryLayoutTile
+    MasonryLayoutTile,
+    TachoChart
   }
 })
 export default class Dashboard extends Vue {}
 </script>
 
 <style lang="sass">
-.item
-  min-height: 400px
+.dashboard-container
+  width: 100%
+
+  .transports-overview
+    .view-all
+      // FIXME: I am not part of the container?!
+      // position: relative
+      // display: block
+      float: right
+      padding: 5px
+      .icon
+        margin: 10px 5px
+
+  .metric
+    p
+      text-align: left
+      vertical-align: top
+      font-size: 1rem
+
+      &.metric-value
+        font-size: 2.5rem
 </style>
