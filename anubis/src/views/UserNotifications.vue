@@ -7,9 +7,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 @Component({
-  name: "UserSettings",
+  name: "UserNotifications",
   components: {}
 })
-export default class UserSettings extends Vue {}
+export default class UserNotifications extends Vue {}
 </script>
 <style lang="sass" scoped></style>
