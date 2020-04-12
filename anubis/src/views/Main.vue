@@ -1,7 +1,7 @@
 <template>
   <div class="app" :class="{ 'is-collapsed': isCollapsed }">
     <!-- Sidebar -->
-    <sidebar-component title="Cepta" />
+    <sidebar-component title="CEPTA" />
 
     <div class="page-container">
       <!-- Top Navigation bar -->
@@ -74,6 +74,6 @@ export default class Main extends Vue {
   display: inline-block
 
 .main-content
+  position: relative
   +theme(background-color, bgc-content)
-  // height: 500px !important
 </style>
