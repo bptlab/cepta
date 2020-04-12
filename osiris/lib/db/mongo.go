@@ -43,22 +43,25 @@ func (config MongoDBConfig) ParseCli(ctx *cli.Context) MongoDBConfig {
 var MongoDatabaseCliOptions = libcli.CommonCliOptions(libcli.Mongo)
 
 // MongoDatabase ...
-func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
+func MongoDatabase(config *MongoDBConfig, timeoutSec int) (*MongoDB, error) {
 	databaseName := config.Database
-	databaseAuth := fmt.Sprintf("%s:%s", config.User, config.Password)
+	var databaseAuth string
+	if len(config.User+config.Password) > 0 {
+		databaseAuth = fmt.Sprintf("%s:%s@", config.User, config.Password)
+	}
 	databaseHost := fmt.Sprintf("%s:%d", config.Host, config.Port)
-	databaseConnectionURI := fmt.Sprintf("mongodb://%s@%s/?connect=direct", databaseAuth, databaseHost)
+	databaseConnectionURI := fmt.Sprintf("mongodb://%s%s/?connect=direct", databaseAuth, databaseHost)
 	client, err := mongo.NewClient(options.Client().ApplyURI(databaseConnectionURI))
 	if err != nil {
 		log.Fatalf("Failed to create database client: %v (%s:%s)", err, databaseConnectionURI, databaseName)
 	}
-	mctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
 	defer cancel()
 	client.Connect(mctx)
 
 	err = client.Ping(mctx, readpref.Primary())
 	if err != nil {
-		log.Fatalf("Could not ping database within 10 seconds: %s (%s:%s)", err.Error(), databaseConnectionURI, databaseName)
+		log.Fatalf("Could not ping database within %d seconds: %s (%s:%s)", timeoutSec, err.Error(), databaseConnectionURI, databaseName)
 	}
 	database := client.Database(databaseName)
 	return &MongoDB{DB: database}, nil
