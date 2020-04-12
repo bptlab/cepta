@@ -15,6 +15,7 @@ const getThemeClass = (availableThemes: string[], theme: number): string => {
 export interface IAppState {
   appName: string;
   isCollapsed: boolean;
+  isLoading: boolean;
   delays: TrainDelayNotification[];
   availableThemes: string[];
   theme: number;
@@ -25,6 +26,7 @@ export interface IAppState {
 class App extends VuexModule implements IAppState {
   public appName = "CEPTA";
   public isCollapsed = false;
+  public isLoading: boolean = false;
   public delays: TrainDelayNotification[] = [];
   public availableThemes: string[] = ["light", "dark"];
   public theme: number = 0;
@@ -33,6 +35,11 @@ class App extends VuexModule implements IAppState {
   @Mutation
   public toggleCollapse() {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  @Mutation
+  public setLoading(loading: boolean) {
+    this.isLoading = loading;
   }
 
   @Mutation
