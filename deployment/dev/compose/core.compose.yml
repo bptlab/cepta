@@ -32,8 +32,8 @@ services:
       # KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       # KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
       # KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-    # depends_on:
-    #   - zookeeper
+    depends_on:
+      - zookeeper
 
   kafka-manager:
     image: sheepkiller/kafka-manager
@@ -134,7 +134,7 @@ services:
     #     MODULE: core
     image: bazel/core:image
     command:
-      - --broker=kafka:9092
+      - --broker=kafka:29092
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
@@ -144,7 +144,7 @@ services:
   notification:
     image: bazel/osiris/notification:image
     command:
-      - --brokers=kafka:9092
+      - --brokers=kafka:29092
     ports:
       - ${CEPTA_NOTIFICATION_BACKEND_PORT}:80
     depends_on:
@@ -164,7 +164,7 @@ services:
       - kafka
       - postgres
     command:
-      - --brokers=kafka:9092
+      - --brokers=kafka:29092
       - --port=9000
       - --postgres-host=postgres
       - --postgres-port=${CEPTA_POSTGRES_PORT}
