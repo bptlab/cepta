@@ -2,6 +2,9 @@
 
 cd $(dirname $0)
 cd compose
+
+pwd
+
 # -f postgresimporter.compose.yml
 docker-compose \
   -f core.compose.yml \
