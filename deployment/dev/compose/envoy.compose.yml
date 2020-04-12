@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   envoy:
-    image: envoyproxy/envoy
+    image: envoyproxy/envoy:v1.14.1
     ports:
       - ${CEPTA_ENVOY_ADMIN_PORT}:9901
       - ${CEPTA_ENVOY_INGRESS_PORT}:80

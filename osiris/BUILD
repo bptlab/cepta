@@ -13,12 +13,12 @@ filegroup(
 )
 
 multirun(
-    name = "images",
+    name = "build-images",
     commands = [
-        "//osiris/query:image",
-        "//osiris/notification:image",
-        "//osiris/authentication:image",
-        "//osiris/usermgmt:image",
+        "//osiris/query:build-image",
+        "//osiris/notification:build-image",
+        "//osiris/authentication:build-image",
+        "//osiris/usermgmt:build-image",
     ],
     parallel = True,
     visibility = ["//visibility:public"],
