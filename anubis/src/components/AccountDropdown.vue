@@ -22,9 +22,9 @@
       <account-dropdown-element title="Settings" :route="{ name: 'settings' }">
         <i class="icon-settings mR-10"></i>
       </account-dropdown-element>
-      <!-- Messages page -->
+      <!-- Notifications page -->
       <account-dropdown-element
-        title="Messages"
+        title="Notifications"
         :route="{ name: 'notifications' }"
       >
         <i class="icon-email mR-10"></i>
@@ -70,14 +70,18 @@ export default class AccountDropdown extends Vue {
 .dropdown
   position: relative
   display: block
-  line-height: $header-height
-  height: $header-height
   cursor: pointer
   margin-left: 15px
 
+  a
+    transition: all 0.1s ease-in-out
+
   .dropdown-menu
     +theme(background-color, bgc-navbar)
-    padding: 5px 20px
-    min-width: 100px
+    line-height: 35px
     margin-left: -50px
+    li
+      padding: 2px 12px
+      &:hover
+        +theme-color-diff(background-color, bgc-navbar, 10)
 </style>

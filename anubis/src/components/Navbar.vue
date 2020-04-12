@@ -53,14 +53,55 @@
       <!-- Notifications -->
       <ul class="nav-right">
         <li>
-          <a id="themeToggleBtn" @click="toggleTheme" class="btn">
+          <a>
+            <span class="current-time">{{ currentTime }}</span>
+          </a>
+        </li>
+
+        <li>
+          <a
+            :title="
+              connectionDegraded ? 'System degraded' : 'All systems operational'
+            "
+          >
+            <span
+              class="system-status"
+              :class="{ degraded: connectionDegraded }"
+            ></span>
+          </a>
+        </li>
+
+        <li v-if="monitorUrl">
+          <!-- Alternativ: pulse bar-chart -->
+          <a
+            title="Open monitoring"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="monitorUrl"
+            id="monitorBtn"
+            class="btn"
+          >
+            <span class="icon icon-pulse"></span>
+          </a>
+        </li>
+
+        <li>
+          <a
+            title="Change theme"
+            id="themeToggleBtn"
+            @click="toggleTheme"
+            class="btn"
+          >
             <span class="icon icon-palette"></span>
           </a>
         </li>
 
         <li>
-          <a id="reloadBtn" class="btn">
-            <span class="icon icon-reload"></span>
+          <a title="Reload" id="reloadBtn" @click="reload()" class="btn">
+            <span
+              class="icon icon-reload"
+              :class="{ 'icon-spin': isLoading }"
+            ></span>
           </a>
         </li>
 
@@ -235,11 +276,21 @@ export default class NavigationBar extends Vue {
   defaultReplayType: ReplayType =
     ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
   replayTypeInput: string = Object.keys(ReplayType)[0];
+  currentTime: string = "";
 
   private equalArrays(a1?: string[], a2?: string[]): boolean {
     return a1 != undefined && a2 != undefined
       ? a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
       : false;
+  }
+
+  get connectionDegraded(): boolean {
+    // TODO Implement
+    return false;
+  }
+
+  get monitorUrl(): string | undefined {
+    return process.env.MONITORING_URL;
   }
 
   get replayerConfigChanged() {
@@ -271,6 +322,10 @@ export default class NavigationBar extends Vue {
 
   get isReplaying() {
     return GrpcModule.isReplaying;
+  }
+
+  get isLoading() {
+    return AppModule.isLoading;
   }
 
   get replayStatus() {
@@ -331,6 +386,21 @@ export default class NavigationBar extends Vue {
     return options;
   }
 
+  dateLocale: string = "en-GB";
+  timeZone: string = "UTC";
+
+  updateTime() {
+    var date = new Date();
+    this.currentTime = date.toLocaleString(this.dateLocale, {
+      timeZone: this.timeZone
+    });
+    setTimeout(this.updateTime, 1000);
+  }
+
+  reload() {
+    // TODO
+  }
+
   toggleTheme() {
     AppModule.toggleTheme();
   }
@@ -375,6 +445,7 @@ export default class NavigationBar extends Vue {
   }
 
   mounted(): void {
+    this.updateTime();
     GrpcModule.queryReplayer().then(() => {
       if (this.replayingSpeed != undefined)
         this.replaySpeed = this.replayingSpeed?.getSpeed();
@@ -422,13 +493,15 @@ export default class NavigationBar extends Vue {
 
 .header
   +theme(background-color, bgc-navbar)
-  border-bottom: 1px solid $border-color
+  border-bottom-width: 1px
+  border-bottom-style: solid
+  +theme-color-diff(border-bottom-color, bgc-navbar, 6)
   display: block
   margin-bottom: 0
   padding: 0
   position: fixed
-  transition: all 0.2s ease
-  //width: calc(100% - #{$offscreen-size})
+  // transition: all 0.2s ease
+  // width: calc(100% - #{$offscreen-size})
   width: 100%
   z-index: 800
 
@@ -453,32 +526,32 @@ export default class NavigationBar extends Vue {
       margin-bottom: 0
       padding-left: 0
       position: relative
-      line-height: $header-height
 
       > li
         float: left
+        transition: all 0.1s ease-in-out
+        line-height: $header-height
 
         > a
           display: block
           line-height: $header-height
           height: $header-height
           padding: 0 15px
-          transition: all 0.2s ease-in-out
 
           i
             font-size: 17px
 
-          &:hover,
-          &:focus
-            +theme(color, c-accent-text)
-            text-decoration: none
-
           +to($breakpoint-md)
             padding: 0 15px
 
+        &:hover,
+        &:focus
+          +theme(color, c-accent-text)
+          text-decoration: none
+
     .nav-left
       float: left
-      width: calc(100% - 400px)
+      width: calc(100% - 650px)
       padding-left: 15px
       transition: 0.2s ease
 
@@ -486,12 +559,22 @@ export default class NavigationBar extends Vue {
         margin-left: 230px
 
     .nav-right
-      width: 400px
+      width: 650px
       float: right
       padding-right: 10px
 
+      .system-status
+        width: 10px
+        height: 10px
+        border-radius: 5px
+        background-color: green
+        display: inline-block
+
+        &.degraded
+          background-color: red
+
       #replayBtn
-        margin: 0
+        // margin: 0
 
         &.inactive-replayer:hover
           +theme(color, c-accent-text)
@@ -511,6 +594,7 @@ export default class NavigationBar extends Vue {
 
   .search-input
     display: none
+    width: calc(100% - 100px)
 
     &.active
       display: inline-block
@@ -525,7 +609,6 @@ export default class NavigationBar extends Vue {
       margin-top: 12px
       outline: none
       padding: 5px
-      width: 500px
 
       +to($breakpoint-sm)
         width: 160px

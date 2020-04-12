@@ -9,16 +9,16 @@
     </a>
     <!-- Dropdown menu -->
     <ul class="dropdown-menu">
-      <li class="pX-20 pY-15 bdB">
+      <li class="pX-20 bdB">
         <i class="icon-bell pR-10"></i>
         <span class="fsz-sm fw-600">{{ title }}</span>
       </li>
       <li>
-        <ul class="ovY-a pos-r scrollable lis-n p-0 m-0 fsz-sm">
+        <ul class="pos-r scrollable lis-n p-0 m-0 fsz-sm">
           <slot name="entries"></slot>
         </ul>
       </li>
-      <li v-if="more" class="pX-20 pY-15 ta-c bdT">
+      <li v-if="more" class="pX-20 ta-c bdT">
         <span>
           <a class="cH-blue fsz-sm td-n">
             View all {{ title }}
@@ -56,23 +56,46 @@ export default class NotificationsDropdown extends Vue {
 <style scoped lang="sass">
 .dropdown
   display: block
-  line-height: $header-height
   height: $header-height
   cursor: pointer
   margin-left: 15px
+  position: relative
+
+  a
+    transition: all 0.1s ease-in-out
 
   .dropdown-menu
+    +theme(background-color, bgc-navbar)
+    line-height: 35px
+    color: inherit
     left: auto
     right: 0
+    min-width: 350px
+    padding: 0
+
+    +to($breakpoint-sm)
+      max-width: 300px
+
+    display: block
+    margin: 0
+    transform-origin: top right
+    transform: scale(0, 0)
+
+    .divider
+      border-bottom-width: 1px
+      border-bottom-style: solid
+      +theme-color-diff(border-bottom-color, bgc-navbar, 6)
+      height: 1px
+      overflow: hidden
 
     > li
+      padding: 2px 12px
       width: 100%
+      &:hover
+        +theme-color-diff(background-color, bgc-navbar, 10)
 
       > a
         padding: 10px 15px
-
-.notifications
-  position: relative
 
   .counter
     background-color: $default-danger
@@ -87,29 +110,6 @@ export default class NotificationsDropdown extends Vue {
     position: absolute
     left: calc(50% - 20px)
     bottom: calc(50% - 17px)
-
-  .dropdown-menu
-    min-width: 350px
-    padding: 0
-
-    +to($breakpoint-sm)
-      max-width: 300px
-
-.dropdown-menu
-  display: block
-  margin: 0
-  transform-origin: top right
-  transform: scale(0, 0)
-  transition: transform 0.15s ease-out
-
-  .divider
-    border-bottom: 1px solid $border-color
-    height: 1px
-    overflow: hidden
-
-  > li
-    > a
-      transition: all 0.2s ease-out
 
 .show
   .dropdown-menu
