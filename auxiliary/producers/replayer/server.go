@@ -143,14 +143,17 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 func serve(ctx *cli.Context, log *logrus.Logger) error {
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
-	/* postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
-	postgres, err := libdb.PostgresDatabase(&postgresConfig)
-	if err != nil {
-		log.Fatalf("failed to initialize postgres database: %v", err)
-	} */
+	// For reference: When using postgres as a replaying database:
+	/*
+		postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
+		postgres, err := libdb.PostgresDatabase(&postgresConfig)
+		if err != nil {
+			log.Fatalf("failed to initialize postgres database: %v", err)
+		}
+	*/
 
 	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
-	mongo, err := libdb.MongoDatabase(&mongoConfig)
+	mongo, err := libdb.MongoDatabase(&mongoConfig, libcli.ParseTimeout(ctx))
 	if err != nil {
 		log.Fatalf("failed to initialize mongo database: %v", err)
 	}
@@ -187,8 +190,10 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	switch startMode {
 	case pb.ReplayType_CONSTANT:
 		replayerServer.speed = int32(ctx.Int("pause"))
+		log.Infof("Using constant replay with pause=%d", replayerServer.speed)
 	case pb.ReplayType_PROPORTIONAL:
 		replayerServer.speed = int32(ctx.Int("frequency"))
+		log.Infof("Using proportional replay with frequency=%d", replayerServer.speed)
 	default:
 		replayerServer.speed = 5000
 	}
@@ -336,8 +341,35 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		gps,
 	}
 
+	// Connect to kafka
+	var producer *kafkaproducer.KafkaProducer
+	timeout := ctx.Int("connection-timeout-sec")
+	allowedRetries := ctx.Int("connection-max-retries")
+	retryInterval := ctx.Int("connection-retry-interval-sec")
+	if timeout > 0 {
+		allowedRetries = 1
+		retryInterval = timeout
+	}
+	var attempt int
+	for {
+		var err error
+		producer, err = kafkaproducer.KafkaProducer{}.ForBroker(kafkaConfig.Brokers)
+		if err != nil {
+			if attempt >= allowedRetries {
+				log.Warnf("Failed to start kafka producer: %s", err.Error())
+				log.Fatal("Cannot produce events")
+			}
+			attempt++
+			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, allowedRetries)
+			time.Sleep(time.Duration(retryInterval) * time.Second)
+			continue
+		}
+		break
+	}
+
 	// Set common replayer parameters
 	for _, replayer := range replayers {
+		replayer.producer = producer
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
 		replayer.Query.IncludeIds = &replayerServer.ids
 		replayer.Query.Timerange = &replayerServer.timerange
@@ -352,7 +384,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))
-	log.Printf("Serving at %s", port)
+	log.Infof("Serving at %s", port)
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -392,6 +424,7 @@ func main() {
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 	cliFlags = append(cliFlags, libdb.MongoDatabaseCliOptions...)
 	cliFlags = append(cliFlags, kafkaproducer.KafkaProducerCliOptions...)

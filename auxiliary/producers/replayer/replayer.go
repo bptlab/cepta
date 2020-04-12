@@ -111,19 +111,13 @@ func (r Replayer) produce() error {
 func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.SourceName)
 	r.log.Info("Starting to produce")
-	var err error
-	r.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(r.Brokers)
-	if err != nil {
-		log.Warnf("Failed to start kafka producer: %s", err.Error())
-		log.Fatal("Cannot produce events")
-	}
 	defer func() {
 		if err := r.producer.Close(); err != nil {
-			r.log.Println("Failed to close server", err)
+			r.log.Errorf("Failed to close server", err)
 		}
 	}()
 	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
-	err = r.produce()
+	err := r.produce()
 	if err != nil {
 		log.Error(err)
 	}
