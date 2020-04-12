@@ -31,7 +31,8 @@ import Footer from "@/components/Footer.vue";
 import NavigationBar from "@/components/Navbar.vue";
 import { AppModule } from "@/store/modules/app";
 
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
+import { COOKIE_THEME } from "../constants";
 
 @Component({
   name: "Main",
@@ -48,6 +49,16 @@ export default class Main extends Vue {
 
   get version() {
     return process.env.STABLE_VERSION;
+  }
+
+  created() {
+    let theme: number = parseInt(
+      (this.$cookies.get(COOKIE_THEME) ?? "").toString()
+    );
+    if (!isNaN(theme)) {
+      console.log("Srtting");
+      AppModule.setTheme(theme);
+    }
   }
 
   mounted() {

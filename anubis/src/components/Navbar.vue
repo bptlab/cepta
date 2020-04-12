@@ -256,6 +256,7 @@ import {
   ReplayType,
   ReplayTypeOption
 } from "../generated/protobuf/models/grpc/replayer_pb";
+import { COOKIE_THEME } from "../constants";
 
 @Component({
   name: "NavigationBar",
@@ -405,15 +406,6 @@ export default class NavigationBar extends Vue {
     AppModule.toggleTheme();
   }
 
-  @Watch("themeClass")
-  onThemeClassChanged(newValue: string) {
-    // Remove all classes first
-    document.body.classList.forEach(currentIndex => {
-      document.body.classList.remove(currentIndex);
-    });
-    document.body.classList.add(newValue);
-  }
-
   toggleReplay() {
     GrpcModule.toggleReplayer(this.replayOptions);
   }
@@ -454,9 +446,7 @@ export default class NavigationBar extends Vue {
 
   checkForUpdate() {
     let id = (this.$refs["searchInput"] as HTMLInputElement).value;
-    // this.send(id)
     let reg = new RegExp("^[0-9]*$");
-    debugger;
 
     //only Numbers update our list of train data
     if (reg.test(id)) this.$router.push({ name: "traindata", params: { id } });
