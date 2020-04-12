@@ -21,57 +21,18 @@
     </div>
     <div class="transport-list">
       <ul>
-        <li
-          v-for="(transport, index) in transports"
-          :key="index"
-          @mouseenter="handleHoverEnter(transport)"
-          @mouseleave="handleHoverLeave(transport)"
-        >
-          <!-- alarm-clock signal na truck bolt stats-up stats-down announcement bell alert reload time control-shuffle -->
-          <div class="transport-container">
-            <span class="cepta-id">{{ transport.id }}</span>
-            <div class="status" :class="{ late: transport.delay > 0 }">
-              <span
-                class="icon"
-                :class="transport.delay > 0 ? 'icon-alert' : 'icon-alert'"
-              ></span>
-              {{ transport.delay }}
-            </div>
-            <div class="planned-route-info">
-              <span>
-                <span
-                  >{{ transport.start }}
-                  <span class="icon icon-arrows-horizontal"></span>
-                  {{ transport.end }}</span
-                >
-              </span>
-            </div>
-
-            <div class="actual-route-info">
-              <span>
-                <span class="icon icon-location-pin"></span>
-                {{ transport.lastPosition.description }}
-              </span>
-            </div>
-            <!--
-            <span class="icon icon-line-dashed"></span>
-            <div class="btn btn-info btn-slim"><span class="icon icon-target"></span> Track</div>
-            <div class="btn btn-info btn-slim"><span class="icon icon-new-window"></span> View</div>
-            <div class="btn btn-info btn-slim"><span class="icon icon-bell"></span> Notify</div>
-            <div class="btn btn-info btn-slim"><span class="icon icon-bolt"></span> Perform mitigation</div>
-            -->
-          </div>
+        <li v-for="transport in transports" :key="transport.id">
+          <map-cell
+            :transport="transport"
+            v-on:track="handleTrack"
+            v-on:untrack="handleUntrack"
+            :tracked="tracked"
+          ></map-cell>
         </li>
       </ul>
     </div>
     <div class="map">
-      <map-visualisation
-        :transport="
-          currentTransport != undefined
-            ? currentTransport.map
-            : transports[0].map
-        "
-      ></map-visualisation>
+      <map-visualisation :transport="currentTransport"></map-visualisation>
     </div>
   </div>
 </template>
@@ -81,6 +42,7 @@ import MapVisualisation from "@/components/MapVisualisation.vue";
 import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
+import MapCell from "../components/MapCell.vue";
 import { MappedTransport, Transport } from "../models/geo";
 
 @Component({
@@ -88,55 +50,109 @@ import { MappedTransport, Transport } from "../models/geo";
   components: {
     MapVisualisation,
     MasonryLayout,
-    MasonryLayoutTile
+    MasonryLayoutTile,
+    MapCell
   }
 })
 export default class Dashboard extends Vue {
-  recentHoverTransport?: MappedTransport = undefined;
-  currentHoverTransport?: MappedTransport = undefined;
-  currentTransport?: MappedTransport = undefined;
+  currentTransport: MappedTransport | null = null;
+  tracked: string | null = null;
+
   transports: Transport[] = Array(15).fill({
     id: "CPTA-7236-45832",
     start: "Hamburg",
     end: "Berlin",
     plannedDuration: 150,
     actualDuration: 170,
-    delay: 20,
+    delay: 21,
     delayReason: "Rain",
+    trend: {
+      value: 13,
+      sample: "last 3 stations"
+    },
+    connection: {
+      online: false,
+      lastConnection: ""
+    },
+    routeProgress: 0.35,
     lastPosition: {
       coordinates: { lat: 12, lon: 14 },
       description: "Grunewald"
     },
     map: {
       positions: [
-        { position: { coordinates: { lat: 52.391385, lon: 13.092939 } } },
-        { position: { coordinates: { lat: 52.395679, lon: 13.137056 } } },
-        { position: { coordinates: { lat: 52.411898, lon: 13.156936 } } },
-        { position: { coordinates: { lat: 52.426241, lon: 13.19041 } } },
-        { position: { coordinates: { lat: 52.487991, lon: 13.260937 } } }
+        {
+          position: { coordinates: { lat: 52.391385, lon: 13.092939 } },
+          icon: {
+            iconUrl:
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+          }
+        },
+        {
+          position: { coordinates: { lat: 52.395679, lon: 13.137056 } },
+          icon: {
+            iconUrl:
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+          }
+        },
+        {
+          position: { coordinates: { lat: 52.411898, lon: 13.156936 } },
+          icon: {
+            iconUrl:
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+          }
+        },
+        {
+          position: { coordinates: { lat: 52.426241, lon: 13.19041 } },
+          icon: {
+            iconUrl:
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+          }
+        },
+        {
+          position: { coordinates: { lat: 52.487991, lon: 13.260937 } },
+          icon: {
+            iconUrl:
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+          }
+        }
       ],
       color: "blue"
     }
   });
 
-  constructor() {
-    super();
-    this.currentTransport = null;
-    this.currentHoverTransport = null;
+  handleTrack(transport: Transport) {
+    this.tracked = transport.id;
+    this.$router.replace({
+      name: "map",
+      query: { track: this.tracked }
+    });
+    this.currentTransport = transport.map;
   }
 
-  handleHoverEnter(transport: Transport) {
-    this.currentHoverTransport = transport.map;
+  handleUntrack(transport: Transport) {
+    this.tracked = null;
+    this.$router.replace({
+      name: "map",
+      query: {}
+    });
   }
 
-  handleHoverLeave(transport: Transport) {
-    this.currentHoverTransport = undefined;
+  mounted() {
+    // Check for track parameter
+    let trackRequest = this.$route.query.track;
+    if (trackRequest != undefined && trackRequest != null) {
+      // TODO: Query for the real transport here
+      let transport = this.transports[0];
+      this.handleTrack(transport);
+    }
   }
 }
 </script>
 
 <style lang="sass" scoped>
 .map-container
+  +theme-color-diff(background-color, bgc-body, 5)
   height: 100%
   position: relative
   width: 100%
@@ -144,9 +160,6 @@ export default class Dashboard extends Vue {
 
   .btn
     color: inherit
-
-  .btn-slim
-      padding: 1px 4px
 
   .sort
     padding: 7px
@@ -161,14 +174,14 @@ export default class Dashboard extends Vue {
     position: absolute
     width: 75%
     height: 100%
-    max-width: calc(100% - 300px)
+    max-width: calc(100% - 330px)
 
   .transport-list
     top: 30px
     left: 0
     position: absolute
     width: 25%
-    min-width: 300px
+    min-width: 330px
     height: calc(100% - 31px)
     overflow-y: scroll
     padding: 0 7px
@@ -184,55 +197,15 @@ export default class Dashboard extends Vue {
       list-style: none
       padding: 0
       li
-        +theme-color-lighten(background-color, bgc-body, 5)
-        +transition(all 0.2s ease-in)
-        padding: 10px
+        +theme(background-color, bgc-body)
+        padding: 5px 10px
         margin-top: 7px
         // border: 1px solid rgba(0,0,0,0.1)
         border-radius: 7px
         overflow: hidden
-        height: 50px
         box-shadow: 0 5px 10px rgba(0,0,0,0.01), 0 3px 3px rgba(0,0,0,0.01)
 
-        &:hover
+        &:hover, li.tracked
           +theme-color-lighten(background-color, bgc-body, 15)
-          height: 125px
           box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1)
-
-        .transport-container
-          position: relative
-
-          .status
-            font-size: 20px
-            position: absolute
-            top: 0
-            right: 0
-            &.late
-              color: red
-
-          .planned-route-info, .actual-route-info
-            position: absolute
-            left: 0
-            span
-              vertical-align: middle
-
-          .planned-route-info
-            top: 10px
-            font-size: 15px
-            span
-              line-height: 15px
-
-          .actual-route-info
-            +theme(color, c-accent-text)
-            top: 35px
-            font-size: 16px
-            span
-              line-height: 16px
-
-          .cepta-id
-            position: absolute
-            top: 0
-            left: 0
-            font-size: 8px
-            +theme-color-diff(color, bgc-body, 50)
 </style>

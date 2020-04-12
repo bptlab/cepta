@@ -1,5 +1,6 @@
 <template>
   <div id="map">
+    <!--
     <l-map ref="map" :zoom="zoom" :center="center">
       <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
       <l-polyline :lat-lngs="coordinates" :color="transport.color"></l-polyline>
@@ -9,7 +10,9 @@
         :lat-lng="m.coordinate"
         :icon="m.icon"
       ></l-marker>
-      <!--
+      -->
+    <div id="map"></div>
+    <!--
       <l-marker :lat-lng="polyline.latlngs[0]" :icon="icon"></l-marker>
       <l-marker :lat-lng="polyline.latlngs[2]" :icon="icon"></l-marker>
       <l-marker :lat-lng="polyline.latlngs[1]">
@@ -20,12 +23,10 @@
         /></l-icon>
       </l-marker>
       -->
-    </l-map>
   </div>
 </template>
 
 <script lang="ts">
-import { LMap, LTileLayer, LPolyline, LMarker, LIcon } from "vue2-leaflet";
 import L from "leaflet";
 import { Component, Vue, Prop, Watch, Ref } from "vue-property-decorator";
 import {
@@ -34,6 +35,7 @@ import {
   TripPosition,
   MapTripPosition
 } from "../models/geo";
+import VueRouter from "vue-router";
 
 export interface Marker {
   icon?: L.Icon;
@@ -42,13 +44,7 @@ export interface Marker {
 
 @Component({
   name: "MapVisualisation",
-  components: {
-    LMap,
-    LTileLayer,
-    LPolyline,
-    LMarker,
-    LIcon
-  }
+  components: {}
 })
 export default class MapVisualisation extends Vue {
   @Prop() zoom!: number;
@@ -61,10 +57,11 @@ export default class MapVisualisation extends Vue {
   })
   attribution!: string;
   @Prop() transport?: MappedTransport;
-  @Ref() map!: { mapObject: L.Map };
+  protected map!: L.Map;
 
-  coordinates: [number, number][];
-  markers: Marker[];
+  coordinates: [number, number][] = [];
+  markers: Marker[] = [];
+  polyline: L.Polyline = L.polyline([]);
 
   getCoordinates(positions: Marker[]): [number, number][] {
     return positions.reduce((acc: [number, number][], m: Marker): [
@@ -85,13 +82,18 @@ export default class MapVisualisation extends Vue {
     }, [] as Marker[]);
   }
 
-  getPositions(transport: MappedTransport): Marker[] {
+  setupRoute(
+    transport: MappedTransport
+  ): { coordinates: [number, number]; marker: L.Marker }[] {
     return transport.positions.reduce(
-      (acc: Marker[], pos: MapTripPosition): Marker[] => {
+      (
+        acc: { coordinates: [number, number]; marker: L.Marker }[],
+        pos: MapTripPosition
+      ): { coordinates: [number, number]; marker: L.Marker }[] => {
         let c = pos.position.coordinates;
-        let icon: L.Icon | undefined = undefined;
+        let markerOptions: L.MarkerOptions = {};
         if (pos.icon != undefined) {
-          icon = L.icon({
+          markerOptions.icon = L.icon({
             // Icon from https://findicons.com/icon/260843/train_transportation
             iconUrl:
               pos.icon.url ??
@@ -99,61 +101,74 @@ export default class MapVisualisation extends Vue {
             iconSize: pos.icon.size ?? [30, 30],
             tooltipAnchor: [16, 37]
           });
+          // L.marker([51.5, -0.09]).addTo(this.map)
+          // .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+          // .openPopup();
         }
-        acc.push({ coordinates: [c.lat, c.lon], icon: icon });
+        let marker = L.marker([c.lat, c.lon], markerOptions).bindPopup(
+          "A pretty CSS3 popup.<br> Easily customizable."
+        );
+        acc.push({ coordinates: [c.lat, c.lon], marker: marker });
         return acc;
       },
-      [] as Marker[]
+      [] as { coordinates: [number, number]; marker: L.Marker }[]
     );
   }
 
   loadTransport(transport?: MappedTransport) {
     if (transport == undefined) return;
 
-    let positions = this.getPositions(transport);
-    this.markers = this.getMarkers(positions);
-    this.coordinates = this.getCoordinates(positions);
+    let positions = this.setupRoute(transport);
+    let polyline: [number, number][] = [];
+    positions.forEach(p => {
+      polyline.push(p.coordinates);
+      p.marker.addTo(this.map);
+    });
+    this.polyline = L.polyline(polyline, { color: transport.color }).addTo(
+      this.map
+    );
+    // this.markers = this.getMarkers(positions);
+    // this.coordinates = this.getCoordinates(positions);
 
     // Fly to the new route
     let start = transport.positions[0].position.coordinates;
     let end =
       transport.positions[transport.positions.length - 1].position.coordinates;
-    this.map.mapObject.flyToBounds(
+    this.map.flyToBounds(
       [
         [start.lat, start.lon],
         [end.lat, end.lon]
       ],
-      { duration: 0.3, animate: true }
+      { duration: 0.3, animate: true, padding: [10, 10] }
     );
   }
 
   @Watch("transport")
   onTransportChanged(newValue: MappedTransport) {
+    // Load new transport
     this.loadTransport(newValue);
   }
 
   mounted() {
-    this.loadTransport(this.transport);
+    // Create map
+    this.map = L.map("map").setView([52.5170365, 13.3888599], 5);
+
+    L.tileLayer(this.url, {
+      attribution: this.attribution
+    }).addTo(this.map);
+
+    /*
+    L.marker([51.5, -0.09]).addTo(map)
+    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+    .openPopup();
+    */
   }
 
-  icon = L.icon({
-    // Icon from https://findicons.com/icon/260843/train_transportation
-    iconUrl:
-      "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
-    iconSize: [30, 30],
-    tooltipAnchor: [16, 37]
-  });
-  polyline: Object = {
-    // Babelsberg --> Grunewald, Koordinaten von https://www.laengengrad-breitengrad.de/
-    latlngs: [
-      [52.391385, 13.092939],
-      [52.395679, 13.137056],
-      [52.411898, 13.156936],
-      [52.426241, 13.19041],
-      [52.487991, 13.260937]
-    ],
-    color: "red"
-  };
+  /*
+  Useful:
+  var group = new L.featureGroup([marker1, marker2, marker3]);
+  map.fitBounds(group.getBounds());
+  */
 }
 </script>
 

@@ -11,6 +11,7 @@ export interface Transport {
   actualDuration: number;
   delay: number;
   delayReason?: string;
+  routeProgress?: number;
   lastPosition?: TripPosition;
   map: MappedTransport;
 }
