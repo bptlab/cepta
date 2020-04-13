@@ -3,7 +3,6 @@ package query;
 option go_package = "github.com/bptlab/cepta/models/gql/query;gql";
 
 import "models/gql/gql.proto";
-import "models/types/basic.proto";
 import "google/protobuf/timestamp.proto";
 
 /*
