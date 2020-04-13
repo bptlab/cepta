@@ -8,9 +8,9 @@ java_test(
     size = "small",
     tags = ["unit"],
     deps = [
-        "//core/src/main/java/org/bptlab/cepta/operators",
-        "//core/src/main/java/org/bptlab/cepta/config",
-        "//core/src/test/java/org/bptlab/cepta/providers",
+        "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
+        "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         
         "//models/events:train_delay_notification_java_proto",
         "//models/events:weather_data_java_proto",
@@ -31,9 +31,9 @@ java_test(
     size = "medium",
     tags = ["integration", "docker"],
     deps = [
-        "//core/src/main/java/org/bptlab/cepta/operators",
-        "//core/src/main/java/org/bptlab/cepta/config",
-        "//core/src/test/java/org/bptlab/cepta/providers",
+        "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
+        "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         
         "//models/events:train_delay_notification_java_proto",
         "//models/events:weather_data_java_proto",

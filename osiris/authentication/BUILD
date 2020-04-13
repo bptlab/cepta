@@ -69,7 +69,7 @@ go_library(
     ],
 )
 go_test(
-    name = "go_default_test",
+    name = "server-test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
     size = "small",
