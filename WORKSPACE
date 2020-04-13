@@ -168,6 +168,7 @@ maven_install(
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
         "org.apache.flink:flink-connector-kafka-0.11_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
+        "org.apache.flink:flink-cep_2.11:%s" % FLINK_VERSION,
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
