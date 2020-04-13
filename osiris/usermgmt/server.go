@@ -227,31 +227,30 @@ func main() {
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 
 	log = logrus.New()
-	go func() {
-		app := &cli.App{
-			Name:    "CEPTA User management server",
-			Version: versioning.BinaryVersion(Version, BuildTime),
-			Usage:   "manages the user database",
-			Flags:   cliFlags,
-			Action: func(ctx *cli.Context) error {
+	app := &cli.App{
+		Name:    "CEPTA User management server",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "manages the user database",
+		Flags:   cliFlags,
+		Action: func(ctx *cli.Context) error {
+			go func() {
 				level, err := logrus.ParseLevel(ctx.String("log"))
 				if err != nil {
 					log.Warnf("Log level '%s' does not exist.")
 					level = logrus.InfoLevel
 				}
 				log.SetLevel(level)
-				ret := serve(ctx, log)
-				return ret
-			},
-		}
-		err := app.Run(os.Args)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	<-done
-	log.Info("Exiting")
+				serve(ctx, log)
+			}()
+			<-done
+			log.Info("Exiting")
+			return nil
+		},
+	}
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
