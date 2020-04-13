@@ -2,8 +2,13 @@ package org.bptlab.cepta.operators;
 
 import java.lang.Object;
 import org.apache.flink.api.common.functions.MapFunction;
-//import org.apache.flink.api.common.functions.IterativeCondition;
-//import org.apache.flink.api.common.functions.Context;
+// CEP packages
+import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.conditions.IterativeCondition;
+import org.apache.flink.cep.pattern.conditions.IterativeCondition.Context;
+
+
+
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 
@@ -13,11 +18,11 @@ public class RemoveDuplicates<T extends Object> {
             new IterativeCondition<T>(){
                 @Override
                 public boolean filter(T event, Context ctx){
-                    return event.equals(ctx.getEventForPattern("first"))
-                };
-            };
-        )
-
+                    return event.equals(ctx.getEventForPattern("first"));
+                }
+            }
+        );
+    
 */
     public DataStream<T> removeDuplicates(DataStream<T> stream, int windowSize){
         DataStream<T> resultStream = stream.filter(new FilterFunction<T>() {
