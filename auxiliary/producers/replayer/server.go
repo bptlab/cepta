@@ -436,6 +436,18 @@ func main() {
 			EnvVars: []string{"INCLUDE", "ERRIDS", "MATCH"},
 			Usage:   "ids to be included in the replay",
 		},
+		&cli.StringFlag{
+			Name:    "include-sources",
+			Value:   "",
+			EnvVars: []string{"INCLUDE_SOURCES"},
+			Usage:   "sources to be included in the replay (default: all)",
+		},
+		&cli.StringFlag{
+			Name:    "exclude-sources",
+			Value:   "",
+			EnvVars: []string{"EXCLUDE_SOURCES"},
+			Usage:   "sources to be excluded from the replay (default: none)",
+		},
 		&cli.GenericFlag{
 			Name: "mode",
 			Value: &clivalues.EnumValue{
