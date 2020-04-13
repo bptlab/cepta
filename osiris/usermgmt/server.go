@@ -223,6 +223,7 @@ func main() {
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 
 	log = logrus.New()
