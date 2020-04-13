@@ -2,7 +2,10 @@
 
 cd $(dirname $0)
 cd compose
-# -f postgresimporter.compose.yml
+
+# Build local images first
+bazel run //:build-images
+
 docker-compose \
   -f core.compose.yml \
   -f cockpit.compose.yml \

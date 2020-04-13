@@ -1,6 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@io_bazel_rules_docker//java:image.bzl", "java_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 java_binary(
     name = "core",
@@ -76,6 +77,22 @@ java_image(
         "@maven//:org_slf4j_slf4j_api",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_github_jasync_sql_jasync_common",
+    ],
+)
+
+command(
+    name = "build-image-cmd",
+    command = ":image",
+    arguments = [
+        "--norun"
+    ]
+)
+
+multirun(
+    visibility = ["//visibility:public"],
+    name = "build-image",
+    commands = [
+        ":build-image-cmd",
     ],
 )
 

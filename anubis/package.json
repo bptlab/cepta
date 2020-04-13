@@ -1,6 +1,6 @@
 {
   "name": "anubis",
-  "version": "0.0.7",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "serve": "./gen-protos.sh vue-cli-service serve",
@@ -70,6 +70,7 @@
     "eslint-plugin-vue": "^6.0.1",
     "graphql-tag": "^2.9.0",
     "husky": "^4.2.1",
+    "kind-of": "^6.0.3",
     "node-sass": "^4.13.1",
     "prettier": "^1.19.1",
     "sass-loader": "^8.0.0",

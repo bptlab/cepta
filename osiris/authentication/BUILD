@@ -1,6 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 go_binary(
     name = "authentication",
@@ -12,6 +13,22 @@ go_image(
     name = "image",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
+)
+
+command(
+    name = "build-image-cmd",
+    command = ":image",
+    arguments = [
+        "--norun"
+    ]
+)
+
+multirun(
+    visibility = ["//visibility:public"],
+    name = "build-image",
+    commands = [
+        ":build-image-cmd",
+    ],
 )
 
 container_push(
@@ -34,7 +51,7 @@ go_library(
         "BuildTime": "{buildDate}",
     },
     importpath = "github.com/bptlab/cepta/osiris/authentication",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
     deps = [
         "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
@@ -51,7 +68,6 @@ go_library(
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library"
     ],
 )
-
 go_test(
     name = "go_default_test",
     srcs = ["server_test.go"],

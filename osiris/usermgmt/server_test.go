@@ -7,7 +7,9 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/bptlab/cepta/models/grpc/user_management"
+	auth "github.com/bptlab/cepta/models/grpc/authentication"
+	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
+	authserv "github.com/bptlab/cepta/osiris/authentication"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/jinzhu/gorm"
@@ -34,9 +36,9 @@ const bufSize = 1024 * 1024
 
 var lis *bufconn.Listener
 
-func SetUpAll() {
+func SetUpAll(t *testing.T) {
 	SetUpDatabase()
-	SetUpServerConnection()
+	SetUpServerConnection(t)
 }
 func SetUpDatabase() {
 	mocket.Catcher.Register()
@@ -51,11 +53,21 @@ func SetUpDatabase() {
 	// gormDB.LogMode(true)
 	ldb = &libdb.PostgresDB{DB: gormDB}
 }
-
-func SetUpServerConnection() {
+func SetUpServerConnection(t *testing.T) {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	pb.RegisterUserManagementServer(s, &server{db: ldb})
+	ctx := context.Background()
+	auth.RegisterAuthenticationServer(s, &authserv.Server{DB: ldb})
+	pb.RegisterUserManagementServer(s, &server{
+		db: ldb,
+		authClient: func(inconn *grpc.ClientConn) auth.AuthenticationClient {
+			conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+			if err != nil {
+				t.Fatalf("Failed to dial bufnet: %v", err)
+			}
+			return auth.NewAuthenticationClient(conn)
+		},
+	})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			fmt.Printf("Server exited with error: %v", err)
@@ -64,7 +76,7 @@ func SetUpServerConnection() {
 }
 
 func TestAddTrain(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -88,9 +100,10 @@ func TestAddTrain(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 	}
@@ -103,7 +116,7 @@ func TestAddUser(t *testing.T) {
 	}
 	response, err := client.AddUser(context.Background(), request)
 	if err != nil {
-		t.Errorf("AddUser() should work without error.")
+		t.Errorf("AddUser() should work without error. Error: %v", err)
 	}
 	if response.Success != true {
 		t.Errorf("AddUser should return success message. It was %v", response)
@@ -111,7 +124,7 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestGetTrainIds(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -134,7 +147,7 @@ func TestGetTrainIds(t *testing.T) {
 }
 
 func TestGetUserWithoutTrains(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -159,7 +172,7 @@ func TestGetUserWithoutTrains(t *testing.T) {
 	}
 }
 func TestGetUserWithTrains(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -185,7 +198,7 @@ func TestGetUserWithTrains(t *testing.T) {
 }
 
 func TestRemoveTrain(t *testing.T) {
-	SetUpAll()
+	SetUpAll(t)
 	ctx := context.Background()
 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
@@ -207,6 +220,27 @@ func TestRemoveTrain(t *testing.T) {
 		t.Errorf("RemoveTrain should return success message, but it was %v", response)
 	}
 }
+
+func TestRemoveUser(t *testing.T) {
+	SetUpAll(t)
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	defer conn.Close()
+	client := pb.NewUserManagementClient(conn)
+	request := userIDProto
+	response, err := client.RemoveUser(context.Background(), request)
+	if err != nil {
+		t.Errorf("RemoveUser() should work without error. Error: %v", err)
+	}
+	if response.Success != true {
+		t.Errorf("RemoveUser should return success message. It was %v", response)
+	}
+}
+
 func bufDialer(string, time.Duration) (net.Conn, error) {
 	return lis.Dial()
 }
