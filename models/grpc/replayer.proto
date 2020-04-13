@@ -24,6 +24,10 @@ service Replayer {
   // Query
   rpc GetStatus(Empty) returns (ReplayStatus) {}
   rpc GetOptions(Empty) returns (ReplayStartOptions) {}
+
+  // Custom querying for internal testing infrastructure
+  rpc QueryReplayPlannedData(QueryOptions) returns (ReplayStatus) {}
+
 }
 
 enum InternalControlMessageType {
@@ -46,11 +50,6 @@ message Speed {
   int32 speed = 1;
 }
 
-
-/*message Timestamp {
-  string timestamp = 1;
-}*/
-
 message ReplayStatus {
   bool active = 1;
 }
@@ -63,8 +62,6 @@ message Timerange {
 message ReplayOptions {
   Speed speed = 2;
   Timerange range = 3;
-  // google.protobuf.Timestamp startTimestamp = 3;
-  // google.protobuf.Timestamp endTimestamp = 4;
   ReplayType type = 5;
 }
 
@@ -72,8 +69,6 @@ message ReplayStartOptions {
   repeated string ids = 1;
   Speed speed = 2;
   Timerange range = 3;
-  // google.protobuf.Timestamp startTimestamp = 3;
-  // google.protobuf.Timestamp endTimestamp = 4;
   ReplayType type = 4;
 }
 
@@ -81,4 +76,9 @@ message Empty {}
 
 message Success {
   bool success = 1;
+}
+
+// Query Options
+message QueryOptions {
+
 }
