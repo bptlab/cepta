@@ -17,6 +17,7 @@ import (
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	"github.com/bptlab/cepta/osiris/lib/utils"
 	clivalues "github.com/romnnn/flags4urfavecli/values"
 
 	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
@@ -54,6 +55,7 @@ var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var log *logrus.Logger
 var replayers = []*Replayer{}
+var activeReplayers = []*Replayer{}
 
 type server struct {
 	pb.UnimplementedReplayerServer
@@ -140,7 +142,7 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 	}, nil
 }
 
-func serve(ctx *cli.Context, log *logrus.Logger) error {
+func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error {
 	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
 
 	// For reference: When using postgres as a replaying database:
@@ -157,6 +159,7 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	if err != nil {
 		log.Fatalf("failed to initialize mongo database: %v", err)
 	}
+	mongoPtr.DB = mongo.DB
 
 	// Parse CLI replay type
 	var startMode pb.ReplayType
@@ -197,6 +200,104 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	default:
 		replayerServer.speed = 5000
 	}
+
+	// Connect to kafka
+	var producer *kafkaproducer.KafkaProducer
+	timeout := ctx.Int("connection-timeout-sec")
+	allowedRetries := ctx.Int("connection-max-retries")
+	retryInterval := ctx.Int("connection-retry-interval-sec")
+	if timeout > 0 {
+		allowedRetries = 1
+		retryInterval = timeout
+	}
+	var attempt int
+	for {
+		var err error
+		producer, err = kafkaproducer.KafkaProducer{}.ForBroker(kafkaConfig.Brokers)
+		if err != nil {
+			if attempt >= allowedRetries {
+				log.Warnf("Failed to start kafka producer: %s", err.Error())
+				log.Fatal("Cannot produce events")
+			}
+			attempt++
+			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, allowedRetries)
+			time.Sleep(time.Duration(retryInterval) * time.Second)
+			continue
+		}
+		break
+	}
+
+	includedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
+	log.Infof("Include: %s", includedSrcs)
+	excludedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("exclude-sources"))
+	log.Infof("Exclude: %s", excludedSrcs)
+
+	for _, replayer := range replayers {
+		// Filter replayers
+		if len(includedSrcs) > 0 && !utils.Contains(includedSrcs, replayer.SourceName) {
+			log.Debugf("Skipping %s", replayer.SourceName)
+			continue
+		}
+		if len(excludedSrcs) > 0 && utils.Contains(excludedSrcs, replayer.SourceName) {
+			log.Debugf("Skipping %s", replayer.SourceName)
+			continue
+		}
+		// Set common replayer parameters
+		replayer.producer = producer
+		replayer.Ctrl = make(chan pb.InternalControlMessageType)
+		replayer.Query.IncludeIds = &replayerServer.ids
+		replayer.Query.Timerange = &replayerServer.timerange
+		replayer.Query.Limit = &replayerServer.limit
+		replayer.Query.Offset = 0
+		replayer.Active = &replayerServer.active
+		replayer.Speed = &replayerServer.speed
+		replayer.Mode = &replayerServer.mode
+		replayer.Repeat = ctx.Bool("repeat")
+		replayer.Brokers = kafkaConfig.Brokers
+		activeReplayers = append(activeReplayers, replayer)
+		go replayer.Start(log)
+	}
+
+	port := fmt.Sprintf(":%d", ctx.Int("port"))
+	log.Infof("Serving at %s", port)
+	listener, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	grpcServer = grpc.NewServer()
+	pb.RegisterReplayerServer(grpcServer, &replayerServer)
+
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+	log.Info("Closing socket")
+	listener.Close()
+	done <- true
+	return nil
+}
+
+func main() {
+	// Register shutdown routine
+	shutdown := make(chan os.Signal)
+	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-shutdown
+		log.Info("Graceful shutdown")
+		log.Info("Sending SHUTDOWN signal to all replaying topics")
+		for _, replayer := range activeReplayers {
+			log.Debugf("Sending SHUTDOWN signal to %s", replayer.SourceName)
+			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+			// Wait for ack
+			log.Debugf("Waiting for ack from %s", replayer.SourceName)
+			<-replayer.Ctrl
+			log.Debugf("Shutdown complete for %s", replayer.SourceName)
+		}
+
+		log.Info("Stopping GRPC server")
+		grpcServer.Stop()
+	}()
+
+	mongo := new(libdb.MongoDB)
 
 	checkpoints := &Replayer{
 		SourceName: "checkpoints",
@@ -341,86 +442,10 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		gps,
 	}
 
-	// Connect to kafka
-	var producer *kafkaproducer.KafkaProducer
-	timeout := ctx.Int("connection-timeout-sec")
-	allowedRetries := ctx.Int("connection-max-retries")
-	retryInterval := ctx.Int("connection-retry-interval-sec")
-	if timeout > 0 {
-		allowedRetries = 1
-		retryInterval = timeout
+	sources := make([]string, len(replayers))
+	for i := range replayers {
+		sources[i] = replayers[i].SourceName
 	}
-	var attempt int
-	for {
-		var err error
-		producer, err = kafkaproducer.KafkaProducer{}.ForBroker(kafkaConfig.Brokers)
-		if err != nil {
-			if attempt >= allowedRetries {
-				log.Warnf("Failed to start kafka producer: %s", err.Error())
-				log.Fatal("Cannot produce events")
-			}
-			attempt++
-			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, allowedRetries)
-			time.Sleep(time.Duration(retryInterval) * time.Second)
-			continue
-		}
-		break
-	}
-
-	// Set common replayer parameters
-	for _, replayer := range replayers {
-		replayer.producer = producer
-		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.Query.IncludeIds = &replayerServer.ids
-		replayer.Query.Timerange = &replayerServer.timerange
-		replayer.Query.Limit = &replayerServer.limit
-		replayer.Query.Offset = 0
-		replayer.Active = &replayerServer.active
-		replayer.Speed = &replayerServer.speed
-		replayer.Mode = &replayerServer.mode
-		replayer.Repeat = ctx.Bool("repeat")
-		replayer.Brokers = kafkaConfig.Brokers
-		go replayer.Start(log)
-	}
-
-	port := fmt.Sprintf(":%d", ctx.Int("port"))
-	log.Infof("Serving at %s", port)
-	listener, err := net.Listen("tcp", port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	grpcServer = grpc.NewServer()
-	pb.RegisterReplayerServer(grpcServer, &replayerServer)
-
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
-	log.Info("Closing socket")
-	listener.Close()
-	done <- true
-	return nil
-}
-
-func main() {
-	// Register shutdown routine
-	shutdown := make(chan os.Signal)
-	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-shutdown
-		log.Info("Graceful shutdown")
-		log.Info("Sending SHUTDOWN signal to all replaying topics")
-		for _, replayer := range replayers {
-			log.Debugf("Sending SHUTDOWN signal to %s", replayer.SourceName)
-			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
-			// Wait for ack
-			log.Debugf("Waiting for ack from %s", replayer.SourceName)
-			<-replayer.Ctrl
-			log.Debugf("Shutdown complete for %s", replayer.SourceName)
-		}
-
-		log.Info("Stopping GRPC server")
-		grpcServer.Stop()
-	}()
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
@@ -436,15 +461,23 @@ func main() {
 			EnvVars: []string{"INCLUDE", "ERRIDS", "MATCH"},
 			Usage:   "ids to be included in the replay",
 		},
-		&cli.StringFlag{
-			Name:    "include-sources",
-			Value:   "",
+		&cli.GenericFlag{
+			Name: "include-sources",
+			Value: &clivalues.EnumListValue{
+				Enum:       sources,
+				Default:    []string{},
+				AllowEmpty: true,
+			},
 			EnvVars: []string{"INCLUDE_SOURCES"},
 			Usage:   "sources to be included in the replay (default: all)",
 		},
-		&cli.StringFlag{
-			Name:    "exclude-sources",
-			Value:   "",
+		&cli.GenericFlag{
+			Name: "exclude-sources",
+			Value: &clivalues.EnumListValue{
+				Enum:       sources,
+				Default:    []string{},
+				AllowEmpty: true,
+			},
 			EnvVars: []string{"EXCLUDE_SOURCES"},
 			Usage:   "sources to be excluded from the replay (default: none)",
 		},
@@ -508,7 +541,7 @@ func main() {
 					level = logrus.InfoLevel
 				}
 				log.SetLevel(level)
-				ret := serve(ctx, log)
+				ret := serve(ctx, log, mongo)
 				return ret
 			},
 		}
