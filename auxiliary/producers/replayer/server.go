@@ -202,29 +202,9 @@ func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error 
 	}
 
 	// Connect to kafka
-	var producer *kafkaproducer.KafkaProducer
-	timeout := ctx.Int("connection-timeout-sec")
-	allowedRetries := ctx.Int("connection-max-retries")
-	retryInterval := ctx.Int("connection-retry-interval-sec")
-	if timeout > 0 {
-		allowedRetries = 1
-		retryInterval = timeout
-	}
-	var attempt int
-	for {
-		var err error
-		producer, err = kafkaproducer.KafkaProducer{}.ForBroker(kafkaConfig.Brokers)
-		if err != nil {
-			if attempt >= allowedRetries {
-				log.Warnf("Failed to start kafka producer: %s", err.Error())
-				log.Fatal("Cannot produce events")
-			}
-			attempt++
-			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, allowedRetries)
-			time.Sleep(time.Duration(retryInterval) * time.Second)
-			continue
-		}
-		break
+	producer, err := kafkaproducer.KafkaProducer{}.Create(kafkaConfig)
+	if err != nil {
+		log.Fatalf("Cannot produce events: %s", err.Error())
 	}
 
 	includedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))

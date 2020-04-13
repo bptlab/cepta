@@ -42,6 +42,26 @@ const (
 	RetryIntervalSec
 )
 
+// ConnectionTolerance ...
+type ConnectionTolerance struct {
+	ConnectionTimeoutSec int
+	MaxRetries           int
+	RetryIntervalSec     int
+}
+
+func (ct ConnectionTolerance) ParseCli(ctx *cli.Context) ConnectionTolerance {
+	t := ConnectionTolerance{
+		ConnectionTimeoutSec: ctx.Int("connection-timeout-sec"),
+		MaxRetries:           ctx.Int("connection-max-retries"),
+		RetryIntervalSec:     ctx.Int("connection-retry-interval-sec"),
+	}
+	if t.ConnectionTimeoutSec > 0 {
+		t.MaxRetries = 1
+		t.RetryIntervalSec = t.ConnectionTimeoutSec
+	}
+	return t
+}
+
 func ParseTimeout(ctx *cli.Context) int {
 	if timeout := ctx.Int("connection-timeout-sec"); timeout > 0 {
 		return timeout
