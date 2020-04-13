@@ -259,7 +259,6 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 	var err error
 	db, err = libdb.PostgresDatabase(&postgresConfig)
 	db.DB.AutoMigrate(&User{})
-
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}

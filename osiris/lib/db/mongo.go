@@ -21,21 +21,23 @@ type MongoDB struct {
 
 // MongoDBConfig ...
 type MongoDBConfig struct {
-	Host     string
-	Port     uint
-	User     string
-	Database string
-	Password string
+	Host                string
+	Port                uint
+	User                string
+	Database            string
+	Password            string
+	ConnectionTolerance libcli.ConnectionTolerance
 }
 
 // ParseCli ...
 func (config MongoDBConfig) ParseCli(ctx *cli.Context) MongoDBConfig {
 	return MongoDBConfig{
-		Host:     ctx.String("mongodb-host"),
-		Port:     uint(ctx.Int("mongodb-port")),
-		User:     ctx.String("mongodb-user"),
-		Database: ctx.String("mongodb-database"),
-		Password: ctx.String("mongodb-password"),
+		Host:                ctx.String("mongodb-host"),
+		Port:                uint(ctx.Int("mongodb-port")),
+		User:                ctx.String("mongodb-user"),
+		Database:            ctx.String("mongodb-database"),
+		Password:            ctx.String("mongodb-password"),
+		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
@@ -43,7 +45,7 @@ func (config MongoDBConfig) ParseCli(ctx *cli.Context) MongoDBConfig {
 var MongoDatabaseCliOptions = libcli.CommonCliOptions(libcli.Mongo)
 
 // MongoDatabase ...
-func MongoDatabase(config *MongoDBConfig, timeoutSec int) (*MongoDB, error) {
+func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
 	databaseName := config.Database
 	var databaseAuth string
 	if len(config.User+config.Password) > 0 {
@@ -55,13 +57,13 @@ func MongoDatabase(config *MongoDBConfig, timeoutSec int) (*MongoDB, error) {
 	if err != nil {
 		log.Fatalf("Failed to create database client: %v (%s:%s)", err, databaseConnectionURI, databaseName)
 	}
-	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.ConnectionTolerance.Timeout())*time.Second)
 	defer cancel()
 	client.Connect(mctx)
 
 	err = client.Ping(mctx, readpref.Primary())
 	if err != nil {
-		log.Fatalf("Could not ping database within %d seconds: %s (%s:%s)", timeoutSec, err.Error(), databaseConnectionURI, databaseName)
+		log.Fatalf("Could not ping database within %d seconds: %s (%s:%s)", config.ConnectionTolerance.Timeout(), err.Error(), databaseConnectionURI, databaseName)
 	}
 	database := client.Database(databaseName)
 	return &MongoDB{DB: database}, nil

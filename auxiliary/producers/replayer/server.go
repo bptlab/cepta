@@ -155,7 +155,7 @@ func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error 
 	*/
 
 	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
-	mongo, err := libdb.MongoDatabase(&mongoConfig, libcli.ParseTimeout(ctx))
+	mongo, err := libdb.MongoDatabase(&mongoConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize mongo database: %v", err)
 	}

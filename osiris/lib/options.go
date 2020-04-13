@@ -62,12 +62,11 @@ func (ct ConnectionTolerance) ParseCli(ctx *cli.Context) ConnectionTolerance {
 	return t
 }
 
-func ParseTimeout(ctx *cli.Context) int {
-	if timeout := ctx.Int("connection-timeout-sec"); timeout > 0 {
-		return timeout
+func (ct ConnectionTolerance) Timeout() int {
+	if ct.ConnectionTimeoutSec > 0 {
+		return ct.ConnectionTimeoutSec
 	}
-	// Calculate from retries and interval
-	return ctx.Int("connection-max-retries") * ctx.Int("connection-retry-interval-sec")
+	return ct.MaxRetries * ct.RetryIntervalSec
 }
 
 func CommonCliOptions(options ...int) []cli.Flag {
