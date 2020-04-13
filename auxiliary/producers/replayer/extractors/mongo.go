@@ -111,7 +111,6 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 		aggregation = append(aggregation, bson.D{{"$limit", *(queryOptions.Limit)}})
 	}
 
-	fmt.Println(aggregation)
 	return aggregation
 }
 
