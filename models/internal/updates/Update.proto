@@ -1,0 +1,17 @@
+syntax = "proto3";
+package updates;
+option go_package = "github.com/bptlab/cepta/models/internal/updates/update";
+option java_package = "org.bptlab.cepta.models.internal.updates.update";
+option java_outer_classname = "UpdateProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message Update {
+    string checksum = 1;
+    google.protobuf.Timestamp time = 2;
+}
+
+message CummulatedUpdates {
+    repeated Update updates = 1;
+    int32 total = 2;
+}

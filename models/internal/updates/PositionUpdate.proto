@@ -1,0 +1,11 @@
+syntax = "proto3";
+package updates;
+option go_package = "github.com/bptlab/cepta/models/internal/updates/update";
+option java_package = "org.bptlab.cepta.models.internal.updates.update";
+option java_outer_classname = "UpdateProtos";
+
+import "models/types/Coordinate.proto";
+
+message PositionUpdate {
+    models.types.Coordinate coordinate = 1;
+}

@@ -12,6 +12,7 @@ filegroup(
     srcs = [
         "//models/constants",
         "//models/events",
+        "//models/internal",
         "//models/gql",
         "//models/grpc",
     ],
