@@ -84,7 +84,7 @@ func (r Replayer) produce() error {
 				waitTime := int64(0)
 				switch *r.Mode {
 				case pb.ReplayType_CONSTANT:
-					waitTime = int64(*r.Speed) * time.Second.Nanoseconds()
+					waitTime = int64(*r.Speed) * time.Millisecond.Nanoseconds()
 				case pb.ReplayType_PROPORTIONAL:
 					waitTime = passedTime.Nanoseconds() / utils.MaxInt64(1, int64(*r.Speed))
 				default:
