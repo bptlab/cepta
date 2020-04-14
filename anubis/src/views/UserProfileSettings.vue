@@ -89,48 +89,10 @@
             />
           </div>
         </div>
-        <!--
-        <fieldset class="form-group">
-          <div class="row">
-            <legend class="col-form-label col-sm-2 pt-0">Radios</legend>
-            <div class="col-sm-10">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="option1" checked>
-                <label class="form-check-label" for="gridRadios1">
-                  First radio
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="option2">
-                <label class="form-check-label" for="gridRadios2">
-                  Second radio
-                </label>
-              </div>
-              <div class="form-check disabled">
-                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios3" value="option3" disabled>
-                <label class="form-check-label" for="gridRadios3">
-                  Third disabled radio
-                </label>
-              </div>
-            </div>
-          </div>
-        </fieldset>
-        <div class="form-group row">
-          <div class="col-sm-2">Checkbox</div>
-          <div class="col-sm-10">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="gridCheck1">
-              <label class="form-check-label" for="gridCheck1">
-                Example checkbox
-              </label>
-            </div>
-          </div>
-        </div>
-        -->
         <div class="form-group row">
           <div class="col">
             <button
-              class="btn btn-danger float-left"
+              class="btn btn-cepta-danger float-left"
               @click.prevent="deleteUser"
             >
               Delete
@@ -146,57 +108,7 @@
           </div>
         </div>
       </form>
-
-      <!--
-      <form>
-      <div class="form-group form-inline">
-        <label for="inputUsername">Username</label>
-        <input
-          type="text"
-          class="form-control"
-          Placeholder="John Doe"
-          name="username"
-          id="inputUsername"
-        />
-      </div>
-      <div class="form-group form-inline">
-        <label for="inputEmail">Email Address</label>
-        <input
-          type="email"
-          class="form-control"
-          Placeholder="name@email.com"
-          name="email"
-          id="inputEmail"
-        />
-      </div>
-      <div class="form-group form-inline">
-        <label for="inputPassword">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          placeholder="Password"
-          name="password"
-          id="inputPassword"
-        />
-      </div>
-      <div class="form-group form-inline">
-        <label for="inputConfirmPassword">Confirm Password</label>
-        <input
-          type="password"
-          class="form-control"
-          placeholder="Password"
-          name="password"
-          id="inputConfirmPassword"
-        />
-      </div>
-      <div class="form-group form-inline">
-        <button class="btn btn-primary">Update</button>
-        <button class="btn btn-secondary red" v-on:click="deleteUser">
-      Delete
-    </button>
-      </div>
-    </form>
-    --></div>
+    </div>
   </div>
 </template>
 

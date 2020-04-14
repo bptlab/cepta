@@ -127,7 +127,7 @@ $cell-height: 60px
   position: relative
   border-radius: 7px
   width: 100%
-  +theme-color-diff(background-color, bgc-body, 2)
+  +theme-color-diff(background-color, bgc-body, 5)
 
   .view
     +transition(all 0.1s ease-in)
@@ -145,7 +145,7 @@ $cell-height: 60px
       opacity: 0
 
   &:hover
-    +theme-color-diff(background-color, bgc-body, 5)
+    +theme-color-diff(background-color, bgc-body, 10)
     .view
       width: 75px
       border-bottom-right-radius: 7px
@@ -162,7 +162,7 @@ $cell-height: 60px
     width: 40px
     border-bottom-left-radius: 7px
     border-top-left-radius: 7px
-    +theme-color-diff(background-color, bgc-body, 5)
+    +theme-color-diff(background-color, bgc-body, 3)
 
   table
     height: 100%

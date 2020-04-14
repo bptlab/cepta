@@ -59,7 +59,7 @@
 
         <div v-if="transport.routeProgress" class="progress mT-10">
           <div
-            class="progress-bar bgc-deep-purple-500"
+            class="progress-bar"
             role="progressbar"
             :aria-valuenow="transport.routeProgress"
             aria-valuemin="0"
@@ -105,19 +105,14 @@
           <table class="transport-actions">
             <tr>
               <td>
-                <div class="btn btn-info btn-slim track" @click="track()">
+                <div class="btn btn-cepta-default btn-slim track" @click="track()">
                   <span class="icon icon-target"></span>
                   Track
                 </div>
               </td>
               <td>
-                <div class="btn btn-info btn-slim" @click="notify()">
+                <div class="btn btn-cepta-default btn-slim" @click="notify()">
                   <span class="icon icon-bell"></span> Notify
-                </div>
-              </td>
-              <td v-if="transport.delay > delayThresholds.soft">
-                <div class="btn btn-danger btn-slim" @click="mitigate()">
-                  <span class="icon icon-bolt"></span> Mitigate
                 </div>
               </td>
             </tr>
@@ -277,9 +272,6 @@ export default class TrainData extends Vue {
   position: relative
   width: 100%
 
-  .btn
-    color: inherit
-
   .map
     top: 0
     right: 0
@@ -325,7 +317,7 @@ export default class TrainData extends Vue {
               +theme(color, c-delay-alert)
 
           .position
-            +theme(color, c-accent-text)
+            +theme(color, c-map-position-text)
             font-weight: bold
             font-size: 20px
 
@@ -354,6 +346,12 @@ export default class TrainData extends Vue {
 
     .progress, .transport-metadata
       margin: 20px 10px
+
+    .progress
+      +theme-color-diff(background-color, bgc-body, 20)
+      div
+        +theme-color-diff(background-color, bgc-body, 70)
+        +transition(all 0.2s ease-in)
 
     .station-list
       height: calc(100% - 370px)

@@ -192,7 +192,7 @@
                 <button
                   @click.prevent="updateReplay"
                   id="updateReplayButton"
-                  class="btn btn-info"
+                  class="btn btn-cepta-default"
                   :disabled="!replayerConfigChanged"
                 >
                   Apply

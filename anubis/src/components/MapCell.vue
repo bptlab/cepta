@@ -69,7 +69,7 @@
 
         <div v-if="transport.routeProgress" class="progress mT-10">
           <div
-            class="progress-bar bgc-deep-purple-500"
+            class="progress-bar"
             role="progressbar"
             :aria-valuenow="transport.routeProgress"
             aria-valuemin="0"
@@ -116,7 +116,7 @@
             <tr>
               <td>
                 <div
-                  class="btn btn-info btn-slim track"
+                  class="btn btn-cepta-default btn-slim track"
                   @click="trackTransport()"
                 >
                   <span class="icon icon-target"></span>
@@ -124,12 +124,12 @@
                 </div>
               </td>
               <td>
-                <div class="btn btn-info btn-slim" @click="notify()">
+                <div class="btn btn-cepta-default btn-slim" @click="notify()">
                   <span class="icon icon-bell"></span> Notify
                 </div>
               </td>
-              <td v-if="transport.delay > delayThresholds.soft">
-                <div class="btn btn-danger btn-slim" @click="mitigate()">
+              <td v-if="enableMitigate && transport.delay > delayThresholds.soft">
+                <div class="btn btn-cepta-default btn-slim" @click="mitigate()">
                   <span class="icon icon-bolt"></span> Mitigate
                 </div>
               </td>
@@ -158,6 +158,7 @@ export default class MapCell extends Vue {
   @Prop() private transport!: Transport;
   @Prop() private tracked?: string;
   @Prop() private shouldNotify?: boolean;
+  private enableMitigate: boolean = false;
   private notifyEnabled: boolean = this.shouldNotify ?? false;
 
   get isTracked(): boolean {
@@ -211,7 +212,10 @@ $cell-height: 180px
     height: $cell-height
 
   .progress
-    +transition(all 0.2s ease-in)
+    +theme-color-diff(background-color, bgc-body, 20)
+    div
+      +theme-color-diff(background-color, bgc-body, 70)
+      +transition(all 0.2s ease-in)
 
   table
     width: 100%
@@ -230,7 +234,8 @@ $cell-height: 180px
         font-weight: bold
 
       .status
-        +theme(color, c-delay-fine)
+        // +theme(color, c-delay-fine)
+        +theme-color-diff(color, bgc-body, 50)
         &.late
           +theme(color, c-delay-warning)
         &.very-late
@@ -240,21 +245,23 @@ $cell-height: 180px
         font-size: 13px
 
       .position
-        +theme(color, c-accent-text)
-        font-weight: bold
+        +theme(color, c-map-position-text)
+        font-weight: 500
         font-size: 17px
 
       a
         color: inherit
 
       .route
+        +transition(all 0.1s ease-in)
         line-height: 20px
         padding-right: 5px
-        color: inherit
+        +theme-color-diff(color, bgc-body, 50)
         .new-tab
           font-size: 10px
           opacity: 0
         &:hover
+          color: inherit
           .new-tab
             opacity: 1
 

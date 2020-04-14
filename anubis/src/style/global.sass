@@ -13,3 +13,19 @@
   -webkit-transition: $property
       -ms-transition: $property
           transition: $property
+
+.noscrollbar
+  // Hide scrollbar for IE and Edge
+  -ms-oversflow-style: none
+
+  // Hide scrollbar for Chrome, Safari and Opera
+  &::-webkit-scrollbar
+    display: none
+
+.btn-cepta-default
+  background-color: transparent
+  color: inherit
+
+.btn-cepta-danger, .btn-cepta-default:hover
+  color: white
+  +theme(background-color, bgc-btn-default)

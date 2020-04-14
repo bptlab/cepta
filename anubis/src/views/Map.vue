@@ -19,7 +19,7 @@
         </div>
       </div>
     </div>
-    <div class="transport-list">
+    <div class="transport-list noscrollbar">
       <ul>
         <li v-for="transport in transports" :key="transport.id">
           <map-cell
@@ -64,7 +64,7 @@ export default class Dashboard extends Vue {
     end: "Berlin",
     plannedDuration: 150,
     actualDuration: 170,
-    delay: 21,
+    delay: 67,
     delayReason: "Rain",
     trend: {
       value: 13,
@@ -117,7 +117,6 @@ export default class Dashboard extends Vue {
           }
         }
       ],
-      color: "blue"
     }
   });
 
@@ -185,12 +184,6 @@ export default class Dashboard extends Vue {
     height: calc(100% - 31px)
     overflow-y: scroll
     padding: 0 7px
-    // Hide scrollbar for IE and Edge
-    -ms-oversflow-style: none
-
-    // Hide scrollbar for Chrome, Safari and Opera
-    &::-webkit-scrollbar
-      display: none
 
     ul
       text-decoration: none

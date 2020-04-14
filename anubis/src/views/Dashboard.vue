@@ -13,7 +13,7 @@
             <p class="metric-value">23</p>
           </div>
           <div class="peer">
-            <tacho-chart :size="80" :percent="75" fillColor="#f44336" />
+            <tacho-chart :size="80" :percent="75" fillColor="#f7007c" />
             <h6 class="">Delayed transports</h6>
           </div>
           <div class="peer">
@@ -26,7 +26,7 @@
             <h6 class="">Total delay minutes</h6>
           </div>
           <div class="peer">
-            <tacho-chart :size="80" :percent="90" fillColor="#ff9800" />
+            <tacho-chart :size="80" :percent="90" fillColor="#9400f7" />
             <h6 class="">Prediction Accuracy</h6>
           </div>
         </div>

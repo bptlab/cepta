@@ -10,16 +10,6 @@
         v-model="search"
         v-on:input="this.resetSelection"
       />
-      <selectable-table
-        :table-data="filteredTableData"
-        :show-indices="false"
-        :striped="true"
-        :bordered="true"
-        :hoverable="true"
-        :headless="true"
-        :clickHandler="this.rowClickHandler"
-        cellspacing="0"
-      />
       <button
         v-if="this.selectedTrainId"
         v-on:click="this.editId"
@@ -59,7 +49,6 @@
 import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
-import SelectableTable from "../components/SelectableTable.vue";
 import GridTable from "../components/GridTable.vue";
 
 @Component({
@@ -67,7 +56,6 @@ import GridTable from "../components/GridTable.vue";
   components: {
     MasonryLayout,
     MasonryLayoutTile,
-    SelectableTable,
     GridTable
   },
   props: {}
