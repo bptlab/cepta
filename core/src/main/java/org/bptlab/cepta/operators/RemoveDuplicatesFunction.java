@@ -60,6 +60,7 @@ public class RemoveDuplicatesFunction<T extends Object> {
                     return event;
                 } 
             }
+        // countWindow counts the occurences of Keys 
         ).countWindow(1).process(new ProcessWindowFunction<T, T, T, GlobalWindow>() {
             @Override
             public void process(T key, Context context, Iterable<T> input, Collector<T> out) throws Exception {

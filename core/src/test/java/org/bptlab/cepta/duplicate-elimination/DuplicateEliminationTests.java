@@ -32,6 +32,7 @@ public class DuplicateEliminationTests {
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
+            System.out.println(removedInteger.get(i));
             if (removedInteger.get(i) == 1 && !flag) {
                 flag = true; 
             } else if (removedInteger.get(i) == 1 && flag) {
