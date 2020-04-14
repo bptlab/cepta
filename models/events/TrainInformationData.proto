@@ -1,5 +1,5 @@
 syntax = "proto3";
-package train;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/train";
 option java_package = "org.bptlab.cepta.models.events.train";
 option java_outer_classname = "TrainInformationDataProtos";

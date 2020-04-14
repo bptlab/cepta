@@ -1,5 +1,5 @@
 syntax = "proto3";
-package crew;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/crew";
 option java_package = "org.bptlab.cepta.models.events.crew";
 option java_outer_classname = "CrewDataProtos";

@@ -363,7 +363,7 @@ go_proto_library(
 
 proto_library(
     name = "country_data_proto",
-    srcs = ["InfrastructureManagerData.proto"],
+    srcs = ["CountryData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
@@ -383,7 +383,7 @@ go_proto_library(
 
 proto_library(
     name = "railway_undertaking_data_proto",
-    srcs = ["RailwayUntertakingData.proto"],
+    srcs = ["RailwayUndertakingData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
@@ -399,6 +399,8 @@ filegroup(
     srcs = [
         ":checkpoint_data_go_proto",
         ":checkpoint_data_java_proto",
+        ":country_data_go_proto",
+        ":country_data_java_proto",
         ":crew_activity_data_go_proto",
         ":crew_activity_data_java_proto",
         ":crew_prep_end_data_go_proto",
@@ -413,10 +415,6 @@ filegroup(
         ":gps_trip_update_java_proto",
         ":infrastructure_manager_data_go_proto",
         ":infrastructure_manager_data_java_proto",
-        ":train_delay_notification_ts_proto",
-        ":train_delay_notification_nodejs_proto",
-        ":country_data_go_proto",
-        ":country_data_java_proto",
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
         ":location_data_go_proto",
@@ -431,6 +429,8 @@ filegroup(
         ":station_data_java_proto",
         ":train_delay_notification_go_proto",
         ":train_delay_notification_java_proto",
+        ":train_delay_notification_nodejs_proto",
+        ":train_delay_notification_ts_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
         ":vehicle_data_go_proto",

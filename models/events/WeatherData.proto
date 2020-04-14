@@ -1,5 +1,5 @@
 syntax = "proto3";
-package weather;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/weather";
 option java_package = "org.bptlab.cepta.models.events.weather";
 option java_outer_classname = "WeatherDataProtos";
