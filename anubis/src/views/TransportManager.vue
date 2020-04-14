@@ -1,137 +1,104 @@
 <template>
-  <masonry-layout title="Your trains">
-    <masonry-layout-tile section="IDs" layoutStyle='{"col-ms-2": true}'>
-      <input
-        ref="search"
-        class="form-control"
-        id="search"
-        type="number"
-        placeholder="search ..."
-        v-model="search"
-        v-on:input="this.resetSelection"
-      />
-      <selectable-table
-        :table-data="filteredTableData"
-        :show-indices="false"
-        :striped="true"
-        :bordered="true"
-        :hoverable="true"
-        :headless="true"
-        :clickHandler="this.rowClickHandler"
-        cellspacing="0"
-      />
-      <button
-        v-if="this.selectedTrainId"
-        v-on:click="this.editId"
-        type="button"
-        class="btn btn-block black-btn"
+  <div class="transport-manager-container">
+    <masonry-layout>
+      <masonry-layout-tile
+          class="test"
+          section="Manage transports"
+          layoutStyle="col-md-12"
       >
-        Edit
-      </button>
-      <button
-        v-if="this.selectedTrainId"
-        v-on:click="this.deleteId"
-        type="button"
-        class="btn btn-block black-btn"
-      >
-        Delete
-      </button>
-      <button
-        v-on:click="this.addId"
-        type="button"
-        class="btn btn-block black-btn"
-      >
-        Add ID
-      </button>
-    </masonry-layout-tile>
-    <masonry-layout-tile
-      v-bind:section="sectionTitle"
-      layoutStyle='{"col-ms-10": true}'
-      id="sectionTitle"
-      v-if="this.selectedTrainId"
-    >
-      <grid-table :grid-data="trainData" :filter-key="search"></grid-table>
-    </masonry-layout-tile>
-  </masonry-layout>
+        <p>You can use the navigation bar to filter</p>
+        <div class="transport-list-container">
+          <div class="transport-list noscrollbar">
+            <basic-table
+                :table-data="formattedMonitoredTransports"
+                :show-indices="false"
+                :striped="true"
+                :bordered="true"
+                :hoverable="true"
+                :selectable="true"
+                selectionMode="row"
+                :headless="false"
+                v-on:selection="handleSelection"
+                cellspacing="0"
+            />
+          </div>
+          <span
+              @click="addTransport()"
+              class="add btn btn-block"
+          >
+            Add ID
+          </span>
+        </div>
+        <div class="transport-details">
+          <span class="selected-transport">{{ selectedID['CEPTA ID'] }}</span>
+          <basic-table
+              :table-data="trainData"
+              :show-indices="false"
+              :striped="false"
+              :bordered="true"
+              cellspacing="0"
+          />
+          <!--<grid-table :grid-data="trainData"></grid-table>-->
+        </div>
+        <div class="clearfix"></div>
+      </masonry-layout-tile>
+    </masonry-layout>
+  </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
-import SelectableTable from "../components/SelectableTable.vue";
 import GridTable from "../components/GridTable.vue";
-
+import BasicTable, { Selection } from "@/components/BasicTable.vue";
 @Component({
-  name: "user",
+  name: "TransportManager",
   components: {
     MasonryLayout,
     MasonryLayoutTile,
-    SelectableTable,
+    BasicTable,
     GridTable
-  },
-  props: {}
+  }
 })
-export default class User extends Vue {
-  example: string = "Test";
-  trainIDs: Array<Array<number>> = [[43986033], [2], [3], [4]];
-  search: number | null = null;
-  selectedRow: HTMLTableRowElement | null = null;
-  selectedTrainId: number | null = null;
-  mounted() {}
+export default class TransportManager extends Vue {
+  monitoredTransports: {id: string; route: {start: string; end: string}}[] = [
+    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
+    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
+    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
+    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
+    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
+    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
+    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
+  ];
 
-  get sectionTitle() {
-    return this.selectedTrainId
-      ? "Info for train " + this.selectedTrainId
-      : "Please select a Train";
+  get formattedMonitoredTransports(): {[key: string]: string}[] {
+    return this.monitoredTransports.flatMap(t => {
+      return {'CEPTA ID': t.id, 'Route': `${t.route.start} - ${t.route.end}`}
+    })
   }
 
-  get filteredTableData() {
-    return this.trainIDs.filter(this.idFilter);
+  protected selectedRow: number | null = null;
+  protected selectedID: {[key: string]: string} = {};
+
+  handleSelection(selection: Selection) {
+    this.selectedRow = selection.rowIndex;
+    this.selectedID = this.formattedMonitoredTransports[selection.rowIndex]
   }
 
-  idFilter(row: Array<number>) {
-    if (String(row[0]).includes(String(this.search)) || !this.search)
-      return true;
+  addTransport() {
+    // TODO: Implement popup
   }
-
-  rowClickHandler(record: MouseEvent) {
-    let targetElement: HTMLElement | null = record.target as HTMLElement;
-    let elementId = targetElement != null ? targetElement.id : null;
-    let selectedElement: HTMLTableRowElement = document.getElementById(
-      targetElement.id
-    ) as HTMLTableRowElement;
-    let selectedId: number = Number(selectedElement.innerText);
-
-    if (this.selectedRow != selectedElement) {
-      this.resetSelection();
-      this.selectedRow = selectedElement;
-      this.selectedTrainId = selectedId;
-      this.selectedRow.setAttribute("class", "selectedRow");
-    } else {
-      this.resetSelection();
-    }
+  editTransport() {
+    // TODO: Implement popup
   }
-
-  resetSelection() {
-    if (this.selectedRow != null) {
-      this.selectedRow.setAttribute("class", "");
-      this.selectedRow = null;
-    }
-    this.selectedTrainId = null;
-  }
-
-  addId() {
-    // add id to user
-    console.log("You clicked the add button!");
-  }
-  editId() {
-    // change id -> remove old from user and add new id to user
-    console.log("You clicked the edit button!");
-  }
-  deleteId() {
-    // remove id from user
-    console.log("You clicked the delete button!");
+  deleteTransport() {
+    // TODO: Implement popup
   }
 
   get trainData(): { [key: string]: string }[] {
@@ -177,10 +144,43 @@ export default class User extends Vue {
 }
 </script>
 
-<style lang="sass">
-.selectedRow
-  background-color: red
-.black-btn
-  background-color: black
-  color: white
+<style lang="sass" scoped>
+.transport-manager-container
+  position: relative
+  width: 100%
+
+  .transport-list-container, .transport-details
+    top: 0
+    padding: 20px
+
+  .transport-list-container
+    width: 30%
+    float: left
+    min-width: 300px
+    .add
+      margin-top: 10px
+      +theme-color-diff(background-color, bgc-body, 20)
+      color: inherit
+      &:hover
+        +theme(color, c-accent-text)
+
+    .transport-list
+      height: 500px
+      overflow-y: scroll
+      tr
+        cursor: pointer
+
+  .transport-details
+    width: 70%
+    float: right
+    max-width: calc(100% - 300px)
+
+    .selected-transport
+      display: inline-block
+      padding-bottom: 20px
+      font-size: 1.4rem
+      font-weight: bolder
+
+  .clearfix
+    clear: both
 </style>

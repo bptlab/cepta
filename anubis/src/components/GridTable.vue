@@ -44,7 +44,7 @@
         </td>
         <td class="track">
           <router-link :to="{ name: 'map', query: { track: entry['ID'] } }">
-            <div class="btn btn-info btn-slim">
+            <div class="btn btn-cepta-default btn-slim">
               <span class="icon icon-target"></span> Track
             </div>
           </router-link>
@@ -147,11 +147,8 @@ export default class GridTable extends Vue {
       float: right
 
     &.delay-red
-      color: red
+      +theme(color, c-delay-warning)
       font-weight: bold
-
-    &.delay-green
-      color: green
 
   th
     cursor: pointer
