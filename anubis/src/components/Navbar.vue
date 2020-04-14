@@ -99,7 +99,7 @@
         <li>
           <a title="Reload" id="reloadBtn" @click="reload()" class="btn">
             <span
-              class="icon icon-reload"
+              class="icon icon-reload icon-flip-vertical"
               :class="{ 'icon-spin': isLoading }"
             ></span>
           </a>
