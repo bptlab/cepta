@@ -156,6 +156,9 @@ services:
     command:
       - --brokers=kafka:9092
       - --port=9000
+      # Benchmark indicates MongoDB is the bottleneck
+      # - --mode=constant
+      # - --pause=0
       - --postgres-host=postgres
       - --postgres-port=${CEPTA_POSTGRES_PORT}
       - --mongodb-host=mongodb

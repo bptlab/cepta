@@ -13,6 +13,7 @@ go_library(
         "//osiris/lib:cli",
         "//models/events:live_train_data_go_proto",
         "//models/events:weather_data_go_proto",
+        "@com_github_sirupsen_logrus//:go_default_library",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_golang_protobuf//proto:go_default_library",

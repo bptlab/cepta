@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
-	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/sirupsen/logrus"
@@ -15,20 +15,20 @@ import (
 
 // Replayer ...
 type Replayer struct {
-	Ctrl       chan pb.InternalControlMessageType
+	Ctrl        chan pb.InternalControlMessageType
 	SourceName  string
-	IDFieldName  string
-	Query 	*extractors.ReplayQuery
-	Speed      *int32
-	Active     *bool
-	Repeat     bool
-	Mode       *pb.ReplayType
-	Extractor  extractors.Extractor
-	Topic      string
-	Brokers    []string
-	log        *logrus.Entry
-	running    bool
-	producer   *kafkaproducer.KafkaProducer
+	IDFieldName string
+	Query       *extractors.ReplayQuery
+	Speed       *int32
+	Active      *bool
+	Repeat      bool
+	Mode        *pb.ReplayType
+	Extractor   extractors.Extractor
+	Topic       string
+	Brokers     []string
+	log         *logrus.Entry
+	running     bool
+	producer    *kafkaproducer.KafkaProducer
 }
 
 func (r Replayer) produce() error {
@@ -77,7 +77,7 @@ func (r Replayer) produce() error {
 				if !recentTime.IsZero() {
 					passedTime = newTime.Sub(recentTime)
 				}
-				r.log.Infof("%v have passed since the last event", passedTime)
+				r.log.Debugf("%v have passed since the last event", passedTime)
 				r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
 				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
 
@@ -91,7 +91,7 @@ func (r Replayer) produce() error {
 					waitTime = 10
 				}
 
-				r.log.Infof("Produced a message to %s and will sleep for %v seconds", r.Topic, time.Duration(waitTime))
+				r.log.Debugf("Produced a message to %s and will sleep for %v seconds", r.Topic, time.Duration(waitTime))
 				time.Sleep(time.Duration(waitTime))
 				recentTime = newTime
 
@@ -111,19 +111,13 @@ func (r Replayer) produce() error {
 func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.SourceName)
 	r.log.Info("Starting to produce")
-	var err error
-	r.producer, err = kafkaproducer.KafkaProducer{}.ForBroker(r.Brokers)
-	if err != nil {
-		log.Warnf("Failed to start kafka producer: %s", err.Error())
-		log.Fatal("Cannot produce events")
-	}
 	defer func() {
 		if err := r.producer.Close(); err != nil {
-			r.log.Println("Failed to close server", err)
+			r.log.Errorf("Failed to close server", err)
 		}
 	}()
 	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
-	err = r.produce()
+	err := r.produce()
 	if err != nil {
 		log.Error(err)
 	}

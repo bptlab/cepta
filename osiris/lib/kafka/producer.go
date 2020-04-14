@@ -1,24 +1,27 @@
 package kafkaproducer
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 )
 
 var KafkaProducerCliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
 
 type KafkaProducerOptions struct {
-	Brokers []string
+	Brokers             []string
+	ConnectionTolerance libcli.ConnectionTolerance
 }
 
 func (config KafkaProducerOptions) ParseCli(ctx *cli.Context) KafkaProducerOptions {
 	return KafkaProducerOptions{
-		Brokers: strings.Split(ctx.String("kafka-brokers"), ","),
+		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
+		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
@@ -27,7 +30,7 @@ type KafkaProducer struct {
 	AccessLogProducer sarama.AsyncProducer
 }
 
-func (p KafkaProducer) ForBroker(brokerList []string) (*KafkaProducer, error) {
+func (p KafkaProducer) forBroker(brokerList []string) (*KafkaProducer, error) {
 	collector, err := newDataCollector(brokerList)
 	if err != nil {
 		return nil, err
@@ -40,6 +43,23 @@ func (p KafkaProducer) ForBroker(brokerList []string) (*KafkaProducer, error) {
 		DataCollector:     collector,
 		AccessLogProducer: producer,
 	}, nil
+}
+
+func (p KafkaProducer) Create(options KafkaProducerOptions) (*KafkaProducer, error) {
+	var attempt int
+	for {
+		producer, err := p.forBroker(options.Brokers)
+		if err != nil {
+			if attempt >= options.ConnectionTolerance.MaxRetries {
+				return nil, fmt.Errorf("Failed to start kafka producer: %s", err.Error())
+			}
+			attempt++
+			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, options.ConnectionTolerance.MaxRetries)
+			time.Sleep(time.Duration(options.ConnectionTolerance.RetryIntervalSec) * time.Second)
+			continue
+		}
+		return producer, nil
+	}
 }
 
 func newDataCollector(brokerList []string) (sarama.SyncProducer, error) {
