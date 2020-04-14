@@ -7,6 +7,27 @@ option java_package = "org.bptlab.cepta.producers.replayer";
 option java_outer_classname = "ReplayerProto";
 
 import "google/protobuf/timestamp.proto";
+import "models/constants/Constants.proto";
+
+import "models/events/CheckpointData.proto";
+import "models/events/CountryData.proto";
+import "models/events/CrewActivityData.proto";
+import "models/events/CrewPrepEndData.proto";
+import "models/events/CrewShiftData.proto";
+import "models/events/CrewTransitionData.proto";
+import "models/events/DelayExplanationData.proto";
+import "models/events/GPSTripUpdate.proto";
+import "models/events/InfrastructureManagerData.proto";
+import "models/events/LiveTrainData.proto";
+import "models/events/LocationData.proto";
+import "models/events/PlannedTrainData.proto";
+import "models/events/PredictedTrainData.proto";
+import "models/events/RailwayUndertakingData.proto";
+import "models/events/StationData.proto";
+import "models/events/TrainDelayNotification.proto";
+import "models/events/TrainInformationData.proto";
+import "models/events/VehicleData.proto";
+import "models/events/WeatherData.proto";
 
 service Replayer {
 
@@ -26,8 +47,7 @@ service Replayer {
   rpc GetOptions(Empty) returns (ReplayStartOptions) {}
 
   // Custom querying for internal testing infrastructure
-  rpc QueryReplayPlannedData(QueryOptions) returns (ReplayStatus) {}
-
+  rpc Query(QueryOptions) returns (ReplayDataset) {}
 }
 
 enum InternalControlMessageType {
@@ -78,7 +98,39 @@ message Success {
   bool success = 1;
 }
 
+message ReplayDataset {
+  repeated ReplayedEvent events = 1;
+}
+
+message ReplayedEvent {
+  google.protobuf.Timestamp replay_timestamp = 1;
+  oneof event {
+    models.events.CheckpointData checkpoint = 2;
+    models.events.CountryData county = 3;
+    models.events.CrewActivityData crew_activity = 4;
+    models.events.CrewPrepEndData crew_prep_end = 5;
+    models.events.CrewShiftData crew_shift = 6;
+    models.events.CrewTransitionData crew_transition = 7;
+    models.events.DelayExplanationData delay_explanation = 8;
+    models.events.GPSTripUpdate gps_trip_update = 9;
+    models.events.InfrastructureManagerData infrastructure_manager = 10;
+    models.events.LiveTrainData live_train = 11;
+    models.events.LocationData location = 12;
+    models.events.PlannedTrainData planned_train = 13;
+    models.events.PredictedTrainData predicted_train = 14;
+    models.events.RailwayUndertakingData railway_undertaking = 15;
+    models.events.StationData station = 16;
+    models.events.TrainDelayNotification train_delay_notification = 17;
+    models.events.TrainInformationData train_information = 18;
+    models.events.VehicleData vehicle = 19;
+    models.events.WeatherData weather = 20;
+  }
+};
+
 // Query Options
 message QueryOptions {
-
+  repeated string ids = 1;
+  int32 limit = 2;
+  repeated models.constants.Topic sources = 3;
+  Timerange range = 4;
 }
