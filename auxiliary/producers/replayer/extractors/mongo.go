@@ -1,26 +1,27 @@
 package extractors
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
-	"context"
-	"github.com/golang/protobuf/proto"
+
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/romnnn/bsonpb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"github.com/golang/protobuf/ptypes"
 	"go.mongodb.org/mongo-driver/mongo"
-	"github.com/romnnn/bsonpb"
-	pb "github.com/bptlab/cepta/models/grpc/replayer"
 )
 
 // MongoExtractor ...
 type MongoExtractor struct {
-	Proto proto.Message
-	DB *libdb.MongoDB
-	debug bool
-	cur *mongo.Cursor
+	Proto       proto.Message
+	DB          *libdb.MongoDB
+	debug       bool
+	cur         *mongo.Cursor
 	unmarshaler bsonpb.Unmarshaler
 	IDFieldName string
 }
@@ -79,7 +80,7 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 // NewMongoExtractor ...
 func NewMongoExtractor(db *libdb.MongoDB, proto proto.Message) *MongoExtractor {
 	return &MongoExtractor{
-		DB: db,
+		DB:    db,
 		Proto: proto,
 	}
 }
@@ -103,7 +104,7 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 	aggregation := bson.A{
 		bson.D{{"$match", mustMatch}},
 		bson.D{{"$sort", bson.D{{queryOptions.SortColumn, 1}}}}, // Order by column (ascending order)
-		bson.D{{"$skip", queryOptions.Offset}}, // Set offset
+		bson.D{{"$skip", queryOptions.Offset}},                  // Set offset
 	}
 
 	// Set limit
@@ -113,7 +114,6 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 
 	return aggregation
 }
-
 
 func mongoTimerangeQuery(column string, timerange *pb.Timerange) bson.D {
 	var constraints bson.D

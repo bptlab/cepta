@@ -60,10 +60,11 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 		options.Group = "DelayConsumerGroup"
 	}
 	log.Infof("Will consume topic %s from %s (group %s)", options.Topics, strings.Join(options.Brokers, ", "), options.Group)
-	kafkaConsumer, err := kafkaconsumer.ConsumeKafkaGroup(ctx, options)
+	kafkaConsumer, err := kafkaconsumer.KafkaConsumer{}.ConsumeGroup(ctx, options)
 	if err != nil {
-		log.Fatalf("Failed to connect to kafka broker (%s) (group %s) on topic %s: %s",
-			strings.Join(options.Brokers, ", "), options.Group, options.Topics, err.Error())
+		log.Warnf("Failed to connect to kafka broker (%s) (group %s) on topic %s",
+			strings.Join(options.Brokers, ", "), options.Group, options.Topics)
+		log.Fatal(err.Error())
 	}
 
 	noopTicker := time.NewTicker(time.Second * 10)
@@ -113,6 +114,7 @@ func serve(cliCtx *cli.Context) error {
 func main() {
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, kafkaconsumer.KafkaConsumerCliOptions...)
 
 	app := &cli.App{

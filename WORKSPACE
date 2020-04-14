@@ -132,6 +132,7 @@ FLINK_VERSION = "1.9.0"
 SCALA_VERSION = "2.11"
 
 RULES_JVM_EXTERNAL_TAG = "3.0"
+
 RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
 
 http_archive(
@@ -791,6 +792,6 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_flags4urfavecli",
     importpath = "github.com/romnnn/flags4urfavecli",
-    sum = "h1:jm3PWa/6Q9AUXNUFjeIjOAtlPwJ3JTlKVrCmbQbP3yQ=",
-    version = "v0.1.0",
+    sum = "h1:1s6q1ZYyBLbh+1YrcXKaugZ6u5MSq9R763oVpkwNU2I=",
+    version = "v0.1.1",
 )
