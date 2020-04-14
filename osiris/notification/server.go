@@ -54,7 +54,7 @@ func serveWebsocket(pool *websocket.Pool, w http.ResponseWriter, r *http.Request
 
 func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.KafkaConsumerOptions) {
 	if !(len(options.Topics) == 1 && len(options.Topics[0]) > 0) {
-		options.Topics = []string{constants.Topics_DELAY_NOTIFICATIONS.String()}
+		options.Topics = []string{constants.Topic_DELAY_NOTIFICATIONS.String()}
 	}
 	if options.Group == "" {
 		options.Group = "DelayConsumerGroup"

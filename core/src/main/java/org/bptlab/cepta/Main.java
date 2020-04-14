@@ -34,7 +34,7 @@ import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.constants.Topics;
+import org.bptlab.cepta.constants.Topic;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
@@ -70,19 +70,19 @@ public class Main implements Callable<Integer> {
   private void setupConsumers() {
     this.liveTrainDataConsumer =
         new FlinkKafkaConsumer011<LiveTrainData>(
-          Topics.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
           new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
           new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
     this.plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
-          Topics.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
-            Topics.WEATHER_DATA.getValueDescriptor().getName(),
+            Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
   }
@@ -148,7 +148,7 @@ public class Main implements Callable<Integer> {
 
 
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topics.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
+        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
         new GenericBinaryProtoSerializer<TrainDelayNotification>(),
         delaySenderConfig.getProperties());
 

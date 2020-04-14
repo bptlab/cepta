@@ -4,14 +4,14 @@ load("@rules_java//java:defs.bzl", "java_proto_library")
 
 proto_library(
     name = "constants_proto",
-    srcs = ["constants.proto"],
+    srcs = ["Constants.proto"],
     visibility = ["//visibility:public"],
 )
 
 java_proto_library(
     name = "constants_java_proto",
-    deps = [":constants_proto"],
     visibility = ["//visibility:public"],
+    deps = [":constants_proto"],
 )
 
 go_proto_library(
@@ -24,21 +24,11 @@ go_proto_library(
 filegroup(
     name = "constants",
     srcs = [
-        ":constants_go_proto", ":constants_java_proto",
+        ":constants_go_proto",
+        ":constants_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
-
-
-
-
-
-
-
-
-
-
-
 
 proto_library(
     name = "planned_train_data_proto",
@@ -48,8 +38,8 @@ proto_library(
 
 java_proto_library(
     name = "planned_train_data_java_proto",
-    deps = [":planned_train_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":planned_train_data_proto"],
 )
 
 go_proto_library(
@@ -59,11 +49,6 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
-
-
-
-
-
 proto_library(
     name = "predicted_train_data_proto",
     srcs = ["PredictedTrainData.proto"],
@@ -72,8 +57,8 @@ proto_library(
 
 java_proto_library(
     name = "predicted_train_data_java_proto",
-    deps = [":predicted_train_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":predicted_train_data_proto"],
 )
 
 go_proto_library(
@@ -83,11 +68,6 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
-
-
-
-
-
 proto_library(
     name = "train_delay_notification_proto",
     srcs = ["TrainDelayNotification.proto"],
@@ -96,8 +76,8 @@ proto_library(
 
 java_proto_library(
     name = "train_delay_notification_java_proto",
-    deps = [":train_delay_notification_proto"],
     visibility = ["//visibility:public"],
+    deps = [":train_delay_notification_proto"],
 )
 
 go_proto_library(
@@ -107,13 +87,6 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
-
-
-
-
-
-
-
 proto_library(
     name = "train_information_data_proto",
     srcs = ["TrainInformationData.proto"],
@@ -122,8 +95,8 @@ proto_library(
 
 java_proto_library(
     name = "train_information_data_java_proto",
-    deps = [":train_information_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":train_information_data_proto"],
 )
 
 go_proto_library(
@@ -133,11 +106,6 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
-
-
-
-
-
 proto_library(
     name = "weather_data_proto",
     srcs = ["WeatherData.proto"],
@@ -146,8 +114,8 @@ proto_library(
 
 java_proto_library(
     name = "weather_data_java_proto",
-    deps = [":weather_data_proto"],
     visibility = ["//visibility:public"],
+    deps = [":weather_data_proto"],
 )
 
 go_proto_library(
