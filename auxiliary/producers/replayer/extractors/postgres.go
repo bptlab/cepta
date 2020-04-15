@@ -20,6 +20,7 @@ type DbExtractor interface {
 // Extractor ...
 type Extractor interface {
 	Get() (time.Time, proto.Message, error)
+	GetReplayedEvent() (*pb.ReplayedEvent, error)
 	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
 	Next() bool
 	Done()

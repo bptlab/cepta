@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/bptlab/cepta/constants"
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
-	"github.com/sirupsen/logrus"
+  "github.com/sirupsen/logrus"
 )
 
 // Replayer ...
@@ -24,11 +25,69 @@ type Replayer struct {
 	Repeat      bool
 	Mode        *pb.ReplayType
 	Extractor   extractors.Extractor
-	Topic       string
+	Topic       constants.Topic
 	Brokers     []string
 	log         *logrus.Entry
 	running     bool
 	producer    *kafkaproducer.KafkaProducer
+}
+
+
+
+func (r Replayer) query() (*pb.ReplayDataset, error) {
+  var dataset *pb.ReplayDataset
+
+  if r.Extractor == nil {
+		return dataset, fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+	}
+
+	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+	if err != nil {
+		return dataset, err
+	}
+
+	for {
+		select {
+		case ctrlMessage := <-r.Ctrl:
+			switch ctrlMessage {
+			case pb.InternalControlMessageType_SHUTDOWN:
+				// Acknowledge shutdown
+				r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+				return dataset, err
+			}
+		default:
+			if r.Extractor.Next() {
+			  event, err := r.Extractor.GetReplayedEvent()
+				if err != nil {
+					r.log.Errorf("Fail: %s", err.Error())
+					continue
+				}
+				r.log.Debugf("%v", event)
+				dataset.Events = append(dataset.Events, event)
+				/* &pb.ReplayedEvent{
+				  ReplayTimestamp: newTime,
+				  // reflect.TypeOf(ex.Proto).Elem()
+				  // Event: event.(pb.isReplayedEvent_Event),
+				})
+				*/
+
+				/*
+				eventBytes, err := proto.Marshal(event)
+				if err != nil {
+					r.log.Errorf("Failed to marshal proto:", err)
+					continue
+				}
+
+				r.log.Debugf("%v have passed since the last event", passedTime)
+				r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
+				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
+        */
+			}
+		}
+	}
+	r.Extractor.Done()
+	log.Info("Test")
+	return dataset, nil
 }
 
 func (r Replayer) produce() error {
@@ -78,7 +137,7 @@ func (r Replayer) produce() error {
 					passedTime = newTime.Sub(recentTime)
 				}
 				r.log.Debugf("%v have passed since the last event", passedTime)
-				r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
+				r.producer.Send(r.Topic.String(), r.Topic.String(), sarama.ByteEncoder(eventBytes))
 				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
 
 				waitTime := int64(0)

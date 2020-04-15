@@ -9,8 +9,8 @@ import (
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/romnnn/bsonpb"
+	"github.com/golang/protobuf/ptypes"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,6 +49,23 @@ func (ex *MongoExtractor) Get() (time.Time, proto.Message, error) {
 	}
 
 	return time.Time{}, target, nil
+}
+
+// GetReplayedEvent ...
+func (ex *MongoExtractor) GetReplayedEvent() (*pb.ReplayedEvent, error) {
+  var replayEvent pb.ReplayedEvent
+  replayTime, event, err := ex.Get()
+  if err != nil {
+    return nil, err
+  }
+  if protoReplayTime, err := ptypes.TimestampProto(replayTime); err != nil {
+     replayEvent.ReplayTimestamp = protoReplayTime
+  }
+  fmt.Printf("%v", event)
+  // TODO: Cast to correct type here
+  // replayEvent.Event = reflect.ValueOf(event).Convert(reflect.TypeOf(ex.Proto).Elem())
+  // replayEvent.Event = event.(reflect.New(reflect.TypeOf(ex.Proto))
+  return &replayEvent, nil
 }
 
 // StartQuery ...
