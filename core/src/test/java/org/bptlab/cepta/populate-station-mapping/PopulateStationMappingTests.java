@@ -22,8 +22,8 @@ import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.containers.ReplayerContainer;
 import org.bptlab.cepta.containers.KafkaContainer;
 import org.testcontainers.Testcontainers;
-import org.bptlab.cepta.constants.Topics;
-import org.bptlab.cepta.models.events.event.EventProtos;
+import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+import org.bptlab.cepta.models.grpc.replayer.ReplayerGrpc;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class PopulateStationMappingTests {
 
       FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
-          Topics.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
             kafka.getConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
@@ -62,8 +62,6 @@ public class PopulateStationMappingTests {
           System.out.println(logs);
         }
       }
-
-    EventProtos
 
       // DataStreamUtils.collect(expectedStream).forEachRemaining(expected::add);
       while (inputIterator.hasNext() && received.size() < 1000) {

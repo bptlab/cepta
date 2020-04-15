@@ -66,6 +66,13 @@ rules_closure_dependencies(
 rules_closure_toolchains()
 
 http_archive(
+    name = "io_grpc_grpc_java",
+    sha256 = "c9ef39599b613a812843f1c43c90db9767f203b9a2ae6787f6bc715198e7dcb9",
+    strip_prefix = "grpc-java-1.28.1",
+    url = "https://github.com/grpc/grpc-java/archive/v1.28.1.zip",
+)
+
+http_archive(
     name = "rules_typescript_proto",
     sha256 = "0c76ae0d04eaa4d4c5f12556615cb70d294082ee672aee6dd849fea4ec2075ee",
     strip_prefix = "rules_typescript_proto-0.0.3",
@@ -143,6 +150,8 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
 
 maven_install(
     artifacts = [
@@ -169,11 +178,23 @@ maven_install(
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
         "org.apache.flink:flink-connector-kafka-0.11_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
-    ],
+    ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
+    generate_compat_repositories = True,
+    override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
 )
+
+load("@maven//:compat.bzl", "compat_repositories")
+
+compat_repositories()
+
+load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
+
+# Run grpc_java_repositories after compat_repositories to ensure the
+# maven_install-selected dependencies are used.
+grpc_java_repositories()
 
 http_archive(
     name = "bazel_gazelle",

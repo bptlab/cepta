@@ -1,7 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-
-# load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "closure_grpc_compile", "commonjs_dts_grpc_compile", "ts_grpc_compile")
 load("@rules_proto_grpc//nodejs:defs.bzl", "nodejs_proto_compile")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -71,11 +70,14 @@ java_proto_library(
     deps = [":replayer_proto"],
 )
 
-# java_grpc_library(
-#     name = "replayer_java_grpc",
-#     srcs = [":replayer_proto"],
-#     deps = [":replayer_java_proto"],
-# )
+java_grpc_library(
+    name = "replayer_java_grpc",
+    srcs = [":replayer_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":replayer_java_proto",
+    ],
+)
 
 typescript_proto_library(
     name = "replayer_ts_proto",
