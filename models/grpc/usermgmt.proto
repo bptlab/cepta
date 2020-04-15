@@ -1,11 +1,7 @@
 syntax = "proto3";
-package usermgmt;
+package models.grpc;
 option go_package = "github.com/bptlab/cepta/models/grpc/usermgmt";
-
-// option java_multiple_files = true;
-// option java_package = "org.bptlab.cepta.producers.replayer";
-// option java_outer_classname = "UserManagementProto";
-
+option java_package = "org.bptlab.cepta.models.grpc.usermgmt";
 
 service UserManagement {
 

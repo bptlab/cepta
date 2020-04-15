@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/bptlab/cepta/constants"
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
+	"github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
-  "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // Replayer ...
@@ -25,19 +25,17 @@ type Replayer struct {
 	Repeat      bool
 	Mode        *pb.ReplayType
 	Extractor   extractors.Extractor
-	Topic       constants.Topic
+	Topic       topic.Topic
 	Brokers     []string
 	log         *logrus.Entry
 	running     bool
 	producer    *kafkaproducer.KafkaProducer
 }
 
-
-
 func (r Replayer) query() (*pb.ReplayDataset, error) {
-  var dataset *pb.ReplayDataset
+	var dataset *pb.ReplayDataset
 
-  if r.Extractor == nil {
+	if r.Extractor == nil {
 		return dataset, fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
 
@@ -57,7 +55,7 @@ func (r Replayer) query() (*pb.ReplayDataset, error) {
 			}
 		default:
 			if r.Extractor.Next() {
-			  event, err := r.Extractor.GetReplayedEvent()
+				event, err := r.Extractor.GetReplayedEvent()
 				if err != nil {
 					r.log.Errorf("Fail: %s", err.Error())
 					continue
@@ -72,16 +70,16 @@ func (r Replayer) query() (*pb.ReplayDataset, error) {
 				*/
 
 				/*
-				eventBytes, err := proto.Marshal(event)
-				if err != nil {
-					r.log.Errorf("Failed to marshal proto:", err)
-					continue
-				}
+					eventBytes, err := proto.Marshal(event)
+					if err != nil {
+						r.log.Errorf("Failed to marshal proto:", err)
+						continue
+					}
 
-				r.log.Debugf("%v have passed since the last event", passedTime)
-				r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
-				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
-        */
+					r.log.Debugf("%v have passed since the last event", passedTime)
+					r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
+					r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
+				*/
 			}
 		}
 	}

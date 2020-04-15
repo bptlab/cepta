@@ -1,8 +1,7 @@
 syntax = "proto3";
-package internal;
+package models.internal;
 option go_package = "github.com/bptlab/cepta/models/internal/event";
 option java_package = "org.bptlab.cepta.models.internal.event";
-option java_outer_classname = "EventProtos";
 
 message Event {
     int64 cepta_id = 1;

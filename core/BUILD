@@ -24,7 +24,7 @@ java_binary(
         "//models/events:predicted_train_data_java_proto",
         "//models/events:train_information_data_java_proto",
         "//models/events:weather_data_java_proto",
-        "//models/constants:constants_java_proto",
+        "//models/constants:topic_java_proto",
         "@maven//:commons_io_commons_io_2_6",
         "@maven//:joda_time_joda_time_2_9_7",
         "@maven//:info_picocli_picocli",

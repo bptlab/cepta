@@ -13,9 +13,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.WeatherLiveTrainJoinFunction;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
-import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
 public class WeatherLiveTrainJoinTests {

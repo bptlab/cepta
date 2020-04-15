@@ -12,7 +12,7 @@ import (
 
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	"github.com/bptlab/cepta/ci/versioning"
-	"github.com/bptlab/cepta/constants"
+	topics "github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -90,7 +90,7 @@ func (s *server) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Succ
 	log.Infof("Starting")
 	s.active = true
 	for _, replayer := range replayers {
-	  go replayer.Start(log)
+		go replayer.Start(log)
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -152,15 +152,15 @@ func (s *server) Query(ctx context.Context, in *pb.QueryOptions) (*pb.ReplayData
 
 	// Collect all replay datasets from all replayers
 	for _, replayer := range replayers {
-	  log.Info(replayer)
-	  // if utils.Contains()
+		log.Info(replayer)
+		// if utils.Contains()
 	}
 	/*
-	replayer.Query.IncludeIds = &replayerServer.ids
-  replayer.Query.Timerange = &replayerServer.timerange
-  replayer.Query.Limit = &replayerServer.limit
-  replayer.Query.Offset = 0
-  */
+			replayer.Query.IncludeIds = &replayerServer.ids
+		  replayer.Query.Timerange = &replayerServer.timerange
+		  replayer.Query.Limit = &replayerServer.limit
+		  replayer.Query.Offset = 0
+	*/
 
 	return &pb.ReplayDataset{
 		Events: []*pb.ReplayedEvent{},
@@ -305,125 +305,125 @@ func main() {
 	mongo := new(libdb.MongoDB)
 
 	checkpoints := &Replayer{
-		SourceName: constants.Topic_CHECKPOINT_DATA.String(),
+		SourceName: topics.Topic_CHECKPOINT_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &checkpointpb.CheckpointData{}),
-		Topic:      constants.Topic_CHECKPOINT_DATA,
+		Topic:      topics.Topic_CHECKPOINT_DATA,
 	}
 
 	crewActivity := &Replayer{
-		SourceName: constants.Topic_CREW_ACTIVITY_DATA.String(),
+		SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &crewactivitypb.CrewActivityData{}),
-		Topic:      constants.Topic_CREW_ACTIVITY_DATA,
+		Topic:      topics.Topic_CREW_ACTIVITY_DATA,
 	}
 	crewEnd := &Replayer{
-		SourceName: constants.Topic_CREW_END_DATA.String(),
+		SourceName: topics.Topic_CREW_END_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
-		Topic:      constants.Topic_CREW_END_DATA,
+		Topic:      topics.Topic_CREW_END_DATA,
 	}
 	crewPrep := &Replayer{
-		SourceName: constants.Topic_CREW_PREP_DATA.String(),
+		SourceName: topics.Topic_CREW_PREP_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
-		Topic:      constants.Topic_CREW_PREP_DATA,
+		Topic:      topics.Topic_CREW_PREP_DATA,
 	}
 	crewShift := &Replayer{
-		SourceName: constants.Topic_CREW_SHIFT_DATA.String(),
+		SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &crewshiftpb.CrewShiftData{}),
-		Topic:      constants.Topic_CREW_SHIFT_DATA,
+		Topic:      topics.Topic_CREW_SHIFT_DATA,
 	}
 	crewTransition := &Replayer{
-		SourceName: constants.Topic_CREW_TRANSITION_DATA.String(),
+		SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &crewtransitionpb.CrewTransitionData{}),
-		Topic:      constants.Topic_CREW_TRANSITION_DATA,
+		Topic:      topics.Topic_CREW_TRANSITION_DATA,
 	}
 
 	delayExplanation := &Replayer{
-		SourceName: constants.Topic_DELAY_EXPLANATION_DATA.String(),
+		SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &delayexplanationpb.DelayExplanationData{}),
-		Topic:      constants.Topic_DELAY_EXPLANATION_DATA,
+		Topic:      topics.Topic_DELAY_EXPLANATION_DATA,
 	}
 
 	infrastructureManager := &Replayer{
-		SourceName: constants.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
+		SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &infrastructuremanagerpb.InfrastructureManagerData{}),
-		Topic:      constants.Topic_INFRASTRUCTURE_MANAGER_DATA,
+		Topic:      topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
 	}
 
 	liveTrain := &Replayer{
-		SourceName: constants.Topic_LIVE_TRAIN_DATA.String(),
+		SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &livetrainpb.LiveTrainData{}),
-		Topic:      constants.Topic_LIVE_TRAIN_DATA,
+		Topic:      topics.Topic_LIVE_TRAIN_DATA,
 	}
 
 	location := &Replayer{
-		SourceName: constants.Topic_LOCATION_DATA.String(),
+		SourceName: topics.Topic_LOCATION_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &locationpb.LocationData{}),
-		Topic:      constants.Topic_LOCATION_DATA,
+		Topic:      topics.Topic_LOCATION_DATA,
 	}
 
 	plannedTrain := &Replayer{
-		SourceName: constants.Topic_PLANNED_TRAIN_DATA.String(),
+		SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &plannedtrainpb.PlannedTrainData{}),
-		Topic:      constants.Topic_PLANNED_TRAIN_DATA,
+		Topic:      topics.Topic_PLANNED_TRAIN_DATA,
 	}
 
 	predictedTrain := &Replayer{
-		SourceName: constants.Topic_PREDICTED_TRAIN_DATA.String(),
+		SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &predictedtrainpb.PredictedTrainData{}),
-		Topic:      constants.Topic_PREDICTED_TRAIN_DATA,
+		Topic:      topics.Topic_PREDICTED_TRAIN_DATA,
 	}
 
 	railwayUndertaking := &Replayer{
-		SourceName: constants.Topic_RAILWAY_UNDERTAKING_DATA.String(),
+		SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &railwayundertakingpb.RailwayUndertakingData{}),
-		Topic:      constants.Topic_RAILWAY_UNDERTAKING_DATA,
+		Topic:      topics.Topic_RAILWAY_UNDERTAKING_DATA,
 	}
 
 	station := &Replayer{
-		SourceName: constants.Topic_STATION_DATA.String(),
+		SourceName: topics.Topic_STATION_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &stationpb.StationData{}),
-		Topic:      constants.Topic_STATION_DATA,
+		Topic:      topics.Topic_STATION_DATA,
 	}
 
 	trainInformation := &Replayer{
-		SourceName: constants.Topic_TRAIN_INFORMATION_DATA.String(),
+		SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &traininformationpb.TrainInformationData{}),
-		Topic:      constants.Topic_TRAIN_INFORMATION_DATA,
+		Topic:      topics.Topic_TRAIN_INFORMATION_DATA,
 	}
 
 	vehicle := &Replayer{
-		SourceName: constants.Topic_VEHICLE_DATA.String(),
+		SourceName: topics.Topic_VEHICLE_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &vehiclepb.VehicleData{}),
-		Topic:      constants.Topic_VEHICLE_DATA,
+		Topic:      topics.Topic_VEHICLE_DATA,
 	}
 
 	weather := &Replayer{
-		SourceName: constants.Topic_WEATHER_DATA.String(),
+		SourceName: topics.Topic_WEATHER_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &weatherpb.WeatherData{}),
-		Topic:      constants.Topic_WEATHER_DATA,
+		Topic:      topics.Topic_WEATHER_DATA,
 	}
 
 	gps := &Replayer{
-		SourceName: constants.Topic_GPS_TRIP_UPDATE_DATA.String(),
+		SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
 		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
 		Extractor:  extractors.NewMongoExtractor(mongo, &gpstripupdatespb.GPSTripUpdate{}),
-		Topic:      constants.Topic_GPS_TRIP_UPDATE_DATA,
+		Topic:      topics.Topic_GPS_TRIP_UPDATE_DATA,
 	}
 
 	replayers = []*Replayer{

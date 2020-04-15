@@ -2,7 +2,6 @@ syntax = "proto3";
 package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/weather";
 option java_package = "org.bptlab.cepta.models.events.weather";
-option java_outer_classname = "WeatherDataProtos";
 
 import "google/protobuf/timestamp.proto";
 

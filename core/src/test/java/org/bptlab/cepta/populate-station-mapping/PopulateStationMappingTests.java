@@ -11,8 +11,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
@@ -23,6 +23,7 @@ import org.bptlab.cepta.containers.ReplayerContainer;
 import org.bptlab.cepta.containers.KafkaContainer;
 import org.testcontainers.Testcontainers;
 import org.bptlab.cepta.constants.Topics;
+import org.bptlab.cepta.models.events.event.EventProtos;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,6 +62,8 @@ public class PopulateStationMappingTests {
           System.out.println(logs);
         }
       }
+
+    EventProtos
 
       // DataStreamUtils.collect(expectedStream).forEachRemaining(expected::add);
       while (inputIterator.hasNext() && received.size() < 1000) {

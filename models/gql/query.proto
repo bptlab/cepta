@@ -1,6 +1,7 @@
 syntax = "proto3";
-package query;
+package models.gql;
 option go_package = "github.com/bptlab/cepta/models/gql/query;gql";
+option java_package = "org.bptlab.cepta.models.gql.query";
 
 import "models/gql/gql.proto";
 import "google/protobuf/timestamp.proto";

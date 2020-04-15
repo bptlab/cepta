@@ -62,6 +62,7 @@ func (ex *MongoExtractor) GetReplayedEvent() (*pb.ReplayedEvent, error) {
      replayEvent.ReplayTimestamp = protoReplayTime
   }
   fmt.Printf("%v", event)
+  fmt.Printf("%v", event)
   // TODO: Cast to correct type here
   // replayEvent.Event = reflect.ValueOf(event).Convert(reflect.TypeOf(ex.Proto).Elem())
   // replayEvent.Event = event.(reflect.New(reflect.TypeOf(ex.Proto))

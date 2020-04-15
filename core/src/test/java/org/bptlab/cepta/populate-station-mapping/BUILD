@@ -19,6 +19,7 @@ java_test(
         "//models/constants:constants_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
+        "//models/grpc:replayer_java_proto",
         "@maven//:junit_junit_4_13",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
         "@maven//:org_apache_flink_flink_core",

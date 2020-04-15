@@ -2,7 +2,7 @@ package org.bptlab.cepta.consumers;
 
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 
 public abstract class Consumer extends KafkaConsumer<Long, LiveTrainData> {
   protected String topic;
