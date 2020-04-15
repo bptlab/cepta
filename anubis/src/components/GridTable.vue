@@ -42,13 +42,9 @@
           </span>
           <span v-else>{{ entry[key] }}</span>
         </td>
-        <td class="track">
-          <router-link :to="{ name: 'map', query: { track: entry['ID'] } }">
-            <div class="btn btn-info btn-slim">
-              <span class="icon icon-target"></span> Track
-            </div>
-          </router-link>
-        </td>
+        <router-link :to="{ name: 'map', query: { track: entry['ID'] } }">
+          <td class="track"><span class="icon icon-target"></span> Track</td>
+        </router-link>
       </tr>
     </tbody>
   </table>
@@ -147,11 +143,11 @@ export default class GridTable extends Vue {
       float: right
 
     &.delay-red
-      color: red
+      +theme(color, c-delay-alert)
       font-weight: bold
 
     &.delay-green
-      color: green
+      +theme(color, c-delay-fine)
 
   th
     cursor: pointer
@@ -169,4 +165,19 @@ export default class GridTable extends Vue {
       .icon
         font-weight: bold
         opacity: 1
+
+  th:last-child
+    border: none
+    width: 80px
+
+  a .track
+    +theme(color, c-default-text)
+
+  .track
+    +theme(background-color, bc-table-button)
+    +theme-color-diff(border-color, bc-table-button, 10)
+    width: 80px
+
+    &::hover
+      +theme-color-diff(background-color, bc-table-button,10)
 </style>
