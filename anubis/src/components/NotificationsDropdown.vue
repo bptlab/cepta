@@ -2,7 +2,7 @@
   <li class="notifications dropdown">
     <!-- Toggle -->
     <a data-toggle="dropdown">
-      <span class="counter bgc-red">{{ number }}</span>
+      <span class="counter">{{ number }}</span>
       <a class="dropdown-toggle no-after">
         <slot name="icon"></slot>
       </a>
@@ -98,7 +98,7 @@ export default class NotificationsDropdown extends Vue {
         padding: 10px 15px
 
   .counter
-    background-color: $default-danger
+    +theme(background-color, bgc-btn-default)
     border-radius: 10px
     color: $default-white
     font-size: 10px

@@ -100,7 +100,7 @@
         <li>
           <a title="Reload" id="reloadBtn" @click="reload()" class="btn">
             <span
-              class="icon icon-reload"
+              class="icon icon-reload icon-flip-vertical"
               :class="{ 'icon-spin': isLoading }"
             ></span>
           </a>
@@ -193,7 +193,7 @@
                 <button
                   @click.prevent="updateReplay"
                   id="updateReplayButton"
-                  class="btn btn-info"
+                  class="btn btn-cepta-default"
                   :disabled="!replayerConfigChanged"
                 >
                   Apply

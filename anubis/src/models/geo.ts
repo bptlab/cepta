@@ -1,12 +1,22 @@
 export interface TripPosition {
-  coordinates: Coordinate;
-  description: string;
+  coordinates: [number, number];
+  description?: string;
+  stationName?: string;
+  stationID?: string;
 }
 
 export interface Transport {
   id: string;
   start: string;
   end: string;
+  trend: {
+    value: number;
+    sample: string;
+  };
+  connection: {
+    online: boolean;
+    lastConnection: string,
+  };
   plannedDuration: number;
   actualDuration: number;
   delay: number;
@@ -14,11 +24,6 @@ export interface Transport {
   routeProgress?: number;
   lastPosition?: TripPosition;
   map: MappedTransport;
-}
-
-export interface Coordinate {
-  lat: number;
-  lon: number;
 }
 
 export interface Size {

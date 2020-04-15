@@ -1,44 +1,16 @@
 <template>
-  <div id="map">
-    <!--
-    <l-map ref="map" :zoom="zoom" :center="center">
-      <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-      <l-polyline :lat-lngs="coordinates" :color="transport.color"></l-polyline>
-      <l-marker
-        v-for="m in markers"
-        v-bind:key="m.coordinate"
-        :lat-lng="m.coordinate"
-        :icon="m.icon"
-      ></l-marker>
-      -->
+  <div class="map-container">
     <div id="map"></div>
-    <!--
-      <l-marker :lat-lng="polyline.latlngs[0]" :icon="icon"></l-marker>
-      <l-marker :lat-lng="polyline.latlngs[2]" :icon="icon"></l-marker>
-      <l-marker :lat-lng="polyline.latlngs[1]">
-        <l-icon :icon-size="icon.iconSize" :icon-anchor="[18, 75]">
-          ID: 123
-          <img
-            src="https://findicons.com/files/icons/951/google_maps/32/train.png"
-        /></l-icon>
-      </l-marker>
-      -->
   </div>
 </template>
 
 <script lang="ts">
 import L from "leaflet";
-import { Component, Vue, Prop, Watch, Ref } from "vue-property-decorator";
-import {
-  Coordinate,
-  MappedTransport,
-  TripPosition,
-  MapTripPosition
-} from "../models/geo";
-import VueRouter from "vue-router";
+import { Component, Vue, Prop, Watch } from "vue-property-decorator";
+import { MappedTransport, MapTripPosition } from "../models/geo";
 
 export interface Marker {
-  icon?: L.Icon;
+  marker?: L.Marker;
   coordinates: [number, number];
 }
 
@@ -48,7 +20,9 @@ export interface Marker {
 })
 export default class MapVisualisation extends Vue {
   @Prop() zoom!: number;
-  @Prop() center!: Coordinate;
+  @Prop() center!: [number, number];
+  @Prop({ default: () => [50, 50] }) flyPadding!: [number, number];
+  @Prop({ default: true }) forceIcon!: boolean;
   @Prop({ default: "http://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png" })
   url!: string;
   @Prop({
@@ -57,96 +31,85 @@ export default class MapVisualisation extends Vue {
   })
   attribution!: string;
   @Prop() transport?: MappedTransport;
+  @Prop() stationPreview?: any;
+
   protected map!: L.Map;
+  protected coordinates: [number, number][] = [];
+  protected markers: Marker[] = [];
+  protected polyline: L.Polyline = L.polyline([]);
 
-  coordinates: [number, number][] = [];
-  markers: Marker[] = [];
-  polyline: L.Polyline = L.polyline([]);
-
-  getCoordinates(positions: Marker[]): [number, number][] {
-    return positions.reduce((acc: [number, number][], m: Marker): [
-      number,
-      number
-    ][] => {
-      acc.push(m.coordinates);
-      return acc;
-    }, [] as [number, number][]);
-  }
-
-  getMarkers(positions: Marker[]): Marker[] {
-    return positions.reduce((acc: Marker[], m: Marker): Marker[] => {
-      if (m.icon != undefined) {
-        acc.push(m);
-      }
-      return acc;
-    }, [] as Marker[]);
-  }
-
-  setupRoute(
-    transport: MappedTransport
-  ): { coordinates: [number, number]; marker: L.Marker }[] {
+  setupRoute(transport: MappedTransport): Marker[] {
     return transport.positions.reduce(
-      (
-        acc: { coordinates: [number, number]; marker: L.Marker }[],
-        pos: MapTripPosition
-      ): { coordinates: [number, number]; marker: L.Marker }[] => {
+      (acc: Marker[], pos: MapTripPosition): Marker[] => {
         let c = pos.position.coordinates;
         let markerOptions: L.MarkerOptions = {};
-        if (pos.icon != undefined) {
+        let size = pos.icon?.size ?? [30, 30];
+        let anchor: L.PointTuple = [0, -(size[1] / 2)];
+        if (pos.icon != undefined || this.forceIcon) {
           markerOptions.icon = L.icon({
             // Icon from https://findicons.com/icon/260843/train_transportation
             iconUrl:
-              pos.icon.url ??
+              pos.icon?.url ??
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
-            iconSize: pos.icon.size ?? [30, 30],
-            tooltipAnchor: [16, 37]
+            iconSize: size,
+            tooltipAnchor: anchor,
+            popupAnchor: anchor
           });
-          // L.marker([51.5, -0.09]).addTo(this.map)
-          // .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-          // .openPopup();
         }
-        let marker = L.marker([c.lat, c.lon], markerOptions).bindPopup(
-          "A pretty CSS3 popup.<br> Easily customizable."
+        let marker = L.marker(c, markerOptions).bindPopup(
+          "A pretty CSS3 popup.<br> Easily customizable.",
+          {
+            autoPan: false
+          }
         );
-        acc.push({ coordinates: [c.lat, c.lon], marker: marker });
+        acc.push({ coordinates: c, marker: marker });
         return acc;
       },
-      [] as { coordinates: [number, number]; marker: L.Marker }[]
+      [] as Marker[]
     );
   }
 
   loadTransport(transport?: MappedTransport) {
     if (transport == undefined) return;
 
-    let positions = this.setupRoute(transport);
+    this.markers = this.setupRoute(transport);
     let polyline: [number, number][] = [];
-    positions.forEach(p => {
+    this.markers.forEach(p => {
       polyline.push(p.coordinates);
-      p.marker.addTo(this.map);
+      p.marker?.addTo(this.map);
     });
-    this.polyline = L.polyline(polyline, { color: transport.color }).addTo(
+    this.polyline = L.polyline(polyline, { color: transport.color ?? 'black' }).addTo(
       this.map
     );
-    // this.markers = this.getMarkers(positions);
-    // this.coordinates = this.getCoordinates(positions);
 
     // Fly to the new route
     let start = transport.positions[0].position.coordinates;
     let end =
       transport.positions[transport.positions.length - 1].position.coordinates;
-    this.map.flyToBounds(
-      [
-        [start.lat, start.lon],
-        [end.lat, end.lon]
-      ],
-      { duration: 0.3, animate: true, padding: [10, 10] }
-    );
+    this.map.flyToBounds([start, end], {
+      duration: 0.3,
+      animate: true,
+      padding: this.flyPadding
+    });
   }
 
   @Watch("transport")
   onTransportChanged(newValue: MappedTransport) {
-    // Load new transport
     this.loadTransport(newValue);
+  }
+
+  @Watch("center")
+  onCenterChanged(newValue?: [number, number]) {
+    if (newValue != undefined) this.map.flyTo(newValue);
+  }
+
+  @Watch("stationPreview")
+  onStationPreviewChanged(station: MapTripPosition) {
+    this.markers.forEach(m => {
+      if (m.coordinates == station.position.coordinates) {
+        m.marker?.openPopup(m.coordinates);
+      }
+    });
   }
 
   mounted() {
@@ -157,11 +120,7 @@ export default class MapVisualisation extends Vue {
       attribution: this.attribution
     }).addTo(this.map);
 
-    /*
-    L.marker([51.5, -0.09]).addTo(map)
-    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-    .openPopup();
-    */
+    if (this.transport != undefined) this.loadTransport(this.transport);
   }
 
   /*
@@ -172,13 +131,16 @@ export default class MapVisualisation extends Vue {
 }
 </script>
 
-<style lang="sass">
+<style lang="sass" scoped>
 @import "~leaflet/dist/leaflet.css";
-
-#map
+.map-container
   height: 100%
   margin: 0
+  position: relative
 
-.leaflet-top
-  z-index: 1000
+  #map
+    height: 100%
+
+  .leaflet-top
+    z-index: 1000
 </style>

@@ -19,7 +19,7 @@
         </div>
       </div>
     </div>
-    <div class="transport-list">
+    <div class="transport-list noscrollbar">
       <ul>
         <li v-for="transport in transports" :key="transport.id">
           <map-cell
@@ -64,7 +64,7 @@ export default class Dashboard extends Vue {
     end: "Berlin",
     plannedDuration: 150,
     actualDuration: 170,
-    delay: 21,
+    delay: 67,
     delayReason: "Rain",
     trend: {
       value: 13,
@@ -76,48 +76,47 @@ export default class Dashboard extends Vue {
     },
     routeProgress: 0.35,
     lastPosition: {
-      coordinates: { lat: 12, lon: 14 },
+      coordinates: [12, 14],
       description: "Grunewald"
     },
     map: {
       positions: [
         {
-          position: { coordinates: { lat: 52.391385, lon: 13.092939 } },
+          position: { coordinates: [52.391385, 13.092939] },
           icon: {
             iconUrl:
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         },
         {
-          position: { coordinates: { lat: 52.395679, lon: 13.137056 } },
+          position: { coordinates: [52.395679, 13.137056] },
           icon: {
             iconUrl:
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         },
         {
-          position: { coordinates: { lat: 52.411898, lon: 13.156936 } },
+          position: { coordinates: [52.411898, 13.156936] },
           icon: {
             iconUrl:
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         },
         {
-          position: { coordinates: { lat: 52.426241, lon: 13.19041 } },
+          position: { coordinates: [52.426241, 13.19041] },
           icon: {
             iconUrl:
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         },
         {
-          position: { coordinates: { lat: 52.487991, lon: 13.260937 } },
+          position: { coordinates: [52.487991, 13.260937] },
           icon: {
             iconUrl:
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         }
       ],
-      color: "blue"
     }
   });
 
@@ -185,27 +184,9 @@ export default class Dashboard extends Vue {
     height: calc(100% - 31px)
     overflow-y: scroll
     padding: 0 7px
-    // Hide scrollbar for IE and Edge
-    -ms-oversflow-style: none
-
-    // Hide scrollbar for Chrome, Safari and Opera
-    &::-webkit-scrollbar
-      display: none
 
     ul
       text-decoration: none
       list-style: none
       padding: 0
-      li
-        +theme(background-color, bgc-body)
-        padding: 5px 10px
-        margin-top: 7px
-        // border: 1px solid rgba(0,0,0,0.1)
-        border-radius: 7px
-        overflow: hidden
-        box-shadow: 0 5px 10px rgba(0,0,0,0.01), 0 3px 3px rgba(0,0,0,0.01)
-
-        &:hover, li.tracked
-          +theme-color-lighten(background-color, bgc-body, 15)
-          box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1)
 </style>

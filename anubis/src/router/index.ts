@@ -67,7 +67,7 @@ export const routes: RouteConfig[] = [
       {
         path: "manage/transports",
         name: "manage",
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true, useSearchToFilter: true },
         component: () =>
           import(
             /* webpackChunkName: "transportmanager" */ "@/views/TransportManager.vue"

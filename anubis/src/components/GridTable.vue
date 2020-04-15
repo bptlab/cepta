@@ -143,12 +143,8 @@ export default class GridTable extends Vue {
       float: right
 
     &.delay-red
-      +theme(color, c-delay-alert)
+      +theme(color, c-delay-warning)
       font-weight: bold
-
-    &.delay-green
-      +theme(color, c-delay-fine)
-
   th
     cursor: pointer
     -webkit-user-select: none

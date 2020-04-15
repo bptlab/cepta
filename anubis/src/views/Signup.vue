@@ -43,7 +43,7 @@
           />
         </div>
         <div class="form-group">
-          <button class="btn btn-primary">Register</button>
+          <button class="btn btn-cepta-default">Register</button>
         </div>
       </form>
     </div>

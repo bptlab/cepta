@@ -281,9 +281,9 @@ export default class Sidebar extends Vue {
   .sidebar-link
     &.router-link-exact-active,
     &.router-link-active
-      +theme(background-color, c-accent-text)
+      +theme(background-color, bgc-sidebar-active)
       .dot-holder
-        +theme(background, c-accent-text)
+        +theme(background, c-sidebar-dot)
         border-radius: 50%
         content: ''
         display: block
@@ -292,12 +292,10 @@ export default class Sidebar extends Vue {
         position: absolute
         top: calc(50% - 4px)
         width: 8px
-
-      i
-        color: whites
+        +theme(color, c-sidebar-icon-active)
 
       .title
-        +theme(color, c-default-text)
+        +theme(color, c-sidebar-text)
         text-decoration: none
         font-weight: bold
 
