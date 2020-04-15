@@ -79,12 +79,13 @@ export default class Main extends Vue {
 
 <style scoped lang="sass">
 #footer
-  z-index: 1
+  z-index: 1000
   line-height: 30px
   vertical-align: middle
   display: inline-block
 
 .main-content
   position: relative
+  overflow-x: hidden
   +theme(background-color, bgc-content)
 </style>

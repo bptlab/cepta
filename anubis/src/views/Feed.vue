@@ -1,176 +1,189 @@
 <template>
-  <masonry-layout title="Your trains">
-    <masonry-layout-tile section="IDs" layoutStyle='{"col-ms-2": true}'>
-      <input
-        ref="search"
-        class="form-control"
-        id="search"
-        type="number"
-        placeholder="search ..."
-        v-model="search"
-        v-on:input="this.resetSelection"
-      />
-      <selectable-table
-        :table-data="filteredTableData"
-        :show-indices="false"
-        :striped="true"
-        :bordered="true"
-        :hoverable="true"
-        :headless="true"
-        :clickHandler="this.rowClickHandler"
-        cellspacing="0"
-      />
-      <button
-        v-if="this.selectedTrainId"
-        v-on:click="this.editId"
-        type="button"
-        class="btn btn-block black-btn"
-      >
-        Edit
-      </button>
-      <button
-        v-if="this.selectedTrainId"
-        v-on:click="this.deleteId"
-        type="button"
-        class="btn btn-block black-btn"
-      >
-        Delete
-      </button>
-      <button
-        v-on:click="this.addId"
-        type="button"
-        class="btn btn-block black-btn"
-      >
-        Add ID
-      </button>
-    </masonry-layout-tile>
-    <masonry-layout-tile
-      v-bind:section="sectionTitle"
-      layoutStyle='{"col-ms-10": true}'
-      id="sectionTitle"
-      v-if="this.selectedTrainId"
-    >
-      <grid-table :grid-data="trainData" :filter-key="search"></grid-table>
-    </masonry-layout-tile>
-  </masonry-layout>
+  <div class="feed-container">
+    <div class="timeline">
+      <div class="circle circle-big"></div>
+      <div class="line"></div>
+      <div class="time">
+        <span class="current-time">{{ currentTime }}</span>
+      </div>
+    </div>
+    <div class="event-list">
+      <ul>
+        <li
+          class="event"
+          v-for="(data, index) in eventData"
+          v-bind:key="'item-' + index"
+        >
+          <span class="eventTime">{{ cutDate(data.eventTime) }}</span>
+          <span class="circle circle-small"></span>
+          <span :class="['icon', 'icon-' + getIcon(data.type)]"></span>
+          <span class="type">{{ capitalizeFirstLetter(data.type) }} Event</span>
+          <span
+            ><span class="icon-secondary icon icon-tag"></span
+            >{{ capitalizeFirstLetter(data.tag) }}</span
+          >
+          <span
+            ><span class="icon-secondary icon icon-location-pin"></span
+            >{{ data.locationName }}</span
+          >
+          <span @click="toggleSpecialData(index)" class="icon icon-more"></span>
+        </li>
+      </ul>
+      <div v-if="(specialEventData.type = 'train')">
+        <span>{{ specialEventData.plannedETA }}</span>
+        <span>{{ specialEventData.delay }}</span>
+        <span>{{ specialEventData.predictedETA }}</span>
+        <span>{{ specialEventData.predictedOffset }}</span>
+      </div>
+      <div v-if="(specialEventData.type = 'weather')">
+        <span>{{ specialEventData.intensity }}</span>
+        <span>{{ specialEventData.eventTime }}</span>
+        <span>{{ specialEventData.expectedDuration }}</span>
+      </div>
+      <div v-if="(specialEventData.type = 'weather')">
+        <span>{{ specialEventData.country }}</span>
+        <span>{{ specialEventData.latitude }}</span>
+        <span>{{ specialEventData.longitude }}</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import MasonryLayout from "../components/MasonryLayout.vue";
-import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
-import SelectableTable from "../components/SelectableTable.vue";
-import GridTable from "../components/GridTable.vue";
 
 @Component({
-  name: "user",
-  components: {
-    MasonryLayout,
-    MasonryLayoutTile,
-    SelectableTable,
-    GridTable
-  },
+  name: "Feed",
+  components: {},
   props: {}
 })
 export default class User extends Vue {
-  example: string = "Test";
-  trainIDs: Array<Array<number>> = [[43986033], [2], [3], [4]];
-  search: number | null = null;
-  selectedRow: HTMLTableRowElement | null = null;
-  selectedTrainId: number | null = null;
-  mounted() {}
+  currentTime: string = "";
+  eventData: Array<Object> = this.receiveData();
+  specialEventData: Object = {};
 
-  get sectionTitle() {
-    return this.selectedTrainId
-      ? "Info for train " + this.selectedTrainId
-      : "Please select a Train";
+  mounted(): void {
+    this.updateTime();
   }
 
-  get filteredTableData() {
-    return this.trainIDs.filter(this.idFilter);
+  toggleSpecialData(index: number) {
+    this.specialEventData != this.eventData[index]
+      ? (this.specialEventData = {})
+      : (this.specialEventData = this.eventData[index]);
   }
 
-  idFilter(row: Array<number>) {
-    if (String(row[0]).includes(String(this.search)) || !this.search)
-      return true;
+  updateTime() {
+    const date = new Date();
+    const time = date.toUTCString().slice(17, 25);
+    this.currentTime = time;
+    setTimeout(this.updateTime, 1000);
   }
 
-  rowClickHandler(record: MouseEvent) {
-    let targetElement: HTMLElement | null = record.target as HTMLElement;
-    let elementId = targetElement != null ? targetElement.id : null;
-    let selectedElement: HTMLTableRowElement = document.getElementById(
-      targetElement.id
-    ) as HTMLTableRowElement;
-    let selectedId: number = Number(selectedElement.innerText);
+  capitalizeFirstLetter(string: string): string {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
 
-    if (this.selectedRow != selectedElement) {
-      this.resetSelection();
-      this.selectedRow = selectedElement;
-      this.selectedTrainId = selectedId;
-      this.selectedRow.setAttribute("class", "selectedRow");
-    } else {
-      this.resetSelection();
+  getIcon(string: string): string {
+    switch (string) {
+      case "train":
+        return "truck";
+      case "weather":
+        return "shine";
+      case "location":
+        return "map-alt";
+      default:
+        return "";
     }
   }
 
-  resetSelection() {
-    if (this.selectedRow != null) {
-      this.selectedRow.setAttribute("class", "");
-      this.selectedRow = null;
-    }
-    this.selectedTrainId = null;
+  cutDate(string: string): string {
+    return string.slice(11);
   }
 
-  addId() {
-    // add id to user
-    console.log("You clicked the add button!");
-  }
-  editId() {
-    // change id -> remove old from user and add new id to user
-    console.log("You clicked the edit button!");
-  }
-  deleteId() {
-    // remove id from user
-    console.log("You clicked the delete button!");
-  }
-
-  get trainData(): { [key: string]: string }[] {
-    // here should be the request of the actual data for the selected train id
+  receiveData(): { [key: string]: string }[] {
     return [
       {
-        locationID: "4202153",
+        type: "train",
+        tag: "49054",
         locationName: "MusterLocation",
         plannedETA: "2019-08-02 13:28:00",
+        eventTime: "2019-08-02 13:58:00",
         delay: "30",
-        predictedETA: "2019-08-02 13:58:00"
+        predictedETA: "2019-08-02 13:55:00",
+        predictedOffset: "offset"
       },
       {
-        locationID: "4202154",
-        locationName: "ExampleTown",
-        plannedETA: "2019-08-02 14:38:00",
-        delay: "15",
-        predictedETA: "2019-08-02 14:53:00"
+        type: "weather",
+        tag: "storm",
+        locationName: "Niemandsland",
+        intensity: "5",
+        eventTime: "2019-08-02 13:28:00",
+        expectedDuration: "02:00:00"
       },
       {
-        locationID: "4202155",
-        locationName: "NoWhereToFind",
-        plannedETA: "2019-08-02 15:48:00",
-        delay: "10",
-        predictedETA: "2019-08-02 15:58:00"
+        type: "train",
+        tag: "49054",
+        locationName: "MusterLocation",
+        plannedETA: "2019-08-02 13:28:00",
+        eventTime: "2019-08-02 13:58:00",
+        delay: "30",
+        predictedETA: "2019-08-02 13:55:00",
+        predictedOffset: "offset"
       },
       {
-        locationID: "4202156",
-        locationName: "RightHere",
-        plannedETA: "2019-08-02 16:20:00",
-        delay: "0",
-        predictedETA: "2019-08-02 16:20:00"
+        type: "train",
+        tag: "49054",
+        locationName: "MusterLocation",
+        plannedETA: "2019-08-02 13:28:00",
+        eventTime: "2019-08-02 13:58:00",
+        delay: "30",
+        predictedETA: "2019-08-02 13:55:00",
+        predictedOffset: "offset"
       },
       {
-        locationID: "4202157",
-        locationName: "LeftThere",
-        plannedETA: "2019-08-02 17:56:00",
-        delay: "-10",
-        predictedETA: "2019-08-02 17:46:00"
+        type: "weather",
+        tag: "storm",
+        locationName: "Niemandsland",
+        intensity: "5",
+        eventTime: "2019-08-02 13:28:00",
+        expectedDuration: "02:00:00"
+      },
+      {
+        type: "train",
+        tag: "49054",
+        locationName: "MusterLocation",
+        plannedETA: "2019-08-02 13:28:00",
+        eventTime: "2019-08-02 13:58:00",
+        delay: "30",
+        predictedETA: "2019-08-02 13:55:00",
+        predictedOffset: "offset"
+      },
+      {
+        type: "location",
+        tag: "Addition",
+        eventTime: "2019-08-02 13:58:00",
+        locationName: "MustermannLocation",
+        country: "Germany",
+        latitude: "11.23,1122",
+        longitude: "11.23,1122"
+      },
+      {
+        type: "train",
+        tag: "49054",
+        locationName: "MusterLocation",
+        plannedETA: "2019-08-02 13:28:00",
+        eventTime: "2019-08-02 13:58:00",
+        delay: "30",
+        predictedETA: "2019-08-02 13:55:00",
+        predictedOffset: "offset"
+      },
+      {
+        type: "weather",
+        tag: "storm",
+        locationName: "Niemandsland",
+        intensity: "5",
+        eventTime: "2019-08-02 13:28:00",
+        expectedDuration: "02:00:00"
       }
     ];
   }
@@ -178,9 +191,93 @@ export default class User extends Vue {
 </script>
 
 <style lang="sass">
-.selectedRow
-  background-color: red
-.black-btn
-  background-color: black
-  color: white
+.feed-container
+  min-height: 100%
+  position: relative
+  margin-left: 100px
+
+  .timeline
+    position: absolute
+    left: 100px
+    top: 10px
+    height: 95%
+
+    .line
+      min-height: 100%
+      width: 4px
+      background-color: #cdcdcd
+      border-radius: 10px
+
+    .time
+      position: absolute
+      left: -100px
+      top: -5px
+      font-size: 20px
+
+  .circle
+    border-radius: 10px
+    background-color: #cdcdcd
+    position: absolute
+
+  .circle-big
+    width: 20px
+    height: 20px
+    top: 0px
+    left: -8px
+
+  .circle-small
+    width: 10px
+    height: 10px
+    top: 18px
+    left: -23px
+
+  .event-list
+    position: absolute
+    left: 120px
+    top: 30px
+    width: 80%
+    min-height: calc(100% - 30px)
+
+    ul
+      list-style: none
+      padding: 0
+
+  .icon
+    font-size: 25px
+    justify-self: end
+    padding-right: 15px
+
+  .event
+    position: relative
+    width: 100%
+    display: inline-grid
+    grid-template-columns: 5% 25% 15% 50% 5%
+    justify-items: start
+    align-items: center
+    //border-top: 1px solid #cdcdcd
+    padding: 10px
+    font-size: 12px
+
+    &:hover
+      box-shadow: 3px 3px 5px #cdcdcd
+
+    .icon-secondary
+      position: relative
+      top: 2px
+      font-size: 16px
+      padding: 10px 10px
+
+    .type
+      justify-self: stretch
+      border-right: 1px solid #a7a7a7
+      font-size: 16px
+
+    .eventTime
+      position: absolute
+      font-size: 12px
+      left: -80px
+      top: 15px
+
+  .hidden
+    display: none
 </style>
