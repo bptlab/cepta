@@ -294,7 +294,7 @@ export default class Sidebar extends Vue {
         width: 8px
 
       i
-        color: white
+        color: whites
 
       .title
         +theme(color, c-default-text)
@@ -400,7 +400,6 @@ export default class Sidebar extends Vue {
       .sidebar-inner
         .sidebar-logo
           border-bottom: 1px solid transparent
-          padding: 0
 
         .sidebar-menu
           > li

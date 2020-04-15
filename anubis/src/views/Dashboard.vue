@@ -105,15 +105,27 @@ export default class Dashboard extends Vue {}
 .dashboard-container
   width: 100%
 
-  .transports-overview
-    .view-all
-      // FIXME: I am not part of the container?!
-      // position: relative
-      // display: block
-      float: right
-      padding: 5px
+  .shadow-tile
+    overflow: hidden
+    margin-bottom: 20px
+
+  .view-all
+    // FIXME: I am not part of the container?!
+    // position: relative
+    // display: block
+    float: right
+    padding: 5px 0px 0px
+    .btn
+      +theme(color, c-default-text)
+      +theme-color-diff(border-color, bc-table-button, 10)
+      border-radius: 5px
+
+      &::hover
+        background-color: #333
+        //+theme-color-diff(background-color, bc-table-button,10)
+
       .icon
-        margin: 10px 5px
+        margin-left: 5px
 
   .metric
     p

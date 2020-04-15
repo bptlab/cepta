@@ -130,4 +130,23 @@ export default class App extends Vue {
 #app
   +theme(background-color, bgc-body)
   +theme(color, c-default-text)
+
+/* width */
+::-webkit-scrollbar
+  width: 8px
+  height: 8px
+
+/* Track */
+::-webkit-scrollbar-track
+  box-shadow: inset 0 0 5px grey
+  border-radius: 10px
+
+/* Handle */
+::-webkit-scrollbar-thumb
+  +theme(background-color, bgc-scrollbar)
+  border-radius: 5px
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover
+  +theme-color-diff(background-color, bgc-scrollbar, 10)
 </style>
