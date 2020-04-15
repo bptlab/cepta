@@ -53,8 +53,9 @@
       <!-- Notifications -->
       <ul class="nav-right">
         <li>
-          <a>
-            <span class="current-time">{{ currentTime }}</span>
+          <a class="time" @click="toggleTimezone">
+            <span class="current-time">{{ currentTime }}</span
+            ><span class="timezone">{{ timezones[timezone] }}</span>
           </a>
         </li>
 
@@ -388,13 +389,29 @@ export default class NavigationBar extends Vue {
   }
 
   dateLocale: string = "en-GB";
-  timeZone: string = "UTC";
+  timezone: number = 0;
+  timezones: Array<string> = ["UTC", "EET", "WET", "CET"];
+  timezonesLong: Array<string> = [
+    "UTC",
+    "Europe/Moscow",
+    "Europe/Lisbon",
+    "Europe/Berlin"
+  ];
 
-  updateTime() {
+  toggleTimezone() {
+    this.timezone = (this.timezone + 1) % this.timezones.length;
+    this.newTime();
+  }
+
+  newTime() {
     var date = new Date();
     this.currentTime = date.toLocaleString(this.dateLocale, {
-      timeZone: this.timeZone
+      timeZone: this.timezonesLong[this.timezone]
     });
+  }
+
+  updateTime() {
+    this.newTime();
     setTimeout(this.updateTime, 1000);
   }
 
@@ -496,10 +513,10 @@ export default class NavigationBar extends Vue {
   // width: calc(100% - #{$offscreen-size})
   width: 100%
   z-index: 800
+  width: calc(100% - #{$offscreen-size})
 
   +to($breakpoint-md)
     width: 100%
-
 
   +between($breakpoint-md, $breakpoint-xl)
     width: calc(100% - #{$collapsed-size})
@@ -547,13 +564,19 @@ export default class NavigationBar extends Vue {
       padding-left: 15px
       transition: 0.2s ease
 
-      +from($breakpoint-xl)
-        margin-left: 230px
-
     .nav-right
       width: 650px
       float: right
       padding-right: 10px
+
+      .time
+        width: 190px
+        padding: 0px
+        cursor: pointer
+
+        .timezone
+          padding-left: 10px
+
 
       .system-status
         width: 10px
