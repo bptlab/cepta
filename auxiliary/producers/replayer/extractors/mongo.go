@@ -3,11 +3,12 @@ package extractors
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
+	eventpb "github.com/bptlab/cepta/models/events/event"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	// "github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/romnnn/bsonpb"
 	"github.com/golang/protobuf/ptypes"
@@ -16,9 +17,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type WrapperFunc = func(event proto.Message) *eventpb.Event
+
 // MongoExtractor ...
 type MongoExtractor struct {
 	Proto       proto.Message
+	WrapperFunc     WrapperFunc
 	DB          *libdb.MongoDB
 	debug       bool
 	cur         *mongo.Cursor
@@ -27,31 +31,34 @@ type MongoExtractor struct {
 }
 
 // Get ...
-func (ex *MongoExtractor) Get() (time.Time, proto.Message, error) {
+func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 	// Get raw bson
 	var result bson.D
+	var replayTime time.Time
 	err := ex.cur.Decode(&result)
 	if err != nil {
-		return time.Time{}, nil, err
+		return replayTime, nil, err
 	}
 
 	// Marshal to bson bytes first
 	resultBytes, mErr := bson.Marshal(result)
 	if mErr != nil {
-		return time.Time{}, nil, fmt.Errorf("marshaling bson to bytes failed: %v", mErr)
+		return replayTime, nil, fmt.Errorf("marshaling bson to bytes failed: %v", mErr)
 	}
 
 	// Now unmarshal to proto message
-	target := reflect.New(reflect.TypeOf(ex.Proto).Elem()).Interface().(proto.Message)
-	umErr := ex.unmarshaler.Unmarshal(resultBytes, target)
-	if umErr != nil {
-		return time.Time{}, nil, fmt.Errorf("unmarshaling failed: %v", umErr)
+	var replayedEvent pb.ReplayedEvent
+	// wrapper := reflect.New(reflect.TypeOf(ex.Wrapper).Elem()).Interface().(proto.Message)
+	// event := reflect.New(reflect.TypeOf(ex.Proto).Elem()).Interface().(proto.Message)
+	event := proto.Clone(ex.Proto)
+	if err := ex.unmarshaler.Unmarshal(resultBytes, event); err != nil {
+		return replayTime, nil, fmt.Errorf("unmarshaling failed: %v", err)
 	}
-
-	return time.Time{}, target, nil
+	replayedEvent.Event = ex.WrapperFunc(event)
+	return replayTime, &replayedEvent, nil
 }
 
-// GetReplayedEvent ...
+/* GetReplayedEvent ...
 func (ex *MongoExtractor) GetReplayedEvent() (*pb.ReplayedEvent, error) {
   var replayEvent pb.ReplayedEvent
   replayTime, event, err := ex.Get()
@@ -68,6 +75,7 @@ func (ex *MongoExtractor) GetReplayedEvent() (*pb.ReplayedEvent, error) {
   // replayEvent.Event = event.(reflect.New(reflect.TypeOf(ex.Proto))
   return &replayEvent, nil
 }
+*/
 
 // StartQuery ...
 func (ex *MongoExtractor) StartQuery(collectionName string, IDFieldName string, query *ReplayQuery) error {
@@ -96,9 +104,10 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 }
 
 // NewMongoExtractor ...
-func NewMongoExtractor(db *libdb.MongoDB, proto proto.Message) *MongoExtractor {
+func NewMongoExtractor(db *libdb.MongoDB, wrapperFunc WrapperFunc, proto proto.Message) *MongoExtractor {
 	return &MongoExtractor{
 		DB:    db,
+		WrapperFunc: wrapperFunc,
 		Proto: proto,
 	}
 }

@@ -3,7 +3,7 @@ package extractors
 import (
 	"fmt"
 	"time"
-	"github.com/golang/protobuf/proto"
+	// "github.com/golang/protobuf/proto"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
@@ -13,14 +13,15 @@ import (
 
 // DbExtractor ...
 type DbExtractor interface {
-	GetAll(*sql.Rows, *gorm.DB) (time.Time, proto.Message, error)
+	GetAll(*sql.Rows, *gorm.DB) (*pb.ReplayedEvent, error)
 	GetInstance() interface{}
 }
 
 // Extractor ...
 type Extractor interface {
-	Get() (time.Time, proto.Message, error)
-	GetReplayedEvent() (*pb.ReplayedEvent, error)
+	// Get() (time.Time, proto.Message, error)
+	// GetReplayedEvent() (*pb.ReplayedEvent, error)
+	Get() (time.Time, *pb.ReplayedEvent, error)
 	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
 	Next() bool
 	Done()
@@ -53,9 +54,15 @@ func NewPostgresExtractor(db *libdb.PostgresDB, extractor DbExtractor) *Postgres
 	}
 }
 
-// Get ...
+/* Get ...
 func (ex *PostgresExtractor) Get() (time.Time, proto.Message, error) {
 	return ex.Extractor.GetAll(ex.rows, ex.DB.DB)
+}
+*/
+
+func (ex *PostgresExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
+  // TODO: Implement
+	return time.Time{}, nil, nil
 }
 
 // StartQuery ...

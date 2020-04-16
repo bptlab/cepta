@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "command", "multirun")
@@ -63,6 +63,7 @@ go_library(
         "//models/events:crew_shift_data_go_proto",
         "//models/events:crew_transition_data_go_proto",
         "//models/events:delay_explanation_data_go_proto",
+        "//models/events:event_go_proto",
         "//models/events:gps_trip_update_go_proto",
         "//models/events:infrastructure_manager_data_go_proto",
         "//models/events:live_train_data_go_proto",
@@ -91,3 +92,53 @@ go_library(
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
+
+go_test(
+    name = "replayer_unit",
+    size = "small",
+    srcs = ["replayer_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+    tags = ["unit"],
+)
+
+go_test(
+    name = "replayer_integration",
+    size = "medium",
+    srcs = ["replayer_integration.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+    tags = ["integration", "docker", "internal"],
+)
+
+test_suite(
+    name = "smoke",
+    tags = [
+        "-docker",
+        "-internal",
+    ],
+)
+
+test_suite(
+    name = "unit",
+    tags = [
+        "-internal",
+        "unit",
+    ],
+)
+
+test_suite(
+    name = "integration",
+    tags = [
+        "-internal",
+        "integration",
+    ],
+)
+
+test_suite(name = "internal")

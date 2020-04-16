@@ -9,7 +9,9 @@ go_library(
     importpath = "github.com/bptlab/cepta/auxiliary/producers/replayer/extractors",
     visibility = ["//visibility:public"],
     deps = [
+        "//models/events:event_go_proto",
         "//models/grpc:replayer_go_grpc",
+        "//osiris/lib:utils",
         "//osiris/lib/db:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",

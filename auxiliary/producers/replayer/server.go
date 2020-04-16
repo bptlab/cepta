@@ -10,9 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	"github.com/bptlab/cepta/ci/versioning"
-	topics "github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -20,25 +18,29 @@ import (
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	clivalues "github.com/romnnn/flags4urfavecli/values"
 
+	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
+	topics "github.com/bptlab/cepta/models/constants/topic"
 	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
-	crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
-	crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
-	crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
-	crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
-	delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
-	gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
-	infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
-	livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
-	locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
-	plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
-	predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
-	railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
-	stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
-	traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
-	vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
-	weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
+	eventpb "github.com/bptlab/cepta/models/events/event"
 
-	"github.com/golang/protobuf/ptypes"
+	// crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
+	// crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
+	// crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
+	// crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
+	// delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
+	// gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
+	// infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
+	// livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
+	// locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
+	// plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
+	// predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
+	// railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
+	// stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
+	// traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
+	// vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
+	// weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
+
+	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -59,12 +61,17 @@ var activeReplayers = []*Replayer{}
 
 type server struct {
 	pb.UnimplementedReplayerServer
-	speed     int32
-	limit     int
-	mode      pb.ReplayType
-	timerange pb.Timerange
-	ids       []string
-	active    bool
+	speed       int32
+	limit       int
+	mode        pb.ReplayType
+	timerange   pb.Timerange
+	ids         []string
+	included    []string
+	excluded    []string
+	active      bool
+	repeat      bool
+	kafkaConfig kafkaproducer.KafkaProducerOptions
+	mongoConfig libdb.MongoDBConfig
 }
 
 func (s *server) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
@@ -145,30 +152,43 @@ func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartO
 	}, nil
 }
 
-func (s *server) Query(ctx context.Context, in *pb.QueryOptions) (*pb.ReplayDataset, error) {
-	log.Info("Handling query for replay data")
-
-	// allowed_sources
-
+func (s *server) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) error {
+	included := make([]string, len(in.Sources))
+	for si := range in.Sources {
+		included[si] = in.Sources[si].String()
+	}
+	log.Infof("Handling query for sources: %v", included)
 	// Collect all replay datasets from all replayers
 	for _, replayer := range replayers {
-		log.Info(replayer)
-		// if utils.Contains()
+		if !shouldInclude(replayer, included, []string{}, true) {
+			continue
+		}
+		// Configure replayer
+		limit := int(in.Limit)
+		replayer.Query.IncludeIds = &in.Ids
+		replayer.Query.Timerange = in.Timerange
+		replayer.Query.Limit = &limit
+		replayer.Query.Offset = int(in.Offset)
+		log.Debug(replayer.SourceName)
+		replayer.queryAndSend(stream)
 	}
-	/*
-			replayer.Query.IncludeIds = &replayerServer.ids
-		  replayer.Query.Timerange = &replayerServer.timerange
-		  replayer.Query.Limit = &replayerServer.limit
-		  replayer.Query.Offset = 0
-	*/
-
-	return &pb.ReplayDataset{
-		Events: []*pb.ReplayedEvent{},
-	}, nil
+	return nil
 }
 
-func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error {
-	kafkaConfig := kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
+func shouldInclude(replayer *Replayer, included []string, excluded []string, explicit bool) bool {
+	explicitInclude := explicit || len(included) > 0
+	if explicitInclude && !utils.Contains(included, replayer.Topic.String()) {
+		log.Debugf("Skipping %s", replayer.Topic.String())
+		return false
+	}
+	if len(excluded) > 0 && utils.Contains(excluded, replayer.Topic.String()) {
+		log.Debugf("Skipping %s", replayer.Topic.String())
+		return false
+	}
+	return true
+}
+
+func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 
 	// For reference: When using postgres as a replaying database:
 	/*
@@ -179,98 +199,189 @@ func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error 
 		}
 	*/
 
-	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
-	mongo, err := libdb.MongoDatabase(&mongoConfig)
+	mongo, err := libdb.MongoDatabase(&s.mongoConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize mongo database: %v", err)
 	}
-	mongoPtr.DB = mongo.DB
 
-	// Parse CLI replay type
-	var startMode pb.ReplayType
-	if mode, found := pb.ReplayType_value[strings.ToUpper(ctx.String("mode"))]; found {
-		startMode = pb.ReplayType(mode)
-	} else {
-		startMode = pb.ReplayType_PROPORTIONAL
+	checkpoints := &Replayer{
+		SourceName: topics.Topic_CHECKPOINT_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_Checkpoint{Checkpoint: event.(*checkpointpb.CheckpointData)}}
+		}, &checkpointpb.CheckpointData{}),
+		Topic: topics.Topic_CHECKPOINT_DATA,
 	}
 
-	// Parse CLI timerange
-	timeRange := pb.Timerange{}
-	if startTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("start-timestamp")); err != nil {
-		if protoStartTime, err := ptypes.TimestampProto(startTime); err != nil {
-			timeRange.Start = protoStartTime
+	/*
+		crewActivity := &Replayer{
+			SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewActivity{}, &crewactivitypb.CrewActivityData{}),
+			Topic:      topics.Topic_CREW_ACTIVITY_DATA,
 		}
-	}
-	if endTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("end-timestamp")); err != nil {
-		if protoEndTime, err := ptypes.TimestampProto(endTime); err != nil {
-			timeRange.End = protoEndTime
+		crewEnd := &Replayer{
+			SourceName: topics.Topic_CREW_END_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewPrepEnd{}, &crewprependpb.CrewPrepEndData{}),
+			Topic:      topics.Topic_CREW_END_DATA,
 		}
-	}
+		crewPrep := &Replayer{
+			SourceName: topics.Topic_CREW_PREP_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewPrepEnd{}, &crewprependpb.CrewPrepEndData{}),
+			Topic:      topics.Topic_CREW_PREP_DATA,
+		}
+		crewShift := &Replayer{
+			SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewShift{}, &crewshiftpb.CrewShiftData{}),
+			Topic:      topics.Topic_CREW_SHIFT_DATA,
+		}
+		crewTransition := &Replayer{
+			SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewTransition{}, &crewtransitionpb.CrewTransitionData{}),
+			Topic:      topics.Topic_CREW_TRANSITION_DATA,
+		}
 
-	replayerServer := server{
-		active:    true,
-		limit:     100,
-		mode:      startMode,
-		timerange: timeRange,
-		ids:       strings.Split(ctx.String("include"), ","),
-	}
+		delayExplanation := &Replayer{
+			SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_DelayExplanation{}, &delayexplanationpb.DelayExplanationData{}),
+			Topic:      topics.Topic_DELAY_EXPLANATION_DATA,
+		}
 
-	switch startMode {
-	case pb.ReplayType_CONSTANT:
-		replayerServer.speed = int32(ctx.Int("pause"))
-		log.Infof("Using constant replay with pause=%d", replayerServer.speed)
-	case pb.ReplayType_PROPORTIONAL:
-		replayerServer.speed = int32(ctx.Int("frequency"))
-		log.Infof("Using proportional replay with frequency=%d", replayerServer.speed)
-	default:
-		replayerServer.speed = 5000
+		infrastructureManager := &Replayer{
+			SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_InfrastructureManager{}, &infrastructuremanagerpb.InfrastructureManagerData{}),
+			Topic:      topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
+		}
+
+		liveTrain := &Replayer{
+			SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_LiveTrain{}, &livetrainpb.LiveTrainData{}),
+			Topic:      topics.Topic_LIVE_TRAIN_DATA,
+		}
+
+		location := &Replayer{
+			SourceName: topics.Topic_LOCATION_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Location{}, &locationpb.LocationData{}),
+			Topic:      topics.Topic_LOCATION_DATA,
+		}
+
+		plannedTrain := &Replayer{
+			SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_PlannedTrain{}, &plannedtrainpb.PlannedTrainData{}),
+			Topic:      topics.Topic_PLANNED_TRAIN_DATA,
+		}
+
+		predictedTrain := &Replayer{
+			SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_PredictedTrain{}, &predictedtrainpb.PredictedTrainData{}),
+			Topic:      topics.Topic_PREDICTED_TRAIN_DATA,
+		}
+
+		railwayUndertaking := &Replayer{
+			SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_RailwayUndertaking{}, &railwayundertakingpb.RailwayUndertakingData{}),
+			Topic:      topics.Topic_RAILWAY_UNDERTAKING_DATA,
+		}
+
+		station := &Replayer{
+			SourceName: topics.Topic_STATION_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Station{}, &stationpb.StationData{}),
+			Topic:      topics.Topic_STATION_DATA,
+		}
+
+		trainInformation := &Replayer{
+			SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_TrainInformation{}, &traininformationpb.TrainInformationData{}),
+			Topic:      topics.Topic_TRAIN_INFORMATION_DATA,
+		}
+
+		vehicle := &Replayer{
+			SourceName: topics.Topic_VEHICLE_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Vehicle{}, &vehiclepb.VehicleData{}),
+			Topic:      topics.Topic_VEHICLE_DATA,
+		}
+
+		weather := &Replayer{
+			SourceName: topics.Topic_WEATHER_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "id"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Weather{}, &weatherpb.WeatherData{}),
+			Topic:      topics.Topic_WEATHER_DATA,
+		}
+
+		gps := &Replayer{
+			SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
+			Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
+			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_GPSTripUpdate{}, &gpstripupdatespb.GPSTripUpdate{}),
+			Topic:      topics.Topic_GPS_TRIP_UPDATE_DATA,
+		}
+	*/
+
+	replayers = []*Replayer{
+		checkpoints,
+		/*
+			crewActivity,
+			crewEnd,
+			crewPrep,
+			crewShift,
+			crewTransition,
+			delayExplanation,
+			infrastructureManager,
+			liveTrain,
+			location,
+			plannedTrain,
+			predictedTrain,
+			railwayUndertaking,
+			station,
+			trainInformation,
+			vehicle,
+			weather,
+			gps,
+		*/
 	}
 
 	// Connect to kafka
-	producer, err := kafkaproducer.KafkaProducer{}.Create(kafkaConfig)
+	producer, err := kafkaproducer.KafkaProducer{}.Create(s.kafkaConfig)
 	if err != nil {
 		log.Fatalf("Cannot produce events: %s", err.Error())
 	}
 
-	includedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
-	log.Infof("Include: %s", includedSrcs)
-	excludedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("exclude-sources"))
-	log.Infof("Exclude: %s", excludedSrcs)
-
 	for _, replayer := range replayers {
-		// Filter replayers
-		if len(includedSrcs) > 0 && !utils.Contains(includedSrcs, replayer.SourceName) {
-			log.Debugf("Skipping %s", replayer.SourceName)
-			continue
-		}
-		if len(excludedSrcs) > 0 && utils.Contains(excludedSrcs, replayer.SourceName) {
-			log.Debugf("Skipping %s", replayer.SourceName)
+		if !shouldInclude(replayer, s.included, s.excluded, false) {
 			continue
 		}
 		// Set common replayer parameters
 		replayer.producer = producer
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.Query.IncludeIds = &replayerServer.ids
-		replayer.Query.Timerange = &replayerServer.timerange
-		replayer.Query.Limit = &replayerServer.limit
+		replayer.Query.IncludeIds = &s.ids
+		replayer.Query.Timerange = &s.timerange
+		replayer.Query.Limit = &s.limit
 		replayer.Query.Offset = 0
-		replayer.Active = &replayerServer.active
-		replayer.Speed = &replayerServer.speed
-		replayer.Mode = &replayerServer.mode
-		replayer.Repeat = ctx.Bool("repeat")
-		replayer.Brokers = kafkaConfig.Brokers
+		replayer.Active = &s.active
+		replayer.Speed = &s.speed
+		replayer.Mode = &s.mode
+		replayer.Repeat = s.repeat
+		replayer.Brokers = s.kafkaConfig.Brokers
 		activeReplayers = append(activeReplayers, replayer)
-		go replayer.Start(log)
 	}
 
-	port := fmt.Sprintf(":%d", ctx.Int("port"))
-	log.Infof("Serving at %s", port)
-	listener, err := net.Listen("tcp", port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	log.Infof("Serving at %s", listener.Addr())
+	log.Info("Replayer ready")
 	grpcServer = grpc.NewServer()
-	pb.RegisterReplayerServer(grpcServer, &replayerServer)
+	pb.RegisterReplayerServer(grpcServer, s)
 
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
@@ -302,154 +413,9 @@ func main() {
 		grpcServer.Stop()
 	}()
 
-	mongo := new(libdb.MongoDB)
-
-	checkpoints := &Replayer{
-		SourceName: topics.Topic_CHECKPOINT_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &checkpointpb.CheckpointData{}),
-		Topic:      topics.Topic_CHECKPOINT_DATA,
-	}
-
-	crewActivity := &Replayer{
-		SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &crewactivitypb.CrewActivityData{}),
-		Topic:      topics.Topic_CREW_ACTIVITY_DATA,
-	}
-	crewEnd := &Replayer{
-		SourceName: topics.Topic_CREW_END_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
-		Topic:      topics.Topic_CREW_END_DATA,
-	}
-	crewPrep := &Replayer{
-		SourceName: topics.Topic_CREW_PREP_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &crewprependpb.CrewPrepEndData{}),
-		Topic:      topics.Topic_CREW_PREP_DATA,
-	}
-	crewShift := &Replayer{
-		SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &crewshiftpb.CrewShiftData{}),
-		Topic:      topics.Topic_CREW_SHIFT_DATA,
-	}
-	crewTransition := &Replayer{
-		SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &crewtransitionpb.CrewTransitionData{}),
-		Topic:      topics.Topic_CREW_TRANSITION_DATA,
-	}
-
-	delayExplanation := &Replayer{
-		SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &delayexplanationpb.DelayExplanationData{}),
-		Topic:      topics.Topic_DELAY_EXPLANATION_DATA,
-	}
-
-	infrastructureManager := &Replayer{
-		SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &infrastructuremanagerpb.InfrastructureManagerData{}),
-		Topic:      topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
-	}
-
-	liveTrain := &Replayer{
-		SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &livetrainpb.LiveTrainData{}),
-		Topic:      topics.Topic_LIVE_TRAIN_DATA,
-	}
-
-	location := &Replayer{
-		SourceName: topics.Topic_LOCATION_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &locationpb.LocationData{}),
-		Topic:      topics.Topic_LOCATION_DATA,
-	}
-
-	plannedTrain := &Replayer{
-		SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &plannedtrainpb.PlannedTrainData{}),
-		Topic:      topics.Topic_PLANNED_TRAIN_DATA,
-	}
-
-	predictedTrain := &Replayer{
-		SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &predictedtrainpb.PredictedTrainData{}),
-		Topic:      topics.Topic_PREDICTED_TRAIN_DATA,
-	}
-
-	railwayUndertaking := &Replayer{
-		SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &railwayundertakingpb.RailwayUndertakingData{}),
-		Topic:      topics.Topic_RAILWAY_UNDERTAKING_DATA,
-	}
-
-	station := &Replayer{
-		SourceName: topics.Topic_STATION_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &stationpb.StationData{}),
-		Topic:      topics.Topic_STATION_DATA,
-	}
-
-	trainInformation := &Replayer{
-		SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &traininformationpb.TrainInformationData{}),
-		Topic:      topics.Topic_TRAIN_INFORMATION_DATA,
-	}
-
-	vehicle := &Replayer{
-		SourceName: topics.Topic_VEHICLE_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &vehiclepb.VehicleData{}),
-		Topic:      topics.Topic_VEHICLE_DATA,
-	}
-
-	weather := &Replayer{
-		SourceName: topics.Topic_WEATHER_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &weatherpb.WeatherData{}),
-		Topic:      topics.Topic_WEATHER_DATA,
-	}
-
-	gps := &Replayer{
-		SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
-		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
-		Extractor:  extractors.NewMongoExtractor(mongo, &gpstripupdatespb.GPSTripUpdate{}),
-		Topic:      topics.Topic_GPS_TRIP_UPDATE_DATA,
-	}
-
-	replayers = []*Replayer{
-		checkpoints,
-		crewActivity,
-		crewEnd,
-		crewPrep,
-		crewShift,
-		crewTransition,
-		delayExplanation,
-		infrastructureManager,
-		liveTrain,
-		location,
-		plannedTrain,
-		predictedTrain,
-		railwayUndertaking,
-		station,
-		trainInformation,
-		vehicle,
-		weather,
-		gps,
-	}
-
-	sources := make([]string, len(replayers))
-	for i := range replayers {
-		sources[i] = replayers[i].SourceName
+	var sources []string
+	for t := range topics.Topic_value {
+		sources = append(sources, t)
 	}
 
 	cliFlags := []cli.Flag{}
@@ -547,7 +513,61 @@ func main() {
 					level = logrus.InfoLevel
 				}
 				log.SetLevel(level)
-				serve(ctx, log, mongo)
+				port := fmt.Sprintf(":%d", ctx.Int("port"))
+				listener, err := net.Listen("tcp", port)
+				if err != nil {
+					log.Fatalf("failed to listen: %v", err)
+				}
+
+				rs := server{
+					active: true,
+					limit:  100,
+					repeat: ctx.Bool("repeat"),
+					ids:    strings.Split(ctx.String("include"), ","),
+				}
+
+				// Parse mongo and kafka configs
+				rs.kafkaConfig = kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
+				rs.mongoConfig = libdb.MongoDBConfig{}.ParseCli(ctx)
+
+				// Parse CLI replay type
+				if mode, found := pb.ReplayType_value[strings.ToUpper(ctx.String("mode"))]; found {
+					rs.mode = pb.ReplayType(mode)
+				} else {
+					rs.mode = pb.ReplayType_PROPORTIONAL
+				}
+
+				// Parse CLI timerange
+				if startTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("start-timestamp")); err != nil {
+					if protoStartTime, err := utils.ToProtoTime(startTime); err != nil {
+						rs.timerange.Start = protoStartTime
+					}
+				}
+				if endTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("end-timestamp")); err != nil {
+					if protoEndTime, err := utils.ToProtoTime(endTime); err != nil {
+						rs.timerange.End = protoEndTime
+					}
+				}
+
+				// Parse pause / frequency
+				switch rs.mode {
+				case pb.ReplayType_CONSTANT:
+					rs.speed = int32(ctx.Int("pause"))
+					log.Infof("Using constant replay with pause=%d", rs.speed)
+				case pb.ReplayType_PROPORTIONAL:
+					rs.speed = int32(ctx.Int("frequency"))
+					log.Infof("Using proportional replay with frequency=%d", rs.speed)
+				default:
+					rs.speed = 5000
+				}
+
+				// Parse included and excluded values
+				includedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
+				log.Infof("Include: %s", includedSrcs)
+				excludedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("exclude-sources"))
+				log.Infof("Exclude: %s", excludedSrcs)
+
+				rs.serve(listener, log)
 			}()
 			<-done
 			log.Info("Exiting")

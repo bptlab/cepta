@@ -32,16 +32,14 @@ type Replayer struct {
 	producer    *kafkaproducer.KafkaProducer
 }
 
-func (r Replayer) query() (*pb.ReplayDataset, error) {
-	var dataset *pb.ReplayDataset
-
+func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 	if r.Extractor == nil {
-		return dataset, fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
 
 	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
 	if err != nil {
-		return dataset, err
+		return err
 	}
 
 	for {
@@ -51,17 +49,23 @@ func (r Replayer) query() (*pb.ReplayDataset, error) {
 			case pb.InternalControlMessageType_SHUTDOWN:
 				// Acknowledge shutdown
 				r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
-				return dataset, err
+				return err
 			}
 		default:
 			if r.Extractor.Next() {
-				event, err := r.Extractor.GetReplayedEvent()
+				replayTime, replayedEvent, err := r.Extractor.Get()
 				if err != nil {
 					r.log.Errorf("Fail: %s", err.Error())
 					continue
 				}
-				r.log.Debugf("%v", event)
-				dataset.Events = append(dataset.Events, event)
+				if ptime, err := utils.ToProtoTime(replayTime); err == nil {
+          replayedEvent.ReplayTimestamp = ptime
+        }
+				r.log.Debugf("%v", replayedEvent)
+				if err := stream.Send(replayedEvent); err != nil {
+          return err
+        }
+				// dataset.Events = append(dataset.Events, event)
 				/* &pb.ReplayedEvent{
 				  ReplayTimestamp: newTime,
 				  // reflect.TypeOf(ex.Proto).Elem()
@@ -85,7 +89,7 @@ func (r Replayer) query() (*pb.ReplayDataset, error) {
 	}
 	r.Extractor.Done()
 	log.Info("Test")
-	return dataset, nil
+	return nil
 }
 
 func (r Replayer) produce() error {
@@ -119,13 +123,13 @@ func (r Replayer) produce() error {
 			if !*r.Active {
 				time.Sleep(1 * time.Second)
 			} else if r.Extractor.Next() {
-				newTime, event, err := r.Extractor.Get()
+				newTime, replayedEvent, err := r.Extractor.Get()
 				if err != nil {
 					r.log.Errorf("Fail: %s", err.Error())
 					continue
 				}
-				r.log.Debugf("%v", event)
-				eventBytes, err := proto.Marshal(event)
+				r.log.Debugf("%v", replayedEvent.Event)
+				eventBytes, err := proto.Marshal(replayedEvent.Event)
 				if err != nil {
 					r.log.Errorf("Failed to marshal proto:", err)
 					continue
