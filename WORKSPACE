@@ -142,6 +142,8 @@ RULES_JVM_EXTERNAL_TAG = "3.0"
 
 RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
 
+GRPC_JAVA_VERSION = "1.28.1"
+
 http_archive(
     name = "rules_jvm_external",
     sha256 = RULES_JVM_EXTERNAL_SHA,
@@ -174,6 +176,9 @@ maven_install(
         "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
+        # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,
+        # "io.grpc:grpc-protobuf:%s" % GRPC_JAVA_VERSION,
+        # "io.grpc:grpc-stub:%s" % GRPC_JAVA_VERSION,
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
@@ -195,6 +200,10 @@ load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
 # Run grpc_java_repositories after compat_repositories to ensure the
 # maven_install-selected dependencies are used.
 grpc_java_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 http_archive(
     name = "bazel_gazelle",
@@ -813,6 +822,6 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_flags4urfavecli",
     importpath = "github.com/romnnn/flags4urfavecli",
-    sum = "h1:1s6q1ZYyBLbh+1YrcXKaugZ6u5MSq9R763oVpkwNU2I=",
-    version = "v0.1.1",
+    sum = "h1:L7tJbR0E6zZAy+6x/PJTwJtDhkQ/338oi/E8q3Q/CE0=",
+    version = "v0.1.2",
 )
