@@ -75,6 +75,15 @@ h1, h2, h3, h4, h5, h6 {
   .btn.btn-lg {
     padding: 10px 20px;
     font-size: 16px; }
+  .btn.btn-landing {
+    margin: 15px;
+    padding: 5px 10px;
+    font-size: 13px;
+    border-color: white;
+    background-color: transparent !important;}
+    .btn.btn-landing:hover {
+      color: black !important;
+      background-color: white !important;}
   .btn.btn-primary {
     color: #fff; }
     .btn.btn-primary:hover, .btn.btn-primary:focus, .btn.btn-primary:active {
@@ -129,7 +138,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .site-footer {
   padding: 4em 0;
-  background: #333333; }
+  background: #191919; }
   .site-footer p {
     color: #737373; }
   .site-footer h2, .site-footer h3, .site-footer h4, .site-footer h5 {
@@ -460,7 +469,7 @@ h1, h2, h3, h4, h5, h6 {
     -o-transition: .3s all ease;
     transition: .3s all ease; }
   .sticky-wrapper.is-sticky .site-navbar {
-    background-color: #ff5733;
+    background-color: black;
     -webkit-box-shadow: 4px 0 20px -5px rgba(0, 0, 0, 0.6);
     box-shadow: 4px 0 20px -5px rgba(0, 0, 0, 0.6); }
 
@@ -828,7 +837,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #ff5733; }
 
 .ul-check.success li:before {
-  color: #28a745; }
+  color: black; }
 
 .ul-check.danger li:before {
   color: #dc3545; }
