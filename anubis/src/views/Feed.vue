@@ -29,21 +29,86 @@
           <span @click="toggleSpecialData(index)" class="icon icon-more"></span>
         </li>
       </ul>
-      <div v-if="(specialEventData.type = 'train')">
-        <span>{{ specialEventData.plannedETA }}</span>
-        <span>{{ specialEventData.delay }}</span>
-        <span>{{ specialEventData.predictedETA }}</span>
-        <span>{{ specialEventData.predictedOffset }}</span>
-      </div>
-      <div v-if="(specialEventData.type = 'weather')">
-        <span>{{ specialEventData.intensity }}</span>
-        <span>{{ specialEventData.eventTime }}</span>
-        <span>{{ specialEventData.expectedDuration }}</span>
-      </div>
-      <div v-if="(specialEventData.type = 'weather')">
-        <span>{{ specialEventData.country }}</span>
-        <span>{{ specialEventData.latitude }}</span>
-        <span>{{ specialEventData.longitude }}</span>
+      <div class="extra-info" :class="{ show: showSpecialData }">
+        <span @click="closeSpecialData" class="icon icon-close"></span>
+        <div v-if="extraInfo.type == 'train'">
+          <div>
+            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+          </div>
+          <div>
+            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+          </div>
+          <div>
+            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+          </div>
+          <div>
+            <span>Location name:</span>
+            <span>{{ extraInfo.locationName }}</span>
+          </div>
+          <div>
+            <span>Planned ETA:</span> <span>{{ extraInfo.plannedETA }}</span>
+          </div>
+          <div>
+            <span>Delay:</span> <span>{{ extraInfo.delay }}</span>
+          </div>
+          <div>
+            <span>Predicted ETA:</span>
+            <span>{{ extraInfo.predictedETA }}</span>
+          </div>
+          <div>
+            <span>Predicted Offset:</span>
+            <span>{{ extraInfo.predictedOffset }}</span>
+          </div>
+        </div>
+        <div v-if="extraInfo.type == 'weather'">
+          <div>
+            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+          </div>
+          <div>
+            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+          </div>
+          <div>
+            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+          </div>
+          <div>
+            <span>Location name:</span>
+            <span>{{ extraInfo.locationName }}</span>
+          </div>
+          <div>
+            <span>Intensity:</span> <span>{{ extraInfo.intensity }}</span>
+          </div>
+          <div>
+            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+          </div>
+          <div>
+            <span>expected Duration:</span>
+            <span>{{ extraInfo.expectedDuration }}</span>
+          </div>
+        </div>
+        <div v-if="extraInfo.type == 'location'">
+          <div>
+            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+          </div>
+          <div>
+            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+          </div>
+          <div>
+            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+          </div>
+          <div>
+            <span>Location name:</span>
+            <span>{{ extraInfo.locationName }}</span>
+          </div>
+          <div>
+            <span>Country:</span> <span>{{ extraInfo.country }}</span>
+          </div>
+          <div>
+            <span>Latitude:</span> <span>{{ extraInfo.latitude }}</span>
+          </div>
+          <div>
+            <span>Longitude:</span> <span>{{ extraInfo.longitude }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -59,21 +124,33 @@ import { Component, Vue } from "vue-property-decorator";
 export default class User extends Vue {
   currentTime: string = "";
   eventData: Array<Object> = this.receiveData();
-  specialEventData: Object = {};
+  showSpecialData: boolean = false;
+  extraInfo: Object = this.eventData[0];
+  lastExtraIndex: number = 0;
 
   mounted(): void {
     this.updateTime();
   }
 
   toggleSpecialData(index: number) {
-    this.specialEventData != this.eventData[index]
-      ? (this.specialEventData = {})
-      : (this.specialEventData = this.eventData[index]);
+    this.extraInfo = this.eventData[index];
+    if (this.lastExtraIndex != index) {
+      if (!this.showSpecialData) {
+        this.showSpecialData = !this.showSpecialData;
+      }
+      this.lastExtraIndex = index;
+    } else {
+      this.showSpecialData = !this.showSpecialData;
+    }
+  }
+
+  closeSpecialData() {
+    this.showSpecialData = false;
   }
 
   updateTime() {
     const date = new Date();
-    const time = date.toUTCString().slice(17, 25);
+    const time = date.toUTCString().slice(17, 22);
     this.currentTime = time;
     setTimeout(this.updateTime, 1000);
   }
@@ -209,7 +286,7 @@ export default class User extends Vue {
 
     .time
       position: absolute
-      left: -100px
+      left: -80px
       top: -5px
       font-size: 20px
 
@@ -258,13 +335,16 @@ export default class User extends Vue {
     font-size: 12px
 
     &:hover
-      box-shadow: 3px 3px 5px #cdcdcd
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1)
 
     .icon-secondary
       position: relative
       top: 2px
       font-size: 16px
       padding: 10px 10px
+
+    .icon-more
+      cursor: pointer
 
     .type
       justify-self: stretch
@@ -277,6 +357,31 @@ export default class User extends Vue {
       left: -80px
       top: 15px
 
-  .hidden
+
+  .extra-info
+    position: absolute
+    width: 100%
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    +theme-color-diff(background-color, bgc-body, 20)
     display: none
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1)
+    padding: 20px
+
+    div div
+      display: grid
+      grid-template-columns: 50% 50%
+
+      span:first-child
+        justify-self: right
+        padding-right: 20px
+
+  .show
+    display: block
+
+  .icon-close
+    cursor: pointer
+    position: absolute
+    right: 0px
 </style>
