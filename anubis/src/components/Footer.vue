@@ -19,7 +19,7 @@ export default class Footer extends Vue {
 <style scoped lang="sass">
 footer
   z-index: 1000
-  background-color: white
+  +theme-color-diff(background-color, bgc-body, 10)
   border-top-width: 1px
   border-top-style: solid
   +theme-color-diff(border-top-color, bgc-navbar, 10)
