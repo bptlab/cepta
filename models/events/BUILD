@@ -403,7 +403,7 @@ go_proto_library(
 
 proto_library(
     name = "wagon_train_run_data_proto",
-in    srcs = ["WagonTrainRunData.proto"],
+    srcs = ["WagonTrainRunData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
