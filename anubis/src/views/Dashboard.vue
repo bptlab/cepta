@@ -117,15 +117,14 @@ export default class Dashboard extends Vue {}
     padding: 5px 0px 0px
     .btn
       +theme(color, c-default-text)
-      +theme-color-diff(border-color, bc-table-button, 10)
       border-radius: 5px
 
-      &::hover
-        background-color: #333
-        //+theme-color-diff(background-color, bc-table-button,10)
+      &:hover
+        +theme(background-color, bc-table-button)
 
       .icon
         margin-left: 5px
+        font-size: 12px
 
   .metric
     p
