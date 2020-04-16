@@ -23,7 +23,7 @@ then
     # find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec sh -c "echo {}" ';'
     find ../bazel-bin/models/ -type f -path '**/models/**/*.ts' -exec sh -c 'export PROTO_PATH=./src/generated/protobuf/$(echo {} | python reg.py "$PROTO_ROOT_REGEX") && mkdir -p $(dirname $PROTO_PATH) && /bin/cp -rf {} $PROTO_PATH' ';'
     find ../bazel-bin/models/ -type f -path '**/models/**/*.js' -exec sh -c 'export PROTO_PATH=./src/generated/protobuf/$(echo {} | python reg.py "$PROTO_ROOT_REGEX") && mkdir -p $(dirname $PROTO_PATH) && /bin/cp -rf {} $PROTO_PATH' ';'
-    chmod 777 -R $DIR/src/generated/protobuf
+    chmod -R 777 src/generated/protobuf
 fi
 
 exec $cmd
