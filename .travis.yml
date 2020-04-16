@@ -29,7 +29,7 @@ matrix:
       name: Smoke Tests
       env: TEST_TARGET=":smoke" TEST_FILTER=-docker
       os: osx
-    
+
     # Linux: Unit Tests
     - stage: Unit Tests
       name: Unit Tests
@@ -53,6 +53,18 @@ matrix:
       name: Integration Tests
       env: TEST_TARGET=":integration" TEST_FILTER=-docker
       os: osx
+
+    - stage: deploy
+      name: Deploy to GitHub Pages
+      script: echo "Deploying to GitHub Pages"
+      deploy:
+        provider: pages
+        local_dir: web
+        skip_cleanup: false
+        token: "$GH_TOKEN"
+        keep_history: false
+        on:
+          branch: dev
 
 before_install:
   - echo "Installing bazel"
