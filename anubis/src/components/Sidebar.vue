@@ -294,6 +294,9 @@ export default class Sidebar extends Vue {
         width: 8px
         +theme(color, c-sidebar-icon-active)
 
+      .icon-holder i
+        +theme(color, c-sidebar-icon-active)
+
       .title
         +theme(color, c-sidebar-text)
         text-decoration: none

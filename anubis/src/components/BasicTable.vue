@@ -25,14 +25,17 @@
       <tr
         v-for="(row, rowIndex) in sortedTableData"
         v-bind:key="'row-' + rowIndex"
-        :class="{'row-mode': usesRowSelectionMode, 'selected': isRowSelected(rowIndex)}"
+        :class="{
+          'row-mode': usesRowSelectionMode,
+          selected: isRowSelected(rowIndex)
+        }"
       >
         <th v-if="showIndices" scope="row">{{ row._index || rowIndex }}</th>
         <td
           v-for="(item, itemIndex) in row"
           v-bind:key="'row-' + rowIndex + '-data-' + itemIndex"
           @click="handleSelection(rowIndex, itemIndex)"
-          :class="{selectable, 'selected': isItemSelected(rowIndex, itemIndex)}"
+          :class="{ selectable, selected: isItemSelected(rowIndex, itemIndex) }"
         >
           {{ item }}
         </td>
@@ -43,14 +46,20 @@
       <tr
         v-for="(row, rowIndex) in sortedTableData"
         v-bind:key="'row-' + rowIndex"
-        :class="{'row-mode': usesRowSelectionMode, 'selected': isRowSelected(rowIndex)}"
+        :class="{
+          'row-mode': usesRowSelectionMode,
+          selected: isRowSelected(rowIndex)
+        }"
       >
         <th v-if="showIndices" scope="row">{{ row._index || rowIndex }}</th>
         <td
           v-for="(category, additionalIndex) in tableCategories"
           v-bind:key="'row-' + rowIndex + '-data-' + additionalIndex"
           @click="handleSelection(rowIndex, additionalIndex)"
-          :class="{selectable, 'selected': isItemSelected(rowIndex, additionalIndex)}"
+          :class="{
+            selectable,
+            selected: isItemSelected(rowIndex, additionalIndex)
+          }"
         >
           {{ row[category] }}
         </td>
@@ -73,7 +82,7 @@ export interface Selection {
   name: "BasicTable"
 })
 export default class BasicTable extends Vue {
-  @Prop({ default: () => [] as object[]}) private tableData!: object[];
+  @Prop({ default: () => [] as object[] }) private tableData!: object[];
   @Prop({ default: false }) private dataTable!: boolean;
   @Prop({ default: true }) private showIndices!: boolean;
   @Prop({ default: false }) private striped!: boolean;
@@ -90,11 +99,11 @@ export default class BasicTable extends Vue {
 
   get firstRow(): object | object[] {
     if (this.tableData.length < 1) return [];
-    return this.tableData[0]
+    return this.tableData[0];
   }
 
   get usesRowSelectionMode(): boolean {
-    return this.selectionMode.toLowerCase() === "row"
+    return this.selectionMode.toLowerCase() === "row";
   }
 
   get dataIsArray(): boolean {
@@ -103,11 +112,13 @@ export default class BasicTable extends Vue {
 
   isItemSelected(rowIndex: number, itemIndex: number): boolean {
     if (this.selection?.rowIndex !== rowIndex) return false;
-    return this.usesRowSelectionMode ? true : this.selection?.itemIndex === itemIndex
+    return this.usesRowSelectionMode
+      ? true
+      : this.selection?.itemIndex === itemIndex;
   }
 
   isRowSelected(rowIndex: number): boolean {
-    return this.usesRowSelectionMode && this.selection?.rowIndex === rowIndex
+    return this.usesRowSelectionMode && this.selection?.rowIndex === rowIndex;
   }
 
   get tableHeadClasses(): string {
@@ -140,8 +151,8 @@ export default class BasicTable extends Vue {
 
   handleSelection(rowIndex: number, itemIndex: number) {
     if (!this.selectable) return;
-    this.selection = {rowIndex, itemIndex};
-    this.$emit('selection', this.selection)
+    this.selection = { rowIndex, itemIndex };
+    this.$emit("selection", this.selection);
   }
 
   mounted() {

@@ -67,7 +67,7 @@ export default class NotificationsDropdown extends Vue {
   .dropdown-menu
     +theme(background-color, bgc-navbar)
     line-height: 35px
-    color: inherit
+    +theme(color, c-default-text)
     left: auto
     right: 0
     min-width: 350px
@@ -91,11 +91,16 @@ export default class NotificationsDropdown extends Vue {
     > li
       padding: 2px 12px
       width: 100%
+
+    li ul li, > li:last-child
       &:hover
         +theme-color-diff(background-color, bgc-navbar, 10)
 
-      > a
-        padding: 10px 15px
+    li ul li a
+      +theme(color, c-default-link)
+
+    a
+      padding: 10px 15px
 
   .counter
     +theme(background-color, bgc-btn-default)

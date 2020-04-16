@@ -2,41 +2,38 @@
   <div class="transport-manager-container">
     <masonry-layout>
       <masonry-layout-tile
-          class="test"
-          section="Manage transports"
-          layoutStyle="col-md-12"
+        class="test"
+        section="Manage transports"
+        layoutStyle="col-md-12"
       >
         <p>You can use the navigation bar to filter</p>
         <div class="transport-list-container">
           <div class="transport-list noscrollbar">
             <basic-table
-                :table-data="formattedMonitoredTransports"
-                :show-indices="false"
-                :striped="true"
-                :bordered="true"
-                :hoverable="true"
-                :selectable="true"
-                selectionMode="row"
-                :headless="false"
-                v-on:selection="handleSelection"
-                cellspacing="0"
+              :table-data="formattedMonitoredTransports"
+              :show-indices="false"
+              :striped="true"
+              :bordered="true"
+              :hoverable="true"
+              :selectable="true"
+              selectionMode="row"
+              :headless="false"
+              v-on:selection="handleSelection"
+              cellspacing="0"
             />
           </div>
-          <span
-              @click="addTransport()"
-              class="add btn btn-block"
-          >
+          <span @click="addTransport()" class="add btn btn-block">
             Add ID
           </span>
         </div>
         <div class="transport-details">
-          <span class="selected-transport">{{ selectedID['CEPTA ID'] }}</span>
+          <span class="selected-transport">{{ selectedID["CEPTA ID"] }}</span>
           <basic-table
-              :table-data="trainData"
-              :show-indices="false"
-              :striped="false"
-              :bordered="true"
-              cellspacing="0"
+            :table-data="trainData"
+            :show-indices="false"
+            :striped="false"
+            :bordered="true"
+            cellspacing="0"
           />
           <!--<grid-table :grid-data="trainData"></grid-table>-->
         </div>
@@ -62,33 +59,36 @@ import BasicTable, { Selection } from "@/components/BasicTable.vue";
   }
 })
 export default class TransportManager extends Vue {
-  monitoredTransports: {id: string; route: {start: string; end: string}}[] = [
-    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
-    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
-    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
-    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
-    {id: "CPTA-43986033", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-3453", route: {start: "Koeln", end: "Muenchen"}},
-    {id: "CPTA-123", route: {start: "Hamburg", end: "Berlin"}},
-    {id: "CPTA-345", route: {start: "Paris", end: "London"}},
+  monitoredTransports: {
+    id: string;
+    route: { start: string; end: string };
+  }[] = [
+    { id: "CPTA-43986033", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-3453", route: { start: "Koeln", end: "Muenchen" } },
+    { id: "CPTA-123", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-345", route: { start: "Paris", end: "London" } },
+    { id: "CPTA-43986033", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-3453", route: { start: "Koeln", end: "Muenchen" } },
+    { id: "CPTA-123", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-345", route: { start: "Paris", end: "London" } },
+    { id: "CPTA-43986033", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-3453", route: { start: "Koeln", end: "Muenchen" } },
+    { id: "CPTA-123", route: { start: "Hamburg", end: "Berlin" } },
+    { id: "CPTA-345", route: { start: "Paris", end: "London" } }
   ];
 
-  get formattedMonitoredTransports(): {[key: string]: string}[] {
+  get formattedMonitoredTransports(): { [key: string]: string }[] {
     return this.monitoredTransports.flatMap(t => {
-      return {'CEPTA ID': t.id, 'Route': `${t.route.start} - ${t.route.end}`}
-    })
+      return { "CEPTA ID": t.id, Route: `${t.route.start} - ${t.route.end}` };
+    });
   }
 
   protected selectedRow: number | null = null;
-  protected selectedID: {[key: string]: string} = {};
+  protected selectedID: { [key: string]: string } = {};
 
   handleSelection(selection: Selection) {
     this.selectedRow = selection.rowIndex;
-    this.selectedID = this.formattedMonitoredTransports[selection.rowIndex]
+    this.selectedID = this.formattedMonitoredTransports[selection.rowIndex];
   }
 
   addTransport() {

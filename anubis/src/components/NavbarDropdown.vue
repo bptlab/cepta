@@ -45,7 +45,7 @@ export default class NavbarDropdown extends Vue {
     +theme(background-color, bgc-navbar)
     left: auto
     right: 0
-    color: inherit
+    +theme(color, c-default-text)
     line-height: 35px
     display: block
     margin: 0

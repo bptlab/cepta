@@ -105,7 +105,10 @@
           <table class="transport-actions">
             <tr>
               <td>
-                <div class="btn btn-cepta-default btn-slim track" @click="track()">
+                <div
+                  class="btn btn-cepta-default btn-slim track"
+                  @click="track()"
+                >
                   <span class="icon icon-target"></span>
                   Track
                 </div>

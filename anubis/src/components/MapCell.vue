@@ -128,7 +128,9 @@
                   <span class="icon icon-bell"></span> Notify
                 </div>
               </td>
-              <td v-if="enableMitigate && transport.delay > delayThresholds.soft">
+              <td
+                v-if="enableMitigate && transport.delay > delayThresholds.soft"
+              >
                 <div class="btn btn-cepta-default btn-slim" @click="mitigate()">
                   <span class="icon icon-bolt"></span> Mitigate
                 </div>

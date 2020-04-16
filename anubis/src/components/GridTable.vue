@@ -167,13 +167,13 @@ export default class GridTable extends Vue {
     width: 80px
 
   a .track
-    +theme(color, c-default-text)
+    +theme(color, c-table-text)
 
   .track
-    +theme(background-color, bc-table-button)
-    +theme-color-diff(border-color, bc-table-button, 10)
+    +theme(background-color, bgc-table-button)
+    +theme-color-diff(border-color, bgc-table-button, 10)
     width: 80px
 
-    &::hover
-      +theme-color-diff(background-color, bc-table-button,10)
+    &:hover
+      +theme-color-diff(background-color, bgc-table-button, 10)
 </style>

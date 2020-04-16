@@ -116,7 +116,7 @@ export default class Dashboard extends Vue {
               "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
           }
         }
-      ],
+      ]
     }
   });
 

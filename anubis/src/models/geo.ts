@@ -15,7 +15,7 @@ export interface Transport {
   };
   connection: {
     online: boolean;
-    lastConnection: string,
+    lastConnection: string;
   };
   plannedDuration: number;
   actualDuration: number;

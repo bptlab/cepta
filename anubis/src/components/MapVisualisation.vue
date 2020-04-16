@@ -78,9 +78,9 @@ export default class MapVisualisation extends Vue {
       polyline.push(p.coordinates);
       p.marker?.addTo(this.map);
     });
-    this.polyline = L.polyline(polyline, { color: transport.color ?? 'black' }).addTo(
-      this.map
-    );
+    this.polyline = L.polyline(polyline, {
+      color: transport.color ?? "black"
+    }).addTo(this.map);
 
     // Fly to the new route
     let start = transport.positions[0].position.coordinates;
