@@ -1,6 +1,13 @@
 $base-color-dark: #161616;
 $base-color-dark-inactive-sidebar: rgb(102, 102, 102); // rgb(53, 53, 53);
 $base-color-light-inactive-sidebar: rgb(122, 122, 122);
+$primary-color-dark: #00d587;
+$primary-color-light: #f7521e;
+$secondary-color: #0a70c9;
+$tertiary-color: #c9ae1e;
+$quaternary-color: #1f14c9;
+
+
 
 $shouldDarken: (
   'light': true,
@@ -17,23 +24,25 @@ $themes: (
         'bgc-navbar': #FFF,
         'bgc-content': #FFF,
         'bgc-sidebar-active': #FFF,
-        'bgc-btn-default': rgb(247, 99, 0),
+        'bgc-btn-default': #f7521e,
         'c-default-text': #000,
-        'c-delay-alert': rgb(247, 29, 0),
-        'c-delay-warning': rgb(247, 99, 0),
+        'c-delay-alert': rgb(247, 0, 84),
+        'c-delay-warning': #f7521e,
         'c-delay-fine': rgb(111, 221, 20),
-        'c-accent-text': rgb(247, 99, 0),
+        'c-accent-text': #f7521e,
         'c-logo-text': #000,
         'c-map-position-text': #000,
-        'c-sidebar-dot': rgb(247, 99, 0),
-        'c-sidebar-text': rgb(247, 99, 0),
-        'c-sidebar-icon-active': rgb(247, 99, 0),
+        'c-sidebar-dot': #f7521e,
+        'c-sidebar-text': #f7521e,
+        'c-sidebar-icon-active': #f7521e,
         'c-sidebar-icon-dashboard': $base-color-light-inactive-sidebar,
         'c-sidebar-icon-manage': $base-color-light-inactive-sidebar,
         'c-sidebar-icon-feed': $base-color-light-inactive-sidebar,
         'c-sidebar-icon-map': $base-color-light-inactive-sidebar,
-        'bc-table-button': rgb(0, 247, 111),
-        'bgc-scrollbar': rgb(247, 99, 0),
+        'bgc-table-button': #f7521e,
+        'c-table-text': #fff,
+        'bgc-scrollbar': #f7521e,
+        'c-default-link': $secondary-color,
     ),
     'dark': (
         /*
@@ -45,22 +54,24 @@ $themes: (
         'bgc-content': $base-color-dark,
         'bgc-sidebar-active': $base-color-dark,
         'bgc-btn-default': rgb(247, 99, 0),
-        'c-default-text': white,
+        'c-default-text': #fff,
         'c-delay-alert': rgb(247, 29, 0),
         'c-delay-warning': rgb(247, 99, 0),
-        'c-delay-fine': rgb(0, 247, 185),
-        'c-accent-text': rgb(0, 247, 185),
-        'c-logo-text': white,
-        'c-map-position-text': rgb(0, 247, 185),
-        'c-sidebar-dot': rgb(0, 247, 185),
-        'c-sidebar-text': rgb(0, 247, 185),
-        'c-sidebar-icon-active': rgb(0, 247, 185),
+        'c-delay-fine': $primary-color-dark,
+        'c-accent-text': $primary-color-dark,
+        'c-logo-text': #fff,
+        'c-map-position-text': $primary-color-dark,
+        'c-sidebar-dot': $primary-color-dark,
+        'c-sidebar-text': $primary-color-dark,
+        'c-sidebar-icon-active': $primary-color-dark,
         'c-sidebar-icon-dashboard': $base-color-dark-inactive-sidebar,
         'c-sidebar-icon-manage': $base-color-dark-inactive-sidebar, // rgb(247, 0, 235),
         'c-sidebar-icon-feed': $base-color-dark-inactive-sidebar, //  rgb(247, 0, 41),
         'c-sidebar-icon-map': $base-color-dark-inactive-sidebar, // rgb(161, 247, 0),
-        'bc-table-button': rgb(0, 247, 111),
-        'bgc-scrollbar': rgb(0, 247, 111),
+        'bgc-table-button': $primary-color-dark,
+        'c-table-text': $base-color-dark,
+        'bgc-scrollbar': $primary-color-dark,
+        'c-default-link': $secondary-color,
     )
 ) !default;
 
