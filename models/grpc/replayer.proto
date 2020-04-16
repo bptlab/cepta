@@ -25,7 +25,7 @@ service Replayer {
   rpc GetOptions(Empty) returns (ReplayStartOptions) {}
 
   // Custom querying for internal testing infrastructure
-  rpc Query(QueryOptions) returns (ReplayDataset) {}
+  rpc Query(QueryOptions) returns (stream ReplayedEvent) {}
 }
 
 enum InternalControlMessageType {
@@ -76,10 +76,6 @@ message Success {
   bool success = 1;
 }
 
-message ReplayDataset {
-  repeated ReplayedEvent events = 1;
-}
-
 message ReplayedEvent {
   google.protobuf.Timestamp replay_timestamp = 1;
   models.events.Event event = 2;
@@ -88,7 +84,8 @@ message ReplayedEvent {
 // Query Options
 message QueryOptions {
   repeated string ids = 1;
-  int32 limit = 2;
-  repeated models.constants.Topic sources = 3;
-  Timerange range = 4;
+  repeated models.constants.Topic sources = 2;
+  Timerange timerange = 3;
+  int32 limit = 4;
+  int32 offset = 5;
 }
