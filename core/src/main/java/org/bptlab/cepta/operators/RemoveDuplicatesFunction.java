@@ -21,7 +21,11 @@ import org.apache.flink.api.java.functions.KeySelector;
 public class RemoveDuplicatesFunction<T extends Object> {
 
     public DataStream<T> removeDuplicates(DataStream<T> inputStream, int windowSize){
-
+        /**
+         * removes the duplicates in a stream using a tumbling event number window 
+         * the window's size is given by the parameter windowSize
+         */
+        
         DataStream<T> resultStream = inputStream.keyBy(
             new KeySelector<T, Integer>(){
                 Integer key = Integer.valueOf(0);
