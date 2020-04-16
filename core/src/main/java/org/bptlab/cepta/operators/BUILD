@@ -18,5 +18,6 @@ java_library(
         "//models/events:weather_data_java_proto",
         "//core/src/main/java/org/bptlab/cepta/config:config",
         "//core/src/main/java/org/bptlab/cepta/utils/converters:converters",
+        "//core/src/main/java/org/bptlab/cepta/utils/triggers:triggers",
     ],
 )

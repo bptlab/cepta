@@ -19,7 +19,7 @@ public class DuplicateEliminationTests {
         boolean pass = true;
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(1);
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<Integer>();
-        DataStream<Integer> eliminationStream = removeDuplicatesFunction.removeDuplicates(integerStream,10);  
+        DataStream<Integer> eliminationStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
        
         ArrayList<Integer> removedInteger = new ArrayList<>();
         Iterator<Integer> iterator = DataStreamUtils.collect(eliminationStream);
@@ -40,7 +40,7 @@ public class DuplicateEliminationTests {
             }
         }
         Assert.assertEquals(3, len);
-        Assert.assertTrue(false);
+        Assert.assertTrue(pass);
     }
 
     
