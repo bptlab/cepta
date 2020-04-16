@@ -9,8 +9,8 @@ go_library(
         ":cli",
         ":utils",
         "//osiris/lib/db:go_default_library",
-        "//osiris/lib/kafka:producer",
         "//osiris/lib/kafka:consumer",
+        "//osiris/lib/kafka:producer",
     ],
 )
 
@@ -31,8 +31,14 @@ go_library(
 go_library(
     name = "utils",
     srcs = [
-        "utils.go"
+        "converters.go",
+        "utils.go",
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/utils",
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+    ],
 )
