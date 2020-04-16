@@ -1,6 +1,5 @@
 package org.bptlab.cepta.utils.triggers;
 
-import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.state.ReducingState;
 import org.apache.flink.api.common.state.ReducingStateDescriptor;
@@ -13,7 +12,7 @@ import org.apache.flink.streaming.api.windowing.triggers.*;
  *
  * @param <W> The type of {@link Window Windows} on which this trigger can operate.
  */
-@PublicEvolving
+
 public class CustomCountTrigger<W extends Window> extends Trigger<Object, W> {
 	private static final long serialVersionUID = 1L;
 

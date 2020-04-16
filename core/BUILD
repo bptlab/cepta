@@ -112,7 +112,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
-    "//core/src/test/java/org/bptlab/cepta/duplicate-elimination:duplicate-elimination",
+    "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
 ]
 
 test_suite(name = "smoke", tags = ["-docker", "-internal"], tests=sub_tests)

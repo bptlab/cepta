@@ -1,9 +1,9 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "duplicate-elimination",
-    srcs = ["DuplicateEliminationTests.java"],
-    test_class = "org.bptlab.cepta.DuplicateEliminationTests",
+    name = "remove-duplicates",
+    srcs = ["RemoveDuplicatesTests.java"],
+    test_class = "org.bptlab.cepta.RemoveDuplicatesTests",
     size = "small",
     tags = ["unit"],
     deps = [
