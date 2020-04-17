@@ -32,6 +32,8 @@ enum InternalControlMessageType {
   RESET = 0;
   SEEK = 1;
   SHUTDOWN = 2;
+  START = 3;
+  STOP = 4;
 }
 
 enum ReplayType {

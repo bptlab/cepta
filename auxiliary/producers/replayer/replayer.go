@@ -21,7 +21,6 @@ type Replayer struct {
 	IDFieldName string
 	Query       *extractors.ReplayQuery
 	Speed       *int32
-	Active      *bool
 	Repeat      bool
 	Mode        *pb.ReplayType
 	Extractor   extractors.Extractor
@@ -59,12 +58,12 @@ func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 					continue
 				}
 				if ptime, err := utils.ToProtoTime(replayTime); err == nil {
-          replayedEvent.ReplayTimestamp = ptime
-        }
+					replayedEvent.ReplayTimestamp = ptime
+				}
 				r.log.Debugf("%v", replayedEvent)
 				if err := stream.Send(replayedEvent); err != nil {
-          return err
-        }
+					return err
+				}
 				// dataset.Events = append(dataset.Events, event)
 				/* &pb.ReplayedEvent{
 				  ReplayTimestamp: newTime,
@@ -92,14 +91,52 @@ func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 	return nil
 }
 
-func (r Replayer) produce() error {
-	if r.Extractor == nil {
-		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+func (r *Replayer) loop() error {
+	// Wait for control message
+	for {
+		ctrlMessage := <-r.Ctrl
+		switch ctrlMessage {
+		case pb.InternalControlMessageType_SHUTDOWN:
+			// Acknowledge shutdown
+			r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+			return nil
+		case pb.InternalControlMessageType_START:
+			// Start to produce
+			return r.produce()
+		default:
+			// Noop
+		}
 	}
+}
 
+func (r *Replayer) produce() error {
 	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
 	if err != nil {
 		return err
+	}
+
+	for {
+		ctrlMessage := <-r.Ctrl
+		switch ctrlMessage {
+		case pb.InternalControlMessageType_SHUTDOWN:
+			// Acknowledge shutdown
+			r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+			return err
+		case pb.InternalControlMessageType_RESET:
+			// Recreate the query
+			err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+			if err != nil {
+				r.log.Error("Cannot reset")
+			}
+		case pb.InternalControlMessageType_START:
+			// Start to produce
+			err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+			if err != nil {
+				r.log.Error("Cannot reset")
+			}
+		case pb.InternalControlMessageType_STOP:
+			// // Noop
+		}
 	}
 
 	recentTime := time.Time{}
@@ -118,9 +155,13 @@ func (r Replayer) produce() error {
 				if err != nil {
 					r.log.Error("Cannot reset")
 				}
+			case pb.InternalControlMessageType_START:
+				r.running = true
+			case pb.InternalControlMessageType_STOP:
+				r.running = false
 			}
 		default:
-			if !*r.Active {
+			if !r.running {
 				time.Sleep(1 * time.Second)
 			} else if r.Extractor.Next() {
 				newTime, replayedEvent, err := r.Extractor.Get()
@@ -171,14 +212,12 @@ func (r Replayer) produce() error {
 // Start ...
 func (r Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.SourceName)
-	r.log.Info("Starting to produce")
-	defer func() {
-		if err := r.producer.Close(); err != nil {
-			r.log.Errorf("Failed to close server", err)
-		}
-	}()
+	r.log.Info("Starting")
+	if r.Extractor == nil {
+		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+	}
 	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
-	err := r.produce()
+	err := r.loop()
 	if err != nil {
 		log.Error(err)
 	}
