@@ -1,6 +1,6 @@
 syntax = "proto3";
-package user_management;
-option go_package = "github.com/bptlab/cepta/models/grpc/user_management";
+package usermgmt;
+option go_package = "github.com/bptlab/cepta/models/grpc/usermgmt";
 
 // option java_multiple_files = true;
 // option java_package = "org.bptlab.cepta.producers.replayer";

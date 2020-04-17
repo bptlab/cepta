@@ -1,8 +1,6 @@
 version: "3.6"
 services:
   anubis:
-    # build:
-    #   context: ../../anubis
     image: ceptaorg/anubis:${CEPTA_VERSION}
     expose:
       - 80
@@ -92,11 +90,6 @@ services:
       driver: none
 
   core:
-    #build:
-    #  context: ../../
-    #  dockerfile: deployment/common/java.exec.dockerfile
-    #  args:
-    #    MODULE: core
     image: ceptaorg/core:${CEPTA_VERSION}
     command:
       - --broker=kafka:9092
@@ -106,13 +99,8 @@ services:
       - kafka
       - traindatareplayer
 
-  traindatareplayer:
-    # build:
-    #  context: ../../
-    #  dockerfile: deployment/common/java.exec.dockerfile
-    #  args:
-    #    MODULE: producers/train-replayer
-    image: ceptaorg/traindataproducer:${CEPTA_VERSION}
+  replayer:
+    image: ceptaorg/replayer:${CEPTA_VERSION}
     depends_on:
       - kafka
       - postgres
@@ -125,8 +113,20 @@ services:
       - --postgres-port=5432
       - --must-match='train_id=47298333'
 
+  notification:
+    image: bazel/osiris/notification:image
+    command:
+      - --brokers=kafka:9092
+    ports:
+      - ${CEPTA_NOTIFICATION_BACKEND_PORT}:80
+    depends_on:
+      - flink-jobmanager
+      - flink-taskmanager
+      - kafka
+      - replayer
+
   envoy:
-    image: envoyproxy/envoy
+    image: envoyproxy/envoy:v1.14.1
     ports:
       - ${CEPTA_ENVOY_ADMIN_PORT:-9901}:9901
       - ${CEPTA_ENVOY_INGRESS_PORT:-80}:80

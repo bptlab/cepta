@@ -7,17 +7,17 @@ load("@rules_typescript_proto//:index.bzl", "typescript_proto_library")
 
 # User management 
 proto_library(
-    name = "user_management_proto",
-    srcs = ["user_management.proto"],
+    name = "usermgmt_proto",
+    srcs = ["usermgmt.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 go_proto_library(
-    name = "user_management_go_proto",
+    name = "usermgmt_go_proto",
     compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-    importpath = "github.com/bptlab/cepta/models/grpc/user_management",
-    proto = ":user_management_proto",
+    importpath = "github.com/bptlab/cepta/models/grpc/usermgmt",
+    proto = ":usermgmt_proto",
     visibility = ["//visibility:public"],
 )
 

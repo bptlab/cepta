@@ -11,7 +11,7 @@ message VehicleData {
     string plan_id = 2;
     int64 plan_date = 3;
     int64 service_block_number = 4;
-    google.protobuf.Timestamp planned_departure_date = 5;
+    google.protobuf.Timestamp prod_date = 5;
     int64 intermediate_stations = 6;
     string service_code_addition = 7;
     string service_code = 8;
@@ -26,4 +26,4 @@ message VehicleData {
     google.protobuf.Timestamp next_plan_date = 17;
     int64 max_speed = 18;
     google.protobuf.Timestamp load_date = 19;
-} 
+}

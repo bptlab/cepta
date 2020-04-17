@@ -1,5 +1,5 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun")
 load("@rules_proto_grpc//:plugin.bzl", "proto_plugin")
 
 # gazelle:prefix github.com/bptlab/cepta
@@ -42,11 +42,11 @@ multirun(
 
 # Build the docker images and tags them for use in local dev env
 multirun(
-    name = "images",
+    name = "build-images",
     commands = [
-        "//osiris:images",
-        "//core:image",
-        "//auxiliary/producers/replayer:image",
+        "//osiris:build-images",
+        "//core:build-image",
+        "//auxiliary/producers/replayer:build-image",
     ],
     parallel = True,
 )
@@ -65,7 +65,7 @@ test_suite(
         "//osiris/authentication:smoke",
         "//osiris/notification:smoke",
         "//osiris/query:smoke",
-        "//osiris/user_management:smoke",
+        "//osiris/usermgmt:smoke",
     ]
 )
 
@@ -77,7 +77,7 @@ test_suite(
         "//osiris/authentication:unit",
         "//osiris/notification:unit",
         "//osiris/query:unit",
-        "//osiris/user_management:unit",
+        "//osiris/usermgmt:unit",
     ]
 )
 
@@ -89,7 +89,7 @@ test_suite(
         "//osiris/authentication:integration",
         "//osiris/notification:integration",
         "//osiris/query:integration",
-        "//osiris/user_management:integration",
+        "//osiris/usermgmt:integration",
     ]
 )
 
@@ -101,7 +101,7 @@ test_suite(
         "//osiris/authentication:internal",
         "//osiris/notification:internal",
         "//osiris/query:internal",
-        "//osiris/user_management:internal",
+        "//osiris/usermgmt:internal",
     ]
 )
 

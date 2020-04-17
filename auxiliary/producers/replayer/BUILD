@@ -1,6 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 go_binary(
     name = "replayer",
@@ -12,6 +13,22 @@ go_image(
     name = "image",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
+)
+
+command(
+    name = "build-image-cmd",
+    command = ":image",
+    arguments = [
+        "--norun"
+    ]
+)
+
+multirun(
+    visibility = ["//visibility:public"],
+    name = "build-image",
+    commands = [
+        ":build-image-cmd",
+    ],
 )
 
 container_push(
@@ -61,6 +78,7 @@ go_library(
         "//models/events:train_information_data_go_proto",
         "//models/events:vehicle_data_go_proto",
         "//models/events:weather_data_go_proto",
+        "//models/events:gps_trip_update_go_proto",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",

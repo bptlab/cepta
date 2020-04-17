@@ -42,6 +42,8 @@ services:
     environment:
       ZK_HOSTS: zookeeper:${CEPTA_ZOOKEEPER_PORT}
       KM_VERSION: 2.3.0
+    depends_on:
+     - kafka
 
   kafdrop:
     image: thomsch98/kafdrop
@@ -50,6 +52,8 @@ services:
     environment:
       ZK_HOSTS: zookeeper:${CEPTA_ZOOKEEPER_PORT}
       LISTEN: ${CEPTA_KAFDROP_PORT}
+    depends_on:
+     - kafka
 
   flink-jobmanager:
     image: flink:latest
@@ -127,11 +131,6 @@ services:
       driver: none
 
   core:
-    # build:
-    #   context: ../../../
-    #   dockerfile: deployment/common/java.exec.dockerfile
-    #   args:
-    #     MODULE: core
     image: bazel/core:image
     command:
       - --broker=kafka:29092
@@ -154,20 +153,19 @@ services:
       - replayer
 
   replayer:
-    # build:
-    #   context: ../../../
-    #   dockerfile: deployment/common/java.exec.dockerfile
-    #   args:
-    #     MODULE: producers/train-replayer
     image: bazel/auxiliary/producers/replayer:image
     depends_on:
       - kafka
-      - postgres
+      #- postgres # now we use mongodb as replayer DB
+      #- mongodb  # in most cases we use an external mongoDB
     command:
       - --brokers=kafka:29092
       - --port=9000
-      - --postgres-host=postgres
-      - --postgres-port=${CEPTA_POSTGRES_PORT}
+      # Benchmark indicates MongoDB is the bottleneck
+      # - --mode=constant
+      # - --pause=0
+      #- --postgres-host=postgres
+      #- --postgres-port=${CEPTA_POSTGRES_PORT}
       - --mongodb-host=mongodb
       - --mongodb-port=${CEPTA_MONGODB_PORT}
       # Do not use quotation here as this will be used in the postgres query
@@ -181,7 +179,9 @@ volumes:
   #   driver: local
   # kafka_data:
   #   driver: local
-  postgres_data:
+  # mongodb_data:
+  #  driver: local
+   postgres_data:
     driver: local
    #  driver_opts:
    #   type: 'none'

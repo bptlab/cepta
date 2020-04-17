@@ -14,6 +14,7 @@ import (
 	// "github.com/bptlab/cepta/schemas/types/basic"
 	// "/schemas/types/basic"
 	"github.com/bptlab/cepta/ci/versioning"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/query/resolvers"
 	"github.com/friendsofgo/graphiql"
@@ -103,33 +104,24 @@ func serve(ctx *cli.Context) error {
 }
 
 func main() {
+	cliFlags := []cli.Flag{}
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
+	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
+	cliFlags = append(cliFlags, []cli.Flag{
+		&cli.StringFlag{
+			Name:    "schema",
+			Value:   "models/gql/query_gql_proto/models/gql/query.pb.graphqls",
+			Aliases: []string{"gql-schema", "graphql-schema"},
+			EnvVars: []string{"SCHEMA"},
+			Usage:   "Path to the GraphQL service schema",
+		},
+	}...)
 	app := &cli.App{
 		Name:    "CEPTA Query service",
 		Version: versioning.BinaryVersion(Version, BuildTime),
 		Usage:   "Provides a GraphQL interface for querying transportation data",
-		Flags: append(libdb.PostgresDatabaseCliOptions, []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "debug",
-				Value:   false,
-				Aliases: []string{"d"},
-				EnvVars: []string{"DEBUG", "ENABLE_DEBUG"},
-				Usage:   "Start a graphiql webserver for testing and debugging queries",
-			},
-			&cli.IntFlag{
-				Name:    "port",
-				Value:   80,
-				Aliases: []string{"p"},
-				EnvVars: []string{"PORT"},
-				Usage:   "GraphQL server port",
-			},
-			&cli.StringFlag{
-				Name:    "schema",
-				Value:   "models/gql/query_gql_proto/models/gql/query.pb.graphqls",
-				Aliases: []string{"gql-schema", "graphql-schema"},
-				EnvVars: []string{"SCHEMA"},
-				Usage:   "Path to the GraphQL service schema",
-			},
-		}...),
+		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {
 			ret := serve(ctx)
 			return ret

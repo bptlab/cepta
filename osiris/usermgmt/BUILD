@@ -1,9 +1,10 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 go_binary(
-    name = "user_management",
+    name = "usermgmt",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -14,12 +15,28 @@ go_image(
     visibility = ["//visibility:public"],
 )
 
+command(
+    name = "build-image-cmd",
+    command = ":image",
+    arguments = [
+        "--norun"
+    ]
+)
+
+multirun(
+    visibility = ["//visibility:public"],
+    name = "build-image",
+    commands = [
+        ":build-image-cmd",
+    ],
+)
+
 container_push(
   name = "publish",
   format = "Docker",
   image = ":image",
   registry = "index.docker.io",
-  repository = "ceptaorg/user_management",
+  repository = "ceptaorg/usermgmt",
   tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
@@ -33,11 +50,13 @@ go_library(
         "Version": "{STABLE_VERSION}",
         "BuildTime": "{buildDate}",
     },
-    importpath = "github.com/bptlab/cepta/osiris/user_management",
+    importpath = "github.com/bptlab/cepta/osiris/usermgmt",
     visibility = ["//visibility:private"],
     deps = [
-        "//models/grpc:user_management_go_proto",
+        "//models/grpc:usermgmt_go_proto",
+        "//models/grpc:authentication_go_proto",
         "//osiris/lib/db:go_default_library",
+        "//osiris/authentication:go_default_library",
         "//osiris/lib:cli",
         "//ci/versioning:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
@@ -52,6 +71,7 @@ go_library(
         
     ],
 )
+
 
 go_test(
     name = "server-test",

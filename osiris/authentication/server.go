@@ -31,10 +31,10 @@ var done = make(chan bool, 1)
 var log *logrus.Logger
 var db *libdb.PostgresDB
 
-type server struct {
+type Server struct {
 	pb.UnimplementedAuthenticationServer
 	active bool
-	db     *libdb.PostgresDB
+	DB     *libdb.PostgresDB
 }
 
 // User is a struct to rep user account
@@ -46,14 +46,14 @@ type User struct {
 }
 
 // AddUser adds a new user
-func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
+func (server *Server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
 	user := User{
 		//ID:       int(in.GetId().GetValue()),
 		Email:    in.GetEmail(),
 		Password: in.GetPassword(),
 	}
-	server.db.DB.NewRecord(user)
-	err := server.db.DB.Create(&user).Error
+	server.DB.DB.NewRecord(user)
+	err := server.DB.DB.Create(&user).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -61,9 +61,9 @@ func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, er
 }
 
 // Login logs in a user
-func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
+func (server *Server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation, error) {
 	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
+	err := server.DB.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.Validation{
 			Value: false}, nil
@@ -73,13 +73,13 @@ func (server *server) Login(ctx context.Context, in *pb.UserId) (*pb.Validation,
 }
 
 // RemoveUser removes a user
-func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
+func (server *Server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
 	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
+	err := server.DB.DB.First(&user, int(in.GetValue())).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	err = server.db.DB.Delete(&user).Error
+	err = server.DB.DB.Delete(&user).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -87,15 +87,15 @@ func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Succes
 }
 
 // SetEmail sets a users email
-func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
+func (server *Server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
 	var id int = int(in.GetUserId().GetValue())
 	var email string = in.GetEmail()
 	var user User
-	err := server.db.DB.First(&user, id).Error
+	err := server.DB.DB.First(&user, id).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
-	err = server.db.DB.Model(&user).Update("Email", email).Error
+	err = server.DB.DB.Model(&user).Update("Email", email).Error
 	if err != nil {
 		return &pb.Success{Success: false}, err
 	}
@@ -115,34 +115,34 @@ func main() {
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 
 	log = logrus.New()
-	go func() {
-		app := &cli.App{
-			Name:    "CEPTA User management server",
-			Version: versioning.BinaryVersion(Version, BuildTime),
-			Usage:   "manages the user database",
-			Flags:   cliFlags,
-			Action: func(ctx *cli.Context) error {
+	app := &cli.App{
+		Name:    "CEPTA User management server",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "manages the user database",
+		Flags:   cliFlags,
+		Action: func(ctx *cli.Context) error {
+			go func() {
 				level, err := logrus.ParseLevel(ctx.String("log"))
 				if err != nil {
 					log.Warnf("Log level '%s' does not exist.")
 					level = logrus.InfoLevel
 				}
 				log.SetLevel(level)
-				ret := serve(ctx, log)
-				return ret
-			},
-		}
-		err := app.Run(os.Args)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	<-done
-	log.Info("Exiting")
+				serve(ctx, log)
+			}()
+			<-done
+			log.Info("Exiting")
+			return nil
+		},
+	}
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func serve(ctx *cli.Context, log *logrus.Logger) error {
@@ -155,9 +155,9 @@ func serve(ctx *cli.Context, log *logrus.Logger) error {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
 
-	authenticationServer := server{
+	authenticationServer := Server{
 		active: true,
-		db:     db,
+		DB:     db,
 	}
 
 	port := fmt.Sprintf(":%d", ctx.Int("port"))

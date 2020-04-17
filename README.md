@@ -2,6 +2,7 @@ CEPTA - Complex Event Processing Transportation Analysis
 
 [![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
 ![GitHub](https://img.shields.io/github/license/bptlab/cepta)
+[![Release](https://img.shields.io/github/release/bptlab/cepta)](https://github.com/bptlab/cepta/releases/latest)
 
 The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
@@ -24,6 +25,12 @@ To run a specific executable:
 ```bash
 bazel run //auxiliary/producers/replayer -- --port 8080  # Example
 ```
+To run mutiple specific executables (prevents locking) use run.sh instead of bazel run:
+```bash
+./run.sh //auxiliary/producers/replayer -- --port 8080  # Example
+```
+
+
 
 #### Testing
 ```bash
@@ -33,9 +40,9 @@ bazel test //core:core-tests  # Only test core
 
 #### Deployment
 The project uses `docker` and `docker-compose` for deployment.
-For instructions see `deployment/dev` or `deployment/prod` respectively.
+For instructions see `docs/deployment/dev.md` or `docs/deployment/prod.md` respectively.
 
 Summary: To run the latest version, run 
 ```bash
-CEPTA_VERSION="v0.0.7" docker-compose -f deployment/prod/docker-compose.yml up
+CEPTA_VERSION="v0.1.1" docker-compose -f deployment/prod/docker-compose.yml up
 ```

@@ -6,16 +6,15 @@ set -o nounset
 set -o pipefail
 
 export CEPTA_ROOT=$(dirname "${BASH_SOURCE}")/..
-# export CEPTA_ROOT=$(realpath $(dirname $0)"/../")
 
 source "${CEPTA_ROOT}/ci/versioning/query-git.sh"
 cepta::version::get_version_vars
 
 # Most important ones
-STABLE_BUILD_GIT_COMMIT=${CEPTA_GIT_COMMIT-}
-STABLE_DOCKER_TAG=${CEPTA_GIT_VERSION/+/_}
-STABLE_BUILD_SCM_REVISION=${CEPTA_GIT_VERSION-}
-STABLE_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+export STABLE_BUILD_GIT_COMMIT=${CEPTA_GIT_COMMIT-}
+export STABLE_DOCKER_TAG=${CEPTA_GIT_VERSION/+/_}
+export STABLE_BUILD_SCM_REVISION=${CEPTA_GIT_VERSION-}
+export STABLE_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 # Prefix with STABLE_ so that these values are saved to stable-status.txt
 # instead of volatile-status.txt.
