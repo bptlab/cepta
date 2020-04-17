@@ -1,4 +1,4 @@
-package org.bptlab.cepta.patterns;
+package org.bptlab.cepta;
 
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
@@ -13,16 +13,14 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
 import java.util.*;
 
-
-
-
-
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class PatternTests {
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
+        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
 
         Iterator<LiveTrainData> iterator = DataStreamUtils.collect(liveTrainDataStream);
@@ -34,9 +32,11 @@ public class PatternTests {
         PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
-            (Map<String, List<LiveTrainData>> pattern) -> {
-                LiveTrainData first = (LiveTrainData) pattern.get("first").get(0);
+            (Map<String, LiveTrainData> pattern) -> {
+                System.out.println("Ich bin hier :)");
+                LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation");
 
+                
                 StaysInStationEvent detected = StaysInStationEvent.newBuilder()
                     .setTrainSectionId(first.getTrainSectionId())
                     .setStationId(first.getStationId())
@@ -48,13 +48,16 @@ public class PatternTests {
         );
 
         int count = 0;
+        System.out.println("Count = " + count);
         Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
         while(detectedEventsItr.hasNext()){
             count ++;
+            System.out.println("Increasing, Count = " + count);
         }
 
-
-        Assert.assertTrue(count == 1);
+        System.out.println("Count = " + count);
+        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+        Assert.assertTrue(count==1);
 
     }
     
