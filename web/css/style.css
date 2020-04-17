@@ -865,7 +865,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .accordion .accordion-item .accordion-body {
   padding: 10px 30px;
-  border-left: 30px solid #f8f9fa; }
+  margin-left: 20px;}
   .accordion .accordion-item .accordion-body p:last-child {
     margin-bottom: 0; }
 
