@@ -18,29 +18,8 @@ import (
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	clivalues "github.com/romnnn/flags4urfavecli/values"
 
-	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	topics "github.com/bptlab/cepta/models/constants/topic"
-	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
-	eventpb "github.com/bptlab/cepta/models/events/event"
 
-	crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
-	crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
-	crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
-	crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
-	delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
-	gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
-	infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
-	livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
-	locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
-	plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
-	predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
-	railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
-	stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
-	traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
-	vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
-	weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
-
-	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -53,79 +32,122 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
+var server ReplayerServer
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var log *logrus.Logger
-var replayers = []*Replayer{}
-var activeReplayers = []*Replayer{}
 
-type server struct {
+// ReplayerServer ...
+type ReplayerServer struct {
 	pb.UnimplementedReplayerServer
-	speed       int32
-	limit       int
-	mode        pb.ReplayType
-	timerange   pb.Timerange
-	ids         []string
-	included    []string
-	excluded    []string
-	active      bool
-	repeat      bool
-	kafkaConfig kafkaproducer.KafkaProducerOptions
-	mongoConfig libdb.MongoDBConfig
+	Speed       int32
+	Limit       int
+	Mode        pb.ReplayType
+	Timerange   pb.Timerange
+	Ids         []string
+	Included    []string
+	Excluded    []string
+	Active      bool
+	Repeat      bool
+	KafkaConfig kafkaproducer.KafkaProducerOptions
+	MongoConfig libdb.MongoDBConfig
+
+	Replayers []*Replayer
+
+	CheckpointsRplr           *Replayer
+	CrewActivityRplr          *Replayer
+	CrewPrepEndRplr           *Replayer
+	CrewShiftRplr             *Replayer
+	CrewTransitionRplr        *Replayer
+	DelayExplanationRplr      *Replayer
+	InfrastructureManagerRplr *Replayer
+	LiveTrainRplr             *Replayer
+	LocationRplr              *Replayer
+	PlannedTrainRplr          *Replayer
+	PredictedTrainRplr        *Replayer
+	RailwayUndertakingRplr    *Replayer
+	StationRplr               *Replayer
+	TrainInformationRplr      *Replayer
+	VehicleRplr               *Replayer
+	WeatherRplr               *Replayer
+	GpsRplr                   *Replayer
+
+	mongo    *libdb.MongoDB
+	producer *kafkaproducer.KafkaProducer
 }
 
-func (s *server) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
+// NewReplayerServer ...
+func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerOptions) ReplayerServer {
+	srv := ReplayerServer{
+		KafkaConfig: kafkaConfig,
+		MongoConfig: mongoConfig,
+	}
+	srv.Setup()
+	return srv
+}
+
+// SeekTo ...
+func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
 	log.Infof("Seeking to: %v", in)
-	s.timerange.Start = in
-	for _, replayer := range replayers {
+	s.Timerange.Start = in
+	for _, replayer := range s.Replayers {
 		// Send RESET control message
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) Reset(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
+// Reset ...
+func (s *ReplayerServer) Reset(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Resetting")
-	for _, replayer := range replayers {
+	for _, replayer := range s.Replayers {
 		// Send RESET control message
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Success, error) {
+// Start ...
+func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Success, error) {
 	log.Infof("Starting")
-	s.active = true
-	for _, replayer := range replayers {
+	s.Active = true
+	for _, replayer := range s.Replayers {
+		if !shouldInclude(replayer, s.Included, s.Excluded, false) {
+			continue
+		}
 		// Send START control message
 		replayer.Ctrl <- pb.InternalControlMessageType_START
 	}
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
+// Stop ...
+func (s *ReplayerServer) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Stopping")
-	s.active = false
-	for _, replayer := range replayers {
+	s.Active = false
+	for _, replayer := range s.Replayers {
 		// Send STOP control message
 		replayer.Ctrl <- pb.InternalControlMessageType_STOP
 	}
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) SetSpeed(ctx context.Context, in *pb.Speed) (*pb.Success, error) {
+// SetSpeed ...
+func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*pb.Success, error) {
 	log.Infof("Setting speed to: %v", int(in.GetSpeed()))
-	s.speed = int32(in.GetSpeed())
+	s.Speed = int32(in.GetSpeed())
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) SetType(ctx context.Context, in *pb.ReplayTypeOption) (*pb.Success, error) {
+// SetType ...
+func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayTypeOption) (*pb.Success, error) {
 	log.Infof("Setting replay type to: %v", in.GetType())
-	s.mode = in.GetType()
+	s.Mode = in.GetType()
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) SetOptions(ctx context.Context, in *pb.ReplayOptions) (*pb.Success, error) {
+// SetOptions ...
+func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplayOptions) (*pb.Success, error) {
 	log.Infof("Setting replay options")
 	success, err := s.SetSpeed(ctx, in.GetSpeed())
 	if err != nil {
@@ -142,29 +164,32 @@ func (s *server) SetOptions(ctx context.Context, in *pb.ReplayOptions) (*pb.Succ
 	return &pb.Success{Success: true}, nil
 }
 
-func (s *server) GetStatus(ctx context.Context, in *pb.Empty) (*pb.ReplayStatus, error) {
+// GetStatus ...
+func (s *ReplayerServer) GetStatus(ctx context.Context, in *pb.Empty) (*pb.ReplayStatus, error) {
 	log.Info("Handling query for current replay status")
-	return &pb.ReplayStatus{Active: s.active}, nil
+	return &pb.ReplayStatus{Active: s.Active}, nil
 }
 
-func (s *server) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartOptions, error) {
+// GetOptions ...
+func (s *ReplayerServer) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartOptions, error) {
 	log.Info("Handling query for current replay options")
 	return &pb.ReplayStartOptions{
-		Speed: &pb.Speed{Speed: s.speed},
-		Type:  s.mode,
-		Range: &s.timerange,
-		Ids:   s.ids,
+		Speed: &pb.Speed{Speed: s.Speed},
+		Type:  s.Mode,
+		Range: &s.Timerange,
+		Ids:   s.Ids,
 	}, nil
 }
 
-func (s *server) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) error {
+// Query ...
+func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) error {
 	included := make([]string, len(in.Sources))
 	for si := range in.Sources {
 		included[si] = in.Sources[si].String()
 	}
 	log.Infof("Handling query for sources: %v", included)
 	// Collect all replay datasets from all replayers
-	for _, replayer := range replayers {
+	for _, replayer := range s.Replayers {
 		if !shouldInclude(replayer, included, []string{}, true) {
 			continue
 		}
@@ -174,8 +199,9 @@ func (s *server) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) erro
 		replayer.Query.Timerange = in.Timerange
 		replayer.Query.Limit = &limit
 		replayer.Query.Offset = int(in.Offset)
-		log.Debug(replayer.SourceName)
-		replayer.queryAndSend(stream)
+		if err := replayer.queryAndSend(stream); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -193,7 +219,8 @@ func shouldInclude(replayer *Replayer, included []string, excluded []string, exp
 	return true
 }
 
-func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
+// Serve ...
+func (s *ReplayerServer) Serve(listener net.Listener, log *logrus.Logger) error {
 
 	// For reference: When using postgres as a replaying database:
 	/*
@@ -203,212 +230,39 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 			log.Fatalf("failed to initialize postgres database: %v", err)
 		}
 	*/
-
-	mongo, err := libdb.MongoDatabase(&s.mongoConfig)
+	// Connect to mongoDB
+	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
 	if err != nil {
 		log.Fatalf("failed to initialize mongo database: %v", err)
 	}
-
-	checkpoints := &Replayer{
-		SourceName: "checkpoints"
-		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_Checkpoint{Checkpoint: event.(*checkpointpb.CheckpointData)}}
-		}, &checkpointpb.CheckpointData{}),
-		Topic: topics.Topic_CHECKPOINT_DATA,
-	}
-
-	crewActivity := &Replayer{
-		SourceName: "crew_activity",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_CrewActivity{CrewActivity: event.(*crewactivitypb.CrewActivityData)}}
-		}, &crewactivitypb.CrewActivityData{}),
-		Topic: topics.Topic_CREW_ACTIVITY_DATA,
-	}
-
-	crewPrepEnd := &Replayer{
-		SourceName: "crew_end",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_CrewPrepEnd{CrewPrepEnd: event.(*crewprependpb.CrewPrepEndData)}}
-		}, &crewprependpb.CrewPrepEndData{}),
-		Topic: topics.Topic_CREW_PREP_DATA,
-	}
-
-	crewShift := &Replayer{
-		SourceName: "crew_shift",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_CrewShift{CrewShift: event.(*crewshiftpb.CrewShiftData)}}
-		}, &crewshiftpb.CrewShiftData{}),
-		Topic: topics.Topic_CREW_SHIFT_DATA,
-	}
-
-	crewTransition := &Replayer{
-		SourceName: "crew_transition",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_CrewTransition{CrewTransition: event.(*crewtransitionpb.CrewTransitionData)}}
-		}, &crewtransitionpb.CrewTransitionData{}),
-		Topic: topics.Topic_CREW_TRANSITION_DATA,
-	}
-
-	delayExplanation := &Replayer{
-		SourceName: "vsp",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_DelayExplanation{DelayExplanation: event.(*delayexplanationpb.DelayExplanationData)}}
-		}, &delayexplanationpb.DelayExplanationData{}),
-		Topic: topics.Topic_DELAY_EXPLANATION_DATA,
-	}
-
-	infrastructureManager := &Replayer{
-		SourceName: "infrastructure_managerdata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_InfrastructureManager{InfrastructureManager: event.(*infrastructuremanagerpb.InfrastructureManagerData)}}
-		}, &infrastructuremanagerpb.InfrastructureManagerData{}),
-		Topic: topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
-	}
-
-	liveTrain := &Replayer{
-		SourceName: "livetraindata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}),
-		Topic: topics.Topic_LIVE_TRAIN_DATA,
-	}
-
-	location := &Replayer{
-		SourceName: "locationdata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
-		}, &locationpb.LocationData{}),
-		Topic: topics.Topic_LOCATION_DATA,
-	}
-
-	plannedTrain := &Replayer{
-		SourceName: "plannedtraindata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
-		}, &plannedtrainpb.PlannedTrainData{}),
-		Topic: topics.Topic_PLANNED_TRAIN_DATA,
-	}
-
-	predictedTrain := &Replayer{
-		SourceName: "predictedtraindata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_PredictedTrain{PredictedTrain: event.(*predictedtrainpb.PredictedTrainData)}}
-		}, &predictedtrainpb.PredictedTrainData{}),
-		Topic: topics.Topic_PREDICTED_TRAIN_DATA,
-	}
-
-	railwayUndertaking := &Replayer{
-		SourceName: "railwayundertakingdata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_RailwayUndertaking{RailwayUndertaking: event.(*railwayundertakingpb.RailwayUndertakingData)}}
-		}, &railwayundertakingpb.RailwayUndertakingData{}),
-		Topic: topics.Topic_RAILWAY_UNDERTAKING_DATA,
-	}
-
-	station := &Replayer{
-		SourceName: "station",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_Station{Station: event.(*stationpb.StationData)}}
-		}, &stationpb.StationData{}),
-		Topic: topics.Topic_STATION_DATA,
-	}
-
-	trainInformation := &Replayer{
-		SourceName: "traininformationdata",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_TrainInformation{TrainInformation: event.(*traininformationpb.TrainInformationData)}}
-		}, &traininformationpb.TrainInformationData{}),
-		Topic: topics.Topic_TRAIN_INFORMATION_DATA,
-	}
-
-	vehicle := &Replayer{
-		SourceName: "vehicle",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_Vehicle{Vehicle: event.(*vehiclepb.VehicleData)}}
-		}, &vehiclepb.VehicleData{}),
-		Topic: topics.Topic_VEHICLE_DATA,
-	}
-
-	weather := &Replayer{
-		SourceName: "weather",
-		Query:      &extractors.ReplayQuery{SortColumn: "id"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
-		}, &weatherpb.WeatherData{}),
-		Topic: topics.Topic_WEATHER_DATA,
-	}
-
-	gps := &Replayer{
-		SourceName: "gpsupdates",
-		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
-		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_GpsTripUpdate{GpsTripUpdate: event.(*gpstripupdatespb.GPSTripUpdate)}}
-		}, &gpstripupdatespb.GPSTripUpdate{}),
-		Topic: topics.Topic_GPS_TRIP_UPDATE_DATA,
-	}
-
-	replayers = []*Replayer{
-		checkpoints,
-		crewActivity,
-		crewPrepEnd,
-		crewShift,
-		crewTransition,
-		delayExplanation,
-		infrastructureManager,
-		liveTrain,
-		location,
-		plannedTrain,
-		predictedTrain,
-		railwayUndertaking,
-		station,
-		trainInformation,
-		vehicle,
-		weather,
-		gps,
-	}
+	*s.mongo = *mongo
 
 	// Connect to kafka
-	producer, err := kafkaproducer.KafkaProducer{}.Create(s.kafkaConfig)
+	s.producer, err = kafkaproducer.KafkaProducer{}.Create(s.KafkaConfig)
 	if err != nil {
 		log.Fatalf("Cannot produce events: %s", err.Error())
 	}
 	defer func() {
-		if err := producer.Close(); err != nil {
+		if err := s.producer.Close(); err != nil {
 			log.Errorf("Failed to close kafka producer: %v", err)
+		}
+		if err := s.mongo.Close(); err != nil {
+			log.Errorf("Failed to close mongo connection: %v", err)
 		}
 	}()
 
-	for _, replayer := range replayers {
-		if !shouldInclude(replayer, s.included, s.excluded, false) {
-			continue
-		}
+	for _, replayer := range s.Replayers {
 		// Set common replayer parameters
-		replayer.producer = producer
+		replayer.producer = s.producer
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
-		replayer.Query.IncludeIds = &s.ids
-		replayer.Query.Timerange = &s.timerange
-		replayer.Query.Limit = &s.limit
+		replayer.Query.IncludeIds = &s.Ids
+		replayer.Query.Timerange = &s.Timerange
+		replayer.Query.Limit = &s.Limit
 		replayer.Query.Offset = 0
-		replayer.Speed = &s.speed
-		replayer.Mode = &s.mode
-		replayer.Repeat = s.repeat
-		replayer.Brokers = s.kafkaConfig.Brokers
-		activeReplayers = append(activeReplayers, replayer)
+		replayer.Speed = &s.Speed
+		replayer.Mode = &s.Mode
+		replayer.Repeat = s.Repeat
+		replayer.Brokers = s.KafkaConfig.Brokers
 		go replayer.Start(log)
 	}
 
@@ -426,25 +280,30 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	return nil
 }
 
+// Shutdown ...
+func (s *ReplayerServer) Shutdown() {
+	log.Info("Graceful shutdown")
+	log.Info("Sending SHUTDOWN signal to all replaying topics")
+	for _, replayer := range s.Replayers {
+		log.Debugf("Sending SHUTDOWN signal to %s", replayer.SourceName)
+		replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+		// Wait for ack
+		log.Debugf("Waiting for ack from %s", replayer.SourceName)
+		<-replayer.Ctrl
+		log.Debugf("Shutdown complete for %s", replayer.SourceName)
+	}
+
+	log.Info("Stopping GRPC server")
+	grpcServer.Stop()
+}
+
 func main() {
 	// Register shutdown routine
 	shutdown := make(chan os.Signal)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-shutdown
-		log.Info("Graceful shutdown")
-		log.Info("Sending SHUTDOWN signal to all replaying topics")
-		for _, replayer := range activeReplayers {
-			log.Debugf("Sending SHUTDOWN signal to %s", replayer.SourceName)
-			replayer.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
-			// Wait for ack
-			log.Debugf("Waiting for ack from %s", replayer.SourceName)
-			<-replayer.Ctrl
-			log.Debugf("Shutdown complete for %s", replayer.SourceName)
-		}
-
-		log.Info("Stopping GRPC server")
-		grpcServer.Stop()
+		server.Shutdown()
 	}()
 
 	var sources []string
@@ -553,55 +412,51 @@ func main() {
 					log.Fatalf("failed to listen: %v", err)
 				}
 
-				rs := server{
-					active: true,
-					limit:  100,
-					repeat: ctx.Bool("repeat"),
-					ids:    strings.Split(ctx.String("include"), ","),
-				}
-
-				// Parse mongo and kafka configs
-				rs.kafkaConfig = kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx)
-				rs.mongoConfig = libdb.MongoDBConfig{}.ParseCli(ctx)
+				server = NewReplayerServer(
+					libdb.MongoDBConfig{}.ParseCli(ctx),
+					kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx),
+				)
+				server.Repeat = ctx.Bool("repeat")
+				server.Ids = strings.Split(ctx.String("include"), ",")
 
 				// Parse CLI replay type
 				if mode, found := pb.ReplayType_value[strings.ToUpper(ctx.String("mode"))]; found {
-					rs.mode = pb.ReplayType(mode)
+					server.Mode = pb.ReplayType(mode)
 				} else {
-					rs.mode = pb.ReplayType_PROPORTIONAL
+					server.Mode = pb.ReplayType_PROPORTIONAL
 				}
 
 				// Parse CLI timerange
 				if startTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("start-timestamp")); err != nil {
 					if protoStartTime, err := utils.ToProtoTime(startTime); err != nil {
-						rs.timerange.Start = protoStartTime
+						server.Timerange.Start = protoStartTime
 					}
 				}
 				if endTime, err := time.Parse(clivalues.DefaultTimestampFormat, ctx.String("end-timestamp")); err != nil {
 					if protoEndTime, err := utils.ToProtoTime(endTime); err != nil {
-						rs.timerange.End = protoEndTime
+						server.Timerange.End = protoEndTime
 					}
 				}
 
 				// Parse pause / frequency
-				switch rs.mode {
+				switch server.Mode {
 				case pb.ReplayType_CONSTANT:
-					rs.speed = int32(ctx.Int("pause"))
-					log.Infof("Using constant replay with pause=%d", rs.speed)
+					server.Speed = int32(ctx.Int("pause"))
+					log.Infof("Using constant replay with pause=%d", server.Speed)
 				case pb.ReplayType_PROPORTIONAL:
-					rs.speed = int32(ctx.Int("frequency"))
-					log.Infof("Using proportional replay with frequency=%d", rs.speed)
+					server.Speed = int32(ctx.Int("frequency"))
+					log.Infof("Using proportional replay with frequency=%d", server.Speed)
 				default:
-					rs.speed = 5000
+					server.Speed = 5000
 				}
 
 				// Parse included and excluded values
-				includedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
-				log.Infof("Include: %s", includedSrcs)
-				excludedSrcs := clivalues.EnumListValue{}.Parse(ctx.String("exclude-sources"))
-				log.Infof("Exclude: %s", excludedSrcs)
+				server.Included = clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
+				log.Infof("Include: %s", server.Included)
+				server.Excluded = clivalues.EnumListValue{}.Parse(ctx.String("exclude-sources"))
+				log.Infof("Exclude: %s", server.Excluded)
 
-				rs.serve(listener, log)
+				server.Serve(listener, log)
 			}()
 			<-done
 			log.Info("Exiting")

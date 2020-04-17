@@ -45,6 +45,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "replayer.go",
+        "replayers.go",
         "server.go",
     ],
     importpath = "github.com/bptlab/cepta/auxiliary/producers/replayer",

@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	eventpb "github.com/bptlab/cepta/models/events/event"
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+
 	// "github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
-	"github.com/romnnn/bsonpb"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/romnnn/bsonpb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type WrapperFunc = func(event proto.Message) *eventpb.Event
@@ -22,7 +24,7 @@ type WrapperFunc = func(event proto.Message) *eventpb.Event
 // MongoExtractor ...
 type MongoExtractor struct {
 	Proto       proto.Message
-	WrapperFunc     WrapperFunc
+	WrapperFunc WrapperFunc
 	DB          *libdb.MongoDB
 	debug       bool
 	cur         *mongo.Cursor
@@ -84,7 +86,8 @@ func (ex *MongoExtractor) StartQuery(collectionName string, IDFieldName string, 
 	collection := ex.DB.DB.Collection(collectionName)
 	aggregation := ex.buildAggregation(query)
 	var err error
-	ex.cur, err = collection.Aggregate(context.Background(), aggregation)
+	allowDisk := true
+	ex.cur, err = collection.Aggregate(context.Background(), aggregation, &options.AggregateOptions{AllowDiskUse: &allowDisk})
 	return err
 }
 
@@ -106,9 +109,9 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 // NewMongoExtractor ...
 func NewMongoExtractor(db *libdb.MongoDB, wrapperFunc WrapperFunc, proto proto.Message) *MongoExtractor {
 	return &MongoExtractor{
-		DB:    db,
+		DB:          db,
 		WrapperFunc: wrapperFunc,
-		Proto: proto,
+		Proto:       proto,
 	}
 }
 
@@ -136,7 +139,9 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
 
 	// Set limit
 	if queryOptions.Limit != nil {
-		aggregation = append(aggregation, bson.D{{"$limit", *(queryOptions.Limit)}})
+		if limit := *queryOptions.Limit; limit > 0 {
+			aggregation = append(aggregation, bson.D{{"$limit", limit}})
+		}
 	}
 
 	return aggregation

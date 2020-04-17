@@ -17,6 +17,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+// const logLevel = logrus.DebugLevel
+const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
 
 var listener *bufconn.Listener
@@ -25,59 +27,76 @@ func bufDialer(string, time.Duration) (net.Conn, error) {
 	return listener.Dial()
 }
 
-func defaultReplayerServer() server {
-	return server{
-		mongoConfig: libdb.MongoDBConfig{
-			Host: "localhost", Port: 27017, User: "root", Password: "example",
-			ConnectionTolerance: libcli.ConnectionTolerance{
-				TimeoutSec: 20,
-			},
-		},
-		kafkaConfig: kafkaproducer.KafkaProducerOptions{
-			Brokers: []string{"localhost:9092"},
-			ConnectionTolerance: libcli.ConnectionTolerance{
-				TimeoutSec: 20,
-			},
+func defaultReplayerServer() ReplayerServer {
+	mongoConfig := libdb.MongoDBConfig{
+		Host:     "localhost",
+		Port:     27017,
+		User:     "root",
+		Password: "example",
+		Database: "replay",
+		ConnectionTolerance: libcli.ConnectionTolerance{
+			TimeoutSec: 20,
 		},
 	}
+	KafkaConfig := kafkaproducer.KafkaProducerOptions{
+		Brokers: []string{"localhost:9092"},
+		ConnectionTolerance: libcli.ConnectionTolerance{
+			TimeoutSec: 20,
+		},
+	}
+	server := NewReplayerServer(mongoConfig, KafkaConfig)
+	server.Limit = 100
+	return server
 }
 
-func setUpServer(t *testing.T) {
+func setUpServer(t *testing.T) ReplayerServer {
 	listener = bufconn.Listen(bufSize)
 	replayer := defaultReplayerServer()
+	replayer.Setup()
 	go func() {
 		log = logrus.New()
-		// log.SetLevel(logrus.ErrorLevel)
-		log.SetLevel(logrus.DebugLevel)
-		if err := replayer.serve(listener, log); err != nil {
+		log.SetLevel(logLevel)
+		if err := replayer.Serve(listener, log); err != nil {
 			t.Fatalf("Failed to serve the replayer: %v", err)
 		}
 	}()
+	return replayer
+}
+
+func teardownServer(server ReplayerServer, t *testing.T) {
+	server.Shutdown()
 }
 
 // TestQuery ...
 func TestQuery(t *testing.T) {
-	setUpServer(t)
+	server := setUpServer(t)
+	defer func() {
+		teardownServer(server, t)
+	}()
 	conn, err := grpc.DialContext(context.Background(), "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewReplayerClient(conn)
-	request := &pb.QueryOptions{Sources: []topics.Topic{topics.Topic_CHECKPOINT_DATA}}
+	request := &pb.QueryOptions{Sources: []topics.Topic{topics.Topic_GPS_TRIP_UPDATE_DATA}, Limit: 100}
 	stream, err := client.Query(context.Background(), request)
 	if err != nil {
 		t.Errorf("Failed to query replayer: %s", err.Error())
 	}
+	var c int
 	for {
-		event, err := stream.Recv()
+		_, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			t.Errorf("%v.Query(_) = _, %v", client, err)
 		}
-		t.Fatal(event)
+		c++
+	}
+	if c != 100 {
+		t.Errorf("Query returned wrong number of results")
 	}
 }
 

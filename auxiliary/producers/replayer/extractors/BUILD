@@ -21,5 +21,6 @@ go_library(
         "@org_mongodb_go_mongo_driver//bson:go_default_library",
         "@org_mongodb_go_mongo_driver//bson/primitive:go_default_library",
         "@org_mongodb_go_mongo_driver//mongo:go_default_library",
+        "@org_mongodb_go_mongo_driver//mongo/options:go_default_library",
     ],
 )

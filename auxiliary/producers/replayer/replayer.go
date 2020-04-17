@@ -31,7 +31,7 @@ type Replayer struct {
 	producer    *kafkaproducer.KafkaProducer
 }
 
-func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
+func (r *Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 	if r.Extractor == nil {
 		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
@@ -42,6 +42,7 @@ func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 	}
 
 	for {
+		exit := false
 		select {
 		case ctrlMessage := <-r.Ctrl:
 			switch ctrlMessage {
@@ -64,30 +65,18 @@ func (r Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 				if err := stream.Send(replayedEvent); err != nil {
 					return err
 				}
-				// dataset.Events = append(dataset.Events, event)
-				/* &pb.ReplayedEvent{
-				  ReplayTimestamp: newTime,
-				  // reflect.TypeOf(ex.Proto).Elem()
-				  // Event: event.(pb.isReplayedEvent_Event),
-				})
-				*/
-
-				/*
-					eventBytes, err := proto.Marshal(event)
-					if err != nil {
-						r.log.Errorf("Failed to marshal proto:", err)
-						continue
-					}
-
-					r.log.Debugf("%v have passed since the last event", passedTime)
-					r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
-					r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
-				*/
+			} else {
+				// Do not repeat when querying
+				exit = true
+				break
 			}
 		}
+		if exit {
+			break
+		}
 	}
+	r.log.Debug("Exiting")
 	r.Extractor.Done()
-	log.Info("Test")
 	return nil
 }
 
@@ -135,7 +124,7 @@ func (r *Replayer) produce() error {
 				r.log.Error("Cannot reset")
 			}
 		case pb.InternalControlMessageType_STOP:
-			// // Noop
+			// Noop
 		}
 	}
 
@@ -210,7 +199,7 @@ func (r *Replayer) produce() error {
 }
 
 // Start ...
-func (r Replayer) Start(log *logrus.Logger) error {
+func (r *Replayer) Start(log *logrus.Logger) error {
 	r.log = log.WithField("source", r.SourceName)
 	r.log.Info("Starting")
 	if r.Extractor == nil {
@@ -219,7 +208,7 @@ func (r Replayer) Start(log *logrus.Logger) error {
 	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
 	err := r.loop()
 	if err != nil {
-		log.Error(err)
+		r.log.Error(err)
 	}
 	return nil
 }
