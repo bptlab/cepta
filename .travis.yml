@@ -12,6 +12,8 @@ env:
     - V=2.2.0
     - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
 
+before_script: rm .bazelrc && mv .bazelrc.ci .bazelrc
+
 script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
 
 matrix:
