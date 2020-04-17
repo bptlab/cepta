@@ -398,23 +398,23 @@ java_proto_library(
 
 
 go_proto_library(
-    name = "stays_in_station_go_proto",
+    name = "stays_in_station_event_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/staysinstationevent",
-    proto = ":stays_in_station_proto",
+    proto = ":stays_in_station_event_proto",
     visibility = ["//visibility:public"],
 )
 
 proto_library(
-    name = "stays_in_station_proto",
+    name = "stays_in_station_event_proto",
     srcs = ["StaysInStationEvent.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 java_proto_library(
-    name = "stays_in_station_java_proto",
+    name = "stays_in_station_event_java_proto",
     visibility = ["//visibility:public"],
-    deps = [":stays_in_station_proto"],
+    deps = [":stays_in_station_event_proto"],
 )
 
 filegroup(
@@ -460,8 +460,8 @@ filegroup(
         ":vehicle_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
-        ":stays_in_station_go_proto",
-        ":stays_in_station_java_proto",
+        ":stays_in_station_event_go_proto",
+        ":stays_in_station_event_java_proto",
 
     ],
     visibility = ["//visibility:public"],

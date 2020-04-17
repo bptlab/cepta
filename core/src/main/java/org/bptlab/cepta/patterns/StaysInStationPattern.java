@@ -2,6 +2,8 @@ package org.bptlab.cepta.patterns;
 
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.pattern.*;
+import org.apache.flink.cep.pattern.conditions.*;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class StaysInStationPattern {
@@ -38,11 +40,16 @@ public class StaysInStationPattern {
           return false;
         }
         
-        LiveTrainData first;
-        for (LiveTrainData previous : context.getEventsForPattern("arrivesInStation")){
-          first = previous;
-          break;
+        LiveTrainData first = null;
+        try {
+          for (LiveTrainData previous : context.getEventsForPattern("arrivesInStation")){
+            first = previous;
+            break;
+          }
+        } catch (Exception e) {
+          //TODO: handle exception
         }
+       
         if (first.getStationId() == incoming.getStationId()) {
           return true;
         }

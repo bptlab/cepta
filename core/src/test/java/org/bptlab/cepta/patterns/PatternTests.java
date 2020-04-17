@@ -1,4 +1,4 @@
-package org.bptlab.cepta;
+package org.bptlab.cepta.patterns;
 
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
@@ -9,9 +9,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import java.util.Iterator;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.StaysInStation;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
+import java.util.*;
+
+
 
 
 
@@ -29,24 +31,24 @@ public class PatternTests {
             System.out.println(rüdiger.toString());
         }
 
-        PatternStream<Event> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
-        DataStream<StaysInStation> generatedEvents = patternStream.select(
+        DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
             (Map<String, List<LiveTrainData>> pattern) -> {
                 LiveTrainData first = (LiveTrainData) pattern.get("first").get(0);
 
-                StaysInStation detected = StaysInStation.newBuilder()
-                    .setTrainSectionId(first.getTrainSectionId)
-                    .setStationId(first.getStationid)
-                    .setTrainId(first.getTrainId)
-                    .setEventTime(first.getEventTime)
+                StaysInStationEvent detected = StaysInStationEvent.newBuilder()
+                    .setTrainSectionId(first.getTrainSectionId())
+                    .setStationId(first.getStationId())
+                    .setTrainId(first.getTrainId())
+                    .setEventTime(first.getEventTime())
                     .build();
                 return detected;
             }
         );
 
         int count = 0;
-        Iterator<StaysInStation> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
+        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
         while(detectedEventsItr.hasNext()){
             count ++;
         }
