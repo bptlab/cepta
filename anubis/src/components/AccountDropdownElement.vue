@@ -1,6 +1,6 @@
 <template>
   <li>
-    <router-link :to="route" class="d-b td-n pY-5">
+    <router-link :to="route" class="d-b td-n">
       <slot></slot>
       <span>{{ title }}</span>
     </router-link>
@@ -15,9 +15,13 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   components: {}
 })
 export default class extends Vue {
-  @Prop({ default: "" }) private route!: string;
+  @Prop({ default: "/" }) private route!: string;
   @Prop({ default: "I provide account details" }) private title!: string;
 }
 </script>
 
-<style scoped lang="sass"></style>
+<style scoped lang="sass">
+a
+  +theme(color, c-default-text)
+  color: inherit
+</style>

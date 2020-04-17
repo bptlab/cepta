@@ -1,9 +1,5 @@
 <template>
   <div class="error-container">
-    <div class="error-image">
-      <img alt="" src="../assets/images/500.png" />
-    </div>
-
     <div class="error">
       <h1 class="mB-30">500</h1>
       <h3 class="mB-10">Internal server error</h3>
@@ -18,7 +14,7 @@
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "Error500",
+  name: "ErrorPage500",
   components: {}
 })
 export default class ErrorPage500 extends Vue {
@@ -28,9 +24,12 @@ export default class ErrorPage500 extends Vue {
 
 <style lang="sass">
 .error-container
+  position: relative
   .error-image
     margin-right: 60px
   .error
+    width: 100%
+    text-align: center
     h1
       font-size: 60px
       font-weight: 900

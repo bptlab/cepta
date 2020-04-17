@@ -6,7 +6,7 @@ import store from "./store";
 import "bootstrap";
 import Trend from "vuetrend";
 import NProgress from "vue-nprogress";
-import VueCookies from "vue-cookies";
+import VueCookies from "vue-cookies-ts";
 import axios from "axios";
 import VueAxios from "vue-axios";
 import { VueMasonryPlugin } from "vue-masonry";
@@ -22,8 +22,8 @@ const options = {
 
 Vue.use(Trend);
 Vue.use(VueAxios, axios);
-Vue.use(VueCookies);
 Vue.use(NProgress, options);
+Vue.use(VueCookies);
 Vue.use(VueMasonryPlugin);
 
 Vue.config.productionTip = false;

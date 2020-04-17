@@ -4,7 +4,7 @@
       class="landing-cover d-n@sm- peer peer-greed h-100 pos-r bgr-n bgpX-c bgpY-c bgsz-cv"
     >
       <div class="pos-a centerXY">
-        <div class="landing-logo bgc-white pos-r">
+        <div class="landing-logo pos-r">
           <img class="pos-r" src="../assets/images/logo.png" alt="" />
           <p>
             <router-link to="/" class="landing-name pos-r">{{
@@ -14,9 +14,7 @@
         </div>
       </div>
     </div>
-    <div
-      class="landing-content col-12 col-md-4 peer pX-40 pY-80 h-100 bgc-white scrollable pos-r"
-    >
+    <div class="landing-content col-12 col-md-4 peer pX-40 pY-80 h-100 pos-r">
       <router-view />
     </div>
   </div>
@@ -43,10 +41,12 @@ export default class Landing extends Vue {
 
 .landing-content
   min-width: 320px
+  overflow-y: scroll
 
 .landing-cover
   background-image: url("../assets/images/bg.jpg")
   .landing-logo
+    +theme(background-color, bgc-body)
     width: 140px
     border-radius: 10px
     img

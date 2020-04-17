@@ -2,7 +2,7 @@
   <li class="dropdown">
     <!-- User account dropdown toggle -->
     <a
-      class="dropdown-toggle no-after peers fxw-nw ai-c lh-1"
+      class="dropdown-toggle no-after peers fxw-nw ai-c"
       data-toggle="dropdown"
     >
       <div class="peer mR-10">
@@ -15,15 +15,18 @@
     <!-- Dropdown menu items -->
     <ul class="dropdown-menu fsz-sm">
       <!-- Profile page -->
-      <account-dropdown-element title="Profile" route="profile">
+      <account-dropdown-element title="Profile" :route="{ name: 'profile' }">
         <i class="icon-user mR-10"></i>
       </account-dropdown-element>
       <!-- Settings page -->
-      <account-dropdown-element title="Settings" route="/user/settings">
+      <account-dropdown-element title="Settings" :route="{ name: 'settings' }">
         <i class="icon-settings mR-10"></i>
       </account-dropdown-element>
-      <!-- Messages page -->
-      <account-dropdown-element title="Messages" route="profile/messages">
+      <!-- Notifications page -->
+      <account-dropdown-element
+        title="Notifications"
+        :route="{ name: 'notifications' }"
+      >
         <i class="icon-email mR-10"></i>
       </account-dropdown-element>
       <li role="separator" class="divider"></li>
@@ -64,8 +67,21 @@ export default class AccountDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
-.dropdown-menu
-  padding: 5px 20px
-  min-width: 100px
-  margin-left: -50px
+.dropdown
+  position: relative
+  display: block
+  cursor: pointer
+  margin-left: 15px
+
+  a
+    transition: all 0.1s ease-in-out
+
+  .dropdown-menu
+    +theme(background-color, bgc-navbar)
+    line-height: 35px
+    margin-left: -50px
+    li
+      padding: 2px 12px
+      &:hover
+        +theme-color-diff(background-color, bgc-navbar, 10)
 </style>
