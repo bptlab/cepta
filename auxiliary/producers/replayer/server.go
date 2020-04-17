@@ -23,22 +23,22 @@ import (
 	checkpointpb "github.com/bptlab/cepta/models/events/checkpointdataevent"
 	eventpb "github.com/bptlab/cepta/models/events/event"
 
-	// crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
-	// crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
-	// crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
-	// crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
-	// delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
-	// gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
-	// infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
-	// livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
-	// locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
-	// plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
-	// predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
-	// railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
-	// stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
-	// traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
-	// vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
-	// weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
+	crewactivitypb "github.com/bptlab/cepta/models/events/crewactivitydataevent"
+	crewprependpb "github.com/bptlab/cepta/models/events/crewprependdataevent"
+	crewshiftpb "github.com/bptlab/cepta/models/events/crewshiftdataevent"
+	crewtransitionpb "github.com/bptlab/cepta/models/events/crewtransitiondataevent"
+	delayexplanationpb "github.com/bptlab/cepta/models/events/delayexplanationdataevent"
+	gpstripupdatespb "github.com/bptlab/cepta/models/events/gpstripupdate"
+	infrastructuremanagerpb "github.com/bptlab/cepta/models/events/infrastructuremanagerdataevent"
+	livetrainpb "github.com/bptlab/cepta/models/events/livetraindataevent"
+	locationpb "github.com/bptlab/cepta/models/events/locationdataevent"
+	plannedtrainpb "github.com/bptlab/cepta/models/events/plannedtraindataevent"
+	predictedtrainpb "github.com/bptlab/cepta/models/events/predictedtraindataevent"
+	railwayundertakingpb "github.com/bptlab/cepta/models/events/railwayundertakingdataevent"
+	stationpb "github.com/bptlab/cepta/models/events/stationdataevent"
+	traininformationpb "github.com/bptlab/cepta/models/events/traininformationdataevent"
+	vehiclepb "github.com/bptlab/cepta/models/events/vehicledataevent"
+	weatherpb "github.com/bptlab/cepta/models/events/weatherdataevent"
 
 	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
@@ -97,7 +97,8 @@ func (s *server) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Succ
 	log.Infof("Starting")
 	s.active = true
 	for _, replayer := range replayers {
-		go replayer.Start(log)
+		// Send START control message
+		replayer.Ctrl <- pb.InternalControlMessageType_START
 	}
 	return &pb.Success{Success: true}, nil
 }
@@ -105,6 +106,10 @@ func (s *server) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Succ
 func (s *server) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Stopping")
 	s.active = false
+	for _, replayer := range replayers {
+		// Send STOP control message
+		replayer.Ctrl <- pb.InternalControlMessageType_STOP
+	}
 	return &pb.Success{Success: true}, nil
 }
 
@@ -213,144 +218,168 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 		Topic: topics.Topic_CHECKPOINT_DATA,
 	}
 
-	/*
-		crewActivity := &Replayer{
-			SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewActivity{}, &crewactivitypb.CrewActivityData{}),
-			Topic:      topics.Topic_CREW_ACTIVITY_DATA,
-		}
-		crewEnd := &Replayer{
-			SourceName: topics.Topic_CREW_END_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewPrepEnd{}, &crewprependpb.CrewPrepEndData{}),
-			Topic:      topics.Topic_CREW_END_DATA,
-		}
-		crewPrep := &Replayer{
-			SourceName: topics.Topic_CREW_PREP_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewPrepEnd{}, &crewprependpb.CrewPrepEndData{}),
-			Topic:      topics.Topic_CREW_PREP_DATA,
-		}
-		crewShift := &Replayer{
-			SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewShift{}, &crewshiftpb.CrewShiftData{}),
-			Topic:      topics.Topic_CREW_SHIFT_DATA,
-		}
-		crewTransition := &Replayer{
-			SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_CrewTransition{}, &crewtransitionpb.CrewTransitionData{}),
-			Topic:      topics.Topic_CREW_TRANSITION_DATA,
-		}
+	crewActivity := &Replayer{
+		SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_CrewActivity{CrewActivity: event.(*crewactivitypb.CrewActivityData)}}
+		}, &crewactivitypb.CrewActivityData{}),
+		Topic: topics.Topic_CREW_ACTIVITY_DATA,
+	}
 
-		delayExplanation := &Replayer{
-			SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_DelayExplanation{}, &delayexplanationpb.DelayExplanationData{}),
-			Topic:      topics.Topic_DELAY_EXPLANATION_DATA,
-		}
+	crewPrepEnd := &Replayer{
+		SourceName: topics.Topic_CREW_PREP_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_CrewPrepEnd{CrewPrepEnd: event.(*crewprependpb.CrewPrepEndData)}}
+		}, &crewprependpb.CrewPrepEndData{}),
+		Topic: topics.Topic_CREW_PREP_DATA,
+	}
 
-		infrastructureManager := &Replayer{
-			SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_InfrastructureManager{}, &infrastructuremanagerpb.InfrastructureManagerData{}),
-			Topic:      topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
-		}
+	crewShift := &Replayer{
+		SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_CrewShift{CrewShift: event.(*crewshiftpb.CrewShiftData)}}
+		}, &crewshiftpb.CrewShiftData{}),
+		Topic: topics.Topic_CREW_SHIFT_DATA,
+	}
 
-		liveTrain := &Replayer{
-			SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_LiveTrain{}, &livetrainpb.LiveTrainData{}),
-			Topic:      topics.Topic_LIVE_TRAIN_DATA,
-		}
+	crewTransition := &Replayer{
+		SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_CrewTransition{CrewTransition: event.(*crewtransitionpb.CrewTransitionData)}}
+		}, &crewtransitionpb.CrewTransitionData{}),
+		Topic: topics.Topic_CREW_TRANSITION_DATA,
+	}
 
-		location := &Replayer{
-			SourceName: topics.Topic_LOCATION_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Location{}, &locationpb.LocationData{}),
-			Topic:      topics.Topic_LOCATION_DATA,
-		}
+	delayExplanation := &Replayer{
+		SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_DelayExplanation{DelayExplanation: event.(*delayexplanationpb.DelayExplanationData)}}
+		}, &delayexplanationpb.DelayExplanationData{}),
+		Topic: topics.Topic_DELAY_EXPLANATION_DATA,
+	}
 
-		plannedTrain := &Replayer{
-			SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_PlannedTrain{}, &plannedtrainpb.PlannedTrainData{}),
-			Topic:      topics.Topic_PLANNED_TRAIN_DATA,
-		}
+	infrastructureManager := &Replayer{
+		SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_InfrastructureManager{InfrastructureManager: event.(*infrastructuremanagerpb.InfrastructureManagerData)}}
+		}, &infrastructuremanagerpb.InfrastructureManagerData{}),
+		Topic: topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
+	}
 
-		predictedTrain := &Replayer{
-			SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_PredictedTrain{}, &predictedtrainpb.PredictedTrainData{}),
-			Topic:      topics.Topic_PREDICTED_TRAIN_DATA,
-		}
+	liveTrain := &Replayer{
+		SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
+		}, &livetrainpb.LiveTrainData{}),
+		Topic: topics.Topic_LIVE_TRAIN_DATA,
+	}
 
-		railwayUndertaking := &Replayer{
-			SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_RailwayUndertaking{}, &railwayundertakingpb.RailwayUndertakingData{}),
-			Topic:      topics.Topic_RAILWAY_UNDERTAKING_DATA,
-		}
+	location := &Replayer{
+		SourceName: topics.Topic_LOCATION_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
+		}, &locationpb.LocationData{}),
+		Topic: topics.Topic_LOCATION_DATA,
+	}
 
-		station := &Replayer{
-			SourceName: topics.Topic_STATION_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Station{}, &stationpb.StationData{}),
-			Topic:      topics.Topic_STATION_DATA,
-		}
+	plannedTrain := &Replayer{
+		SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
+		}, &plannedtrainpb.PlannedTrainData{}),
+		Topic: topics.Topic_PLANNED_TRAIN_DATA,
+	}
 
-		trainInformation := &Replayer{
-			SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_TrainInformation{}, &traininformationpb.TrainInformationData{}),
-			Topic:      topics.Topic_TRAIN_INFORMATION_DATA,
-		}
+	predictedTrain := &Replayer{
+		SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_PredictedTrain{PredictedTrain: event.(*predictedtrainpb.PredictedTrainData)}}
+		}, &predictedtrainpb.PredictedTrainData{}),
+		Topic: topics.Topic_PREDICTED_TRAIN_DATA,
+	}
 
-		vehicle := &Replayer{
-			SourceName: topics.Topic_VEHICLE_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Vehicle{}, &vehiclepb.VehicleData{}),
-			Topic:      topics.Topic_VEHICLE_DATA,
-		}
+	railwayUndertaking := &Replayer{
+		SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_RailwayUndertaking{RailwayUndertaking: event.(*railwayundertakingpb.RailwayUndertakingData)}}
+		}, &railwayundertakingpb.RailwayUndertakingData{}),
+		Topic: topics.Topic_RAILWAY_UNDERTAKING_DATA,
+	}
 
-		weather := &Replayer{
-			SourceName: topics.Topic_WEATHER_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "id"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_Weather{}, &weatherpb.WeatherData{}),
-			Topic:      topics.Topic_WEATHER_DATA,
-		}
+	station := &Replayer{
+		SourceName: topics.Topic_STATION_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_Station{Station: event.(*stationpb.StationData)}}
+		}, &stationpb.StationData{}),
+		Topic: topics.Topic_STATION_DATA,
+	}
 
-		gps := &Replayer{
-			SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
-			Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
-			Extractor:  extractors.NewMongoExtractor(mongo, &eventpb.Event_GPSTripUpdate{}, &gpstripupdatespb.GPSTripUpdate{}),
-			Topic:      topics.Topic_GPS_TRIP_UPDATE_DATA,
-		}
-	*/
+	trainInformation := &Replayer{
+		SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_TrainInformation{TrainInformation: event.(*traininformationpb.TrainInformationData)}}
+		}, &traininformationpb.TrainInformationData{}),
+		Topic: topics.Topic_TRAIN_INFORMATION_DATA,
+	}
+
+	vehicle := &Replayer{
+		SourceName: topics.Topic_VEHICLE_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_Vehicle{Vehicle: event.(*vehiclepb.VehicleData)}}
+		}, &vehiclepb.VehicleData{}),
+		Topic: topics.Topic_VEHICLE_DATA,
+	}
+
+	weather := &Replayer{
+		SourceName: topics.Topic_WEATHER_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "id"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
+		}, &weatherpb.WeatherData{}),
+		Topic: topics.Topic_WEATHER_DATA,
+	}
+
+	gps := &Replayer{
+		SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
+		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
+		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_GpsTripUpdate{GpsTripUpdate: event.(*gpstripupdatespb.GPSTripUpdate)}}
+		}, &gpstripupdatespb.GPSTripUpdate{}),
+		Topic: topics.Topic_GPS_TRIP_UPDATE_DATA,
+	}
 
 	replayers = []*Replayer{
 		checkpoints,
-		/*
-			crewActivity,
-			crewEnd,
-			crewPrep,
-			crewShift,
-			crewTransition,
-			delayExplanation,
-			infrastructureManager,
-			liveTrain,
-			location,
-			plannedTrain,
-			predictedTrain,
-			railwayUndertaking,
-			station,
-			trainInformation,
-			vehicle,
-			weather,
-			gps,
-		*/
+		crewActivity,
+		crewPrepEnd,
+		crewShift,
+		crewTransition,
+		delayExplanation,
+		infrastructureManager,
+		liveTrain,
+		location,
+		plannedTrain,
+		predictedTrain,
+		railwayUndertaking,
+		station,
+		trainInformation,
+		vehicle,
+		weather,
+		gps,
 	}
 
 	// Connect to kafka
@@ -358,6 +387,11 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	if err != nil {
 		log.Fatalf("Cannot produce events: %s", err.Error())
 	}
+	defer func() {
+		if err := producer.Close(); err != nil {
+			log.Errorf("Failed to close kafka producer: %v", err)
+		}
+	}()
 
 	for _, replayer := range replayers {
 		if !shouldInclude(replayer, s.included, s.excluded, false) {
@@ -370,12 +404,12 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 		replayer.Query.Timerange = &s.timerange
 		replayer.Query.Limit = &s.limit
 		replayer.Query.Offset = 0
-		replayer.Active = &s.active
 		replayer.Speed = &s.speed
 		replayer.Mode = &s.mode
 		replayer.Repeat = s.repeat
 		replayer.Brokers = s.kafkaConfig.Brokers
 		activeReplayers = append(activeReplayers, replayer)
+		go replayer.Start(log)
 	}
 
 	log.Infof("Serving at %s", listener.Addr())
