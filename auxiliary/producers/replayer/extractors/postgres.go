@@ -3,12 +3,13 @@ package extractors
 import (
 	"fmt"
 	"time"
-	// "github.com/golang/protobuf/proto"
+
+	"database/sql"
+
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
-	"database/sql"
-	pb "github.com/bptlab/cepta/models/grpc/replayer"
 )
 
 // DbExtractor ...
@@ -19,8 +20,6 @@ type DbExtractor interface {
 
 // Extractor ...
 type Extractor interface {
-	// Get() (time.Time, proto.Message, error)
-	// GetReplayedEvent() (*pb.ReplayedEvent, error)
 	Get() (time.Time, *pb.ReplayedEvent, error)
 	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
 	Next() bool
@@ -28,7 +27,7 @@ type Extractor interface {
 	SetDebug(bool)
 }
 
-// ReplayQuery ... 
+// ReplayQuery ...
 type ReplayQuery struct {
 	IncludeIds *[]string
 	Timerange  *pb.Timerange
@@ -39,29 +38,24 @@ type ReplayQuery struct {
 
 // PostgresExtractor ...
 type PostgresExtractor struct {
-	Extractor DbExtractor
-	DB *libdb.PostgresDB
-	debug bool
-	rows *sql.Rows
+	Extractor   DbExtractor
+	DB          *libdb.PostgresDB
+	debug       bool
+	rows        *sql.Rows
 	IDFieldName string
 }
 
 // NewPostgresExtractor ...
 func NewPostgresExtractor(db *libdb.PostgresDB, extractor DbExtractor) *PostgresExtractor {
 	return &PostgresExtractor{
-		DB: db,
+		DB:        db,
 		Extractor: extractor,
 	}
 }
 
-/* Get ...
-func (ex *PostgresExtractor) Get() (time.Time, proto.Message, error) {
-	return ex.Extractor.GetAll(ex.rows, ex.DB.DB)
-}
-*/
-
+// Get ...
 func (ex *PostgresExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
-  // TODO: Implement
+	// TODO: Implement: return ex.Extractor.GetAll(ex.rows, ex.DB.DB)
 	return time.Time{}, nil, nil
 }
 

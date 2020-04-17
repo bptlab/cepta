@@ -9,7 +9,6 @@ import (
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 
-	// "github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/romnnn/bsonpb"
@@ -50,8 +49,6 @@ func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 
 	// Now unmarshal to proto message
 	var replayedEvent pb.ReplayedEvent
-	// wrapper := reflect.New(reflect.TypeOf(ex.Wrapper).Elem()).Interface().(proto.Message)
-	// event := reflect.New(reflect.TypeOf(ex.Proto).Elem()).Interface().(proto.Message)
 	event := proto.Clone(ex.Proto)
 	if err := ex.unmarshaler.Unmarshal(resultBytes, event); err != nil {
 		return replayTime, nil, fmt.Errorf("unmarshaling failed: %v", err)
@@ -59,25 +56,6 @@ func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 	replayedEvent.Event = ex.WrapperFunc(event)
 	return replayTime, &replayedEvent, nil
 }
-
-/* GetReplayedEvent ...
-func (ex *MongoExtractor) GetReplayedEvent() (*pb.ReplayedEvent, error) {
-  var replayEvent pb.ReplayedEvent
-  replayTime, event, err := ex.Get()
-  if err != nil {
-    return nil, err
-  }
-  if protoReplayTime, err := ptypes.TimestampProto(replayTime); err != nil {
-     replayEvent.ReplayTimestamp = protoReplayTime
-  }
-  fmt.Printf("%v", event)
-  fmt.Printf("%v", event)
-  // TODO: Cast to correct type here
-  // replayEvent.Event = reflect.ValueOf(event).Convert(reflect.TypeOf(ex.Proto).Elem())
-  // replayEvent.Event = event.(reflect.New(reflect.TypeOf(ex.Proto))
-  return &replayEvent, nil
-}
-*/
 
 // StartQuery ...
 func (ex *MongoExtractor) StartQuery(collectionName string, IDFieldName string, query *ReplayQuery) error {
