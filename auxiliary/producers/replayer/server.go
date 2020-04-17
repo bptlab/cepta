@@ -210,7 +210,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	checkpoints := &Replayer{
-		SourceName: topics.Topic_CHECKPOINT_DATA.String(),
+		SourceName: "checkpoints"
 		Query:      &extractors.ReplayQuery{SortColumn: "departureTime"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Checkpoint{Checkpoint: event.(*checkpointpb.CheckpointData)}}
@@ -219,7 +219,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	crewActivity := &Replayer{
-		SourceName: topics.Topic_CREW_ACTIVITY_DATA.String(),
+		SourceName: "crew_activity",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewActivity{CrewActivity: event.(*crewactivitypb.CrewActivityData)}}
@@ -228,7 +228,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	crewPrepEnd := &Replayer{
-		SourceName: topics.Topic_CREW_PREP_DATA.String(),
+		SourceName: "crew_end",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewPrepEnd{CrewPrepEnd: event.(*crewprependpb.CrewPrepEndData)}}
@@ -237,7 +237,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	crewShift := &Replayer{
-		SourceName: topics.Topic_CREW_SHIFT_DATA.String(),
+		SourceName: "crew_shift",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewShift{CrewShift: event.(*crewshiftpb.CrewShiftData)}}
@@ -246,7 +246,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	crewTransition := &Replayer{
-		SourceName: topics.Topic_CREW_TRANSITION_DATA.String(),
+		SourceName: "crew_transition",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewTransition{CrewTransition: event.(*crewtransitionpb.CrewTransitionData)}}
@@ -255,7 +255,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	delayExplanation := &Replayer{
-		SourceName: topics.Topic_DELAY_EXPLANATION_DATA.String(),
+		SourceName: "vsp",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_DelayExplanation{DelayExplanation: event.(*delayexplanationpb.DelayExplanationData)}}
@@ -264,7 +264,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	infrastructureManager := &Replayer{
-		SourceName: topics.Topic_INFRASTRUCTURE_MANAGER_DATA.String(),
+		SourceName: "infrastructure_managerdata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_InfrastructureManager{InfrastructureManager: event.(*infrastructuremanagerpb.InfrastructureManagerData)}}
@@ -273,7 +273,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	liveTrain := &Replayer{
-		SourceName: topics.Topic_LIVE_TRAIN_DATA.String(),
+		SourceName: "livetraindata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
@@ -282,7 +282,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	location := &Replayer{
-		SourceName: topics.Topic_LOCATION_DATA.String(),
+		SourceName: "locationdata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
@@ -291,7 +291,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	plannedTrain := &Replayer{
-		SourceName: topics.Topic_PLANNED_TRAIN_DATA.String(),
+		SourceName: "plannedtraindata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
@@ -300,7 +300,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	predictedTrain := &Replayer{
-		SourceName: topics.Topic_PREDICTED_TRAIN_DATA.String(),
+		SourceName: "predictedtraindata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PredictedTrain{PredictedTrain: event.(*predictedtrainpb.PredictedTrainData)}}
@@ -309,7 +309,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	railwayUndertaking := &Replayer{
-		SourceName: topics.Topic_RAILWAY_UNDERTAKING_DATA.String(),
+		SourceName: "railwayundertakingdata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_RailwayUndertaking{RailwayUndertaking: event.(*railwayundertakingpb.RailwayUndertakingData)}}
@@ -318,7 +318,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	station := &Replayer{
-		SourceName: topics.Topic_STATION_DATA.String(),
+		SourceName: "station",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Station{Station: event.(*stationpb.StationData)}}
@@ -327,7 +327,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	trainInformation := &Replayer{
-		SourceName: topics.Topic_TRAIN_INFORMATION_DATA.String(),
+		SourceName: "traininformationdata",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_TrainInformation{TrainInformation: event.(*traininformationpb.TrainInformationData)}}
@@ -336,7 +336,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	vehicle := &Replayer{
-		SourceName: topics.Topic_VEHICLE_DATA.String(),
+		SourceName: "vehicle",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Vehicle{Vehicle: event.(*vehiclepb.VehicleData)}}
@@ -345,7 +345,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	weather := &Replayer{
-		SourceName: topics.Topic_WEATHER_DATA.String(),
+		SourceName: "weather",
 		Query:      &extractors.ReplayQuery{SortColumn: "id"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
@@ -354,7 +354,7 @@ func (s *server) serve(listener net.Listener, log *logrus.Logger) error {
 	}
 
 	gps := &Replayer{
-		SourceName: topics.Topic_GPS_TRIP_UPDATE_DATA.String(),
+		SourceName: "gpsupdates",
 		Query:      &extractors.ReplayQuery{SortColumn: "actualTime"},
 		Extractor: extractors.NewMongoExtractor(mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_GpsTripUpdate{GpsTripUpdate: event.(*gpstripupdatespb.GPSTripUpdate)}}
