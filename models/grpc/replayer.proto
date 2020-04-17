@@ -17,8 +17,8 @@ service Replayer {
 
   // Configuration
   rpc SetSpeed(Speed) returns (Success) {}
-  rpc SetType(ReplayTypeOption) returns (Success) {}
-  rpc SetOptions(ReplayOptions) returns (Success) {}
+  rpc SetType(ReplayModeOption) returns (Success) {}
+  rpc SetOptions(ReplaySetOptionsRequest) returns (Success) {}
 
   // Query
   rpc GetStatus(Empty) returns (ReplayStatus) {}
@@ -36,14 +36,14 @@ enum InternalControlMessageType {
   STOP = 4;
 }
 
-enum ReplayType {
+enum ReplayMode {
   // Proportional is default
   PROPORTIONAL = 0;
   CONSTANT = 1;
 }
 
-message ReplayTypeOption {
-  ReplayType type = 1;
+message ReplayModeOption {
+  ReplayMode mode = 1;
 }
 
 message Speed {
@@ -60,16 +60,40 @@ message Timerange {
 }
 
 message ReplayOptions {
+  Speed speed = 1;
+  ReplayMode mode = 2;
+  Timerange timerange = 3;
+  int32 limit = 5;
+  int32 offset = 6;
+  bool repeat = 7;
+}
+
+message ActiveReplayOptions {
+  models.constants.Topic source = 1; // For mapping
   Speed speed = 2;
-  Timerange range = 3;
-  ReplayType type = 5;
+  ReplayMode mode = 3;
+  Timerange timerange = 4;
+  bool repeat = 5;
+}
+
+message ReplaySetOptionsRequest {
+  repeated ActiveReplayOptions sources = 1;
+  ActiveReplayOptions options = 2;
+}
+
+message SourceQueryOptions {
+  models.constants.Topic source = 1;  // For mapping
+  repeated string ids = 2;
+  ReplayOptions options = 3;
 }
 
 message ReplayStartOptions {
-  repeated string ids = 1;
-  Speed speed = 2;
-  Timerange range = 3;
-  ReplayType type = 4;
+  repeated SourceQueryOptions sources = 1;
+  ReplayOptions options = 2;
+}
+
+message QueryOptions {
+  repeated SourceQueryOptions sources = 1;
 }
 
 message Empty {}
@@ -82,12 +106,3 @@ message ReplayedEvent {
   google.protobuf.Timestamp replay_timestamp = 1;
   models.events.Event event = 2;
 };
-
-// Query Options
-message QueryOptions {
-  repeated string ids = 1;
-  repeated models.constants.Topic sources = 2;
-  Timerange timerange = 3;
-  int32 limit = 4;
-  int32 offset = 5;
-}

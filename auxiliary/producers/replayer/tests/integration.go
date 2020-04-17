@@ -45,7 +45,7 @@ func defaultReplayerServer() ReplayerServer {
 		},
 	}
 	server := NewReplayerServer(mongoConfig, KafkaConfig)
-	server.Limit = 100
+	server.StartOptions.Options = &pb.ReplayOptions{Limit: 100}
 	return server
 }
 
@@ -56,7 +56,7 @@ func setUpServer(t *testing.T) ReplayerServer {
 	go func() {
 		log = logrus.New()
 		log.SetLevel(logLevel)
-		if err := replayer.Serve(listener, log); err != nil {
+		if err := replayer.Serve(listener, log, []string{}, []string{}); err != nil {
 			t.Fatalf("Failed to serve the replayer: %v", err)
 		}
 	}()
@@ -79,7 +79,12 @@ func TestQuery(t *testing.T) {
 	}
 	defer conn.Close()
 	client := pb.NewReplayerClient(conn)
-	request := &pb.QueryOptions{Sources: []topics.Topic{topics.Topic_GPS_TRIP_UPDATE_DATA}, Limit: 100}
+	request := &pb.QueryOptions{Sources: []*pb.SourceQueryOptions{
+		{
+			Source:  topics.Topic_GPS_TRIP_UPDATE_DATA,
+			Options: &pb.ReplayOptions{Limit: 100},
+		},
+	}}
 	stream, err := client.Query(context.Background(), request)
 	if err != nil {
 		t.Errorf("Failed to query replayer: %s", err.Error())

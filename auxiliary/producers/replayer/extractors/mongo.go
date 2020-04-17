@@ -18,17 +18,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// WrapperFunc ...
 type WrapperFunc = func(event proto.Message) *eventpb.Event
+
+// MongoExtractorConfig ...
+type MongoExtractorConfig struct {
+	IDFieldName   string
+	SortFieldName string
+}
 
 // MongoExtractor ...
 type MongoExtractor struct {
+	DB          *libdb.MongoDB
 	Proto       proto.Message
 	WrapperFunc WrapperFunc
-	DB          *libdb.MongoDB
+	Config      MongoExtractorConfig
 	debug       bool
 	cur         *mongo.Cursor
 	unmarshaler bsonpb.Unmarshaler
-	IDFieldName string
+}
+
+// NewMongoExtractor ...
+func NewMongoExtractor(db *libdb.MongoDB, wrapperFunc WrapperFunc, proto proto.Message, config MongoExtractorConfig) *MongoExtractor {
+	return &MongoExtractor{
+		DB:          db,
+		Config:      config,
+		WrapperFunc: wrapperFunc,
+		Proto:       proto,
+	}
 }
 
 // Get ...
@@ -58,11 +75,10 @@ func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 }
 
 // StartQuery ...
-func (ex *MongoExtractor) StartQuery(collectionName string, IDFieldName string, query *ReplayQuery) error {
-	ex.IDFieldName = IDFieldName
+func (ex *MongoExtractor) StartQuery(collectionName string, queryOptions *pb.SourceQueryOptions) error {
 	ex.unmarshaler = bsonpb.Unmarshaler{AllowUnknownFields: true}
 	collection := ex.DB.DB.Collection(collectionName)
-	aggregation := ex.buildAggregation(query)
+	aggregation := ex.buildAggregation(queryOptions)
 	var err error
 	allowDisk := true
 	ex.cur, err = collection.Aggregate(context.Background(), aggregation, &options.AggregateOptions{AllowDiskUse: &allowDisk})
@@ -84,42 +100,31 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 	ex.debug = debug
 }
 
-// NewMongoExtractor ...
-func NewMongoExtractor(db *libdb.MongoDB, wrapperFunc WrapperFunc, proto proto.Message) *MongoExtractor {
-	return &MongoExtractor{
-		DB:          db,
-		WrapperFunc: wrapperFunc,
-		Proto:       proto,
-	}
-}
-
-func (ex *MongoExtractor) buildAggregation(queryOptions *ReplayQuery) bson.A {
+func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceQueryOptions) bson.A {
 	mustMatch := bson.D{}
 	// Match ERRIDs
-	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
+	if len(queryOptions.Ids) > 0 && ex.Config.IDFieldName != "" {
 		ids := bson.A{}
-		for _, id := range *(queryOptions.IncludeIds) {
+		for _, id := range queryOptions.Ids {
 			ids = append(ids, id)
 		}
-		mustMatch = append(mustMatch, bson.E{ex.IDFieldName, bson.E{"$in", ids}})
+		mustMatch = append(mustMatch, bson.E{ex.Config.IDFieldName, bson.E{"$in", ids}})
 	}
 
 	// Match time range
-	if constraints := mongoTimerangeQuery(queryOptions.SortColumn, queryOptions.Timerange); len(constraints) > 0 {
-		mustMatch = append(mustMatch, bson.E{queryOptions.SortColumn, constraints})
+	if constraints := mongoTimerangeQuery(ex.Config.SortFieldName, queryOptions.Options.Timerange); len(constraints) > 0 {
+		mustMatch = append(mustMatch, bson.E{ex.Config.SortFieldName, constraints})
 	}
 
 	aggregation := bson.A{
 		bson.D{{"$match", mustMatch}},
-		bson.D{{"$sort", bson.D{{queryOptions.SortColumn, 1}}}}, // Order by column (ascending order)
-		bson.D{{"$skip", queryOptions.Offset}},                  // Set offset
+		bson.D{{"$sort", bson.D{{ex.Config.SortFieldName, 1}}}}, // Order by column (ascending order)
+		bson.D{{"$skip", queryOptions.Options.Offset}},          // Set offset
 	}
 
 	// Set limit
-	if queryOptions.Limit != nil {
-		if limit := *queryOptions.Limit; limit > 0 {
-			aggregation = append(aggregation, bson.D{{"$limit", limit}})
-		}
+	if queryOptions.Options.Limit > 0 {
+		aggregation = append(aggregation, bson.D{{"$limit", queryOptions.Options.Limit}})
 	}
 
 	return aggregation

@@ -97,7 +97,7 @@ go_library(
 go_test(
     name = "replayer_unit",
     size = "small",
-    srcs = ["replayer_test.go"],
+    srcs = ["tests/unit.go"],
     embed = [":go_default_library"],
     deps = [
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
@@ -109,7 +109,7 @@ go_test(
 go_test(
     name = "replayer_integration",
     size = "medium",
-    srcs = ["replayer_integration.go"],
+    srcs = ["tests/integration.go"],
     embed = [":go_default_library"],
     deps = [
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library",

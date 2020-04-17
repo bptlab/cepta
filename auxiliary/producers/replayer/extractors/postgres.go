@@ -12,37 +12,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// DbExtractor ...
-type DbExtractor interface {
-	GetAll(*sql.Rows, *gorm.DB) (*pb.ReplayedEvent, error)
-	GetInstance() interface{}
-}
-
-// Extractor ...
-type Extractor interface {
-	Get() (time.Time, *pb.ReplayedEvent, error)
-	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
-	Next() bool
-	Done()
-	SetDebug(bool)
-}
-
-// ReplayQuery ...
-type ReplayQuery struct {
-	IncludeIds *[]string
-	Timerange  *pb.Timerange
-	SortColumn string
-	Limit      *int
-	Offset     int
+// PostgresExtractorConfig ...
+type PostgresExtractorConfig struct {
+	IDColumnName   string
+	SortColumnName string
 }
 
 // PostgresExtractor ...
 type PostgresExtractor struct {
-	Extractor   DbExtractor
-	DB          *libdb.PostgresDB
-	debug       bool
-	rows        *sql.Rows
-	IDFieldName string
+	Extractor DbExtractor
+	DB        *libdb.PostgresDB
+	Config    PostgresExtractorConfig
+	debug     bool
+	rows      *sql.Rows
 }
 
 // NewPostgresExtractor ...
@@ -60,9 +42,8 @@ func (ex *PostgresExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 }
 
 // StartQuery ...
-func (ex *PostgresExtractor) StartQuery(tableName string, IDFieldName string, query *ReplayQuery) error {
-	ex.IDFieldName = IDFieldName
-	dbQuery := ex.makeQuery(query)
+func (ex *PostgresExtractor) StartQuery(tableName string, queryOptions *pb.SourceQueryOptions) error {
+	dbQuery := ex.makeQuery(queryOptions)
 	var err error
 	ex.rows, err = dbQuery.Rows()
 	return err
@@ -90,28 +71,28 @@ func (ex *PostgresExtractor) database() *gorm.DB {
 	return ex.DB.DB
 }
 
-func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
+func (ex *PostgresExtractor) makeQuery(queryOptions *pb.SourceQueryOptions) *gorm.DB {
 	query := ex.database().Model(ex.Extractor.GetInstance())
 
 	// Macth ERRIDs
-	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
-		for _, id := range *(queryOptions.IncludeIds) {
-			query = query.Where(fmt.Sprintf("%s=%s", ex.IDFieldName, id))
+	if len(queryOptions.Ids) > 0 && ex.Config.IDColumnName != "" {
+		for _, id := range queryOptions.Ids {
+			query = query.Where(fmt.Sprintf("%s=%s", ex.Config.IDColumnName, id))
 		}
 	}
 
 	// Match time range
-	for _, constraint := range postgresTimerangeQuery(queryOptions.SortColumn, queryOptions.Timerange) {
+	for _, constraint := range postgresTimerangeQuery(ex.Config.SortColumnName, queryOptions.Options.Timerange) {
 		query = query.Where(constraint)
 	}
 	// Order by column (ascending order)
-	query = query.Order(fmt.Sprintf("%s asc", queryOptions.SortColumn))
+	query = query.Order(fmt.Sprintf("%s asc", ex.Config.SortColumnName))
 	// Set limit
-	if queryOptions.Limit != nil {
-		query = query.Limit(*(queryOptions.Limit))
+	if queryOptions.Options.Limit != 0 {
+		query = query.Limit(queryOptions.Options.Limit)
 	}
 	// Set offset
-	query = query.Offset(queryOptions.Offset)
+	query = query.Offset(queryOptions.Options.Offset)
 	return query
 }
 

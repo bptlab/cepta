@@ -19,16 +19,17 @@ type Replayer struct {
 	Ctrl        chan pb.InternalControlMessageType
 	SourceName  string
 	IDFieldName string
-	Query       *extractors.ReplayQuery
-	Speed       *int32
-	Repeat      bool
-	Mode        *pb.ReplayType
-	Extractor   extractors.Extractor
-	Topic       topic.Topic
-	Brokers     []string
-	log         *logrus.Entry
-	running     bool
-	producer    *kafkaproducer.KafkaProducer
+	// Query       *extractors.ReplayQuery
+	// Speed       *int32
+	// Repeat      bool
+	// Mode        *pb.ReplayType
+	Options   *pb.SourceQueryOptions
+	Extractor extractors.Extractor
+	Topic     topic.Topic
+	Brokers   []string
+	log       *logrus.Entry
+	running   bool
+	producer  *kafkaproducer.KafkaProducer
 }
 
 func (r *Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
@@ -36,7 +37,7 @@ func (r *Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {
 		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
 
-	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+	err := r.Extractor.StartQuery(r.SourceName, r.Options)
 	if err != nil {
 		return err
 	}
@@ -99,7 +100,7 @@ func (r *Replayer) loop() error {
 }
 
 func (r *Replayer) produce() error {
-	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+	err := r.Extractor.StartQuery(r.SourceName, r.Options)
 	if err != nil {
 		return err
 	}
@@ -113,13 +114,13 @@ func (r *Replayer) produce() error {
 			return err
 		case pb.InternalControlMessageType_RESET:
 			// Recreate the query
-			err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+			err := r.Extractor.StartQuery(r.SourceName, r.Options)
 			if err != nil {
 				r.log.Error("Cannot reset")
 			}
 		case pb.InternalControlMessageType_START:
 			// Start to produce
-			err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+			err := r.Extractor.StartQuery(r.SourceName, r.Options)
 			if err != nil {
 				r.log.Error("Cannot reset")
 			}
@@ -140,7 +141,7 @@ func (r *Replayer) produce() error {
 				return err
 			case pb.InternalControlMessageType_RESET:
 				// Recreate the query
-				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+				err := r.Extractor.StartQuery(r.SourceName, r.Options)
 				if err != nil {
 					r.log.Error("Cannot reset")
 				}
@@ -170,14 +171,14 @@ func (r *Replayer) produce() error {
 				}
 				r.log.Debugf("%v have passed since the last event", passedTime)
 				r.producer.Send(r.Topic.String(), r.Topic.String(), sarama.ByteEncoder(eventBytes))
-				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
+				r.log.Debugf("Speed is %d, mode is %s", r.Options.Options.Speed, r.Options.Options.Mode)
 
 				waitTime := int64(0)
-				switch *r.Mode {
-				case pb.ReplayType_CONSTANT:
-					waitTime = int64(*r.Speed) * time.Millisecond.Nanoseconds()
-				case pb.ReplayType_PROPORTIONAL:
-					waitTime = passedTime.Nanoseconds() / utils.MaxInt64(1, int64(*r.Speed))
+				switch r.Options.Options.Mode {
+				case pb.ReplayMode_CONSTANT:
+					waitTime = int64(r.Options.Options.Speed.Speed) * time.Millisecond.Nanoseconds()
+				case pb.ReplayMode_PROPORTIONAL:
+					waitTime = passedTime.Nanoseconds() / utils.MaxInt64(1, int64(r.Options.Options.Speed.Speed))
 				default:
 					waitTime = 10
 				}
@@ -186,8 +187,8 @@ func (r *Replayer) produce() error {
 				time.Sleep(time.Duration(waitTime))
 				recentTime = newTime
 
-			} else if r.Repeat {
-				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
+			} else if r.Options.Options.Repeat {
+				err := r.Extractor.StartQuery(r.SourceName, r.Options)
 				if err != nil {
 					r.log.Error("Cannot repeat replay")
 				}
