@@ -59,7 +59,7 @@ type ReplayerServer struct {
 
 	CheckpointsRplr           *Replayer
 	CrewActivityRplr          *Replayer
-	CrewPrepEndRplr           *Replayer
+	CrewEndRplr               *Replayer
 	CrewShiftRplr             *Replayer
 	CrewTransitionRplr        *Replayer
 	DelayExplanationRplr      *Replayer

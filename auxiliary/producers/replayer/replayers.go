@@ -28,7 +28,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func useFields(SortFieldName string, IDFieldName string) extractors.MongoExtractorConfig {
+func setSortAndID(SortFieldName string, IDFieldName string) extractors.MongoExtractorConfig {
 	return extractors.MongoExtractorConfig{SortFieldName: SortFieldName, IDFieldName: IDFieldName}
 }
 
@@ -42,7 +42,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "checkpoints",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Checkpoint{Checkpoint: event.(*checkpointpb.CheckpointData)}}
-		}, &checkpointpb.CheckpointData{}, useFields("id", "id")),
+		}, &checkpointpb.CheckpointData{}, setSortAndID("startDate", "trainId")),
 		Topic: topics.Topic_CHECKPOINT_DATA,
 	}
 
@@ -50,15 +50,15 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "crew_activity",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewActivity{CrewActivity: event.(*crewactivitypb.CrewActivityData)}}
-		}, &crewactivitypb.CrewActivityData{}, useFields("id", "id")),
+		}, &crewactivitypb.CrewActivityData{}, setSortAndID("activityId", "activityId")),
 		Topic: topics.Topic_CREW_ACTIVITY_DATA,
 	}
 
-	s.CrewPrepEndRplr = &Replayer{
+	s.CrewEndRplr = &Replayer{
 		SourceName: "crew_end",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewPrepEnd{CrewPrepEnd: event.(*crewprependpb.CrewPrepEndData)}}
-		}, &crewprependpb.CrewPrepEndData{}, useFields("id", "id")),
+		}, &crewprependpb.CrewPrepEndData{}, setSortAndID("activityId", "activityId")),
 		Topic: topics.Topic_CREW_PREP_DATA,
 	}
 
@@ -66,7 +66,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "crew_shift",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewShift{CrewShift: event.(*crewshiftpb.CrewShiftData)}}
-		}, &crewshiftpb.CrewShiftData{}, useFields("id", "id")),
+		}, &crewshiftpb.CrewShiftData{}, setSortAndID("shiftId", "shiftId")),
 		Topic: topics.Topic_CREW_SHIFT_DATA,
 	}
 
@@ -74,23 +74,23 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "crew_transition",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_CrewTransition{CrewTransition: event.(*crewtransitionpb.CrewTransitionData)}}
-		}, &crewtransitionpb.CrewTransitionData{}, useFields("id", "id")),
+		}, &crewtransitionpb.CrewTransitionData{}, setSortAndID("activityId", "activityId")),
 		Topic: topics.Topic_CREW_TRANSITION_DATA,
 	}
 
 	s.DelayExplanationRplr = &Replayer{
-		SourceName: "vsp",
+		SourceName: "delay_explanation",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_DelayExplanation{DelayExplanation: event.(*delayexplanationpb.DelayExplanationData)}}
-		}, &delayexplanationpb.DelayExplanationData{}, useFields("id", "id")),
+		}, &delayexplanationpb.DelayExplanationData{}, setSortAndID("trainId", "trainId")),
 		Topic: topics.Topic_DELAY_EXPLANATION_DATA,
 	}
 
 	s.InfrastructureManagerRplr = &Replayer{
-		SourceName: "infrastructure_managerdata",
+		SourceName: "infrastructuremanager",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_InfrastructureManager{InfrastructureManager: event.(*infrastructuremanagerpb.InfrastructureManagerData)}}
-		}, &infrastructuremanagerpb.InfrastructureManagerData{}, useFields("id", "id")),
+		}, &infrastructuremanagerpb.InfrastructureManagerData{}, setSortAndID("imId", "imId")),
 		Topic: topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
 	}
 
@@ -98,7 +98,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "livetraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}, useFields("id", "id")),
+		}, &livetrainpb.LiveTrainData{}, setSortAndID("trainId", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_LIVE_TRAIN_DATA,
 	}
 
@@ -106,7 +106,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "locationdata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
-		}, &locationpb.LocationData{}, useFields("id", "id")),
+		}, &locationpb.LocationData{}, setSortAndID("id", "id")),
 		Topic: topics.Topic_LOCATION_DATA,
 	}
 
@@ -114,7 +114,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "plannedtraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
-		}, &plannedtrainpb.PlannedTrainData{}, useFields("id", "id")),
+		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("trainId", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_PLANNED_TRAIN_DATA,
 	}
 
@@ -122,15 +122,15 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "predictedtraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PredictedTrain{PredictedTrain: event.(*predictedtrainpb.PredictedTrainData)}}
-		}, &predictedtrainpb.PredictedTrainData{}, useFields("id", "id")),
+		}, &predictedtrainpb.PredictedTrainData{}, setSortAndID("trainId", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_PREDICTED_TRAIN_DATA,
 	}
 
 	s.RailwayUndertakingRplr = &Replayer{
-		SourceName: "railwayundertakingdata",
+		SourceName: "railwayundertaking",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_RailwayUndertaking{RailwayUndertaking: event.(*railwayundertakingpb.RailwayUndertakingData)}}
-		}, &railwayundertakingpb.RailwayUndertakingData{}, useFields("id", "id")),
+		}, &railwayundertakingpb.RailwayUndertakingData{}, setSortAndID("ruName", "ruName")), // ruId is mostly nil so we choose ruName
 		Topic: topics.Topic_RAILWAY_UNDERTAKING_DATA,
 	}
 
@@ -138,7 +138,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "station",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Station{Station: event.(*stationpb.StationData)}}
-		}, &stationpb.StationData{}, useFields("id", "id")),
+		}, &stationpb.StationData{}, setSortAndID("stationName", "stationName")),
 		Topic: topics.Topic_STATION_DATA,
 	}
 
@@ -146,15 +146,15 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "traininformationdata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_TrainInformation{TrainInformation: event.(*traininformationpb.TrainInformationData)}}
-		}, &traininformationpb.TrainInformationData{}, useFields("id", "id")),
+		}, &traininformationpb.TrainInformationData{}, setSortAndID("id", "id")),
 		Topic: topics.Topic_TRAIN_INFORMATION_DATA,
 	}
 
 	s.VehicleRplr = &Replayer{
-		SourceName: "vehicle",
+		SourceName: "locomotive",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Vehicle{Vehicle: event.(*vehiclepb.VehicleData)}}
-		}, &vehiclepb.VehicleData{}, useFields("id", "id")),
+		}, &vehiclepb.VehicleData{}, setSortAndID("vehicleId", "vehicleId")),
 		Topic: topics.Topic_VEHICLE_DATA,
 	}
 
@@ -162,7 +162,7 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "weather",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
-		}, &weatherpb.WeatherData{}, useFields("id", "id")),
+		}, &weatherpb.WeatherData{}, setSortAndID("identifier", "identifier")),
 		Topic: topics.Topic_WEATHER_DATA,
 	}
 
@@ -170,14 +170,14 @@ func (s *ReplayerServer) Setup() {
 		SourceName: "gpsupdates",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_GpsTripUpdate{GpsTripUpdate: event.(*gpstripupdatespb.GPSTripUpdate)}}
-		}, &gpstripupdatespb.GPSTripUpdate{}, useFields("id", "id")),
+		}, &gpstripupdatespb.GPSTripUpdate{}, setSortAndID("eventTime", "tripId")),
 		Topic: topics.Topic_GPS_TRIP_UPDATE_DATA,
 	}
 
 	s.Replayers = []*Replayer{
 		s.CheckpointsRplr,
 		s.CrewActivityRplr,
-		s.CrewPrepEndRplr,
+		s.CrewEndRplr,
 		s.CrewShiftRplr,
 		s.CrewTransitionRplr,
 		s.DelayExplanationRplr,
