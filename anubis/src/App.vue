@@ -128,6 +128,7 @@ export default class App extends Vue {
   height: 3px
 
 #app
+  height: 100%
   +theme(background-color, bgc-body)
   +theme(color, c-default-text)
 

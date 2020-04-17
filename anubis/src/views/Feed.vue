@@ -1,112 +1,119 @@
 <template>
   <div class="feed-container">
-    <div class="timeline">
-      <div class="circle circle-big"></div>
-      <div class="line"></div>
-      <div class="time">
-        <span class="current-time">{{ currentTime }}</span>
+    <div class="row">
+      <div class="timeline">
+        <div class="circle circle-big"></div>
+        <div class="line"></div>
+        <div class="time">
+          <span class="current-time">{{ currentTime }}</span>
+        </div>
       </div>
-    </div>
-    <div class="event-list">
-      <ul>
-        <li
-          class="event"
-          v-for="(data, index) in eventData"
-          v-bind:key="'item-' + index"
-        >
-          <span class="eventTime">{{ cutDate(data.eventTime) }}</span>
-          <span class="circle circle-small"></span>
-          <span :class="['icon', 'icon-' + getIcon(data.type)]"></span>
-          <span class="type">{{ capitalizeFirstLetter(data.type) }} Event</span>
-          <span
-            ><span class="icon-secondary icon icon-tag"></span
-            >{{ capitalizeFirstLetter(data.tag) }}</span
+      <div class="event-list">
+        <ul>
+          <li
+            class="event"
+            v-for="(data, index) in eventData"
+            v-bind:key="'item-' + index"
           >
-          <span
-            ><span class="icon-secondary icon icon-location-pin"></span
-            >{{ data.locationName }}</span
-          >
-          <span @click="toggleSpecialData(index)" class="icon icon-more"></span>
-        </li>
-      </ul>
-      <div class="extra-info" :class="{ show: showSpecialData }">
-        <span @click="closeSpecialData" class="icon icon-close"></span>
-        <div v-if="extraInfo.type == 'train'">
-          <div>
-            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+            <span class="eventTime">{{ cutDate(data.eventTime) }}</span>
+            <span class="circle circle-small"></span>
+            <span :class="['icon', 'icon-' + getIcon(data.type)]"></span>
+            <span class="type"
+              >{{ capitalizeFirstLetter(data.type) }} Event</span
+            >
+            <span
+              ><span class="icon-secondary icon icon-tag"></span
+              >{{ capitalizeFirstLetter(data.tag) }}</span
+            >
+            <span
+              ><span class="icon-secondary icon icon-location-pin"></span
+              >{{ data.locationName }}</span
+            >
+            <span
+              @click="toggleSpecialData(index)"
+              class="icon icon-more"
+            ></span>
+          </li>
+        </ul>
+        <div class="extra-info" :class="{ show: showSpecialData }">
+          <span @click="closeSpecialData" class="icon icon-close"></span>
+          <div v-if="extraInfo.type == 'train'">
+            <div>
+              <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+            </div>
+            <div>
+              <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+            </div>
+            <div>
+              <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+            </div>
+            <div>
+              <span>Location name:</span>
+              <span>{{ extraInfo.locationName }}</span>
+            </div>
+            <div>
+              <span>Planned ETA:</span> <span>{{ extraInfo.plannedETA }}</span>
+            </div>
+            <div>
+              <span>Delay:</span> <span>{{ extraInfo.delay }}</span>
+            </div>
+            <div>
+              <span>Predicted ETA:</span>
+              <span>{{ extraInfo.predictedETA }}</span>
+            </div>
+            <div>
+              <span>Predicted Offset:</span>
+              <span>{{ extraInfo.predictedOffset }}</span>
+            </div>
           </div>
-          <div>
-            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+          <div v-if="extraInfo.type == 'weather'">
+            <div>
+              <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+            </div>
+            <div>
+              <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+            </div>
+            <div>
+              <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+            </div>
+            <div>
+              <span>Location name:</span>
+              <span>{{ extraInfo.locationName }}</span>
+            </div>
+            <div>
+              <span>Intensity:</span> <span>{{ extraInfo.intensity }}</span>
+            </div>
+            <div>
+              <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+            </div>
+            <div>
+              <span>expected Duration:</span>
+              <span>{{ extraInfo.expectedDuration }}</span>
+            </div>
           </div>
-          <div>
-            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
-          </div>
-          <div>
-            <span>Location name:</span>
-            <span>{{ extraInfo.locationName }}</span>
-          </div>
-          <div>
-            <span>Planned ETA:</span> <span>{{ extraInfo.plannedETA }}</span>
-          </div>
-          <div>
-            <span>Delay:</span> <span>{{ extraInfo.delay }}</span>
-          </div>
-          <div>
-            <span>Predicted ETA:</span>
-            <span>{{ extraInfo.predictedETA }}</span>
-          </div>
-          <div>
-            <span>Predicted Offset:</span>
-            <span>{{ extraInfo.predictedOffset }}</span>
-          </div>
-        </div>
-        <div v-if="extraInfo.type == 'weather'">
-          <div>
-            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
-          </div>
-          <div>
-            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
-          </div>
-          <div>
-            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
-          </div>
-          <div>
-            <span>Location name:</span>
-            <span>{{ extraInfo.locationName }}</span>
-          </div>
-          <div>
-            <span>Intensity:</span> <span>{{ extraInfo.intensity }}</span>
-          </div>
-          <div>
-            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
-          </div>
-          <div>
-            <span>expected Duration:</span>
-            <span>{{ extraInfo.expectedDuration }}</span>
-          </div>
-        </div>
-        <div v-if="extraInfo.type == 'location'">
-          <div>
-            <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
-          </div>
-          <div>
-            <span>Event type:</span> <span>{{ extraInfo.type }}</span>
-          </div>
-          <div>
-            <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
-          </div>
-          <div>
-            <span>Location name:</span>
-            <span>{{ extraInfo.locationName }}</span>
-          </div>
-          <div>
-            <span>Country:</span> <span>{{ extraInfo.country }}</span>
-          </div>
-          <div>
-            <span>Latitude:</span> <span>{{ extraInfo.latitude }}</span>
-          </div>
-          <div>
-            <span>Longitude:</span> <span>{{ extraInfo.longitude }}</span>
+          <div v-if="extraInfo.type == 'location'">
+            <div>
+              <span>Event time:</span> <span>{{ extraInfo.eventTime }}</span>
+            </div>
+            <div>
+              <span>Event type:</span> <span>{{ extraInfo.type }}</span>
+            </div>
+            <div>
+              <span>Tag:</span> <span>{{ extraInfo.tag }}</span>
+            </div>
+            <div>
+              <span>Location name:</span>
+              <span>{{ extraInfo.locationName }}</span>
+            </div>
+            <div>
+              <span>Country:</span> <span>{{ extraInfo.country }}</span>
+            </div>
+            <div>
+              <span>Latitude:</span> <span>{{ extraInfo.latitude }}</span>
+            </div>
+            <div>
+              <span>Longitude:</span> <span>{{ extraInfo.longitude }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -268,26 +275,28 @@ export default class User extends Vue {
 
 <style lang="sass">
 .feed-container
-  min-height: 100%
   position: relative
-  margin-left: 100px
+  height: fit-content
+  display: table
 
   .timeline
-    position: absolute
-    left: 100px
-    top: 10px
-    height: 95%
+    display: table-cell
+    position: relative
+    width: 10%
+    padding-top: 10px
 
     .line
-      min-height: 100%
+      position: absolute
+      right: 0px
+      height: 100%
       width: 4px
       background-color: #cdcdcd
       border-radius: 10px
 
     .time
       position: absolute
-      left: -80px
-      top: -5px
+      right: 25px
+      top: 5px
       font-size: 20px
 
   .circle
@@ -298,21 +307,19 @@ export default class User extends Vue {
   .circle-big
     width: 20px
     height: 20px
-    top: 0px
-    left: -8px
+    right: -8px
 
   .circle-small
     width: 10px
     height: 10px
     top: 18px
-    left: -23px
+    left: -7px
 
   .event-list
-    position: absolute
-    left: 120px
-    top: 30px
+    display: table-cell
+    padding-top: 30px
+    padding-right: 10%
     width: 80%
-    min-height: calc(100% - 30px)
 
     ul
       list-style: none
@@ -354,7 +361,7 @@ export default class User extends Vue {
     .eventTime
       position: absolute
       font-size: 12px
-      left: -80px
+      left: -70px
       top: 15px
 
 
@@ -384,4 +391,7 @@ export default class User extends Vue {
     cursor: pointer
     position: absolute
     right: 0px
+
+.row
+  display: table-row
 </style>

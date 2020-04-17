@@ -126,7 +126,7 @@ export interface User {
 }
 
 @Component({
-  name: "UserSettings",
+  name: "UserProfileSettings",
   components: {}
 })
 export default class UserSettings extends Vue {

@@ -181,7 +181,7 @@ export default class Dashboard extends Vue {
     position: absolute
     width: 25%
     min-width: 330px
-    height: calc(100% - 31px)
+    height: calc(100% - #{$footer-height})
     overflow-y: scroll
     padding: 0 7px
 

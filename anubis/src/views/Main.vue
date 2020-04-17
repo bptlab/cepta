@@ -78,11 +78,17 @@ export default class Main extends Vue {
 </script>
 
 <style scoped lang="sass">
+.app
+  height: 100%
+
 #footer
   z-index: 1000
-  line-height: 30px
+  line-height: calc(#{$footer-height} - 1px)
   vertical-align: middle
   display: inline-block
+
+.page-container
+  height: 100%
 
 .main-content
   position: relative
