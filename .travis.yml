@@ -66,6 +66,9 @@ matrix:
         provider: pages
         local_dir: web
         skip_cleanup: true
+        verbose: true
+        keep_history: true
+        edge: true
         deploy_key: deploy_key
         on:
           branch: dev
