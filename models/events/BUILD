@@ -394,6 +394,26 @@ java_proto_library(
     deps = [":railway_undertaking_data_proto"],
 )
 
+go_proto_library(
+    name = "wagon_train_run_data_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/wagontrainrundataevent",
+    proto = ":wagon_train_run_data_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "wagon_train_run_data_proto",
+    srcs = ["WagonTrainRunData.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "wagon_train_run_data_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":wagon_train_run_data_proto"],
+)
+
 filegroup(
     name = "events",
     srcs = [
@@ -437,6 +457,8 @@ filegroup(
         ":vehicle_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
+        ":wagon_train_run_data_go_proto",
+        ":wagon_train_run_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )

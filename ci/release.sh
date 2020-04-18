@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-cd $(dirname $0)
-cd ../
-
-echo "Preparing for release"
+export CEPTA_ROOT=$(dirname "${BASH_SOURCE}")/..
+cd $CEPTA_ROOT
 
 # Assure all internal tests succeed
 echo "Running tests and checks"
@@ -14,6 +12,13 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 echo "Incrementing the version"
 bump2version "$@"
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+# Read version info
+source ./ci/print-workspace-status.sh > /dev/null
+
+echo "Preparing for release of ${STABLE_DOCKER_TAG}"
+
+./ci/publish-anubis.sh ${STABLE_DOCKER_TAG}
 
 # Build and push the docker containers (requires docker registry access)
 echo "Building and publishing docker images to docker hub"

@@ -1,6 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@io_bazel_rules_docker//java:image.bzl", "java_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 java_binary(
     name = "core",
@@ -79,6 +80,22 @@ java_image(
     ],
 )
 
+command(
+    name = "build-image-cmd",
+    command = ":image",
+    arguments = [
+        "--norun"
+    ]
+)
+
+multirun(
+    visibility = ["//visibility:public"],
+    name = "build-image",
+    commands = [
+        ":build-image-cmd",
+    ],
+)
+
 container_push(
     name = "publish",
     format = "Docker",
@@ -95,6 +112,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
+    "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
 ]
 
 test_suite(name = "smoke", tags = ["-docker", "-internal"], tests=sub_tests)

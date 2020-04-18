@@ -2,7 +2,17 @@
 
 cd $(dirname $0)
 cd compose
-# -f postgresimporter.compose.yml
+
+if [ -z "$BUILD" ]; then
+  echo "Using existing images. To rebuild, run:"
+  echo ""
+  echo "  BUILD=1 deployment/dev/devenv.sh ..args"
+  echo ""
+else
+  # Build local images first
+  bazel run //:build-images
+fi
+
 docker-compose \
   -f core.compose.yml \
   -f cockpit.compose.yml \

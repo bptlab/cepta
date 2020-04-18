@@ -10,9 +10,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
-import { AuthModule } from "@/store/modules/auth";
-import { AppModule } from "@/store/modules/app";
-import { TrainDelayNotification } from "./generated/protobuf/TrainDelayNotification_pb";
+import { AuthModule } from "./store/modules/auth";
+import { AppModule } from "./store/modules/app";
+import { TrainDelayNotification } from "./generated/protobuf/models/events/TrainDelayNotification_pb";
 
 @Component({
   name: "App",
@@ -128,6 +128,26 @@ export default class App extends Vue {
   height: 3px
 
 #app
+  height: 100%
   +theme(background-color, bgc-body)
   +theme(color, c-default-text)
+
+/* width */
+::-webkit-scrollbar
+  width: 8px
+  height: 8px
+
+/* Track */
+::-webkit-scrollbar-track
+  box-shadow: inset 0 0 5px grey
+  border-radius: 10px
+
+/* Handle */
+::-webkit-scrollbar-thumb
+  +theme(background-color, bgc-scrollbar)
+  border-radius: 5px
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover
+  +theme-color-diff(background-color, bgc-scrollbar, 10)
 </style>

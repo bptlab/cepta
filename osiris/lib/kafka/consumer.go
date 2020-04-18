@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Shopify/sarama"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
@@ -15,23 +16,25 @@ import (
 var KafkaConsumerCliOptions = libcli.CommonCliOptions(libcli.Kafka)
 
 type KafkaConsumerOptions struct {
-	Brokers []string
-	Group   string
-	Version string
-	Topics  []string
+	Brokers             []string
+	Group               string
+	Version             string
+	Topics              []string
+	ConnectionTolerance libcli.ConnectionTolerance
 }
 
 func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptions {
 	return KafkaConsumerOptions{
-		Brokers: strings.Split(ctx.String("kafka-brokers"), ","),
-		Group:   ctx.String("kafka-group"),
-		Version: ctx.String("kafka-version"),
-		Topics:  strings.Split(ctx.String("kafka-topics"), ","),
+		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
+		Group:               ctx.String("kafka-group"),
+		Version:             ctx.String("kafka-version"),
+		Topics:              strings.Split(ctx.String("kafka-topics"), ","),
+		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
 type KafkaConsumer struct {
-	ready    chan bool
+	ready    chan error
 	Messages chan *sarama.ConsumerMessage
 }
 
@@ -53,22 +56,40 @@ func (consumer *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func ConsumeKafkaGroup(ctx context.Context, options KafkaConsumerOptions) (KafkaConsumer, error) {
-	config := sarama.NewConfig()
-	version, err := sarama.ParseKafkaVersion(options.Version)
-	if err != nil {
-		log.Panicf("Error parsing Kafka version: %v", err)
+func newConsumerGroup(options KafkaConsumerOptions, config *sarama.Config) (sarama.ConsumerGroup, error) {
+	var attempt int
+	for {
+		client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
+		if err != nil {
+			if attempt >= options.ConnectionTolerance.MaxRetries {
+				return nil, fmt.Errorf("Failed to start kafka consumer: %s", err.Error())
+			}
+			attempt++
+			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, options.ConnectionTolerance.MaxRetries)
+			time.Sleep(time.Duration(options.ConnectionTolerance.RetryIntervalSec) * time.Second)
+			continue
+		}
+		return client, nil
 	}
-	config.Version = version
+}
+
+func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOptions) (KafkaConsumer, error) {
+	config := sarama.NewConfig()
 
 	consumer := KafkaConsumer{
-		ready:    make(chan bool),
+		ready:    make(chan error),
 		Messages: make(chan *sarama.ConsumerMessage),
 	}
 
-	client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
+	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
-		log.Panicf("Error creating consumer group client: %v", err)
+		return consumer, fmt.Errorf("Error parsing Kafka version: %s", err.Error())
+	}
+	config.Version = version
+
+	client, err := newConsumerGroup(options, config)
+	if err != nil {
+		return consumer, fmt.Errorf("Error creating consumer group client: %s", err.Error())
 	}
 
 	wg := &sync.WaitGroup{}
@@ -77,26 +98,47 @@ func ConsumeKafkaGroup(ctx context.Context, options KafkaConsumerOptions) (Kafka
 		defer wg.Done()
 		for {
 			if err := client.Consume(ctx, options.Topics, &consumer); err != nil {
-				log.Panicf("Error from consumer: %v", err)
+				consumer.ready <- err
 			}
 			// check if context was cancelled, signaling that the consumer should stop
-			if ctx.Err() != nil {
-				return
+			if err := ctx.Err(); err != nil {
+				consumer.ready <- err
 			}
-			consumer.ready = make(chan bool)
+			// All set up
+			consumer.ready <- nil
 		}
 	}()
 
-	<-consumer.ready // Await till the consumer has been set up
+	// Wait until the consumer has been set up
+	if err := <-consumer.ready; err != nil {
+		return consumer, fmt.Errorf("Error setting up consumer: %s", err.Error())
+	}
 	log.Debug("Sarama consumer up and running!...")
-	return consumer, err
+	return consumer, nil
 }
 
-func ConsumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.PartitionConsumer, error) {
+func newConsumer(options KafkaConsumerOptions, config *sarama.Config) (sarama.Consumer, error) {
+	var attempt int
+	for {
+		client, err := sarama.NewConsumer(options.Brokers, config)
+		if err != nil {
+			if attempt >= options.ConnectionTolerance.MaxRetries {
+				return nil, fmt.Errorf("Failed to start kafka consumer: %s", err.Error())
+			}
+			attempt++
+			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, options.ConnectionTolerance.MaxRetries)
+			time.Sleep(time.Duration(options.ConnectionTolerance.RetryIntervalSec) * time.Second)
+			continue
+		}
+		return client, nil
+	}
+}
+
+func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerOptions) (sarama.PartitionConsumer, error) {
 	config := sarama.NewConfig()
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
-		log.Panicf("Error parsing Kafka version: %v", err)
+		return nil, fmt.Errorf("Error parsing Kafka version: %s", err.Error())
 	}
 	config.Version = version
 
@@ -105,12 +147,12 @@ func ConsumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.Par
 	}
 
 	consumer := KafkaConsumer{
-		ready: make(chan bool),
+		ready: make(chan error),
 	}
 
-	client, err := sarama.NewConsumer(options.Brokers, config)
+	client, err := newConsumer(options, config)
 	if err != nil {
-		log.Panicf("Error creating consumer group client: %v", err)
+		return nil, fmt.Errorf("Error creating consumer group client: %s", err.Error())
 	}
 
 	var kafkaConsumer sarama.PartitionConsumer
@@ -120,17 +162,20 @@ func ConsumeKafka(ctx context.Context, options KafkaConsumerOptions) (sarama.Par
 		defer wg.Done()
 		for {
 			if kafkaConsumer, err = client.ConsumePartition(options.Topics[0], 0, sarama.OffsetOldest); err != nil {
-				log.Panicf("Error from consumer: %v", err)
+				consumer.ready <- err
 			}
 			// check if context was cancelled, signaling that the consumer should stop
-			if ctx.Err() != nil {
-				return
+			if err := ctx.Err(); err != nil {
+				consumer.ready <- err
 			}
-			consumer.ready = make(chan bool)
+			consumer.ready <- nil
 		}
 	}()
 
-	<-consumer.ready // Await till the consumer has been set up
+	// Wait until the consumer has been set up
+	if err := <-consumer.ready; err != nil {
+		return nil, fmt.Errorf("Error setting up consumer: %s", err.Error())
+	}
 	log.Debug("Sarama consumer up and running!...")
-	return kafkaConsumer, err
+	return kafkaConsumer, nil
 }
