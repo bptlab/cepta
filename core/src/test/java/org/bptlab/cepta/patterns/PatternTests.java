@@ -18,6 +18,25 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 public class PatternTests {
 
     @Test
+    public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
+        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDoubleEvents();
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+
+        DataStream<StaysInStationEvent> generatedEvents = 
+            StaysInStationPattern.generateEvents(patternStream);
+
+        int count = 0;
+
+        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
+        while(detectedEventsItr.hasNext()){
+            StaysInStationEvent event = detectedEventsItr.next();
+            count ++;
+        }
+
+        Assert.assertTrue(count==1);
+    }
+
+    @Test
     public void TestStaysInStationSurrounded() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationSurrounded();
         PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);

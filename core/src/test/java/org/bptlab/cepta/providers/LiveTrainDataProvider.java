@@ -257,6 +257,55 @@ public class LiveTrainDataProvider {
 
   }
 
+  public static DataStream<LiveTrainData> staysInStationDoubleEvents(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+    ArrayList<LiveTrainData> events = new ArrayList<>();
+
+    LiveTrainData firstArrival = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(3).setStationId(12)
+    .setEventTime(fromMillis(950))
+    .build();
+
+    events.add(firstArrival);
+
+    LiveTrainData secondArrival = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(3).setStationId(12)
+    .setEventTime(fromMillis(1000))
+    .build();
+
+    events.add(secondArrival);
+
+    LiveTrainData firstDeparture = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(4).setStationId(12)
+    .setEventTime(fromMillis(1050))
+    .build();
+
+    events.add(firstDeparture);
+
+    LiveTrainData secondDeparture = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(4).setStationId(12)
+    .setEventTime(fromMillis(1100))
+    .build();
+
+    events.add(secondDeparture);
+
+    DataStream<LiveTrainData> mockedStream = env.fromCollection(events)
+    .assignTimestampsAndWatermarks(
+          new AscendingTimestampExtractor<LiveTrainData>() {
+            @Override
+            public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
+              return toMillis(liveTrainData.getEventTime());
+            }
+          });
+
+    return mockedStream;
+  }
+
   public static DataStream<LiveTrainData> changesStation(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
@@ -314,7 +363,7 @@ public class LiveTrainDataProvider {
 
     LiveTrainData departuresFromAnotherStation = 
     LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-    .setStatus(4).setStationId(13)
+    .setStatus(4).setStationId(12)
     .setEventTime(fromMillis(1100))
     .build();
 
