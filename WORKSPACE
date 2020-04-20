@@ -21,6 +21,7 @@ http_archive(
     sha256 = "b6670f9f43faa66e3009488bbd909bc7bc46a5a9661a33f6bc578068d1837f37",
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.3.0/rules_nodejs-1.3.0.tar.gz"],
 )
+
 #@unused
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
@@ -132,6 +133,7 @@ FLINK_VERSION = "1.9.0"
 SCALA_VERSION = "2.11"
 
 RULES_JVM_EXTERNAL_TAG = "3.2"
+
 RULES_JVM_EXTERNAL_SHA = "82262ff4223c5fda6fb7ff8bd63db8131b51b413d26eb49e3131037e79e324af"
 
 http_archive(
@@ -789,8 +791,8 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_bsonpb",
     importpath = "github.com/romnnn/bsonpb",
-    sum = "h1:Id1oYhizudmN8jN+74D2u9mahka6zaZgcrPWIMEp3BA=",
-    version = "v0.0.0-20200304155412-6da328480240",
+    sum = "h1:/8PmZgpI8+QeKJj+2VqBJILvYrKBdwFFxZJ1M6alZGc=",
+    version = "v0.0.3",
 )
 
 go_repository(
@@ -798,4 +800,102 @@ go_repository(
     importpath = "github.com/romnnn/flags4urfavecli",
     sum = "h1:1s6q1ZYyBLbh+1YrcXKaugZ6u5MSq9R763oVpkwNU2I=",
     version = "v0.1.1",
+)
+
+go_repository(
+    name = "com_github_google_uuid",
+    importpath = "github.com/google/uuid",
+    sum = "h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=",
+    version = "v1.1.1",
+)
+
+go_repository(
+    name = "com_github_testcontainers_testcontainers_go",
+    importpath = "github.com/testcontainers/testcontainers-go",
+    sum = "h1:u7jCdf130QHBY5KK9xkFzZpkep24Rtl8HdWscMO9H/8=",
+    version = "v0.5.0",
+)
+
+go_repository(
+    name = "com_github_docker_go_connections",
+    importpath = "github.com/docker/go-connections",
+    sum = "h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=",
+    version = "v0.4.0",
+)
+
+go_repository(
+    name = "com_github_docker_docker",
+    importpath = "github.com/docker/docker",
+    sum = "h1:ZuxGvIvF01nfc/G9RJ5Q7Va1zQE2WJyG18Zv3DqCEf4=",
+    version = "v0.7.3-0.20190506211059-b20a14b54661",
+)
+
+go_repository(
+    name = "com_github_cenkalti_backoff",
+    importpath = "github.com/cenkalti/backoff",
+    sum = "h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=",
+    version = "v2.2.1+incompatible",
+)
+
+go_repository(
+    name = "com_github_docker_distribution",
+    importpath = "github.com/docker/distribution",
+    sum = "h1:dvc1KSkIYTVjZgHf/CTC2diTYC8PzhaA5sFISRfNVrE=",
+    version = "v2.7.1-0.20190205005809-0d3efadf0154+incompatible",
+)
+
+go_repository(
+    name = "com_github_docker_go_units",
+    importpath = "github.com/docker/go-units",
+    sum = "h1:3uh0PgVws3nIA0Q+MwDC8yjEPf9zjRfZZWXZYDct3Tw=",
+    version = "v0.4.0",
+)
+
+go_repository(
+    name = "com_github_containerd_continuity",
+    importpath = "github.com/containerd/continuity",
+    sum = "h1:nXPkFq8X1a9ycY3GYQpFNxHh3j2JgY7zDZfq2EXMIzk=",
+    version = "v0.0.0-20200413184840-d3ef23f19fbb",
+)
+
+go_repository(
+    name = "com_github_opencontainers_go_digest",
+    importpath = "github.com/opencontainers/go-digest",
+    sum = "h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=",
+    version = "v1.0.0-rc1",
+)
+
+go_repository(
+    name = "com_github_opencontainers_image_spec",
+    importpath = "github.com/opencontainers/image-spec",
+    sum = "h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVojFA6h/TRcI=",
+    version = "v1.0.1",
+)
+
+go_repository(
+    name = "com_github_opencontainers_runc",
+    importpath = "github.com/opencontainers/runc",
+    sum = "h1:GlxAyO6x8rfZYN9Tt0Kti5a/cP41iuiO2yYT0IJGY8Y=",
+    version = "v0.1.1",
+)
+
+go_repository(
+    name = "com_github_mitchellh_mapstructure",
+    importpath = "github.com/mitchellh/mapstructure",
+    sum = "h1:dxe5oCinTXiTIcfgmZecdCzPmAJKd46KsCWc35r0TV4=",
+    version = "v1.2.2",
+)
+
+go_repository(
+    name = "com_github_romnnn_flatbson",
+    importpath = "github.com/romnnn/flatbson",
+    sum = "h1:5m1VfuKcXWyl3TX6j5xjLdKpSkGlIUB4JRvt+S6/aSk=",
+    version = "v0.1.0",
+)
+
+go_repository(
+    name = "com_github_lestrrat_go_jwx",
+    importpath = "github.com/lestrrat-go/jwx",
+    sum = "h1:1neTPQvRiPRtQpU7QHEEG6dM8A1AFCgi1FGN/2VBucA=",
+    version = "v0.9.2",
 )
