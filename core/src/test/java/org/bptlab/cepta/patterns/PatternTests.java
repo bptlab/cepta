@@ -3,7 +3,7 @@ package org.bptlab.cepta;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 
-import org.bptlab.cepta.providers.LiveTrainDataProvider;
+import org.bptlab.cepta.providers.StaysInStationPatternProvider;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,42 +42,42 @@ public class PatternTests {
     @Test
     public void TestStaysInStationWrongOrder() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.staysInStationWrongOrder())
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder())
              == 0);   
     }
 
     @Test
     public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.staysInStationDoubleEvents())
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDoubleEvents())
              == 1);  
     }
 
     @Test
     public void TestStaysInStationSurrounded() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.staysInStationSurrounded())
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded())
              == 1);  
     }
 
     @Test
     public void TestNoMatchWhenChangingLocations() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.changesStation())
+            countOfMatchesIn(StaysInStationPatternProvider.changesStation())
              == 0);  
     }
 
     @Test
     public void TestHasInterruptionWhenStayingInStation() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.staysInStationWithInterruption())
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption())
              == 0);  
     }
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
         Assert.assertTrue(
-            countOfMatchesIn(LiveTrainDataProvider.staysInStationDirectly())
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly())
              == 1);  
     }
     
