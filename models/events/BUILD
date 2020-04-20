@@ -479,14 +479,10 @@ filegroup(
         ":vehicle_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
-<<<<<<< HEAD
         ":stays_in_station_event_go_proto",
         ":stays_in_station_event_java_proto",
-
-=======
         ":wagon_train_run_data_go_proto",
         ":wagon_train_run_data_java_proto",
->>>>>>> dev
     ],
     visibility = ["//visibility:public"],
 )
