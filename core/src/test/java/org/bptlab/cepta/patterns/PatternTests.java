@@ -30,6 +30,9 @@ public class PatternTests {
         }
 
         PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
+        System.out.println("Ich habe den patternStream erstellt :)");
+
+
 
         DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
             (Map<String, List<LiveTrainData>> pattern) -> {
@@ -43,16 +46,24 @@ public class PatternTests {
                     .setTrainId(first.getTrainId())
                     .setEventTime(first.getEventTime())
                     .build();
+
+                System.out.println(detected);
+
                 return detected;
             }
         );
+
+        System.out.println("Ich habe patterns rauselected:)");
 
         int count = 0;
         System.out.println("Count = " + count);
         Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
         while(detectedEventsItr.hasNext()){
+            StaysInStationEvent event = detectedEventsItr.next();
             count ++;
-            System.out.println("Increasing, Count = " + count);
+
+            System.out.println("Increasing, Count = " + count + detectedEventsItr.toString());
+            if (count == 10) break;
         }
 
         System.out.println("Count = " + count);

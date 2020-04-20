@@ -1,5 +1,6 @@
 package org.bptlab.cepta.patterns;
 
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.*;
@@ -21,7 +22,8 @@ public class StaysInStationPattern {
         public boolean filter(LiveTrainData event) {
           return event.getStatus() == 4;
         }
-      });
+      })
+      .within(Time.seconds(10));
     
 
     public static final Pattern<LiveTrainData, ?> staysInStationIterativePattern = 
