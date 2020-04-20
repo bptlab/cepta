@@ -25,16 +25,16 @@ public class PatternTests {
 
         Iterator<LiveTrainData> iterator = DataStreamUtils.collect(liveTrainDataStream);
         while(iterator.hasNext()){
-            LiveTrainData rüdiger = iterator.next();
-            System.out.println(rüdiger.toString());
+            LiveTrainData trainArrivalEvent = iterator.next();
+            System.out.println(trainArrivalEvent.toString());
         }
 
         PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
-            (Map<String, LiveTrainData> pattern) -> {
+            (Map<String, List<LiveTrainData>> pattern) -> {
                 System.out.println("Ich bin hier :)");
-                LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation");
+                LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation").get(0);
 
                 
                 StaysInStationEvent detected = StaysInStationEvent.newBuilder()
