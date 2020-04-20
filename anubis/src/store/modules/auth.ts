@@ -58,6 +58,7 @@ class Auth extends VuexModule implements IAuthState {
 
   @Action
   public async authRequest(user: User, shouldRemember: boolean = true) {
+    // TODO: Specify Promise resolve type or use proto
     return new Promise((resolve, reject) => {
       this.AUTH_REQUEST();
       const api = this.appAuthenticationAPI;

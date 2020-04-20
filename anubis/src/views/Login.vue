@@ -7,7 +7,7 @@
     <form v-else @submit.prevent="login">
       <!-- Email -->
       <div class="form-group">
-        <label class="text-normal text-dark">Email</label>
+        <label>Email</label>
         <input
           v-model="email"
           type="email"
@@ -17,7 +17,7 @@
       </div>
       <!-- Password -->
       <div class="form-group">
-        <label class="text-normal text-dark">Password</label>
+        <label>Password</label>
         <input
           v-model="password"
           type="password"

@@ -10,7 +10,8 @@ module.exports = {
     plugins: [
       new webpack.DefinePlugin({
         "process.env": {
-          STABLE_VERSION: version
+          STABLE_VERSION: version,
+          MONITORING_URL: '"' + process.env.MONITORING_URL + '"'
         }
       })
     ]

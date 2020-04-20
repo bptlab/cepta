@@ -21,7 +21,7 @@ http_archive(
     sha256 = "b6670f9f43faa66e3009488bbd909bc7bc46a5a9661a33f6bc578068d1837f37",
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.3.0/rules_nodejs-1.3.0.tar.gz"],
 )
-
+#@unused
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
 http_archive(
@@ -131,14 +131,13 @@ FLINK_VERSION = "1.9.0"
 
 SCALA_VERSION = "2.11"
 
-RULES_JVM_EXTERNAL_TAG = "3.0"
-
-RULES_JVM_EXTERNAL_SHA = "62133c125bf4109dfd9d2af64830208356ce4ef8b165a6ef15bbff7460b35c3a"
+RULES_JVM_EXTERNAL_TAG = "3.2"
+RULES_JVM_EXTERNAL_SHA = "82262ff4223c5fda6fb7ff8bd63db8131b51b413d26eb49e3131037e79e324af"
 
 http_archive(
     name = "rules_jvm_external",
-    sha256 = RULES_JVM_EXTERNAL_SHA,
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
@@ -173,7 +172,11 @@ maven_install(
         "org.apache.flink:flink-cep_2.11:%s" % FLINK_VERSION,
     ],
     repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
         "https://repo1.maven.org/maven2",
+        # https://repo.maven.apache.org/maven2
+        # https://maven-central-eu.storage-download.googleapis.com/repos/central/data/
     ],
 )
 
