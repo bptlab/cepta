@@ -2,14 +2,14 @@ import Vue from "vue";
 import Vuex, { StoreOptions } from "vuex";
 import { IAppState } from "./modules/app";
 import { IAuthState } from "./modules/auth";
-import { IGrpcState } from "./modules/grpc";
+import { IReplayerState } from "./modules/replayer";
 
 Vue.use(Vuex);
 
 export interface IRootState {
   app: IAppState;
   auth: IAuthState;
-  grpc: IGrpcState;
+  grpc: IReplayerState;
 }
 
 // Declare empty store first, dynamically register all modules later.
