@@ -19,27 +19,13 @@ public class PatternTests {
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
-        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
-
-        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(liveTrainDataStream);
-        while(iterator.hasNext()){
-            LiveTrainData trainArrivalEvent = iterator.next();
-            System.out.println(trainArrivalEvent.toString());
-        }
-
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-        System.out.println("Ich habe den patternStream erstellt :)");
-
-
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
 
         DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
             (Map<String, List<LiveTrainData>> pattern) -> {
-                System.out.println("Ich bin hier :)");
                 LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation").get(0);
 
-                
                 StaysInStationEvent detected = StaysInStationEvent.newBuilder()
                     .setTrainSectionId(first.getTrainSectionId())
                     .setStationId(first.getStationId())
@@ -47,13 +33,9 @@ public class PatternTests {
                     .setEventTime(first.getEventTime())
                     .build();
 
-                System.out.println(detected);
-
                 return detected;
             }
         );
-
-        System.out.println("Ich habe patterns rauselected:)");
 
         int count = 0;
         System.out.println("Count = " + count);
@@ -61,15 +43,9 @@ public class PatternTests {
         while(detectedEventsItr.hasNext()){
             StaysInStationEvent event = detectedEventsItr.next();
             count ++;
-
-            System.out.println("Increasing, Count = " + count + detectedEventsItr.toString());
-            if (count == 10) break;
         }
 
-        System.out.println("Count = " + count);
-        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
         Assert.assertTrue(count==1);
-
     }
     
 }
