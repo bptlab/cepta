@@ -30,70 +30,55 @@ public class PatternTests {
         return count;
     }
 
-    @Test
-    public void TestStaysInStationWrongOrder() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationWrongOrder();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
+    private int countOfMatchesIn(DataStream<LiveTrainData> input) throws Exception{
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(input, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        Assert.assertTrue(countOfEventsInStream(generatedEvents) == 0);
+        return countOfEventsInStream(generatedEvents);
+    }
+
+    @Test
+    public void TestStaysInStationWrongOrder() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.staysInStationWrongOrder())
+             == 0);   
     }
 
     @Test
     public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDoubleEvents();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-
-        DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
-
-        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.staysInStationDoubleEvents())
+             == 1);  
     }
 
     @Test
     public void TestStaysInStationSurrounded() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationSurrounded();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-
-        DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
-
-        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.staysInStationSurrounded())
+             == 1);  
     }
 
     @Test
     public void TestNoMatchWhenChangingLocations() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.changesStation();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-
-        DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
-
-        Assert.assertTrue(countOfEventsInStream(generatedEvents)==0);
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.changesStation())
+             == 0);  
     }
 
     @Test
     public void TestHasInterruptionWhenStayingInStation() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationWithInterruption();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-
-        DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
-
-        Assert.assertTrue(countOfEventsInStream(generatedEvents)==0);
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.staysInStationWithInterruption())
+             == 0);  
     }
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-
-        DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
-
-        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
+        Assert.assertTrue(
+            countOfMatchesIn(LiveTrainDataProvider.staysInStationDirectly())
+             == 1);  
     }
     
 }
