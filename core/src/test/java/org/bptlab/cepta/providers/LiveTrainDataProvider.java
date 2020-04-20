@@ -207,6 +207,56 @@ public class LiveTrainDataProvider {
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
+  public static DataStream<LiveTrainData> staysInStationSurrounded(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+    ArrayList<LiveTrainData> events = new ArrayList<>();
+
+    LiveTrainData drivesAtStart = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(5).setStationId(11)
+    .setEventTime(fromMillis(1000))
+    .build();
+
+    events.add(drivesAtStart);
+
+    LiveTrainData arrives = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(3).setStationId(12)
+    .setEventTime(fromMillis(1050))
+    .build();
+
+    events.add(arrives);
+
+    LiveTrainData departures = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(4).setStationId(12)
+    .setEventTime(fromMillis(1100))
+    .build();
+
+    events.add(departures);
+
+    LiveTrainData continuesDriving = 
+    LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+    .setStatus(5).setStationId(14)
+    .setEventTime(fromMillis(1150))
+    .build();
+
+    events.add(continuesDriving);
+
+    DataStream<LiveTrainData> mockedStream = env.fromCollection(events)
+    .assignTimestampsAndWatermarks(
+          new AscendingTimestampExtractor<LiveTrainData>() {
+            @Override
+            public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
+              return toMillis(liveTrainData.getEventTime());
+            }
+          });
+
+    return mockedStream;
+
+  }
+
   public static DataStream<LiveTrainData> changesStation(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
