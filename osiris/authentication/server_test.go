@@ -2,112 +2,288 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"testing"
 	"time"
 
-	pb "github.com/bptlab/cepta/models/grpc/authentication"
+	authpb "github.com/bptlab/cepta/models/grpc/authentication"
+	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
+	"github.com/bptlab/cepta/models/types/users"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	integrationtesting "github.com/bptlab/cepta/osiris/lib/testing"
+	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/grpc/grpc-go/test/bufconn"
-	"github.com/jinzhu/gorm"
-	mocket "github.com/selvatico/go-mocket"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
 )
 
-var successMessage *pb.Success = &pb.Success{Success: true}
-var gormDB *gorm.DB
-var ldb *libdb.PostgresDB
-
-// constants for testing
-var emailParam string = "example@mail.de"
-var passwordParam string = "password"
-var userIDProto *pb.UserId = &pb.UserId{Value: 1}
-var expectedValidation *pb.Validation = &pb.Validation{Value: true}
-var user *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam}
-var userStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
-
+const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
+const userCollection = "mock_users"
 
-var lis *bufconn.Listener
+type DialerFunc = func(string, time.Duration) (net.Conn, error)
 
-func SetUpAll() {
-	SetUpDatabase()
-	SetUpServerConnection()
-}
-func SetUpDatabase() {
-	mocket.Catcher.Register()
-	// uncomment to log all catcher things. add to test to log only things happening there
-	// mocket.Catcher.Logging = true
-	db, err := gorm.Open(mocket.DriverName, "connection_string") // Can be any connection string
-	if err != nil {
-		print(err)
+func dailerFor(listener *bufconn.Listener) DialerFunc {
+	return func(string, time.Duration) (net.Conn, error) {
+		return listener.Dial()
 	}
-	gormDB = db
-	// uncomment to log all queries asked to mock db. add to test to log only things happening there
-	// gormDB.LogMode(true)
-	ldb = &libdb.PostgresDB{DB: gormDB}
-}
-func SetUpServerConnection() {
-	lis = bufconn.Listen(bufSize)
-	s := grpc.NewServer()
-	pb.RegisterAuthenticationServer(s, &Server{DB: ldb})
-	go func() {
-		if err := s.Serve(lis); err != nil {
-			fmt.Printf("Server exited with error: %v", err)
-		}
-	}()
 }
 
-func TestAddUser(t *testing.T) {
-	SetUpAll()
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+func setUpAuthServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*AuthenticationServer, error) {
+	server := NewAuthServer(mongoConfig)
+	server.UserCollection = userCollection
+	server.GenerateKeys()
+	server.Setup()
+	go func() {
+		server.Serve(listener)
+	}()
+	return &server, nil
+}
+
+func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
+	server := usermgmt.NewUserMgmtServer(mongoConfig)
+	server.UserCollection = userCollection
+	server.DefaultUser = users.InternalUser{
+		User: &users.User{
+			Email: "default-user@web.de",
+		},
+		Password: "admins-have-the-best-passwords",
+	}
+	server.Setup()
+	go func() {
+		server.Serve(listener)
+	}()
+	return &server, nil
+}
+
+func teardownServer(server interface{ Shutdown() }) {
+	server.Shutdown()
+}
+
+type Test struct {
+	mongoC       testcontainers.Container
+	authEndpoint *grpc.ClientConn
+	userEndpoint *grpc.ClientConn
+	authServer   *AuthenticationServer
+	userServer   *usermgmt.UserMgmtServer
+	authClient   authpb.AuthenticationClient
+	userClient   usermgmtpb.UserManagementClient
+}
+
+func (test *Test) setup(t *testing.T) *Test {
+	var err error
+	var dbConn libdb.MongoDBConfig
+	log.SetLevel(logLevel)
+
+	// Start mongodb container
+	test.mongoC, dbConn, err = integrationtesting.StartMongoContainer()
+	if err != nil {
+		t.Fatalf("Failed to start the mongodb container: %v", err)
+		return test
+	}
+
+	// Create endpoints
+	authListener := bufconn.Listen(bufSize)
+	test.authEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithDialer(dailerFor(authListener)), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
+		return test
 	}
-	defer conn.Close()
-	client := pb.NewAuthenticationClient(conn)
-	request := &pb.User{
-		Id:       userIDProto,
-		Email:    emailParam,
-		Password: passwordParam,
-	}
-	response, err := client.AddUser(context.Background(), request)
+
+	userListener := bufconn.Listen(bufSize)
+	test.userEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithDialer(dailerFor(userListener)), grpc.WithInsecure())
 	if err != nil {
-		t.Errorf("AddUser() should work without error.")
+		t.Fatalf("Failed to dial bufnet: %v", err)
+		return test
 	}
-	if response.Success != true {
-		t.Errorf("AddUser should return success message. It was %v", response)
+
+	// Start the GRPC servers
+	test.authServer, err = setUpAuthServer(t, authListener, dbConn)
+	if err != nil {
+		t.Fatalf("Failed to setup the authentication service: %v", err)
+		return test
 	}
+
+	test.userServer, err = setUpUserMgmtServer(t, userListener, dbConn)
+	if err != nil {
+		t.Fatalf("Failed to setup the user management service: %v", err)
+		return test
+	}
+
+	test.authClient = authpb.NewAuthenticationClient(test.authEndpoint)
+	test.userClient = usermgmtpb.NewUserManagementClient(test.userEndpoint)
+	return test
+}
+
+func (test *Test) teardown() {
+	test.mongoC.Terminate(context.Background())
+	test.authEndpoint.Close()
+	test.userEndpoint.Close()
+	teardownServer(test.authServer)
+	teardownServer(test.userServer)
 }
 
 func TestLogin(t *testing.T) {
-	SetUpAll()
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// 1. Invalid login because no such user has been added
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    "test@example.com",
+		Password: "secret",
+	})
+
+	// 2. Valid user login because it was set as default admin user
+	assertSuccessfulLogin(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    test.userServer.DefaultUser.User.Email,
+		Password: test.userServer.DefaultUser.Password,
+	})
+
+	// 3. Invalid user login because of typos
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    test.userServer.DefaultUser.User.Email,
+		Password: test.userServer.DefaultUser.Password + "'",
+	})
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    test.userServer.DefaultUser.User.Email + " ",
+		Password: test.userServer.DefaultUser.Password,
+	})
+
+	// 4. Add the user from 1. to make sure login succeeds now
+	addedUser, addUserErr := test.userClient.AddUser(context.Background(), &usermgmtpb.AddUserRequest{
+		User: &users.InternalUser{User: &users.User{Email: "test@example.com"}, Password: "secret"},
+	})
+	if addUserErr != nil {
+		t.Errorf("Failed to add user: %v", addUserErr)
+	}
+
+	assertSuccessfulLogin(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    "test@example.com",
+		Password: "secret",
+	})
+
+	// 5. Remove the user from 1. to make sure login fails again
+	_, removeUserErr := test.userClient.RemoveUser(context.Background(), &usermgmtpb.RemoveUserRequest{
+		UserId: addedUser.Id,
+	})
+	if removeUserErr != nil {
+		t.Errorf("Failed to remove user: %v", removeUserErr)
+	}
+
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    "test@example.com",
+		Password: "secret",
+	})
+
+	// 6. Sanity check empty values
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    test.userServer.DefaultUser.User.Email,
+		Password: "",
+	})
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    "",
+		Password: test.userServer.DefaultUser.Password,
+	})
+	assertLoginFails(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    "",
+		Password: "",
+	})
+}
+
+func TestValidation(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+	email := "test@example.com"
+	pw := "secret"
+	addedUser, addUserErr := test.userClient.AddUser(context.Background(), &usermgmtpb.AddUserRequest{
+		User: &users.InternalUser{User: &users.User{Email: email}, Password: pw},
+	})
+	if addUserErr != nil {
+		t.Errorf("Failed to add user: %v", addUserErr)
+	}
+
+	// 1. Get the token from a valid user
+	response, err := assertSuccessfulLogin(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    email,
+		Password: pw,
+	})
 	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
+		t.Fatal(err)
 	}
-	defer conn.Close()
-	client := pb.NewAuthenticationClient(conn)
+	assertIsValidToken(t, test.authClient, &authpb.TokenValidationRequest{Token: response.Token})
 
-	request := &pb.UserId{
-		Value: 1,
+	// 2. Delete the valid user and make sure the token is valid until it expires
+	_, removeUserErr := test.userClient.RemoveUser(context.Background(), &usermgmtpb.RemoveUserRequest{
+		UserId: addedUser.Id,
+	})
+	if removeUserErr != nil {
+		t.Fatal("Failed to remove user: %v", removeUserErr)
 	}
+	assertIsValidToken(t, test.authClient, &authpb.TokenValidationRequest{Token: response.Token})
+	at(time.Now().Add(time.Duration(test.authServer.ExpireSeconds+200)*time.Second), func() {
+		assertIsInvalidToken(t, test.authClient, &authpb.TokenValidationRequest{Token: response.Token})
+	})
 
-	userReply := []map[string]interface{}{userStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-
-	response, err := client.Login(context.Background(), request)
-	if err != nil {
-		t.Errorf("Login should work without error. Got: %v", err)
-	}
-	if !equalValidation(response, expectedValidation) {
-		t.Errorf("Login should return a successful validation %v, but it was %v", expectedValidation, response)
+	// 3. Test for a malformed token (invalid format)
+	badToken := "12.adbs."
+	if _, err := test.authClient.Validate(context.Background(), &authpb.TokenValidationRequest{Token: badToken}); err == nil {
+		t.Fatal("Bad jwt \"%s\"did not cause internal parse error", badToken)
 	}
 }
 
-func bufDialer(string, time.Duration) (net.Conn, error) {
-	return lis.Dial()
+func TestDebugMode(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+	test.authServer.DisableAuth = true
+	email := "test@example.com"
+	pw := "secret"
+	// Test if arbitrary users can still login
+	response, err := assertSuccessfulLogin(t, test.authClient, &authpb.UserLoginRequest{
+		Email:    email,
+		Password: pw,
+	})
+	if err != nil {
+		t.Fatal("New user could not login in debug mode: %v", err)
+	}
+	assertIsValidToken(t, test.authClient, &authpb.TokenValidationRequest{Token: response.Token})
+}
+
+// Override time value for tests.  Restore default value after.
+// Source: https://github.com/dgrijalva/jwt-go/blob/master/example_test.go#L81
+func at(t time.Time, f func()) {
+	jwt.TimeFunc = func() time.Time { return t }
+	f()
+	jwt.TimeFunc = time.Now
+}
+
+func assertSuccessfulLogin(t *testing.T, client authpb.AuthenticationClient, login *authpb.UserLoginRequest) (*authpb.AuthenticationToken, error) {
+	loginResult, err := client.Login(context.Background(), login)
+	if err != nil {
+		t.Errorf("Login for user %v failed unexpectedly: %v", login, err)
+	}
+	return loginResult, err
+}
+
+func assertLoginFails(t *testing.T, client authpb.AuthenticationClient, login *authpb.UserLoginRequest) {
+	loginResult, err := client.Login(context.Background(), login)
+	if err == nil {
+		t.Errorf("Login for user %v succeeded unexpectedly with token %v", loginResult.Token)
+	}
+}
+
+func assertIsValidToken(t *testing.T, client authpb.AuthenticationClient, request *authpb.TokenValidationRequest) {
+	valid, err := client.Validate(context.Background(), request)
+	if err != nil || (valid != nil && !valid.Valid) {
+		t.Errorf("Validation for token %s yielded invalid unexpectedly", request.Token)
+	}
+}
+
+func assertIsInvalidToken(t *testing.T, client authpb.AuthenticationClient, request *authpb.TokenValidationRequest) {
+	valid, err := client.Validate(context.Background(), request)
+	if err == nil || (valid != nil && valid.Valid) {
+		t.Errorf("Validation for token %s yielded valid unexpectedly", request.Token)
+	}
 }
