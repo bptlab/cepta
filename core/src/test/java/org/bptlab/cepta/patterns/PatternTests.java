@@ -18,9 +18,28 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 public class PatternTests {
 
     @Test
+    public void TestStaysInStationWrongOrder() throws Exception {
+        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationWrongOrder();
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
+
+        DataStream<StaysInStationEvent> generatedEvents = 
+            StaysInStationPattern.generateEvents(patternStream);
+
+        int count = 0;
+
+        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
+        while(detectedEventsItr.hasNext()){
+            StaysInStationEvent event = detectedEventsItr.next();
+            count ++;
+        }
+
+        Assert.assertTrue(count==0);
+    }
+
+    @Test
     public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDoubleEvents();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
@@ -39,7 +58,7 @@ public class PatternTests {
     @Test
     public void TestStaysInStationSurrounded() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationSurrounded();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
@@ -58,7 +77,7 @@ public class PatternTests {
     @Test
     public void TestNoMatchWhenChangingLocations() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.changesStation();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
@@ -77,7 +96,7 @@ public class PatternTests {
     @Test
     public void TestHasInterruptionWhenStayingInStation() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationWithInterruption();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
@@ -96,7 +115,7 @@ public class PatternTests {
     @Test
     public void TestStaysInStationDirectly() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);

@@ -13,26 +13,8 @@ import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos
 import java.util.*;
 
 
-public class StaysInStationPattern {
+public class StaysInStationPattern {   
     public static final Pattern<LiveTrainData, ?> staysInStationPattern = 
-      Pattern.<LiveTrainData>begin("arrivesInStation")
-      .where(new SimpleCondition<LiveTrainData>(){
-        @Override
-        public boolean filter(LiveTrainData event) {
-          return event.getStatus() == 3;
-        }
-      })
-      .next("departuresFromStation")
-      .where(new SimpleCondition<LiveTrainData>(){
-        @Override
-        public boolean filter(LiveTrainData event) {
-          return event.getStatus() == 4;
-        }
-      })
-      .within(Time.seconds(10));
-    
-
-    public static final Pattern<LiveTrainData, ?> staysInStationIterativePattern = 
       Pattern.<LiveTrainData>begin("arrivesInStation")
       .where(new SimpleCondition<LiveTrainData>(){
         @Override
