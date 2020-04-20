@@ -3,6 +3,7 @@ package org.bptlab.cepta.providers;
 import java.util.ArrayList;
 import org.javatuples.Pair;
 import com.google.protobuf.Timestamp;
+import static com.google.protobuf.util.Timestamps.*;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -11,6 +12,8 @@ import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExt
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+
+
 
 public class LiveTrainDataProvider {
 
@@ -212,13 +215,16 @@ public class LiveTrainDataProvider {
     LiveTrainData arrives = 
       LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
       .setStatus(3).setStationId(12)
+      .setEventTime(fromMillis(1000))
       .build();
 
     events.add(arrives);
 
+    //the second event is 50 Milliseconds later
     LiveTrainData departures = 
       LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
       .setStatus(4).setStationId(12)
+      .setEventTime(fromMillis(1050))
       .build();
       
     events.add(departures);
@@ -228,7 +234,7 @@ public class LiveTrainDataProvider {
         new AscendingTimestampExtractor<LiveTrainData>() {
           @Override
           public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-            return liveTrainData.getIngestionTime().getSeconds();
+            return toMillis(liveTrainData.getEventTime());
           }
         });
     return mockedStream;

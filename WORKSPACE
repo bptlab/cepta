@@ -156,6 +156,7 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.0.18",
         "com.google.j2objc:j2objc-annotations:1.1",
         "com.google.protobuf:protobuf-java:3.11.1",
+        "com.google.protobuf:protobuf-java-util:3.6.1",
         "info.picocli:picocli:4.1.0",
         "org.slf4j:slf4j-log4j12:1.7.5",
         "org.slf4j:slf4j-api:1.7.28",
