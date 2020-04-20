@@ -42,28 +42,28 @@ nodejs_proto_compile(
 # Authentication
 
 proto_library(
-    name = "authentication_proto",
-    srcs = ["authentication.proto"],
+    name = "auth_proto",
+    srcs = ["auth.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
 
 go_proto_library(
-    name = "authentication_go_proto",
+    name = "auth_go_proto",
     compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-    importpath = "github.com/bptlab/cepta/models/grpc/authentication",
-    proto = ":authentication_proto",
+    importpath = "github.com/bptlab/cepta/models/grpc/auth",
+    proto = ":auth_proto",
     visibility = ["//visibility:public"],
 )
 
 commonjs_dts_grpc_compile(
-    name = "authentication_commonjs_dts_grpc_proto",
-    deps = [":authentication_proto"],
+    name = "auth_commonjs_dts_grpc_proto",
+    deps = [":auth_proto"],
 )
 
 nodejs_proto_compile(
-    name = "authentication_nodejs_proto",
-    deps = [":authentication_proto"],
+    name = "auth_nodejs_proto",
+    deps = [":auth_proto"],
 )
 
 # Replayer
@@ -98,9 +98,9 @@ filegroup(
         ":replayer_commonjs_dts_grpc_proto",
         ":replayer_nodejs_proto",
         ":replayer_go_proto",
-        ":authentication_commonjs_dts_grpc_proto",
-        ":authentication_nodejs_proto",
-        ":authentication_go_proto",
+        ":auth_commonjs_dts_grpc_proto",
+        ":auth_nodejs_proto",
+        ":auth_go_proto",
         ":usermgmt_commonjs_dts_grpc_proto",
         ":usermgmt_nodejs_proto",
         ":usermgmt_go_proto",

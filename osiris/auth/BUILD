@@ -4,7 +4,7 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command")
 
 go_binary(
-    name = "authentication",
+    name = "auth",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -36,7 +36,7 @@ container_push(
   format = "Docker",
   image = ":image",
   registry = "index.docker.io",
-  repository = "ceptaorg/authentication",
+  repository = "ceptaorg/auth",
   tag = "{STABLE_DOCKER_TAG}",
   visibility = ["//visibility:public"],
 )
@@ -50,14 +50,14 @@ go_library(
         "Version": "{STABLE_VERSION}",
         "BuildTime": "{buildDate}",
     },
-    importpath = "github.com/bptlab/cepta/osiris/authentication",
+    importpath = "github.com/bptlab/cepta/osiris/auth",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/grpc:authentication_go_proto",
+        "//models/grpc:auth_go_proto",
         "//models/types:users_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",
-        "//osiris/authentication/lib:go_default_library",
+        "//osiris/auth/lib:go_default_library",
         "//ci/versioning:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_google_uuid//:go_default_library",
@@ -80,7 +80,7 @@ go_library(
     ],
 )
 go_test(
-    name = "go_default_test",
+    name = "server-test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
     size = "small",

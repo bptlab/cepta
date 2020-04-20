@@ -9,10 +9,10 @@ go_library(
         "Version": "{STABLE_VERSION}",
         "BuildTime": "{buildDate}",
     },
-    importpath = "github.com/bptlab/cepta/osiris/authentication/lib",
-    visibility = ["//osiris/authentication:__pkg__"],
+    importpath = "github.com/bptlab/cepta/osiris/auth/lib",
+    visibility = ["//osiris/auth:__pkg__"],
     deps = [
-        "//models/grpc:authentication_go_proto",
+        "//models/grpc:auth_go_proto",
         "//models/types:users_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib:cli",

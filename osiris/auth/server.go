@@ -19,9 +19,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/bptlab/cepta/ci/versioning"
-	pb "github.com/bptlab/cepta/models/grpc/authentication"
+	pb "github.com/bptlab/cepta/models/grpc/auth"
 	"github.com/bptlab/cepta/models/types/users"
-	lib "github.com/bptlab/cepta/osiris/authentication/lib"
+	lib "github.com/bptlab/cepta/osiris/auth/lib"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/dgrijalva/jwt-go"

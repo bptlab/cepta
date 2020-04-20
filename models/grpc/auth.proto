@@ -1,6 +1,6 @@
 syntax = "proto3";
-package models.grpc.authentication;
-option go_package = "github.com/bptlab/cepta/models/grpc/authentication";
+package models.grpc.auth;
+option go_package = "github.com/bptlab/cepta/models/grpc/auth";
 
 service Authentication {
   rpc Login(UserLoginRequest) returns (AuthenticationToken) {}

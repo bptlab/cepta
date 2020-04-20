@@ -14,9 +14,9 @@ go_library(
     deps = [
         "//models/types:users_go_proto",
         "//models/grpc:usermgmt_go_proto",
-        "//models/grpc:authentication_go_proto",
+        "//models/grpc:auth_go_proto",
         "//osiris/lib/db:go_default_library",
-        "//osiris/authentication:go_default_library",
+        "//osiris/auth:go_default_library",
         "//osiris/lib:cli",
         "//osiris/lib:utils",
         "@com_github_romnnn_flatbson//:go_default_library",

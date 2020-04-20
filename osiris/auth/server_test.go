@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	authpb "github.com/bptlab/cepta/models/grpc/authentication"
+	authpb "github.com/bptlab/cepta/models/grpc/auth"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	"github.com/bptlab/cepta/models/types/users"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
