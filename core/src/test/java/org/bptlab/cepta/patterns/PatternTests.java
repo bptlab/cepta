@@ -7,6 +7,9 @@ import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.junit.Assert;
 import org.junit.Test;
+
+import sun.reflect.annotation.ExceptionProxy;
+
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
@@ -17,6 +20,16 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class PatternTests {
 
+    private <T> int countOfEventsInStream(DataStream<T> input) throws Exception{
+        int count = 0;
+        Iterator<T> inputIterator = DataStreamUtils.collect(input);
+        while(inputIterator.hasNext()){
+            T event = inputIterator.next();
+            count ++;
+        }
+        return count;
+    }
+
     @Test
     public void TestStaysInStationWrongOrder() throws Exception {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationWrongOrder();
@@ -25,15 +38,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==0);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents) == 0);
     }
 
     @Test
@@ -44,15 +49,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==1);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
     }
 
     @Test
@@ -63,15 +60,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==1);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
     }
 
     @Test
@@ -82,15 +71,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==0);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents)==0);
     }
 
     @Test
@@ -101,15 +82,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==0);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents)==0);
     }
 
     @Test
@@ -120,15 +93,7 @@ public class PatternTests {
         DataStream<StaysInStationEvent> generatedEvents = 
             StaysInStationPattern.generateEvents(patternStream);
 
-        int count = 0;
-
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-        }
-
-        Assert.assertTrue(count==1);
+        Assert.assertTrue(countOfEventsInStream(generatedEvents)==1);
     }
     
 }
