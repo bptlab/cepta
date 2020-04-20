@@ -1,4 +1,4 @@
-import { ReplayerClient } from "@/generated/protobuf/replayer_grpc_web_pb";
+import { ReplayerClient } from "@/generated/protobuf/models/grpc/replayer_grpc_web_pb";
 import {
   VuexModule,
   Module,
@@ -14,7 +14,7 @@ import {
   Timerange,
   ReplayStartOptions,
   ReplayOptions
-} from "@/generated/protobuf/replayer_pb";
+} from "@/generated/protobuf/models/grpc/replayer_pb";
 
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 

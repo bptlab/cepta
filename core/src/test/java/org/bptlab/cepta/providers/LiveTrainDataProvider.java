@@ -70,6 +70,19 @@ public class LiveTrainDataProvider {
     return liveTrainStream;
   }
 
+  public static DataStream<LiveTrainData> liveTrainDatStreamWithDuplicates(){
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
+
+    LiveTrainData ele1 = trainEventWithTrainID(5);
+    LiveTrainData ele2 = trainEventWithTrainID(2);
+    LiveTrainData ele3 = trainEventWithTrainID(2);
+
+    DataStream<LiveTrainData> liveTrainStream = env.fromElements(ele1, ele2, ele3);
+
+    return liveTrainStream;
+  }
+
   // @DataProvider(name = "live-train-data-provider")
   public static DataStream<LiveTrainData> unmatchingLiveTrainDatas(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -226,7 +239,7 @@ public class LiveTrainDataProvider {
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setStationId(locationId).build();
   }
-  private static LiveTrainData trainEventWithTrainID(int trainId){
+  public static LiveTrainData trainEventWithTrainID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainSectionId(trainId).build();
   }

@@ -12,14 +12,11 @@
 // ---------------------------------------------------------
 
 .page-container
-  min-height: 100vh
-  // ROMAN
-  // background-color: #0c0d0d
   transition: all 0.2s ease
+  padding-left: $offscreen-size
 
   +between($breakpoint-md, $breakpoint-xl)
     padding-left: $collapsed-size
-
 
   +to($breakpoint-md)
     padding-left: 0
@@ -29,16 +26,10 @@
 // ---------------------------------------------------------
 
 .main-content
-  padding: 85px 20px 20px 300px
+  padding-top: 65px
   transition: all 0.2s ease
-  // min-height: calc(100vh - 61px)
-  min-height: 100vh
-
-  +between($breakpoint-md, $breakpoint-xl)
-    padding: 85px 20px 20px
-
-  +to($breakpoint-md)
-    padding: 85px 5px 5px
+  height: calc(100% - #{$footer-height}) // - 65px)
+  overflow-y: auto
 
 .remain-height
   height: calc(100vh - 126px)
@@ -49,7 +40,7 @@
 
 .full-container
   left: $offscreen-size
-  min-height: calc(100vh - #{$header-height})
+  // min-height: calc(100vh - #{$header-height})
   position: absolute
   right: 0
   top: $header-height

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package vehicle_data;
+option go_package = "github.com/bptlab/cepta/models/events/wagontrainrun";
+option java_package = "org.bptlab.cepta.models.events.wagontrainrun";
+option java_outer_classname = "WagonTrainRunDataProtos";
+
+import "google/protobuf/timestamp.proto";
+
+message WagonTrainRunData {
+    int64 event_type = 1;
+    google.protobuf.Timestamp ingestion_time = 2;
+    int64 wagon_id = 3;
+    int64 train_id = 4;
+    google.protobuf.Timestamp prod_date = 5;
+    google.protobuf.Timestamp planned_event_time = 6;
+    google.protobuf.Timestamp event_time = 7;
+    int64 delay = 8;
+    int64 station_country = 9;
+    int64 station_code_short = 10;
+    string station_name = 11;
+    int64 start_station_country = 12;
+    int64 start_station_code_short = 13;
+    string start_station_name = 14;
+    int64 end_station_country = 15;
+    int64 end_station_code_short = 16;
+    string end_station_name = 17;
+    int64 weight = 18;
+} 
