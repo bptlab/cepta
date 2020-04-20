@@ -1,11 +1,17 @@
 package org.bptlab.cepta.patterns;
 
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.datastream.DataStreamUtils;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.*;
 import org.apache.flink.cep.pattern.conditions.*;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
+
+import java.util.*;
+
 
 public class StaysInStationPattern {
     public static final Pattern<LiveTrainData, ?> staysInStationPattern = 
@@ -61,6 +67,19 @@ public class StaysInStationPattern {
         }      
     });
 
+    public static DataStream<StaysInStationEvent> generateEvents(PatternStream<LiveTrainData> patternStream){
+      return patternStream.select(
+        (Map<String, List<LiveTrainData>> pattern) -> {
+            LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation").get(0);
 
+            StaysInStationEvent detected = StaysInStationEvent.newBuilder()
+                .setTrainSectionId(first.getTrainSectionId())
+                .setStationId(first.getStationId())
+                .setTrainId(first.getTrainId())
+                .setEventTime(first.getEventTime())
+                .build();
 
+            return detected;
+        });
+    }
 }

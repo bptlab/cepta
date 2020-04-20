@@ -22,20 +22,8 @@ public class PatternTests {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
         PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationIterativePattern);
 
-        DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
-            (Map<String, List<LiveTrainData>> pattern) -> {
-                LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation").get(0);
-
-                StaysInStationEvent detected = StaysInStationEvent.newBuilder()
-                    .setTrainSectionId(first.getTrainSectionId())
-                    .setStationId(first.getStationId())
-                    .setTrainId(first.getTrainId())
-                    .setEventTime(first.getEventTime())
-                    .build();
-
-                return detected;
-            }
-        );
+        DataStream<StaysInStationEvent> generatedEvents = 
+            StaysInStationPattern.generateEvents(patternStream);
 
         int count = 0;
         System.out.println("Count = " + count);
