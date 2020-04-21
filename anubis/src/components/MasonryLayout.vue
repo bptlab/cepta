@@ -6,7 +6,7 @@
       item-selector=".item"
       columnWidth=".masonry-sizer"
       :percentPosition="true"
-      class="row gap-20 pos-r"
+      class="row gap-10 pos-r"
     >
       <div class="masonry-sizer col-md-6"></div>
       <slot></slot>

@@ -1,65 +1,38 @@
 syntax = "proto3";
-package models.grpc;
+package models.grpc.usermgmt;
 option go_package = "github.com/bptlab/cepta/models/grpc/usermgmt";
-option java_package = "org.bptlab.cepta.models.grpc.usermgmt";
+
+import "models/types/transports.proto";
+import "models/types/users.proto";
+import "models/types/result.proto";
 
 service UserManagement {
-
-  // Configuration
-  rpc SetEmail(UserIdEmailInput) returns (Success) {}
-  rpc AddTrain(UserIdTrainIdInput) returns (Success) {}
-  rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
-  rpc AddUser(User) returns (Success) {}
-  rpc RemoveUser(UserId) returns (Success) {}
-
-  // Query
-  rpc GetUser(UserId) returns (User) {}
-  rpc GetTrainIds(UserId) returns (TrainIds) {}
+  rpc GetUser(GetUserRequest) returns (models.types.users.User) {}
+  rpc UpdateUser(UpdateUserRequest) returns (models.types.result.Result) {}
+  // rpc AddTransport(models.types.transports.TransportID) returns (Success) {}
+  // rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
+  rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
+  rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Result) {}
 }
 
-message UserIdEmailInput {
-  UserId userId = 1;
+message GetUserRequest {
+  models.types.users.UserID user_id = 1;
   string email = 2;
 }
 
-message UserIdTrainInput {
-  UserId userId = 1;
-  Train train = 2;
+message UpdateUserRequest {
+  models.types.users.InternalUser user = 1;
 }
 
-message UserIdTrainIdInput {
-  UserId userId = 1;
-  TrainId trainId = 2;
-}
-message Train {
-  TrainId trainId = 1;
-}
-message TrainId {
-  int64 value = 1;
-}
-message TrainIds {
-  repeated TrainId ids = 1;
-}
-
-message User {
-  UserId id = 1;
+message AddTransportRequest {
+  models.types.transports.Transport transport = 1;
   string email = 2;
-  string password = 3;
-  TrainIds trains = 4;
 }
 
-message UserId {
-  int64 value = 1;
+message AddUserRequest {
+  models.types.users.InternalUser user = 1;
 }
 
-enum InternalControlMessageType {
-  RESET = 0;
-  SEEK = 1;
-  SHUTDOWN = 2;
-}
-
-message Empty {}
-
-message Success {
-  bool success = 1;
+message RemoveUserRequest {
+  models.types.users.UserID user_id = 1;
 }

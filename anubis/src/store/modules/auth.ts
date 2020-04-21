@@ -1,3 +1,4 @@
+import { AuthenticationClient } from "@/generated/protobuf/models/grpc/authentication_grpc_web_pb";
 import {
   VuexModule,
   Module,
@@ -6,101 +7,104 @@ import {
   getModule
 } from "vuex-module-decorators";
 import store from "@/store";
+import router from "@/router";
 import Vue from "vue";
+import {
+  UserLoginRequest,
+  AuthenticationToken,
+  TokenValidationRequest
+} from "@/generated/protobuf/models/grpc/authentication_pb";
 
 export interface IAuthState {
+  client: AuthenticationClient;
   authToken: string;
-  authStatus: string;
+  authState: AuthenticationState | null;
   appAllowsRegister: boolean;
-  appAuthenticationAPI: string;
-  appSignUpAPI: string;
 }
 
-interface User {
-  email: string;
-  password: string;
+enum AuthenticationState {
+  Loading,
+  Failed,
+  Authenticated
 }
 
 @Module({ dynamic: true, store, name: "auth" })
 class Auth extends VuexModule implements IAuthState {
+  public client = new AuthenticationClient("/grpc/auth", null, null);
   public appAllowsRegister = false;
-  public appAuthenticationAPI =
-    "http://192.168.1.7:5000/api/admin/v1/auth/login";
-  public appSignUpAPI = "http://192.168.1.7:5000/api/admin/v1/auth/signup";
-  public authToken = localStorage.getItem("user-token") || "";
-  public authStatus = "";
+  public authToken = "";
+  public authState: AuthenticationState | null = null;
 
   get isAuthenticated(): boolean {
     return !!this.authToken;
   }
 
-  @Mutation
-  private AUTH_LOGOUT(): void {
-    this.authStatus = "";
-    this.authToken = "";
+  get authHeader(): { Authorization: string } {
+    return { Authorization: `Bearer ${this.authToken}` };
   }
 
   @Mutation
-  private AUTH_REQUEST(): void {
-    this.authStatus = "loading";
+  private setAuthState(status: AuthenticationState | null): void {
+    this.authState = status;
   }
 
   @Mutation
-  private AUTH_SUCCESS(token: string): void {
-    this.authStatus = "success";
+  public setAuthToken(token: string): void {
     this.authToken = token;
   }
 
-  @Mutation
-  private AUTH_ERROR(error: string): void {
-    this.authStatus = error;
-  }
-
-  @Action
-  public async authRequest(user: User, shouldRemember: boolean = true) {
-    return new Promise((resolve, reject) => {
-      this.AUTH_REQUEST();
-      const api = this.appAuthenticationAPI;
-      Vue.axios.post(api, { user: user }).then(
-        response => {
-          // Get token
-          let token = response.data.token;
-          localStorage.setItem("user-token", token);
-          Vue.axios.defaults.headers.common["Authorization"] = token;
-          this.AUTH_SUCCESS(token);
-          resolve(response);
-        },
-        err => {
-          this.AUTH_ERROR(err);
-          localStorage.removeItem("user-token");
-          if (err.response) {
-            let error_response = err.response.data;
-            reject({
-              status: err.response.status,
-              error: error_response.error,
-              message: error_response.message
+  @Action({ rawError: true })
+  public async authRequest(
+    request: UserLoginRequest
+  ): Promise<AuthenticationToken> {
+    return new Promise<AuthenticationToken>((resolve, reject) => {
+      this.setAuthState(AuthenticationState.Loading);
+      this.client.login(request, undefined, (err, response) => {
+        debugger;
+        if (err != undefined) {
+          this.setAuthState(AuthenticationState.Failed);
+          Vue.cookies.remove("user-token");
+          reject(err);
+        } else {
+          let token = response.getToken();
+          this.setAuthToken(token);
+          this.setAuthState(AuthenticationState.Authenticated);
+          if (request.getRemember() == true) {
+            Vue.cookies.set("user-token", token, {
+              expires: response.getExpiration()
             });
           }
-          // Reject promise
-          reject({
-            status: null,
-            error: "Authentication failed",
-            message:
-              "Could not properly connect to the server. Please try again later."
-          });
+          Vue.axios.defaults.headers.common["Authorization"] = token;
+          resolve(response);
         }
-      );
+      });
     });
   }
 
-  @Action
-  public async authLogout() {
-    return new Promise(resolve => {
-      this.AUTH_LOGOUT();
-      localStorage.removeItem("user-token");
-      delete Vue.axios.defaults.headers.common["Authorization"];
-      resolve();
+  @Action({ rawError: true })
+  public async checkToken(): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      let request = new TokenValidationRequest();
+      request.setToken(this.authToken);
+      this.client.validate(request, undefined, (err, response) => {
+        if (response.getValid()) {
+          resolve(true);
+        } else {
+          this.authLogout();
+          router.push("/");
+          reject(false);
+        }
+      });
     });
+  }
+
+  @Action({ rawError: true })
+  public authLogout() {
+    Vue.cookies.remove("user-token");
+    delete Vue.axios.defaults.headers.common["Authorization"];
+    this.setAuthToken("");
+    this.setAuthState(null);
+    router.push({ name: "login" });
   }
 }
 

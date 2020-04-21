@@ -40,5 +40,7 @@ go_library(
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
-    ],
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@com_github_mitchellh_mapstructure//:go_default_library",
+    ]
 )

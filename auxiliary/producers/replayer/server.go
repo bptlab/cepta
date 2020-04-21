@@ -24,6 +24,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 // Version will be injected at build time
@@ -140,6 +141,9 @@ func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (
 // Stop ...
 func (s *ReplayerServer) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Stopping")
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		log.Info(md)
+	}
 	s.Active = false
 	for _, replayer := range s.Replayers {
 		// Send STOP control message
@@ -262,7 +266,7 @@ func (s *ReplayerServer) Serve(listener net.Listener, log *logrus.Logger, includ
 	// Connect to mongoDB
 	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
 	if err != nil {
-		log.Fatalf("failed to initialize mongo database: %v", err)
+		log.Fatalf("Failed to initialize mongo database: %v", err)
 	}
 	*s.mongo = *mongo
 

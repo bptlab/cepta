@@ -3,9 +3,13 @@ sudo: required
 osx_image: xcode9.4
 language: java
 
+cache:
+  directories:
+    - $HOME/.cache/bazel/_bazel_$USER/cache/repos/v1/content_addressable
+
 env:
   global:
-    - V=2.2.0
+    - V=3.0.0
     - RUN_OPTS="--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
 
 script: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
@@ -29,7 +33,7 @@ matrix:
       name: Smoke Tests
       env: TEST_TARGET=":smoke" TEST_FILTER=-docker
       os: osx
-    
+
     # Linux: Unit Tests
     - stage: Unit Tests
       name: Unit Tests
@@ -54,7 +58,25 @@ matrix:
       env: TEST_TARGET=":integration" TEST_FILTER=-docker
       os: osx
 
+    - stage: deploy
+      name: Deploy to GitHub Pages
+      script: echo "Deploying to GitHub Pages"
+      before_deploy: openssl aes-256-cbc -K $encrypted_189e52c2c347_key -iv $encrypted_189e52c2c347_iv -in deploy_key.enc -out deploy_key -d
+      os: osx
+      deploy:
+        provider: pages
+        local_dir: web
+        skip_cleanup: true
+        verbose: true
+        keep_history: true
+        edge: true
+        deploy_key: deploy_key
+        on:
+          branch: dev
+
 before_install:
+  - rm .bazelrc
+  - mv .bazelrc.ci .bazelrc
   - echo "Installing bazel"
   - OS=linux
   - ARCH=x86_64
@@ -76,3 +98,4 @@ stages:
   - name: Unit Tests
   # Integration Tests require Unit Tests to succeed
   - name: Integration Tests
+  - name: Deploy to GitHub Pages
