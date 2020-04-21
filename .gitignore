@@ -37,7 +37,7 @@ bazel-vagrant
 bazel-bazel-example
 .vagrant/
 Vagrantfile
-.idea/
+
 
 node_modules/
 .package-lock.json
@@ -73,6 +73,7 @@ hs_err_pid*
 
 ### Ignore intellij configurations
 .idea/*
+.ijwb/*
 !.idea/codeStyles/
 cmake-build-*/
 *.iws
