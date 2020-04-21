@@ -43,6 +43,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 // Version will be injected at build time
@@ -94,6 +95,9 @@ func (s *server) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Succ
 
 func (s *server) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
 	log.Infof("Stopping")
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		log.Info(md)
+	}
 	s.active = false
 	return &pb.Success{Success: true}, nil
 }
@@ -157,7 +161,7 @@ func serve(ctx *cli.Context, log *logrus.Logger, mongoPtr *libdb.MongoDB) error 
 	mongoConfig := libdb.MongoDBConfig{}.ParseCli(ctx)
 	mongo, err := libdb.MongoDatabase(&mongoConfig)
 	if err != nil {
-		log.Fatalf("failed to initialize mongo database: %v", err)
+		log.Fatalf("Failed to initialize mongo database: %v", err)
 	}
 	mongoPtr.DB = mongo.DB
 

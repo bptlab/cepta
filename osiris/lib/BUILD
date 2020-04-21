@@ -35,4 +35,8 @@ go_library(
     ],
     importpath = "github.com/bptlab/cepta/osiris/lib/utils",
     visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@com_github_mitchellh_mapstructure//:go_default_library",
+    ]
 )

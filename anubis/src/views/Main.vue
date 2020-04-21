@@ -51,16 +51,6 @@ export default class Main extends Vue {
     return process.env.STABLE_VERSION;
   }
 
-  created() {
-    let theme: number = parseInt(
-      (this.$cookies.get(COOKIE_THEME) ?? "").toString()
-    );
-    if (!isNaN(theme)) {
-      console.log("Srtting");
-      AppModule.setTheme(theme);
-    }
-  }
-
   mounted() {
     /*
       window.addEventListener("load", () => {

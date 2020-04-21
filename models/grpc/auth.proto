@@ -1,0 +1,27 @@
+syntax = "proto3";
+package models.grpc.auth;
+option go_package = "github.com/bptlab/cepta/models/grpc/auth";
+
+service Authentication {
+  rpc Login(UserLoginRequest) returns (AuthenticationToken) {}
+  rpc Validate(TokenValidationRequest) returns (TokenValidationResult) {}
+}
+
+message UserLoginRequest {
+  string email = 1;
+  string password = 2;
+  bool remember = 3;
+}
+
+message TokenValidationRequest {
+  string token = 1;
+}
+
+message  TokenValidationResult {
+  bool valid = 1;
+}
+
+message AuthenticationToken {
+  string token = 1;
+  int64 expiration = 2;
+}
