@@ -212,13 +212,14 @@ public class StaysInStationPatternProvider {
     
         events.add(arrives);
     
-        LiveTrainData travelsThrough = 
+        LiveTrainData otherEvent = 
         LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setStatus(5).setStationId(13)
+        .setTrainId(42)
         .setEventTime(fromMillis(1050))
         .build();
     
-        events.add(travelsThrough);
+        events.add(otherEvent);
     
         LiveTrainData departuresFromAnotherStation = 
         LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()

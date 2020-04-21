@@ -1,9 +1,9 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "pattern-tests",
-    srcs = ["PatternTests.java"],
-    test_class = "org.bptlab.cepta.PatternTests",
+    name = "stays-in-station-tests",
+    srcs = ["StaysInStationTest.java"],
+    test_class = "org.bptlab.cepta.StaysInStationTest",
     size = "small",
     tags = ["unit"],
     deps = [

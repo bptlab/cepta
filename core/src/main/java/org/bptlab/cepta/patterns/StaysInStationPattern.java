@@ -7,6 +7,7 @@ import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.*;
 import org.apache.flink.cep.pattern.conditions.*;
+import org.apache.flink.cep.nfa.aftermatch.AfterMatchSkipStrategy;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
 
@@ -15,37 +16,33 @@ import java.util.*;
 
 public class StaysInStationPattern {   
     public static final Pattern<LiveTrainData, ?> staysInStationPattern = 
-      Pattern.<LiveTrainData>begin("arrivesInStation")
+      Pattern.<LiveTrainData>begin("arrivesInStation", AfterMatchSkipStrategy.skipPastLastEvent())
       .where(new SimpleCondition<LiveTrainData>(){
         @Override
         public boolean filter(LiveTrainData event) {
           return event.getStatus() == 3;
         }
       })
-      .next("departuresFromStation")
+      .followedBy("departuresFromStation")
       .where(new IterativeCondition<LiveTrainData>(){
         @Override
         public boolean filter (LiveTrainData incoming, Context<LiveTrainData> context){
-        if (incoming.getStatus() != 4) {
-          return false;
-        }
-        
-        LiveTrainData first = null;
-        try {
-          for (LiveTrainData previous : context.getEventsForPattern("arrivesInStation")){
-            first = previous;
-            break;
+          if (incoming.getStatus() != 4) {
+            //this is not a departure event
+            return false;
           }
-        } catch (Exception e) {
-          //TODO: handle exception
-        }
-       
-        if (first.getStationId() == incoming.getStationId()) {
-          return true;
-        }
-
-        return false;
-
+          
+          try {
+            //as we only have exactly one previous event we only need to grab the first from the pattern so far
+            LiveTrainData firstEvent = context.getEventsForPattern("arrivesInStation").iterator().next();
+            if (firstEvent.getStationId() == incoming.getStationId() && firstEvent.getTrainId() == incoming.getTrainId()) {
+              return true;
+            }
+          } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+          }
+          return false;
         }      
     });
 
