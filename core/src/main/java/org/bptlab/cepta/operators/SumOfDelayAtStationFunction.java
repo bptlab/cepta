@@ -23,9 +23,9 @@ public class SumOfDelayAtStationFunction {
     public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<TrainDelayNotification> inputStream, int windowSize) {
         DataStream<Tuple2<Long, Double>> resultStream = inputStream
         .keyBy(
-            new KeySelector<T, Integer>(){
+            new KeySelector<TrainDelayNotification, Integer>(){
                 Integer key = Integer.valueOf(0);
-                public Integer getKey(T event){
+                public Integer getKey(TrainDelayNotification event){
                     Integer returnKey = key/windowSize;
                     key++;
                     return returnKey;
