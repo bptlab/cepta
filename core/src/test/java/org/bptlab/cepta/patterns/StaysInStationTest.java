@@ -25,7 +25,7 @@ public class StaysInStationTest {
         PatternStream<LiveTrainData> patternStream = CEP.pattern(input, StaysInStationPattern.staysInStationPattern);
 
         DataStream<StaysInStationEvent> generatedEvents = 
-            StaysInStationPattern.generateEvents(patternStream);
+            patternStream.process(StaysInStationPattern.staysInStationProcessFunction());
 
         return CountOfEventsInStreamFunction.countOfEventsInStream(generatedEvents);
     }
@@ -62,7 +62,7 @@ public class StaysInStationTest {
     public void TestHasInterruptionWhenStayingInStation() throws Exception {
         Assert.assertTrue(
             countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption())
-             == 0);  
+             == 1);  
     }
 
     @Test
