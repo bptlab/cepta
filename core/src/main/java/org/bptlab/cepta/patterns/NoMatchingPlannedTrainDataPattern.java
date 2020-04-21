@@ -26,7 +26,7 @@ public class NoMatchingPlannedTrainDataPattern{
      * it only works on a DataStream with already correlated live and planned data
      */
 
-    public static final Pattern<Tuple2<LiveTrainData, PlannedTrainData>, ?> noPlanned = Pattern.<Tuple2<LiveTrainData, PlannedTrainData>>begin("start")
+    public static final Pattern<Tuple2<LiveTrainData, PlannedTrainData>, ?> noMatchingPlannedTrainDataPattern = Pattern.<Tuple2<LiveTrainData, PlannedTrainData>>begin("start")
         .where(new SimpleCondition<Tuple2<LiveTrainData, PlannedTrainData>>(){
             @Override
             public boolean filter(Tuple2<LiveTrainData, PlannedTrainData> income){
@@ -38,7 +38,7 @@ public class NoMatchingPlannedTrainDataPattern{
             }
         });
     
-    public static PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent> patternProcessFunction(){
+    public static PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent> generateNMPTDEventsFunc(){
         return new PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent>(){
             @Override
             public void processMatch(Map<String, List<Tuple2<LiveTrainData, PlannedTrainData>>> match, Context ctx, Collector<NoMatchingPlannedTrainDataEvent> out) throws Exception{

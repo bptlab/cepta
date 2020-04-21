@@ -34,7 +34,7 @@ java_test(
         "//core/src/main/java/org/bptlab/cepta/patterns",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
-        "//models/events:stays_in_station_event_java_proto",
+        "//models/events:no_matching_planned_train_data_event_java_proto",
         "@maven//:org_apache_flink_flink_cep_2_11",       
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
