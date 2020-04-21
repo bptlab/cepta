@@ -161,8 +161,6 @@ services:
       - ../../keys/sample/auth.jwk.json:/etc/keys/jwks.json
     environment:
       KAFKA_BROKERS: kafka:9092
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: ${CEPTA_POSTGRES_PORT}
       MONGODB_HOST: mongodb
       MONGODB_PORT: ${CEPTA_MONGODB_PORT}
       # LOG: DEBUG
@@ -177,15 +175,13 @@ services:
       - ${CEPTA_USERMGMT_BACKEND_PORT}:80
     environment:
       KAFKA_BROKERS: kafka:9092
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: ${CEPTA_POSTGRES_PORT}
       MONGODB_HOST: mongodb
       MONGODB_PORT: ${CEPTA_MONGODB_PORT}
       INITIAL_EMAIL: cepta@cepta.org
       INITIAL_PASSWORD: cepta
       CLEAR: "true"
     depends_on:
-      - postgres
+      - mongodb
 
   replayer:
     image: bazel/auxiliary/producers/replayer:image
