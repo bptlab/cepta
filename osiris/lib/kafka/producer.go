@@ -1,4 +1,4 @@
-package kafkaproducer
+package producer
 
 import (
 	"fmt"
@@ -16,6 +16,14 @@ var KafkaProducerCliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
 type KafkaProducerOptions struct {
 	Brokers             []string
 	ConnectionTolerance libcli.ConnectionTolerance
+}
+
+func (config KafkaProducerOptions) GetBrokers() []string {
+	return config.Brokers
+}
+
+func (config KafkaProducerOptions) GetConnectionTolerance() libcli.ConnectionTolerance {
+	return config.ConnectionTolerance
 }
 
 func (config KafkaProducerOptions) ParseCli(ctx *cli.Context) KafkaProducerOptions {

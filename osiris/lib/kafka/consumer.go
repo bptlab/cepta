@@ -1,4 +1,4 @@
-package kafkaconsumer
+package consumer
 
 import (
 	"context"
@@ -21,6 +21,14 @@ type KafkaConsumerOptions struct {
 	Version             string
 	Topics              []string
 	ConnectionTolerance libcli.ConnectionTolerance
+}
+
+func (config KafkaConsumerOptions) GetBrokers() []string {
+	return config.Brokers
+}
+
+func (config KafkaConsumerOptions) GetConnectionTolerance() libcli.ConnectionTolerance {
+	return config.ConnectionTolerance
 }
 
 func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptions {
