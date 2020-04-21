@@ -97,20 +97,3 @@ func TestQuery(t *testing.T) {
 		t.Errorf("Query returned wrong number of results")
 	}
 }
-
-/*
-func stopTestForReal(t *testing.T) {
-	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-		return
-	}
-	client := pb.NewReplayerClient(conn)
-	_, err2 := client.Query(&pb.QueryOptions{})
-	if err2 != nil {
-		panic(err2)
-		return
-	}
-	defer conn.Close()
-}
-*/

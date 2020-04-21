@@ -96,15 +96,17 @@ go_library(
 )
 
 go_test(
-    name = "replayer_unit",
-    size = "small",
-    srcs = ["tests/unit.go"],
+    name = "replayer_internal",
+    size = "medium",
+    srcs = ["tests/internal.go"],
     embed = [":go_default_library"],
     deps = [
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
+        "@com_github_testcontainers_testcontainers_go//:go_default_library",
+        "//osiris/lib/testing:go_default_library",
     ],
-    tags = ["unit"],
+    tags = ["integration", "docker", "internal"],
 )
 
 go_test(
@@ -115,8 +117,10 @@ go_test(
     deps = [
         "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
+        "@com_github_testcontainers_testcontainers_go//:go_default_library",
+        "//osiris/lib/testing:go_default_library",
     ],
-    tags = ["integration", "docker", "internal"],
+    tags = ["integration", "docker"],
 )
 
 test_suite(

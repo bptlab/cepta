@@ -19,17 +19,13 @@ type Replayer struct {
 	Ctrl        chan pb.InternalControlMessageType
 	SourceName  string
 	IDFieldName string
-	// Query       *extractors.ReplayQuery
-	// Speed       *int32
-	// Repeat      bool
-	// Mode        *pb.ReplayType
-	Options   *pb.SourceQueryOptions
-	Extractor extractors.Extractor
-	Topic     topic.Topic
-	Brokers   []string
-	log       *logrus.Entry
-	running   bool
-	producer  *kafkaproducer.KafkaProducer
+	Options     *pb.SourceQueryOptions
+	Extractor   extractors.Extractor
+	Topic       topic.Topic
+	Brokers     []string
+	log         *logrus.Entry
+	running     bool
+	producer    *kafkaproducer.KafkaProducer
 }
 
 func (r *Replayer) queryAndSend(stream pb.Replayer_QueryServer) error {

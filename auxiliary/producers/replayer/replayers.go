@@ -33,7 +33,7 @@ func setSortAndID(SortFieldName string, IDFieldName string) extractors.MongoExtr
 }
 
 // Setup ...
-func (s *ReplayerServer) Setup() {
+func (s *ReplayerServer) Setup() error {
 
 	// Initialization will happen later on
 	s.mongo = new(libdb.MongoDB)
@@ -193,4 +193,5 @@ func (s *ReplayerServer) Setup() {
 		s.WeatherRplr,
 		s.GpsRplr,
 	}
+	return nil
 }
