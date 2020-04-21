@@ -62,7 +62,7 @@ test_suite(
     tags = ["smoke"],
     tests = [
         "//core:smoke",
-        "//osiris/authentication:smoke",
+        "//osiris/auth:smoke",
         "//osiris/notification:smoke",
         "//osiris/query:smoke",
         "//osiris/usermgmt:smoke",
@@ -74,7 +74,7 @@ test_suite(
     tags = ["unit"],
     tests = [
         "//core:unit",
-        "//osiris/authentication:unit",
+        "//osiris/auth:unit",
         "//osiris/notification:unit",
         "//osiris/query:unit",
         "//osiris/usermgmt:unit",
@@ -86,7 +86,7 @@ test_suite(
     tags = ["integration"],
     tests = [
         "//core:integration",
-        "//osiris/authentication:integration",
+        "//osiris/auth:integration",
         "//osiris/notification:integration",
         "//osiris/query:integration",
         "//osiris/usermgmt:integration",
@@ -98,7 +98,7 @@ test_suite(
     tags = ["internal"],
     tests = [
         "//core:internal",
-        "//osiris/authentication:internal",
+        "//osiris/auth:internal",
         "//osiris/notification:internal",
         "//osiris/query:internal",
         "//osiris/usermgmt:internal",

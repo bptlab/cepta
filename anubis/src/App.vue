@@ -13,6 +13,7 @@ import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import { AuthModule } from "./store/modules/auth";
 import { AppModule } from "./store/modules/app";
 import { TrainDelayNotification } from "./generated/protobuf/models/events/TrainDelayNotification_pb";
+import { COOKIE_THEME } from "./constants";
 
 @Component({
   name: "App",
@@ -60,6 +61,12 @@ export default class App extends Vue {
   }
 
   created() {
+    let theme: number = parseInt(
+      (this.$cookies.get(COOKIE_THEME) ?? "").toString()
+    );
+    if (!isNaN(theme)) {
+      AppModule.setTheme(theme);
+    }
     this.axios.interceptors.response.use(undefined, err => {
       return new Promise((resolve, reject) => {
         if (err.status === 401 && err.config && !err.config.__isRetryRequest) {

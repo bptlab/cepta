@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 ### [0.3.0] - 2020-04-24
 ##### Added
 - WIP
+- [#242](https://github.com/bptlab/cepta/pull/242)
+  - Abstractions for starting mongo containers in golang tests
+  - Implement e2e authentication via envoy `http.jwt_authn.v2alpha.JwtAuthentication`
+  - Utility script for generating private and public RSA keys and a jwk set
+  - Integration tests for authentication
+  - Integration of authentication in the frontend
+  - Add `auth` and `usermgmt` microservices in dev and prod docker env
 - [#231](https://github.com/bptlab/cepta/pull/231)
   - Track the average speed of transports
   - t.b.a.
@@ -21,6 +28,8 @@ All notable changes to this project will be documented in this file.
  
 ##### Changed
 - WIP
+- [#242](https://github.com/bptlab/cepta/pull/242)
+  - Complete rewrite of auth and user management microservices
 - [#217](https://github.com/bptlab/cepta/pull/217)
   - consistent naming of bazel targets
 

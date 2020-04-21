@@ -43,6 +43,7 @@
 <script lang="ts">
 import AccountDropdownElement from "../components/AccountDropdownElement.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { AuthModule } from "../store/modules/auth";
 
 @Component({
   name: "AccountDropdown",
@@ -57,9 +58,7 @@ export default class AccountDropdown extends Vue {
   open: boolean = false;
 
   logout() {
-    this.$store.dispatch("AUTH_LOGOUT").then(() => {
-      this.$router.push("/login");
-    });
+    AuthModule.authLogout();
   }
 
   mounted() {}

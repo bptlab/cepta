@@ -97,7 +97,7 @@ services:
       - flink-jobmanager
       - flink-taskmanager
       - kafka
-      - traindatareplayer
+      - replayer
 
   replayer:
     image: ceptaorg/replayer:${CEPTA_VERSION}
@@ -114,16 +114,45 @@ services:
       - --must-match='train_id=47298333'
 
   notification:
-    image: bazel/osiris/notification:image
+    image: ceptaorg/notification:${CEPTA_VERSION}
     command:
       - --brokers=kafka:9092
-    ports:
-      - ${CEPTA_NOTIFICATION_BACKEND_PORT}:80
+    expose: 
+      - 80
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
       - kafka
       - replayer
+
+  auth:
+    image: ceptaorg/auth:${CEPTA_VERSION}
+    expose: 
+      - 80
+    volumes:
+      - ../../keys/sample/auth.key:/etc/keys/sign.key
+      - ../../keys/sample/auth.jwk.json:/etc/keys/jwks.json
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      SIGNING_KEY: /etc/keys/sign.key
+      JWKS_JSON: /etc/keys/jwks.json
+    depends_on:
+      - mongodb
+
+  usermgmt:
+    image: ceptaorg/usermgmt:${CEPTA_VERSION}
+    expose: 
+      - 80
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      INITIAL_EMAIL: cepta@cepta.org
+      INITIAL_PASSWORD: cepta
+    depends_on:
+      - mongodb
 
   envoy:
     image: envoyproxy/envoy:v1.14.1
@@ -132,6 +161,7 @@ services:
       - ${CEPTA_ENVOY_INGRESS_PORT:-80}:80
       - ${CEPTA_ENVOY_GRPC_PORT:-90}:81
     volumes:
+      - ../../keys/sample/auth.jwk.json:/etc/envoy/jwks/jwks.json
       - ./envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
       - ../common/prepare-envoy.sh:/prepare.sh:ro
     entrypoint: ["bin/sh", "/prepare.sh"]

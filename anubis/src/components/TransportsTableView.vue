@@ -14,7 +14,7 @@
 <script lang="ts">
 import BasicTable from "../components/BasicTable.vue";
 import GridTable from "../components/GridTable.vue";
-import { GrpcModule } from "../store/modules/grpc";
+import { ReplayerModule } from "../store/modules/replayer";
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 @Component({
