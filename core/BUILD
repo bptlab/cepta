@@ -39,6 +39,7 @@ java_binary(
         "@maven//:org_slf4j_slf4j_api",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_github_jasync_sql_jasync_common",
+        "@maven//:org_apache_flink_flink_cep_2_11",
     ],
 )
 
@@ -113,6 +114,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
     "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
+    "//core/src/test/java/org/bptlab/cepta/patterns:pattern-tests",
 ]
 
 test_suite(name = "smoke", tags = ["-docker", "-internal"], tests=sub_tests)

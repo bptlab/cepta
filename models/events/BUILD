@@ -394,6 +394,29 @@ java_proto_library(
     deps = [":railway_undertaking_data_proto"],
 )
 
+
+
+
+go_proto_library(
+    name = "stays_in_station_event_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/staysinstationevent",
+    proto = ":stays_in_station_event_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "stays_in_station_event_proto",
+    srcs = ["StaysInStationEvent.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "stays_in_station_event_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":stays_in_station_event_proto"],
+)
+
 go_proto_library(
     name = "wagon_train_run_data_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/wagontrainrundataevent",
@@ -477,6 +500,8 @@ filegroup(
         ":vehicle_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
+        ":stays_in_station_event_go_proto",
+        ":stays_in_station_event_java_proto",
         ":wagon_train_run_data_go_proto",
         ":wagon_train_run_data_java_proto",
         ":no_matching_planned_train_data_event_go_proto",
