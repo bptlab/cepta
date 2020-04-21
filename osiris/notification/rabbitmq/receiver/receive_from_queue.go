@@ -2,7 +2,6 @@ package main
 
 import (
         "log"
-        "os"
 
         "github.com/streadway/amqp"
 )
@@ -14,7 +13,7 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-        conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+        conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
         failOnError(err, "Failed to connect to RabbitMQ")
         defer conn.Close()
 
@@ -23,7 +22,7 @@ func main() {
         defer ch.Close()
 
         err = ch.ExchangeDeclare(
-                "logs_direct", // name
+                "notification_exchange", // name
                 "direct",      // type
                 true,          // durable
                 false,         // auto-deleted
@@ -33,36 +32,35 @@ func main() {
         )
         failOnError(err, "Failed to declare an exchange")
 
+        args := make(amqp.Table)
+        args["x-max-length"] = 5
+
         q, err := ch.QueueDeclare(
-                "",    // name
-                false, // durable
+                "user-notifications",    // name
+                true, // durable
                 false, // delete when unused
-                true,  // exclusive
+                false,  // exclusive
                 false, // no-wait
-                nil,   // arguments
+                args,   // arguments
         )
         failOnError(err, "Failed to declare a queue")
 
-        if len(os.Args) < 2 {
-                log.Printf("Usage: %s [info] [warning] [error]", os.Args[0])
-                os.Exit(0)
-        }
-        for _, s := range os.Args[1:] {
-                log.Printf("Binding queue %s to exchange %s with routing key %s",
-                        q.Name, "logs_direct", s)
-                err = ch.QueueBind(
-                        q.Name,        // queue name
-                        s,             // routing key
-                        "logs_direct", // exchange
-                        false,
-                        nil)
-                failOnError(err, "Failed to bind a queue")
-        }
+        routingKey := getUserID()
+
+        log.Printf("Binding queue %s to exchange %s with routing key %s",
+                q.Name, "notification_exchange", routingKey)
+        err = ch.QueueBind(
+                q.Name,        // queue name
+                routingKey,             // routing key
+                "notification_exchange", // exchange
+                false,
+                nil)
+        failOnError(err, "Failed to bind a queue")
 
         msgs, err := ch.Consume(
                 q.Name, // queue
-                "",     // consumer
-                true,   // auto ack
+                "User" + getUserID(),     // consumer
+                false,   // auto ack
                 false,  // exclusive
                 false,  // no local
                 false,  // no wait
@@ -74,10 +72,15 @@ func main() {
 
         go func() {
                 for d := range msgs {
-                        log.Printf(" [x] %s", d.Body)
+                        log.Printf("%s", d.Body)
                 }
         }()
 
-        log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
+        log.Printf("Waiting for notifications. To exit press CTRL+C")
         <-forever
+}
+
+func getUserID() string {
+        // Receive UID to return  it
+        return "2"
 }

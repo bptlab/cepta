@@ -12,7 +12,13 @@ All notable changes to this project will be documented in this file.
 - [#213](https://github.com/bptlab/cepta/pull/213)
   - Single install helm chart for deploying to kubernetes clusters
   - Automatic packaging and distribution via GitHub Pages
-
+- [#240](https://github.com/bptlab/cepta/pull/240)
+  - Subscription to correct Kafka queue
+  - Connection to UserDB
+  - Add rabbitMQ
+  - Save User Notifications in rabbitMQ when logged out
+  - Send Notification to the users frontend over websocket when logged in
+ 
 ##### Changed
 - WIP
 - [#217](https://github.com/bptlab/cepta/pull/217)

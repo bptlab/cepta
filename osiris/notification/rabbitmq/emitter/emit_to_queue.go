@@ -2,11 +2,13 @@ package main
 
 import (
         "log"
-        "os"
-        "strings"
+        "encoding/json"
 
         "github.com/streadway/amqp"
+	      delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
+
 )
+
 
 func failOnError(err error, msg string) {
         if err != nil {
@@ -15,7 +17,7 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-        conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+        conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
         failOnError(err, "Failed to connect to RabbitMQ")
         defer conn.Close()
 
@@ -24,7 +26,7 @@ func main() {
         defer ch.Close()
 
         err = ch.ExchangeDeclare(
-                "logs_direct", // name
+                "notification_exchange", // name
                 "direct",      // type
                 true,          // durable
                 false,         // auto-deleted
@@ -34,10 +36,10 @@ func main() {
         )
         failOnError(err, "Failed to declare an exchange")
 
-        body := bodyFrom(os.Args)
+        body := getBodyFrom()
         err = ch.Publish(
-                "logs_direct",         // exchange
-                severityFrom(os.Args), // routing key
+                "notification_exchange",         // exchange
+                getUserID(), // routing key
                 false, // mandatory
                 false, // immediate
                 amqp.Publishing{
@@ -46,25 +48,22 @@ func main() {
                 })
         failOnError(err, "Failed to publish a message")
 
-        log.Printf(" [x] Sent %s", body)
+        log.Printf("Sent %s", body)
 }
 
-func bodyFrom(args []string) string {
-        var s string
-        if (len(args) < 3) || os.Args[2] == "" {
-                s = "hello"
-        } else {
-                s = strings.Join(args[2:], " ")
+func getBodyFrom() string {
+        // Receive TrainNotificationUpdate
+
+        delayEvent := &delay.TrainDelayNotification{
+          TrainId: 4322,
+          LocationId: 80123456,
+          Delay: 30,
         }
-        return s
+        delayEventMarshal, _ := json.Marshal(delayEvent)
+        return string(delayEventMarshal)
 }
 
-func severityFrom(args []string) string {
-        var s string
-        if (len(args) < 2) || os.Args[1] == "" {
-                s = "info"
-        } else {
-                s = os.Args[1]
-        }
-        return s
+func getUserID() string {
+        // Receive UID to return  it
+        return "2"
 }

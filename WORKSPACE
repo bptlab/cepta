@@ -21,6 +21,7 @@ http_archive(
     sha256 = "b6670f9f43faa66e3009488bbd909bc7bc46a5a9661a33f6bc578068d1837f37",
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.3.0/rules_nodejs-1.3.0.tar.gz"],
 )
+
 #@unused
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
@@ -132,6 +133,7 @@ FLINK_VERSION = "1.9.0"
 SCALA_VERSION = "2.11"
 
 RULES_JVM_EXTERNAL_TAG = "3.2"
+
 RULES_JVM_EXTERNAL_SHA = "82262ff4223c5fda6fb7ff8bd63db8131b51b413d26eb49e3131037e79e324af"
 
 http_archive(
@@ -798,4 +800,11 @@ go_repository(
     importpath = "github.com/romnnn/flags4urfavecli",
     sum = "h1:1s6q1ZYyBLbh+1YrcXKaugZ6u5MSq9R763oVpkwNU2I=",
     version = "v0.1.1",
+)
+
+go_repository(
+    name = "com_github_streadway_amqp",
+    importpath = "github.com/streadway/amqp",
+    sum = "h1:2MR0pKUzlP3SGgj5NYJe/zRYDwOu9ku6YHy+Iw7l5DM=",
+    version = "v0.0.0-20200108173154-1c71cc93ed71",
 )
