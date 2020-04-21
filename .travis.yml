@@ -61,10 +61,14 @@ matrix:
     - stage: deploy
       name: Deploy to GitHub Pages
       script: echo "Deploying to GitHub Pages"
+      before_deploy: openssl aes-256-cbc -K $encrypted_189e52c2c347_key -iv $encrypted_189e52c2c347_iv -in deploy_key.enc -out deploy_key -d
       deploy:
         provider: pages
         local_dir: web
-        before_deploy: openssl aes-256-cbc -K $encrypted_189e52c2c347_key -iv $encrypted_189e52c2c347_iv -in deploy_key.enc -out deploy_key -d
+        skip_cleanup: true
+        verbose: true
+        keep_history: true
+        edge: true
         deploy_key: deploy_key
         on:
           branch: dev
