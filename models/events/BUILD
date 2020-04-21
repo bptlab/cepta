@@ -440,7 +440,7 @@ java_proto_library(
 go_proto_library(
     name = "no_matching_planned_train_data_event_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/nomatchingplannedtraindataevent",
-    proto = ":no_planned_data_event_proto",
+    proto = ":no_matching_planned_train_data_event_proto",
     visibility = ["//visibility:public"],
 )
 

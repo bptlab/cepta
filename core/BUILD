@@ -14,6 +14,7 @@ java_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators:operators",
+        "//core/src/main/java/org/bptlab/cepta/patterns:patterns",
         "//core/src/main/java/org/bptlab/cepta/consumers:consumers",
         "//core/src/main/java/org/bptlab/cepta/config:config",
         "//core/src/main/java/org/bptlab/cepta/serialization:serialization",

@@ -2,7 +2,8 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 java_library(
     name = "patterns",
-    srcs = glob(["*.java"]),
+    srcs = ["StaysInStationPattern.java", 
+            "NoMatchingPlannedTrainDataPattern.java"],
     visibility = ["//visibility:public"],
     deps = [
         "@maven//:org_apache_flink_flink_core",

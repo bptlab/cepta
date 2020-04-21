@@ -15,7 +15,7 @@ import org.apache.flink.util.Collector;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.NoMatchingPlannedTrainDataEvent;
+import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventProtos.NoMatchingPlannedTrainDataEvent;
 
 import java.util.*;
 
@@ -28,9 +28,10 @@ public class NoMatchingPlannedTrainDataPattern{
      */
 
     public static final Pattern<Tuple2<LiveTrainData, PlannedTrainData>, ?> noPlanned = Pattern.<Tuple2<LiveTrainData, PlannedTrainData>>begin("start")
-        .where(new IterativeCondition<Tuple2<LiveTrainData, PlannedTrainData>>(){
+        .where(new SimpleCondition<Tuple2<LiveTrainData, PlannedTrainData>>(){
             @Override
-            public boolean filter(Tuple2<LiveTrainData, PlannedTrainData> event){
+            public boolean filter(Tuple2<LiveTrainData, PlannedTrainData> income){
+                Tuple2<LiveTrainData, PlannedTrainData> event = income;
                 if (event.f0.status <= 3 && event.f1 == null){
                     return true;
                 }
@@ -39,10 +40,10 @@ public class NoMatchingPlannedTrainDataPattern{
         });
     
     public static PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent> patternProcessFunction(){
-        return new PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent>{
+        return new PatternProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NoMatchingPlannedTrainDataEvent>(){
             @Override
             public void processMatch(Map<String, List<Tuple2<LiveTrainData, PlannedTrainData>>> match, Context ctx, Collector<NoMatchingPlannedTrainDataEvent> out) throws Exception{
-                LiveTrainData liveEvent = match.get("start").get(0);
+                LiveTrainData liveEvent = match.get("start").get(0).f0;
                 out.collect(NoMatchingPlannedTrainDataEvent.NewBuilder()
                     .setTrainSectionId(liveEvent.getTrainSectionId())
                     .setStationId(liveEvent.getStationId())
@@ -50,6 +51,6 @@ public class NoMatchingPlannedTrainDataPattern{
                     .setEventTime(liveEvent.getEventTime())
                     .build());
             }
-        }
+        };
     }
 }

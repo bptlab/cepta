@@ -2,11 +2,11 @@ syntax = "proto3";
 package correlatedEvents;
 option go_package = "github.com/bptlab/cepta/models/events/nomatchingplannedtraindataevent";
 option java_package = "org.bptlab.cepta.models.events.correlatedEvents";
-option java_outer_classname = "StaysInStationEventProtos";
+option java_outer_classname = "NoMatchingPlannedTrainDataEventProtos";
 
 import "google/protobuf/timestamp.proto";
 
-message StaysInStationEvent {
+message NoMatchingPlannedTrainDataEvent {
     int64 train_section_id = 1;
     int64 station_id = 2;
     google.protobuf.Timestamp event_time = 3;
