@@ -76,7 +76,6 @@ hs_err_pid*
 !.idea/codeStyles/
 cmake-build-*/
 *.iws
-.ijwb/
 *.iml
 *.ipr
 out/
