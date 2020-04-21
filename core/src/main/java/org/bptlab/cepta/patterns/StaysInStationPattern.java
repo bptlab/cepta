@@ -37,7 +37,8 @@ public class StaysInStationPattern {
             break;
           }
         } catch (Exception e) {
-          //TODO: handle exception
+          System.out.println(e.getMessage());
+          return false;
         }
        
         if (first.getStationId() == incoming.getStationId()) {
