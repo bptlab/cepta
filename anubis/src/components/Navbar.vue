@@ -246,7 +246,7 @@ import NotificationDropdownElement from "@/components/NotificationDropdownElemen
 import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
 import AccountDropdown from "@/components/AccountDropdown.vue";
 import NavbarDropdown from "@/components/NavbarDropdown.vue";
-import { GrpcModule } from "../store/modules/grpc";
+import { ReplayerModule } from "../store/modules/replayer";
 import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
@@ -323,7 +323,7 @@ export default class NavigationBar extends Vue {
   }
 
   get isReplaying() {
-    return GrpcModule.isReplaying;
+    return ReplayerModule.isReplaying;
   }
 
   get isLoading() {
@@ -331,19 +331,19 @@ export default class NavigationBar extends Vue {
   }
 
   get replayStatus() {
-    return GrpcModule.replayStatus;
+    return ReplayerModule.replayStatus;
   }
 
   get replayingIds() {
-    return GrpcModule.replayingOptions?.getIdsList();
+    return ReplayerModule.replayingOptions?.getIdsList();
   }
 
   get replayingType() {
-    return GrpcModule.replayingOptions?.getType();
+    return ReplayerModule.replayingOptions?.getType();
   }
 
   get replayingSpeed() {
-    return GrpcModule.replayingOptions?.getSpeed();
+    return ReplayerModule.replayingOptions?.getSpeed();
   }
 
   get isConstantReplay(): boolean {
@@ -426,15 +426,15 @@ export default class NavigationBar extends Vue {
   }
 
   toggleReplay() {
-    GrpcModule.toggleReplayer(this.replayOptions);
+    ReplayerModule.toggleReplayer(this.replayOptions);
   }
 
   updateReplay() {
-    GrpcModule.setReplayOptions(this.replayOptions);
+    ReplayerModule.setReplayOptions(this.replayOptions);
   }
 
   resetReplay() {
-    GrpcModule.resetReplayer();
+    ReplayerModule.resetReplayer();
   }
 
   toggleSearch() {
@@ -457,7 +457,7 @@ export default class NavigationBar extends Vue {
 
   mounted(): void {
     this.updateTime();
-    GrpcModule.queryReplayer().then(() => {
+    ReplayerModule.queryReplayer().then(() => {
       if (this.replayingSpeed != undefined)
         this.replaySpeed = this.replayingSpeed?.getSpeed();
     });

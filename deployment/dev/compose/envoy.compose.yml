@@ -9,6 +9,7 @@ services:
     environment:
       ENVOY_HOST: ${ENVOY_HOST}
     volumes:
+      - ../../keys/sample/auth.jwk.json:/etc/envoy/jwks/jwks.json
       - ../envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
       - ../prepare-envoy.sh:/prepare.sh:ro
     entrypoint: ["bin/sh", "/prepare.sh"]

@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
@@ -48,14 +47,14 @@ var MongoDatabaseCliOptions = libcli.CommonCliOptions(libcli.Mongo)
 func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
 	databaseName := config.Database
 	var databaseAuth string
-	if len(config.User+config.Password) > 0 {
+	if config.User != "" && config.Password != "" {
 		databaseAuth = fmt.Sprintf("%s:%s@", config.User, config.Password)
 	}
 	databaseHost := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	databaseConnectionURI := fmt.Sprintf("mongodb://%s%s/?connect=direct", databaseAuth, databaseHost)
 	client, err := mongo.NewClient(options.Client().ApplyURI(databaseConnectionURI))
 	if err != nil {
-		log.Fatalf("Failed to create database client: %v (%s:%s)", err, databaseConnectionURI, databaseName)
+		return nil, fmt.Errorf("Failed to create database client: %v (%s:%s)", err, databaseConnectionURI, databaseName)
 	}
 	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.ConnectionTolerance.Timeout())*time.Second)
 	defer cancel()
@@ -63,7 +62,7 @@ func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
 
 	err = client.Ping(mctx, readpref.Primary())
 	if err != nil {
-		log.Fatalf("Could not ping database within %d seconds: %s (%s:%s)", config.ConnectionTolerance.Timeout(), err.Error(), databaseConnectionURI, databaseName)
+		return nil, fmt.Errorf("Could not ping database within %d seconds: %s (%s:%s)", config.ConnectionTolerance.Timeout(), err.Error(), databaseConnectionURI, databaseName)
 	}
 	database := client.Database(databaseName)
 	return &MongoDB{DB: database}, nil

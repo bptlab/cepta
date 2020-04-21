@@ -31,9 +31,8 @@ Vue.config.productionTip = false;
 // Set up progress bar
 const nprogress = new NProgress(options);
 
-/*
 // Set authentication token if available
-const authToken = localStorage.getItem("user-token");
+const authToken = Vue.cookies.get("user-token");
 if (authToken) {
   Vue.axios.defaults.headers.common["Authorization"] = authToken;
 }
@@ -54,8 +53,6 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
-
- */
 
 new Vue({
   nprogress,

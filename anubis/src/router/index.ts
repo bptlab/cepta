@@ -1,25 +1,33 @@
 import Vue from "vue";
-import store from "@/store";
-import Router, { Route, RouteConfig } from "vue-router";
+import Router, { RouteConfig } from "vue-router";
 import Main from "@/views/Main.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
+import { AuthModule } from "@/store/modules/auth";
 
 Vue.use(Router);
 
-let authenticationRequired: boolean = false;
+let authenticationRequired: boolean = true;
 
-// Handle authentication
-const ifNotAuthenticated = (to: any, from: any, next: any) => {
-  if (store.getters.isAuthenticated || !authenticationRequired) {
+const checkAuthenticated = (): boolean => {
+  let token = Vue.cookies?.get("user-token") as string;
+  AuthModule.setAuthToken(token);
+  return (
+    (token != undefined && token != null && token.length > 0) ||
+    !authenticationRequired
+  );
+};
+
+const checkNotAlreadyAuthenticated = (to: any, from: any, next: any) => {
+  if (!checkAuthenticated()) {
     next();
     return;
   }
   next("/");
 };
 
-const ifAuthenticated = (to: any, from: any, next: any) => {
-  if (store.getters.isAuthenticated || !authenticationRequired) {
+const requireAuthenticated = (to: any, from: any, next: any) => {
+  if (checkAuthenticated()) {
     next();
     return;
   }
@@ -29,7 +37,6 @@ const ifAuthenticated = (to: any, from: any, next: any) => {
 export const routes: RouteConfig[] = [
   {
     path: "/",
-    beforeEnter: ifAuthenticated,
     meta: { requiresAuth: true },
     redirect: "/dashboard"
   },
@@ -41,7 +48,7 @@ export const routes: RouteConfig[] = [
       {
         path: "/login",
         name: "login",
-        beforeEnter: ifNotAuthenticated,
+        beforeEnter: checkNotAlreadyAuthenticated,
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
@@ -51,17 +58,17 @@ export const routes: RouteConfig[] = [
       {
         path: "/signup",
         name: "signup",
+        beforeEnter: checkNotAlreadyAuthenticated,
         component: () =>
           import(/* webpackChunkName: "about" */ "@/views/Signup.vue")
       }
     ]
   },
-
   {
     path: "/user",
     redirect: "/user/settings",
     meta: { requiresAuth: true },
-    beforeEnter: ifAuthenticated,
+    beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
@@ -106,14 +113,14 @@ export const routes: RouteConfig[] = [
     path: "/dashboard",
     redirect: "/dashboard/home",
     meta: { requiresAuth: true },
-    beforeEnter: ifAuthenticated,
+    beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
         path: "home",
         name: "home",
         meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: ifAuthenticated,
+        beforeEnter: requireAuthenticated,
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
       },
@@ -121,7 +128,7 @@ export const routes: RouteConfig[] = [
         path: "feed",
         name: "feed",
         meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
+        beforeEnter: requireAuthenticated,
         component: () =>
           import(/* webpackChunkName: "feed" */ "@/views/Feed.vue")
       },
@@ -129,7 +136,7 @@ export const routes: RouteConfig[] = [
         path: "map",
         name: "map",
         meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: ifAuthenticated,
+        beforeEnter: requireAuthenticated,
         component: () => import(/* webpackChunkName: "map" */ "@/views/Map.vue")
       },
       {
@@ -137,7 +144,7 @@ export const routes: RouteConfig[] = [
         name: "transport",
         props: true,
         meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
+        beforeEnter: requireAuthenticated,
         component: () =>
           import(
             /* webpackChunkName: "transportdetail" */ "@/views/TransportDetail.vue"
