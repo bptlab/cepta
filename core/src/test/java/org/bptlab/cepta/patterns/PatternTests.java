@@ -3,10 +3,13 @@ package org.bptlab.cepta;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 
-import org.bptlab.cepta.providers.LiveTrainDataProvider;
+import org.bptlab.cepta.providers.StaysInStationPatternProvider;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.junit.Assert;
 import org.junit.Test;
+
+import sun.reflect.annotation.ExceptionProxy;
+
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
@@ -17,59 +20,65 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class PatternTests {
 
+    private <T> int countOfEventsInStream(DataStream<T> input) throws Exception{
+        int count = 0;
+        Iterator<T> inputIterator = DataStreamUtils.collect(input);
+        while(inputIterator.hasNext()){
+            T event = inputIterator.next();
+            count ++;
+        }
+        return count;
+    }
+
+    private int countOfMatchesIn(DataStream<LiveTrainData> input) throws Exception{
+        PatternStream<LiveTrainData> patternStream = CEP.pattern(input, StaysInStationPattern.staysInStationPattern);
+
+        DataStream<StaysInStationEvent> generatedEvents = 
+            StaysInStationPattern.generateEvents(patternStream);
+
+        return countOfEventsInStream(generatedEvents);
+    }
+
+    @Test
+    public void TestStaysInStationWrongOrder() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder())
+             == 0);   
+    }
+
+    @Test
+    public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDoubleEvents())
+             == 1);  
+    }
+
+    @Test
+    public void TestStaysInStationSurrounded() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded())
+             == 1);  
+    }
+
+    @Test
+    public void TestNoMatchWhenChangingLocations() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.changesStation())
+             == 0);  
+    }
+
+    @Test
+    public void TestHasInterruptionWhenStayingInStation() throws Exception {
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption())
+             == 0);  
+    }
+
     @Test
     public void TestStaysInStationDirectly() throws Exception {
-        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-
-        DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.staysInStationDirectly();
-
-        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(liveTrainDataStream);
-        while(iterator.hasNext()){
-            LiveTrainData trainArrivalEvent = iterator.next();
-            System.out.println(trainArrivalEvent.toString());
-        }
-
-        PatternStream<LiveTrainData> patternStream = CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern);
-        System.out.println("Ich habe den patternStream erstellt :)");
-
-
-
-        DataStream<StaysInStationEvent> generatedEvents = patternStream.select(
-            (Map<String, List<LiveTrainData>> pattern) -> {
-                System.out.println("Ich bin hier :)");
-                LiveTrainData first = (LiveTrainData) pattern.get("arrivesInStation").get(0);
-
-                
-                StaysInStationEvent detected = StaysInStationEvent.newBuilder()
-                    .setTrainSectionId(first.getTrainSectionId())
-                    .setStationId(first.getStationId())
-                    .setTrainId(first.getTrainId())
-                    .setEventTime(first.getEventTime())
-                    .build();
-
-                System.out.println(detected);
-
-                return detected;
-            }
-        );
-
-        System.out.println("Ich habe patterns rauselected:)");
-
-        int count = 0;
-        System.out.println("Count = " + count);
-        Iterator<StaysInStationEvent> detectedEventsItr = DataStreamUtils.collect(generatedEvents);
-        while(detectedEventsItr.hasNext()){
-            StaysInStationEvent event = detectedEventsItr.next();
-            count ++;
-
-            System.out.println("Increasing, Count = " + count + detectedEventsItr.toString());
-            if (count == 10) break;
-        }
-
-        System.out.println("Count = " + count);
-        System.out.println("HALOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-        Assert.assertTrue(count==1);
-
+        Assert.assertTrue(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly())
+             == 1);  
     }
     
 }

@@ -207,40 +207,6 @@ public class LiveTrainDataProvider {
     return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
   }
 
-  public static DataStream<LiveTrainData> staysInStationDirectly(){
-    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.setParallelism(1);
-    ArrayList<LiveTrainData> events = new ArrayList<>();
-
-    LiveTrainData arrives = 
-      LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-      .setStatus(3).setStationId(12)
-      .setEventTime(fromMillis(1000))
-      .build();
-
-    events.add(arrives);
-
-    //the second event is 50 Milliseconds later
-    LiveTrainData departures = 
-      LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-      .setStatus(4).setStationId(12)
-      .setEventTime(fromMillis(1050))
-      .build();
-      
-    events.add(departures);
-
-    DataStream<LiveTrainData> mockedStream = env.fromCollection(events)
-    .assignTimestampsAndWatermarks(
-        new AscendingTimestampExtractor<LiveTrainData>() {
-          @Override
-          public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-            return toMillis(liveTrainData.getEventTime());
-          }
-        });
-    return mockedStream;
-
-  }
-
   private static LiveTrainData trainEventWithLocationID(int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setStationId(locationId).build();
