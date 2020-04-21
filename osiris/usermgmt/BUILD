@@ -83,8 +83,8 @@ go_test(
     name = "server-test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
-    size = "small",
-    tags = ["unit"],
+    size = "medium",
+    tags = ["integration", "docker"],
     deps = [
         "@org_mongodb_go_mongo_driver//bson:go_default_library",
         "@org_mongodb_go_mongo_driver//bson/primitive:go_default_library",

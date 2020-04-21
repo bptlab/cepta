@@ -83,8 +83,8 @@ go_test(
     name = "server-test",
     srcs = ["server_test.go"],
     embed = [":go_default_library"],
-    size = "small",
-    tags = ["unit"],
+    size = "medium",
+    tags = ["integration", "docker"],
     deps = [
         "//osiris/lib/testing:go_default_library",
         "//models/grpc:usermgmt_go_proto",
