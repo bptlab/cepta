@@ -1,4 +1,4 @@
-package org.bptlab.cepta.operators;
+package org.bptlab.cepta.patterns;
 
 import java.util.Map;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -34,6 +34,7 @@ public class NoMatchingPlannedTrainDataPattern{
                 if (event.f0.status <= 3 && event.f1 == null){
                     return true;
                 }
+                return false;
             }
         });
     
