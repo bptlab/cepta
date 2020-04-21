@@ -14,7 +14,6 @@ import org.apache.flink.cep.functions.PatternProcessFunction.Context;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
 import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventProtos.NoMatchingPlannedTrainDataEvent;
 
 import java.util.*;
@@ -32,7 +31,7 @@ public class NoMatchingPlannedTrainDataPattern{
             @Override
             public boolean filter(Tuple2<LiveTrainData, PlannedTrainData> income){
                 Tuple2<LiveTrainData, PlannedTrainData> event = income;
-                if (event.f0.status <= 3 && event.f1 == null){
+                if (event.f0.getStatus() <= 3 && event.f1 == null){
                     return true;
                 }
                 return false;
@@ -44,7 +43,7 @@ public class NoMatchingPlannedTrainDataPattern{
             @Override
             public void processMatch(Map<String, List<Tuple2<LiveTrainData, PlannedTrainData>>> match, Context ctx, Collector<NoMatchingPlannedTrainDataEvent> out) throws Exception{
                 LiveTrainData liveEvent = match.get("start").get(0).f0;
-                out.collect(NoMatchingPlannedTrainDataEvent.NewBuilder()
+                out.collect(NoMatchingPlannedTrainDataEvent.newBuilder()
                     .setTrainSectionId(liveEvent.getTrainSectionId())
                     .setStationId(liveEvent.getStationId())
                     .setTrainId(liveEvent.getTrainId())
