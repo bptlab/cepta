@@ -66,9 +66,9 @@ public class PatternTests {
     }
 
     @Test
-    public void TestHasInterruptionWhenStayingInStation() throws Exception {
+    public void TestOtherIncomingEventsWhileStayingInStation() throws Exception {
         Assert.assertEquals(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption()), 0);  
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption()), 1);  
     }
 
     @Test

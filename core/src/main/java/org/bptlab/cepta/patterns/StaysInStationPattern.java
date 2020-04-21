@@ -22,7 +22,7 @@ public class StaysInStationPattern {
           return event.getStatus() == 3;
         }
       })
-      .next("departuresFromStation")
+      .followedBy("departuresFromStation")
       .where(new IterativeCondition<LiveTrainData>(){
         @Override
         public boolean filter (LiveTrainData incoming, Context<LiveTrainData> context){
