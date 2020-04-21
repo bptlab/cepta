@@ -35,7 +35,7 @@ public class SumOfDelayAtStationTests {
         // element 4 has stationId 2, trainId 1, delay 8
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
-        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream);
+        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4);
         ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();
         Iterator<Tuple2<Long, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
         while(iterator.hasNext()){

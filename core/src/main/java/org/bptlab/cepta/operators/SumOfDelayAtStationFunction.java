@@ -20,18 +20,20 @@ import org.apache.flink.api.java.functions.KeySelector;
 
 public class SumOfDelayAtStationFunction {
 
-    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<TrainDelayNotification> inputStream) {
+    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<TrainDelayNotification> inputStream, int windowSize) {
         DataStream<Tuple2<Long, Double>> resultStream = inputStream
         .keyBy(
-            new KeySelector<TrainDelayNotification, Integer>(){
-                public Integer getKey(TrainDelayNotification event){
-                    Integer returnKey = 1;
+            new KeySelector<T, Integer>(){
+                Integer key = Integer.valueOf(0);
+                public Integer getKey(T event){
+                    Integer returnKey = key/windowSize;
+                    key++;
                     return returnKey;
                 } 
             }
         )
         .window(GlobalWindows.create()).trigger(
-            CustomCountTrigger.of(4)
+            CustomCountTrigger.of(windowSize)
         ).process(
             new ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
                 @Override
