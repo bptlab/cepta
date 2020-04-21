@@ -4,8 +4,7 @@ import {
   Module,
   Mutation,
   Action,
-  getModule,
-  MutationAction
+  getModule
 } from "vuex-module-decorators";
 import store from "@/store";
 import {
@@ -17,19 +16,18 @@ import {
 } from "@/generated/protobuf/models/grpc/replayer_pb";
 
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
+import { AuthModule } from "./auth";
 
-import * as grpcWeb from "grpc-web";
-
-export interface IGrpcState {
+export interface IReplayerState {
   replayer: ReplayerClient;
   isReplaying: boolean;
   replayingOptions?: ReplayStartOptions;
   replayStatus: String;
 }
 
-@Module({ dynamic: true, store, name: "grpc" })
-class Grpc extends VuexModule implements IGrpcState {
-  public replayer = new ReplayerClient("/grpc/replayer", null, null);
+@Module({ dynamic: true, store, name: "replayer" })
+class Replayer extends VuexModule implements IReplayerState {
+  public replayer = new ReplayerClient("/api/grpc/replayer", null, null);
   public isReplaying = false;
   public replayingOptions = new ReplayStartOptions();
   public replayStatus = "Replay inactive";
@@ -38,7 +36,8 @@ class Grpc extends VuexModule implements IGrpcState {
   public async seekReplayer(date: Date) {
     let ts = new Timestamp();
     ts.fromDate(date);
-    this.replayer.seekTo(ts, undefined, (err, response) => {
+    this.replayer.seekTo(ts, AuthModule.authHeader, (err, response) => {
+      if (err) AuthModule.checkToken();
       if (response.getSuccess()) {
         let updatedReplayTimeRange = new Timerange();
         updatedReplayTimeRange.setEnd(
@@ -54,19 +53,30 @@ class Grpc extends VuexModule implements IGrpcState {
 
   @Action({ rawError: true })
   public async queryReplayer() {
-    this.replayer.getStatus(new Empty(), undefined, (err, response) => {
-      this.setReplaying(response?.getActive() || false);
-    });
-    this.replayer.getOptions(new Empty(), undefined, (err, response) => {
-      this.setReplayingOptions(response);
-    });
+    this.replayer.getStatus(
+      new Empty(),
+      AuthModule.authHeader,
+      (err, response) => {
+        if (err) AuthModule.checkToken();
+        this.setReplaying(response?.getActive() || false);
+      }
+    );
+    this.replayer.getOptions(
+      new Empty(),
+      AuthModule.authHeader,
+      (err, response) => {
+        if (err) AuthModule.checkToken();
+        this.setReplayingOptions(response);
+      }
+    );
   }
 
   @Mutation
   public setReplayerSpeed(value: number) {
     let speed = new Speed();
     speed.setSpeed(value);
-    this.replayer.setSpeed(speed, undefined, (err, response) => {
+    this.replayer.setSpeed(speed, AuthModule.authHeader, (err, response) => {
+      if (err) AuthModule.checkToken();
       if (response.getSuccess()) {
         this.replayingOptions.setSpeed(speed);
       } else {
@@ -103,7 +113,8 @@ class Grpc extends VuexModule implements IGrpcState {
 
   @Action({ rawError: true })
   public async resetReplayer() {
-    this.replayer.reset(new Empty(), undefined, (err, response) => {
+    this.replayer.reset(new Empty(), AuthModule.authHeader, (err, response) => {
+      if (err) AuthModule.checkToken();
       if (!err && response.getSuccess()) {
       } else {
         alert("Operation failed");
@@ -114,7 +125,8 @@ class Grpc extends VuexModule implements IGrpcState {
   @Action({ rawError: true })
   public async startReplayer(options?: ReplayStartOptions) {
     let newOptions = options || new ReplayStartOptions();
-    this.replayer.start(newOptions, undefined, (err, response) => {
+    this.replayer.start(newOptions, AuthModule.authHeader, (err, response) => {
+      if (err) AuthModule.checkToken();
       if (!err && response.getSuccess()) {
         this.setReplaying(true);
         this.setReplayingOptions(newOptions);
@@ -127,19 +139,25 @@ class Grpc extends VuexModule implements IGrpcState {
   @Action({ rawError: true })
   public async setReplayOptions(options?: ReplayOptions) {
     let newOptions = options || new ReplayOptions();
-    this.replayer.setOptions(newOptions, undefined, (err, response) => {
-      if (!err && response.getSuccess()) {
-        this.setReplaying(true);
-        this.updateReplayingOptions(newOptions);
-      } else {
-        alert("Operation failed");
+    this.replayer.setOptions(
+      newOptions,
+      AuthModule.authHeader,
+      (err, response) => {
+        if (err) AuthModule.checkToken();
+        if (!err && response.getSuccess()) {
+          this.setReplaying(true);
+          this.updateReplayingOptions(newOptions);
+        } else {
+          alert("Operation failed");
+        }
       }
-    });
+    );
   }
 
   @Action({ rawError: true })
   public async stopReplayer() {
-    this.replayer.stop(new Empty(), undefined, (err, response) => {
+    this.replayer.stop(new Empty(), AuthModule.authHeader, (err, response) => {
+      if (err) AuthModule.checkToken();
       if (!err && response.getSuccess()) {
         this.setReplaying(false);
       } else {
@@ -154,4 +172,4 @@ class Grpc extends VuexModule implements IGrpcState {
   }
 }
 
-export const GrpcModule = getModule(Grpc);
+export const ReplayerModule = getModule(Replayer);

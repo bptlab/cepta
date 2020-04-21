@@ -81,6 +81,7 @@ go_library(
         "//models/events:gps_trip_update_go_proto",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",

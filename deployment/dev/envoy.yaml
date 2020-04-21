@@ -15,10 +15,21 @@ static_resources:
                     - name: grpc_services
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/grpc/replayer/" }
+                        - match: { prefix: "/api/grpc/replayer/" }
                           route:
                             prefix_rewrite: "/"
                             cluster: traindatareplayer_service
+                            cors:
+                              # allow_origin: ["*"]
+                              allow_headers: content-type, x-grpc-web, authorization
+                            # max_grpc_timeout: 0s
+                        - match: { prefix: "/grpc/auth/" }
+                          route:
+                            prefix_rewrite: "/"
+                            cluster: auth_service
+                            cors:
+                              # allow_origin: ["*"]
+                              allow_headers: content-type, x-grpc-web, authorization
                             # max_grpc_timeout: 0s
                         - match: { prefix: "/api" }
                           route:
@@ -29,18 +40,29 @@ static_resources:
                               - upgrade_type: websocket
                                 enabled: true
                             cluster: notification_service
-                        - match: { prefix: "/sockjs-node/" }
-                          route:
-                            cluster: notification_service
-                            upgrade_configs:
-                              - upgrade_type: websocket
-                                enabled: true
                         - match: { prefix: "/" }
                           route:
                             cluster: anubis_service
                 http_filters:
+                  # - name: envoy.cors
+                  - name: envoy.filters.http.jwt_authn
+                    typed_config: 
+                      "@type": type.googleapis.com/envoy.config.filter.http.jwt_authn.v2alpha.JwtAuthentication
+                      providers:
+                        auth:
+                          forward: true
+                          forward_payload_header: x-jwt-payload
+                          # No idea how payload_in_metadata works tbh
+                          # payload_in_metadata: x-jwt-metadata
+                          issuer: ceptaproject@gmail.com
+                          audiences:
+                          - https://bptlab.github.io/cepta
+                          local_jwks:
+                            filename: /etc/envoy/jwks/jwks.json
+                      rules:
+                      - match: {prefix: /api}
+                        requires: {provider_name: auth}
                   - name: envoy.grpc_web
-                  - name: envoy.cors
                   - name: envoy.router
   clusters:
     - name: traindatareplayer_service
@@ -61,6 +83,19 @@ static_resources:
       type: logical_dns
       lb_policy: round_robin
       hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_NOTIFICATION_BACKEND_PORT} }}]
+
+    - name: auth_service
+      connect_timeout: 15.0s
+      type: logical_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_AUTH_BACKEND_PORT} }}]
+
+    - name: usermgmt_service
+      connect_timeout: 15.0s
+      type: logical_dns
+      lb_policy: round_robin
+      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_USERMGMT_BACKEND_PORT} }}]
 
     - name: anubis_service
       connect_timeout: 15.0s
