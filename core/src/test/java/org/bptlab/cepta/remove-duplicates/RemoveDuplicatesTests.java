@@ -35,7 +35,6 @@ public class RemoveDuplicatesTests {
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(removedInteger.get(i));
             if (removedInteger.get(i) == 1 && !flag) {
                 flag = true; 
             } else if (removedInteger.get(i) == 1 && flag) {
@@ -66,7 +65,6 @@ public class RemoveDuplicatesTests {
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(duplicateFreeData.get(i));
             if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
                 flag = true; 
             } else if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {
