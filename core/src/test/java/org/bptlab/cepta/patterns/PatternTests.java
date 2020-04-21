@@ -41,9 +41,8 @@ public class PatternTests {
 
     @Test
     public void TestStaysInStationWrongOrder() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder())
-             == 0);   
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder()), 0);   
     }
 
     @Test
@@ -55,9 +54,8 @@ public class PatternTests {
 
     @Test
     public void TestStaysInStationSurrounded() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded())
-             == 1);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded()), 1);  
     }
 
     @Test
@@ -69,16 +67,14 @@ public class PatternTests {
 
     @Test
     public void TestHasInterruptionWhenStayingInStation() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption())
-             == 0);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption()), 0);  
     }
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly())
-             == 1);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly()), 1);  
     }
     
 }
