@@ -57,6 +57,7 @@ go_library(
     deps = [
         "//auxiliary/producers/replayer/extractors:go_default_library",
         "//ci/versioning:go_default_library",
+        "//models/types:result_go_proto",
         "//models/constants:topic_go_proto",
         "//models/events:checkpoint_data_go_proto",
         "//models/events:crew_activity_data_go_proto",

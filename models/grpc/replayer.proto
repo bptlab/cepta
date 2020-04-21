@@ -6,23 +6,24 @@ option java_package = "org.bptlab.cepta.models.grpc.replayer";
 import "google/protobuf/timestamp.proto";
 import "models/constants/Topic.proto";
 import "models/events/Event.proto";
+import "models/types/result.proto";
 
 service Replayer {
 
   // Basic controls
-  rpc SeekTo(google.protobuf.Timestamp) returns (Success) {}
-  rpc Reset(Empty) returns (Success) {}
-  rpc Start(ReplayStartOptions) returns (Success) {}
-  rpc Stop(Empty) returns (Success) {}
+  rpc SeekTo(google.protobuf.Timestamp) returns (models.types.result.Result) {}
+  rpc Reset(models.types.result.Empty) returns (models.types.result.Result) {}
+  rpc Start(ReplayStartOptions) returns (models.types.result.Result) {}
+  rpc Stop(models.types.result.Empty) returns (models.types.result.Result) {}
 
   // Configuration
-  rpc SetSpeed(Speed) returns (Success) {}
-  rpc SetType(ReplayModeOption) returns (Success) {}
-  rpc SetOptions(ReplaySetOptionsRequest) returns (Success) {}
+  rpc SetSpeed(Speed) returns (models.types.result.Result) {}
+  rpc SetType(ReplayModeOption) returns (models.types.result.Result) {}
+  rpc SetOptions(ReplaySetOptionsRequest) returns (models.types.result.Result) {}
 
   // Query
-  rpc GetStatus(Empty) returns (ReplayStatus) {}
-  rpc GetOptions(Empty) returns (ReplayStartOptions) {}
+  rpc GetStatus(models.types.result.Empty) returns (ReplayStatus) {}
+  rpc GetOptions(models.types.result.Empty) returns (ReplayStartOptions) {}
 
   // Custom querying for internal testing infrastructure
   rpc Query(QueryOptions) returns (stream ReplayedEvent) {}
@@ -94,12 +95,6 @@ message ReplayStartOptions {
 
 message QueryOptions {
   repeated SourceQueryOptions sources = 1;
-}
-
-message Empty {}
-
-message Success {
-  bool success = 1;
 }
 
 message ReplayedEvent {

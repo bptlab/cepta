@@ -12,6 +12,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
+	"github.com/bptlab/cepta/models/types/result"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
@@ -91,7 +92,7 @@ func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproduce
 }
 
 // SeekTo ...
-func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Success, error) {
+func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*result.Result, error) {
 	log.Infof("Seeking to: %v", in)
 
 	// Overrides all timerange starting points
@@ -104,21 +105,21 @@ func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*pb.Su
 		// replayer.Options
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // Reset ...
-func (s *ReplayerServer) Reset(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
+func (s *ReplayerServer) Reset(ctx context.Context, in *result.Empty) (*result.Result, error) {
 	log.Infof("Resetting")
 	for _, replayer := range s.Replayers {
 		// Send RESET control message
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // Start ...
-func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*pb.Success, error) {
+func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*result.Result, error) {
 	log.Infof("Starting")
 	s.Active = true
 	s.StartOptions = *in
@@ -135,11 +136,11 @@ func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (
 			replayer.Ctrl <- pb.InternalControlMessageType_START
 		}
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // Stop ...
-func (s *ReplayerServer) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, error) {
+func (s *ReplayerServer) Stop(ctx context.Context, in *result.Empty) (*result.Result, error) {
 	log.Infof("Stopping")
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		log.Info(md)
@@ -149,11 +150,11 @@ func (s *ReplayerServer) Stop(ctx context.Context, in *pb.Empty) (*pb.Success, e
 		// Send STOP control message
 		replayer.Ctrl <- pb.InternalControlMessageType_STOP
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // SetSpeed ...
-func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*pb.Success, error) {
+func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*result.Result, error) {
 	log.Infof("Setting speed to: %v", int(in.GetSpeed()))
 	// speed = int32(in.GetSpeed())
 	// Overrides all speed values
@@ -161,22 +162,22 @@ func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*pb.Succes
 	for _, source := range s.StartOptions.Sources {
 		source.Options.Speed = in
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // SetType ...
-func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayModeOption) (*pb.Success, error) {
+func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayModeOption) (*result.Result, error) {
 	log.Infof("Setting replay type to: %v", in.GetMode())
 	// Overrides all modes
 	s.StartOptions.Options.Mode = in.GetMode()
 	for _, source := range s.StartOptions.Sources {
 		source.Options.Mode = in.GetMode()
 	}
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // SetOptions ...
-func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptionsRequest) (*pb.Success, error) {
+func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptionsRequest) (*result.Result, error) {
 	log.Infof("Setting replay options")
 	/*
 		success, err := s.SetSpeed(ctx, in.GetSpeed())
@@ -192,17 +193,17 @@ func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptions
 			return success, err
 		}
 	*/
-	return &pb.Success{Success: true}, nil
+	return &result.Result{Success: true}, nil
 }
 
 // GetStatus ...
-func (s *ReplayerServer) GetStatus(ctx context.Context, in *pb.Empty) (*pb.ReplayStatus, error) {
+func (s *ReplayerServer) GetStatus(ctx context.Context, in *result.Empty) (*pb.ReplayStatus, error) {
 	log.Info("Handling query for current replay status")
 	return &pb.ReplayStatus{Active: s.Active}, nil
 }
 
 // GetOptions ...
-func (s *ReplayerServer) GetOptions(ctx context.Context, in *pb.Empty) (*pb.ReplayStartOptions, error) {
+func (s *ReplayerServer) GetOptions(ctx context.Context, in *result.Empty) (*pb.ReplayStartOptions, error) {
 	log.Info("Handling query for current replay options")
 	return &s.StartOptions, nil
 }

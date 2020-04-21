@@ -76,6 +76,7 @@ proto_library(
     deps = [
         "//models/constants:topic_proto",
         "//models/events:event_proto",
+        "//models/types:result_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -89,6 +90,7 @@ go_proto_library(
     deps = [
         "//models/constants:topic_go_proto",
         "//models/events:event_go_proto",
+        "//models/types:result_go_proto",
     ],
 )
 
