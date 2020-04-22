@@ -32,44 +32,38 @@ public class StaysInStationTest {
 
     @Test
     public void TestStaysInStationWrongOrder() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder())
-             == 0);   
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWrongOrder()), 0);   
     }
 
     @Test
     public void TestStaysInStationDoubleDepatureOneMatch() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDoubleEvents())
-             == 1);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDoubleEvents()), 1);  
     }
 
     @Test
     public void TestStaysInStationSurrounded() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded())
-             == 1);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationSurrounded()), 1);  
     }
 
     @Test
     public void TestNoMatchWhenChangingLocations() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.changesStation())
-             == 0);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.changesStation()), 0);  
     }
 
     @Test
-    public void TestHasInterruptionWhenStayingInStation() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption())
-             == 1);  
+    public void TestOtherIncomingEventsWhileStayingInStation() throws Exception {
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationWithInterruption()), 1);  
     }
 
     @Test
     public void TestStaysInStationDirectly() throws Exception {
-        Assert.assertTrue(
-            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly())
-             == 1);  
+        Assert.assertEquals(
+            countOfMatchesIn(StaysInStationPatternProvider.staysInStationDirectly()), 1);  
     }
     
 }
