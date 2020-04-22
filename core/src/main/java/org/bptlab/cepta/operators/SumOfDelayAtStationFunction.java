@@ -40,49 +40,35 @@ public class SumOfDelayAtStationFunction {
         .window(GlobalWindows.create()).trigger(
             CustomCountTrigger.of(windowSize)
         ).process(
-            new ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
-                @Override
-                public void process(Integer key, Context context, Iterable<TrainDelayNotification> input, Collector<Tuple2<Long, Double>> out) throws Exception {
-                    //System.out.println("IN PROCESS");
-                    HashMap<Long, Double> sums = new HashMap<Long, Double>();
-                    for (TrainDelayNotification in: input) {
-                        //System.out.println("IN TRAINDELAY FOR" + in);
-                        Long trainId = in.getTrainId();
-                        Long locationId = in.getLocationId();
-                        Double delay = in.getDelay();
-                        if (!sums.containsKey(locationId)) {
-                            sums.put(locationId, delay);
-                        } else {
-                            double tmp;
-                            tmp = sums.get(locationId);
-                            sums.replace(locationId, (tmp + delay));
-                        }
-                    }
-
-                    for (Long location: sums.keySet()) {
-                      
-                        Double delay = sums.get(location);
-                        //System.out.println("IN LOCATION: " + location + " DELAY: " + delay);
-                        out.collect(new Tuple2<Long, Double>(location, delay) );
-                    }
-             
-                    
-                }
-            }
+            sumOfDelayAtStationWindowProcessFunction()
         );
         return resultStream;
+    }; 
+
+    public static ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
+        return new ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
+            @Override
+            public void process(Integer key, Context context, Iterable<TrainDelayNotification> input, Collector<Tuple2<Long, Double>> out) throws Exception {
+                HashMap<Long, Double> sums = new HashMap<Long, Double>();
+                for (TrainDelayNotification in: input) {
+                    Long trainId = in.getTrainId();
+                    Long locationId = in.getLocationId();
+                    Double delay = in.getDelay();
+                    if (!sums.containsKey(locationId)) {
+                        sums.put(locationId, delay);
+                    } else {
+                        double tmp;
+                        tmp = sums.get(locationId);
+                        sums.replace(locationId, (tmp + delay));
+                    }
+                }
+
+                for (Long location: sums.keySet()) {
+                  
+                    Double delay = sums.get(location);
+                    out.collect(new Tuple2<Long, Double>(location, delay) );
+                }
+            }
+        };
     }
-
-    // get Stream of DelayNotification
-
-    // have a Window of X Time to sum up
-    // key after station id
-
-    // sum up delays at each station
-
-    // when window triggers after time
-
-    // process and create Stream of DelayAtStation events
-
-
 }
