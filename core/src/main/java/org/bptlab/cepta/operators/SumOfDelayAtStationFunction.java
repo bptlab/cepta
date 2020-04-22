@@ -20,6 +20,11 @@ import org.apache.flink.api.java.functions.KeySelector;
 
 public class SumOfDelayAtStationFunction {
 
+    /* This function expects a Stream of TrainDelayNotification events and a window size
+    and sums up all delay based on the location Id's in the given window size.
+    The window is a fixed event number window.
+    It will return a Stream of Tuple2 with the location Id and the sum of delay. 
+    */
     public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<TrainDelayNotification> inputStream, int windowSize) {
         DataStream<Tuple2<Long, Double>> resultStream = inputStream
         .keyBy(
