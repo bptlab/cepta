@@ -6,6 +6,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "@maven//:com_github_jasync_sql_jasync_postgresql",
+         "@maven//:org_apache_flink_flink_cep_2_11", 
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",

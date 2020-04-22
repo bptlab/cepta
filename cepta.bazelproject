@@ -21,3 +21,7 @@ additional_languages:
   # python
   # scala
   typescript
+
+import_run_configurations:
+  ijwb/Run__Core.xml
+  ijwb/Run__Replayer.xml
