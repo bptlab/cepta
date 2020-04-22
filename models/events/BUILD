@@ -394,9 +394,6 @@ java_proto_library(
     deps = [":railway_undertaking_data_proto"],
 )
 
-
-
-
 go_proto_library(
     name = "stays_in_station_event_go_proto",
     importpath = "github.com/bptlab/cepta/models/events/staysinstationevent",
