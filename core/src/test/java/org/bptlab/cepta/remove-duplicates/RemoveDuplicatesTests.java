@@ -42,12 +42,17 @@ public class RemoveDuplicatesTests {
                 pass = false;
             }
         }
-        Assert.assertEquals(3, len);
-        Assert.assertTrue(pass);
+
+        ArrayList<Integer> expectedArray = new ArrayList<Integer>(3){{
+            add(1); add(2); add(3);
+        }};
+        Assert.assertEquals(expectedArray, removedInteger);
+        // Assert.assertEquals(3, len);
+        // Assert.assertTrue(pass);
     }
 
     @Test
-    public void TestLiveTrainDataCleansing() throws Exception {
+    public void TestLiveTrainDataRemoveDuplicates() throws Exception {
         boolean pass = true;
 
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();  
