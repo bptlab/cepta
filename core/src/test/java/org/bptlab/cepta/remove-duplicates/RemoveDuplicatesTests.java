@@ -19,36 +19,34 @@ public class RemoveDuplicatesTests {
 
     @Test
     public void IntegerTest() throws IOException {
-        boolean pass = true;
+        boolean noDuplicate = true;
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(1);
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<Integer>();
-        DataStream<Integer> eliminationStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
+        DataStream<Integer> remainingStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
        
-        ArrayList<Integer> removedInteger = new ArrayList<>();
-        Iterator<Integer> iterator = DataStreamUtils.collect(eliminationStream);
+        ArrayList<Integer> remainingIntegers = new ArrayList<>();
+        Iterator<Integer> iterator = DataStreamUtils.collect(remainingStream);
         while(iterator.hasNext()){
             Integer integer = iterator.next();
-            removedInteger.add(integer);
+            remainingIntegers.add(integer);
         }
         // check if remaining elements still have MIN.VALUE and fail if true
-        int len = removedInteger.size();
+        int len = remainingIntegers.size();
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(removedInteger.get(i));
-            if (removedInteger.get(i) == 1 && !flag) {
+            System.out.println(remainingIntegers.get(i));
+            if (remainingIntegers.get(i) == 1 && !flag) {
                 flag = true; 
-            } else if (removedInteger.get(i) == 1 && flag) {
-                pass = false;
+            } else if (remainingIntegers.get(i) == 1 && flag) {
+                noDuplicate = false;
             }
         }
 
-        ArrayList<Integer> expectedArray = new ArrayList<Integer>(3){{
-            add(1); add(2); add(3);
-        }};
-        Assert.assertEquals(expectedArray, removedInteger);
-        // Assert.assertEquals(3, len);
-        // Assert.assertTrue(pass);
+        ArrayList<Integer> expectedArray = new ArrayList<Integer>(3){{add(1); add(2); add(3);}};
+        Assert.assertEquals(expectedArray, remainingIntegers);
+        Assert.assertEquals(3, len);
+        Assert.assertTrue(noDuplicate);
     }
 
     @Test
@@ -58,23 +56,23 @@ public class RemoveDuplicatesTests {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();  
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<LiveTrainData>(); 
     
-        DataStream<LiveTrainData> duplicateFreeStream = removeDuplicatesFunction.removeDuplicates(liveTrainDataStream, 3);
+        DataStream<LiveTrainData> remainingStream = removeDuplicatesFunction.removeDuplicates(liveTrainDataStream, 3);
 
-        ArrayList<LiveTrainData> duplicateFreeData = new ArrayList<>();
-        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(duplicateFreeStream);
+        ArrayList<LiveTrainData> remainingData = new ArrayList<>();
+        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(remainingStream);
         while(iterator.hasNext()){
             LiveTrainData liveTrainDataValue = iterator.next();
-            duplicateFreeData.add(liveTrainDataValue);
+            remainingData.add(liveTrainDataValue);
         }
         // check if duplicates were removed
-        int len = duplicateFreeData.size();
+        int len = remainingData.size();
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(duplicateFreeData.get(i));
-            if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
+            System.out.println(remainingData.get(i));
+            if (remainingData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
                 flag = true; 
-            } else if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {
+            } else if (remainingData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {
                 pass = false;
             }
         }
