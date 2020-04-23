@@ -14,8 +14,10 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.bptlab.cepta.operators.SumOfDelayAtStationFunction;
 
 import org.bptlab.cepta.providers.TrainDelayNotificationDataProvider;
+import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class SumOfDelayAtStationTests {
     @Test
@@ -27,7 +29,7 @@ public class SumOfDelayAtStationTests {
         Double expectedDelayAtStation1 = 25.0;
         Double expectedDelayAtStation2 = 13.0;
 
-        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
+        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction<TrainDelayNotification>();
         // the provider provides four TrainDelayNotification elements
         // element 1 has stationId 1, trainId 1, delay 10
         // element 2 has stationId 2, trainId 2, delay 5
@@ -35,21 +37,25 @@ public class SumOfDelayAtStationTests {
         // element 4 has stationId 2, trainId 1, delay 8
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
-        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4);
+        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "LocationId");
         ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();
         Iterator<Tuple2<Long, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
         while(iterator.hasNext()){
             Tuple2<Long, Double> tuple = iterator.next();
             locationAndDelayArray.add(tuple);
         }
-
+        // check if any tuple is present
+        if (locationAndDelayArray.size() == 0) {
+            pass = false;
+        }
         for (Tuple2<Long, Double> tuple : locationAndDelayArray) {
+            // check if first station matches expected delay
             if (tuple.f0.equals(expectedStation1)) {
                 if (!tuple.f1.equals(expectedDelayAtStation1)) {
                     pass = false;
                 }
             } 
-
+            // check if second station matches expected delay
             if (tuple.f0.equals(expectedStation2)) {
                 if (!tuple.f1.equals(expectedDelayAtStation2)) {
                     pass = false;
@@ -57,6 +63,39 @@ public class SumOfDelayAtStationTests {
             } 
         }
         
+        Assert.assertTrue(pass);
+    }
+
+    @Test
+    public void TestSumOfDelaysAtStation2() throws IOException {
+
+        boolean pass = true;
+        Long expectedStation1 = 1L;
+        Double expectedDelayAtStation1 = 3.0;
+
+        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction<LiveTrainData>();
+        DataStream<LiveTrainData> delayNotificationStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();
+
+        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 3, "StationId");
+        ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<Long, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        while(iterator.hasNext()){
+            Tuple2<Long, Double> tuple = iterator.next();
+            locationAndDelayArray.add(tuple);
+        }
+        // check if any tuple is present
+        if (locationAndDelayArray.size() == 0) {
+            pass = false;
+        }
+
+        for (Tuple2<Long, Double> tuple : locationAndDelayArray) {
+            // check if first station matches expected delay
+            if (tuple.f0.equals(expectedStation1)) {
+                if (!tuple.f1.equals(expectedDelayAtStation1)) {
+                    pass = false;
+                }
+            } 
+        }
         Assert.assertTrue(pass);
     }
 }
