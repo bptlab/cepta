@@ -1,3 +1,5 @@
+<img align="center" width="200px" src="https://raw.githubusercontent.com/gin-gonic/logo/master/color.png">
+
 CEPTA - Complex Event Processing Transportation Analysis
 
 [![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
