@@ -18,8 +18,13 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 public class RemoveDuplicatesTests {
 
     @Test
+<<<<<<< HEAD
     public void IntegerTest() throws IOException {
         boolean noDuplicate = true;
+=======
+    public void TestRemoveIntegerDuplicate() throws IOException {
+        boolean pass = true;
+>>>>>>> origin/dev
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(1);
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<Integer>();
         DataStream<Integer> remainingStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
@@ -50,7 +55,7 @@ public class RemoveDuplicatesTests {
     }
 
     @Test
-    public void TestLiveTrainDataRemoveDuplicates() throws Exception {
+    public void TestRemoveLiveTrainDataDuplicate() throws Exception {
         boolean pass = true;
 
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();  
@@ -69,7 +74,6 @@ public class RemoveDuplicatesTests {
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(remainingData.get(i));
             if (remainingData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
                 flag = true; 
             } else if (remainingData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {

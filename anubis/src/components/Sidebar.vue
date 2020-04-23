@@ -37,63 +37,30 @@
         <!-- Websockets -->
         <sidebar-element title="Dashboard" :route="{ name: 'home' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-rocket"></i>
+            <i class="sidebar-icon-dashboard icon-dashboard"></i>
           </template>
         </sidebar-element>
 
         <!-- User -->
-        <sidebar-element
-          title="Trainmanagement"
-          :route="{ name: 'trainmanagement' }"
-        >
+        <sidebar-element title="Manage Transports" :route="{ name: 'manage' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-book"></i>
+            <i class="sidebar-icon-manage icon-book"></i>
           </template>
         </sidebar-element>
 
         <!-- Map -->
-        <sidebar-element title="Live map" :route="{ name: 'map' }">
+        <sidebar-element title="Live Feed" :route="{ name: 'feed' }">
           <template v-slot:icon>
-            <i class="c-green-500 icon-map"></i>
+            <i class="sidebar-icon-feed icon-rss-alt"></i>
           </template>
         </sidebar-element>
 
-        <!-- Multiple Levels -->
-        <sidebar-dropdown title="Examples">
+        <!-- Map -->
+        <sidebar-element title="Overview Map" :route="{ name: 'map' }">
           <template v-slot:icon>
-            <i class="c-teal-500 icon-view-list-alt"></i>
+            <i class="sidebar-icon-map icon-map-alt"></i>
           </template>
-          <template v-slot:entries>
-            <!-- Pages -->
-            <sidebar-dropdown title="Pages">
-              <template v-slot:icon>
-                <i class="c-red-500 icon-files"></i>
-              </template>
-              <template v-slot:entries>
-                <sidebar-dropdown-element
-                  title="Blank"
-                  :route="{ name: 'blank' }"
-                />
-                <sidebar-dropdown-element
-                  title="404 Error"
-                  :route="{ name: 'error404' }"
-                />
-                <sidebar-dropdown-element
-                  title="500 Error"
-                  :route="{ name: 'error500' }"
-                />
-                <sidebar-dropdown-element
-                  title="Log In"
-                  :route="{ name: 'login' }"
-                />
-                <sidebar-dropdown-element
-                  title="Sign Up"
-                  :route="{ name: 'signup' }"
-                />
-              </template>
-            </sidebar-dropdown>
-          </template>
-        </sidebar-dropdown>
+        </sidebar-element>
       </ul>
     </div>
   </div>
@@ -115,7 +82,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   }
 })
 export default class Sidebar extends Vue {
-  @Prop({ default: "Cepta" }) private title!: string;
+  @Prop({ default: "CEPTA" }) private title!: string;
   @Prop({ default: "@/assets/images/logo.png" }) private logo!: string;
 
   toggleSidebar() {
@@ -157,6 +124,16 @@ export default class Sidebar extends Vue {
   width: $offscreen-size
   z-index: 1002
 
+  // Custom icon coloring
+  .sidebar-icon-dashboard
+    +theme(color, c-sidebar-icon-dashboard)
+  .sidebar-icon-manage
+    +theme(color, c-sidebar-icon-manage)
+  .sidebar-icon-feed
+    +theme(color, c-sidebar-icon-feed)
+  .sidebar-icon-map
+    +theme(color, c-sidebar-icon-map)
+
   ul
     list-style-type: none
 
@@ -195,7 +172,9 @@ export default class Sidebar extends Vue {
 
       .sidebar-inner
         .sidebar-logo
-          border-bottom: 1px solid $border-color
+          border-bottom-width: 1px
+          border-bottom-style: solid
+          +theme-color-diff(border-bottom-color, bgc-navbar, 6)
           padding: 0 20px
 
         .sidebar-menu
@@ -231,8 +210,12 @@ export default class Sidebar extends Vue {
 // ---------------------------------------------------------
 
 .sidebar-logo
-  border-bottom: 1px solid $border-color
-  border-right: 1px solid $border-color
+  border-bottom-width: 1px
+  border-bottom-style: solid
+  +theme-color-diff(border-bottom-color, bgc-navbar, 6)
+  border-right-width: 1px
+  border-right-style: solid
+  +theme-color-diff(border-right-color, bgc-navbar, 6)
   line-height: 0
   padding: 0 20px
   transition: all 0.2s ease
@@ -277,7 +260,9 @@ export default class Sidebar extends Vue {
 .sidebar-menu
   +clearfix
 
-  border-right: 1px solid $border-color
+  border-right-width: 1px
+  border-right-style: solid
+  +theme-color-diff(border-right-color, bgc-navbar, 6)
   height: calc(100vh - #{$header-height})
   list-style: none
   margin: 0
@@ -296,9 +281,9 @@ export default class Sidebar extends Vue {
   .sidebar-link
     &.router-link-exact-active,
     &.router-link-active
-      +theme(background-color, c-accent-text)
+      +theme(background-color, bgc-sidebar-active)
       .dot-holder
-        +theme(background, c-accent-text)
+        +theme(background, c-sidebar-dot)
         border-radius: 50%
         content: ''
         display: block
@@ -307,9 +292,13 @@ export default class Sidebar extends Vue {
         position: absolute
         top: calc(50% - 4px)
         width: 8px
+        +theme(color, c-sidebar-icon-active)
+
+      .icon-holder i
+        +theme(color, c-sidebar-icon-active)
 
       .title
-        +theme(color, c-default-text)
+        +theme(color, c-sidebar-text)
         text-decoration: none
         font-weight: bold
 
@@ -337,23 +326,13 @@ export default class Sidebar extends Vue {
         .arrow
           line-height: 25px
 
-      &.lol
-        > a
-          +theme(color, c-default-text)
-
-          .icon-holder
-            +theme(color, c-default-text)
-
-          .arrow
-            transform: rotate(90deg)
-
     a
-      +theme(color, c-default-text)
+      +theme-color-diff(color, c-default-text, 50)
       transition: all 0.3s ease
 
       &:hover,
       &:focus
-        color: $default-dark
+        +theme(color, c-default-text)
         text-decoration: none
 
         .icon-holder
@@ -422,7 +401,6 @@ export default class Sidebar extends Vue {
       .sidebar-inner
         .sidebar-logo
           border-bottom: 1px solid transparent
-          padding: 0
 
         .sidebar-menu
           > li
@@ -444,7 +422,9 @@ export default class Sidebar extends Vue {
 
         .sidebar-inner
           .sidebar-logo
-            border-bottom: 1px solid $border-color
+            border-bottom-width: 1px
+            border-bottom-style: solid
+            +theme-color-diff(border-bottom-color, bgc-navbar, 6)
             padding: 0 20px
 
           .sidebar-menu
@@ -468,7 +448,9 @@ export default class Sidebar extends Vue {
 
       .sidebar-inner
         .sidebar-logo
-          border-bottom: 1px solid $border-color
+          border-bottom-width: 1px
+          border-bottom-style: solid
+          +theme-color-diff(border-bottom-color, bgc-navbar, 6)
           padding: 0 20px
 
           > a

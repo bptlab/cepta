@@ -5,7 +5,7 @@ filegroup(
     srcs = [
         "//osiris/query",
         "//osiris/notification",
-        "//osiris/authentication",
+        "//osiris/auth",
         "//osiris/usermgmt",
         "//osiris/lib",
     ],
@@ -17,7 +17,7 @@ multirun(
     commands = [
         "//osiris/query:build-image",
         "//osiris/notification:build-image",
-        "//osiris/authentication:build-image",
+        "//osiris/auth:build-image",
         "//osiris/usermgmt:build-image",
     ],
     parallel = True,
@@ -26,7 +26,7 @@ multirun(
 
 command(
     name = "run_auth",
-    command = "//osiris/authentication",
+    command = "//osiris/auth",
     arguments = [
         "--port",
         "-8080",
@@ -55,7 +55,7 @@ multirun(
     commands = [
         "//osiris/query:publish",
         "//osiris/notification:publish",
-        "//osiris/authentication:publish",
+        "//osiris/auth:publish",
         "//osiris/usermgmt:publish",
     ],
     parallel = True,

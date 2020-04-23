@@ -3,6 +3,7 @@ package org.bptlab.cepta.providers;
 import java.util.ArrayList;
 import org.javatuples.Pair;
 import com.google.protobuf.Timestamp;
+import static com.google.protobuf.util.Timestamps.*;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -11,6 +12,8 @@ import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExt
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+
+
 
 public class LiveTrainDataProvider {
 
@@ -222,5 +225,7 @@ public class LiveTrainDataProvider {
       .setEventClass(eventClass).build();
     return new Tuple2<>(weather, locationId);
   }
+
+
 
 }

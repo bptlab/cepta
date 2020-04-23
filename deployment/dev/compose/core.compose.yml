@@ -32,8 +32,8 @@ services:
       # KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       # KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
       # KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-    # depends_on:
-    #   - zookeeper
+    depends_on:
+      - zookeeper
 
   kafka-manager:
     image: sheepkiller/kafka-manager
@@ -42,6 +42,8 @@ services:
     environment:
       ZK_HOSTS: zookeeper:${CEPTA_ZOOKEEPER_PORT}
       KM_VERSION: 2.3.0
+    depends_on:
+     - kafka
 
   kafdrop:
     image: thomsch98/kafdrop
@@ -50,6 +52,8 @@ services:
     environment:
       ZK_HOSTS: zookeeper:${CEPTA_ZOOKEEPER_PORT}
       LISTEN: ${CEPTA_KAFDROP_PORT}
+    depends_on:
+     - kafka
 
   flink-jobmanager:
     image: flink:latest
@@ -138,8 +142,8 @@ services:
 
   notification:
     image: bazel/osiris/notification:image
-    command:
-      - --brokers=kafka:9092
+    environment:
+      KAFKA_BROKERS: kafka:9092
     ports:
       - ${CEPTA_NOTIFICATION_BACKEND_PORT}:80
     depends_on:
@@ -148,20 +152,51 @@ services:
       - kafka
       - replayer
 
+  auth:
+    image: bazel/osiris/auth:image
+    ports:
+      - ${CEPTA_AUTH_BACKEND_PORT}:80
+    volumes:
+      - ../../keys/sample/auth.key:/etc/keys/sign.key
+      - ../../keys/sample/auth.jwk.json:/etc/keys/jwks.json
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
+      # LOG: DEBUG
+      SIGNING_KEY: /etc/keys/sign.key
+      JWKS_JSON: /etc/keys/jwks.json
+    depends_on:
+      - mongodb
+
+  usermgmt:
+    image: bazel/osiris/usermgmt:image
+    ports:
+      - ${CEPTA_USERMGMT_BACKEND_PORT}:80
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
+      INITIAL_EMAIL: cepta@cepta.org
+      INITIAL_PASSWORD: cepta
+      CLEAR: "true"
+    depends_on:
+      - mongodb
+
   replayer:
     image: bazel/auxiliary/producers/replayer:image
     depends_on:
       - kafka
-      - postgres
-    command:
-      - --brokers=kafka:9092
-      - --port=9000
-      - --postgres-host=postgres
-      - --postgres-port=${CEPTA_POSTGRES_PORT}
-      - --mongodb-host=mongodb
-      - --mongodb-port=${CEPTA_MONGODB_PORT}
-      # Do not use quotation here as this will be used in the postgres query
-      # - --must-match=train_id=47298333
+      #- postgres # now we use mongodb as replayer DB
+      #- mongodb  # in most cases we use an external mongoDB
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      PORT: 9000
+      # Benchmark indicates MongoDB is the bottleneck
+      # REPLAY_MODE: constant
+      # PAUSE: 0
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
     ports:
       - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000
 
@@ -171,7 +206,9 @@ volumes:
   #   driver: local
   # kafka_data:
   #   driver: local
-  postgres_data:
+  # mongodb_data:
+  #  driver: local
+   postgres_data:
     driver: local
    #  driver_opts:
    #   type: 'none'

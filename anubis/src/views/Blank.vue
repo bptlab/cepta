@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="fuck">
     <p>
       This view is a perfect starting point if you want to build new, custom
       views
@@ -21,4 +21,9 @@ export default class Blank extends Vue {
 }
 </script>
 
-<style lang="sass"></style>
+<style lang="sass">
+#fuck
+  height: 100%
+  position: relative
+  background-color: yellow
+</style>

@@ -2,24 +2,27 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 
 	"github.com/bptlab/cepta/ci/versioning"
-	auth "github.com/bptlab/cepta/models/grpc/authentication"
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
+	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	"github.com/bptlab/cepta/osiris/lib/utils"
+	lib "github.com/bptlab/cepta/osiris/usermgmt/lib"
 
-	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Version will be injected at build time
@@ -28,355 +31,255 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
+var server UserMgmtServer
 var grpcServer *grpc.Server
-var done = make(chan bool, 1)
-var log *logrus.Logger
-var db *libdb.PostgresDB
 
-// AuthClientFunc is fancy
-type AuthClientFunc func(*grpc.ClientConn) auth.AuthenticationClient
+var (
+	success = result.Result{Success: true}
+	failure = result.Result{Success: false}
+)
 
-type server struct {
+// UserMgmtServer  ...
+type UserMgmtServer struct {
 	pb.UnimplementedUserManagementServer
-	active     bool
-	authClient AuthClientFunc
-	db         *libdb.PostgresDB
+	MongoConfig    libdb.MongoDBConfig
+	DB             *libdb.MongoDB
+	UserCollection string
+	Reset          bool
+	DefaultUser    users.InternalUser
 }
 
-// User is a struct to rep user account
-type User struct {
-	gorm.Model                // adds the fields ID, CreatedAt, UpdatedAt, DeletedAt automatically
-	Email      string         `json:"email"`
-	TrainIds   pq.StringArray `gorm:"type:int[]"`
-	Password   string         `json:"password"`
-	Token      string         `json:"token";sql:"-"`
+// NewUserMgmtServer ...
+func NewUserMgmtServer(mongoConfig libdb.MongoDBConfig) UserMgmtServer {
+	return UserMgmtServer{
+		MongoConfig: mongoConfig,
+	}
 }
 
-// AddTrain adds a train to a user
-func (server *server) AddTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
-	var userID int = int(in.GetUserId().GetValue())
-	var trainID int = int(in.GetTrainId().GetValue())
-	var user User
-	err := server.db.DB.First(&user, userID).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	var trains []string = append(user.TrainIds, strconv.Itoa(trainID))
-	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	return &pb.Success{Success: true}, nil
+// Shutdown ...
+func (s *UserMgmtServer) Shutdown() {
+	log.Info("Graceful shutdown")
+	log.Info("Stopping GRPC server")
+	grpcServer.Stop()
 }
 
-// AddUser adds a new user
-func (server *server) AddUser(ctx context.Context, in *pb.User) (*pb.Success, error) {
-	user := User{
-		//ID:       int(in.GetId().GetValue()),
-		Email:    in.GetEmail(),
-		Password: in.GetPassword(),
-		TrainIds: toStringArray(in.GetTrains()),
+// GetUser ...
+func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*users.User, error) {
+	var user *users.User
+	var err error
+	token := utils.GetUserToken(ctx)
+	if token == "" {
+		// return nil, errors.New("Access denied")
 	}
-	server.db.DB.NewRecord(user)
-	err := server.db.DB.Create(&user).Error
+	// User ID takes precedence
+	if in.UserId != nil && in.UserId.Id != "" {
+		user, err = lib.GetUserByID(s.DB.DB.Collection(s.UserCollection), in.UserId)
+		if err == nil && user != nil {
+			return user, nil
+		}
+	}
+	// Try email
+	if in.Email != "" {
+		user, err = lib.GetUserByEmail(s.DB.DB.Collection(s.UserCollection), in.Email)
+		if err == nil && user != nil {
+			return user, nil
+		}
+	}
 	if err != nil {
-		return &pb.Success{Success: false}, err
+		return nil, status.Error(codes.Internal, "Failed to query the database")
 	}
-
-	// send user to auth microservice
-	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	client := server.authClient(conn) //auth.NewAuthenticationClient(conn)
-	_, errr := client.AddUser(ctx, &auth.User{Email: in.GetEmail(), Password: in.GetPassword()})
-	if errr != nil {
-		return &pb.Success{Success: false}, errr
-	}
-	defer conn.Close()
-	return &pb.Success{Success: true}, err
+	return nil, status.Error(codes.NotFound, "No such user found")
 }
 
-func toStringArray(trains *pb.TrainIds) pq.StringArray {
-	var array pq.StringArray
-	for _, id := range trains.GetIds() {
-		array = append(array, int64ToString(id.GetValue()))
+// UpdateUser ...
+func (s *UserMgmtServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (*result.Result, error) {
+	token := utils.GetUserToken(ctx)
+	if token == "" {
+		// return &failure, nil
 	}
-	return array
+	if err := lib.UpdateUser(s.DB.DB.Collection(s.UserCollection), in.User.User.Id, in.User); err != nil {
+		return &failure, err
+	}
+	return &success, nil
 }
 
-// GetTrains fetches all train ids to a user
-func (server *server) GetTrainIds(ctx context.Context, in *pb.UserId) (*pb.TrainIds, error) {
-	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
-	if err != nil {
-		return &pb.TrainIds{}, err
+// AddUser ...
+func (s *UserMgmtServer) AddUser(ctx context.Context, in *pb.AddUserRequest) (*users.User, error) {
+	token := utils.GetUserToken(ctx)
+	if token == "" {
+		// return &failure, nil
 	}
-	var ids *pb.TrainIds = toProtoTrainIds(user.TrainIds)
-	return ids, nil
+
+	// Check if user with same mail already exists
+	email := in.User.User.Email
+	found, err := lib.GetUserByEmail(s.DB.DB.Collection(s.UserCollection), email)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if found != nil {
+		return nil, status.Errorf(codes.AlreadyExists, "User with email %s already exists", email)
+	}
+
+	user, err := lib.AddUser(s.DB.DB.Collection(s.UserCollection), in.User)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return user, nil
 }
 
-// GetUser fetches all information to a user
-func (server *server) GetUser(ctx context.Context, in *pb.UserId) (*pb.User, error) {
-	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
+// RemoveUser ...
+func (s *UserMgmtServer) RemoveUser(ctx context.Context, in *pb.RemoveUserRequest) (*result.Result, error) {
+	token := utils.GetUserToken(ctx)
+	if token == "" {
+		// return &failure, nil
+	}
+	// Check for at least one other admin user
+	ok, err := lib.HasAdminUser(s.DB.DB.Collection(s.UserCollection), []*users.UserID{in.UserId})
 	if err != nil {
-		return &pb.User{
-			Id:       nil,
-			Email:    "",
-			Password: "",
-			Trains:   nil}, nil
+		return &failure, status.Error(codes.Internal, "Failed to check admin users")
 	}
-	var ids *pb.TrainIds = toProtoTrainIds(user.TrainIds)
-	return &pb.User{
-		Id:       &pb.UserId{Value: int64(user.ID)},
-		Email:    user.Email,
-		Password: user.Password,
-		Trains:   ids}, nil
-}
-
-// RemoveTrain removes a train from a user
-func (server *server) RemoveTrain(ctx context.Context, in *pb.UserIdTrainIdInput) (*pb.Success, error) {
-	var userID int = int(in.GetUserId().GetValue())
-	var trainID int = int(in.GetTrainId().GetValue())
-	var user User
-	err := server.db.DB.First(&user, userID).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
+	if !ok {
+		return &failure, status.Error(codes.PermissionDenied, "Require at least one admin user")
 	}
-
-	var trains []string = removeElementFromStringArray(user.TrainIds, strconv.Itoa(trainID))
-
-	err = server.db.DB.Model(&user).Update("TrainIds", trains).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
+	if err := lib.RemoveUser(s.DB.DB.Collection(s.UserCollection), in.UserId); err != nil {
+		return &failure, err
 	}
-	return &pb.Success{Success: true}, nil
-}
-
-// RemoveUser removes a user
-func (server *server) RemoveUser(ctx context.Context, in *pb.UserId) (*pb.Success, error) {
-	var user User
-	err := server.db.DB.First(&user, int(in.GetValue())).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	err = server.db.DB.Delete(&user).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-
-	// send user removal to auth microservice
-	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	client := server.authClient(conn)
-	_, errr := client.RemoveUser(ctx, &auth.UserId{Value: in.GetValue()})
-	if errr != nil {
-		return &pb.Success{Success: false}, errr
-	}
-	defer conn.Close()
-
-	return &pb.Success{Success: true}, nil
-}
-
-// SetEmail sets a users email
-func (server *server) SetEmail(ctx context.Context, in *pb.UserIdEmailInput) (*pb.Success, error) {
-	var id int = int(in.GetUserId().GetValue())
-	var email string = in.GetEmail()
-	var user User
-	err := server.db.DB.First(&user, id).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	err = server.db.DB.Model(&user).Update("Email", email).Error
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-
-	// send email to auth microservice
-	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
-	if err != nil {
-		return &pb.Success{Success: false}, err
-	}
-	client := auth.NewAuthenticationClient(conn)
-	_, errr := client.SetEmail(ctx, &auth.UserIdEmailInput{UserId: &auth.UserId{Value: in.GetUserId().GetValue()}, Email: in.GetEmail()})
-	if errr != nil {
-		return &pb.Success{Success: false}, errr
-	}
-	defer conn.Close()
-
-	return &pb.Success{Success: true}, nil
+	return &success, nil
 }
 
 func main() {
-
 	shutdown := make(chan os.Signal)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-shutdown
-		log.Info("Graceful shutdown")
-		log.Info("Stopping GRPC server")
-		grpcServer.Stop()
+		server.Shutdown()
 	}()
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
-	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
+	cliFlags = append(cliFlags, libdb.MongoDatabaseCliOptions...)
+	cliFlags = append(cliFlags, []cli.Flag{
+		&cli.StringFlag{
+			Name:    "collection",
+			Value:   "users",
+			Aliases: []string{"mongodb-collection"},
+			EnvVars: []string{"MONGO_COLLECTION", "COLLECTION"},
+			Usage:   "the mongo collection containing the user data",
+		},
+		&cli.StringFlag{
+			Name:    "default-email",
+			Value:   "admin@cepta.org",
+			Aliases: []string{"initial-email", "admin-email"},
+			EnvVars: []string{"DEFAULT_EMAIL", "INITIAL_EMAIL", "ADMIN_EMAIL"},
+			Usage:   "Inital admin email (created if user database is empty)",
+		},
+		&cli.StringFlag{
+			Name:    "default-password",
+			Value:   "admin",
+			Aliases: []string{"initial-password", "admin-password"},
+			EnvVars: []string{"DEFAULT_PASSWORD", "INITIAL_PASSWORD", "ADMIN_PASSWORD"},
+			Usage:   "Inital admin password (created if user database is empty)",
+		},
+		&cli.BoolFlag{
+			Name:    "reset",
+			Value:   false,
+			Aliases: []string{"clear", "delete"},
+			EnvVars: []string{"RESET", "CLEAR", "DELETE"},
+			Usage:   "Delete all user data before startup",
+		},
+	}...)
 
-	log = logrus.New()
-	go func() {
-		app := &cli.App{
-			Name:    "CEPTA User management server",
-			Version: versioning.BinaryVersion(Version, BuildTime),
-			Usage:   "manages the user database",
-			Flags:   cliFlags,
-			Action: func(ctx *cli.Context) error {
-				level, err := logrus.ParseLevel(ctx.String("log"))
-				if err != nil {
-					log.Warnf("Log level '%s' does not exist.")
-					level = logrus.InfoLevel
-				}
-				log.SetLevel(level)
-				ret := serve(ctx, log)
-				return ret
-			},
-		}
-		err := app.Run(os.Args)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	app := &cli.App{
+		Name:    "CEPTA user management microservice",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "Manages the user database",
+		Flags:   cliFlags,
+		Action: func(ctx *cli.Context) error {
+			level, err := log.ParseLevel(ctx.String("log"))
+			if err != nil {
+				log.Warnf("Log level '%s' does not exist.")
+				level = log.InfoLevel
+			}
+			log.SetLevel(level)
 
-	<-done
-	log.Info("Exiting")
-}
+			server = UserMgmtServer{
+				MongoConfig:    libdb.MongoDBConfig{}.ParseCli(ctx),
+				UserCollection: ctx.String("collection"),
+				Reset:          ctx.Bool("reset"),
+				DefaultUser: users.InternalUser{
+					User: &users.User{
+						Email: ctx.String("default-email"),
+					},
+					Password: ctx.String("default-password"),
+				},
+			}
 
-func serve(ctx *cli.Context, log *logrus.Logger) error {
-	postgresConfig := libdb.PostgresDBConfig{}.ParseCli(ctx)
-	var err error
-	db, err = libdb.PostgresDatabase(&postgresConfig)
-	db.DB.AutoMigrate(&User{})
-
-	if err != nil {
-		log.Fatalf("failed to initialize database: %v", err)
-	}
-
-	userManagementServer := server{
-		active: true,
-		db:     db,
-		authClient: func(conn *grpc.ClientConn) auth.AuthenticationClient {
-			return auth.NewAuthenticationClient(conn)
+			port := fmt.Sprintf(":%d", ctx.Int("port"))
+			listener, err := net.Listen("tcp", port)
+			if err != nil {
+				return fmt.Errorf("failed to listen: %v", err)
+			}
+			if err := server.Setup(); err != nil {
+				return err
+			}
+			return server.Serve(listener)
 		},
 	}
-
-	port := fmt.Sprintf(":%d", ctx.Int("port"))
-	log.Printf("Serving at %s", port)
-	listener, err := net.Listen("tcp", port)
+	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatal(err)
 	}
-	grpcServer = grpc.NewServer()
-	pb.RegisterUserManagementServer(grpcServer, &userManagementServer)
+}
 
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+// Setup prepares the service
+func (s *UserMgmtServer) Setup() error {
+	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
+	if err != nil {
+		return err
 	}
-	log.Info("Closing socket")
-	listener.Close()
-	done <- true
+	s.DB = mongo
+
+	if s.UserCollection == "" {
+		return errors.New("Need to specify a valid collection name")
+	}
+
+	// Eventually clear the user database
+	if s.Reset {
+		if err := s.DB.DB.Collection(s.UserCollection).Drop(context.Background()); err != nil {
+			log.Errorf("Failed to clear the user database: %v", err)
+		}
+		log.Info("Cleared user database")
+	}
+
+	hasAdmin, err := lib.HasAdminUser(s.DB.DB.Collection(s.UserCollection), []*users.UserID{})
+	if err != nil {
+		return fmt.Errorf("Failed to check for admin users: %v", err)
+	}
+	if !hasAdmin {
+		if s.DefaultUser.User != nil && s.DefaultUser.User.Email != "" && s.DefaultUser.Password != "" {
+			defaultUser, err := lib.AddUser(s.DB.DB.Collection(s.UserCollection), &s.DefaultUser)
+			if err != nil {
+				return fmt.Errorf("Failed to add default admin user: %v", err)
+			}
+			log.Infof("Added default user: %s", defaultUser)
+		} else {
+			return errors.New("Empty user database and no default admin user specified")
+		}
+	}
 	return nil
 }
 
-// returns true if the given users have the same attribute values
-func equalUser(u1 *pb.User, u2 *pb.User) bool {
-	if !equalUserID(u1.Id, u2.Id) || u1.Email != u2.Email || u1.Password != u2.Password || !equalTrainIDs(u1.Trains, u2.Trains) {
-		return false
-	}
-	return true
-}
+// Serve starts the service
+func (s *UserMgmtServer) Serve(listener net.Listener) error {
+	log.Infof("User Management service ready at %s", listener.Addr())
+	grpcServer = grpc.NewServer()
+	pb.RegisterUserManagementServer(grpcServer, s)
 
-// equalUserID returns true if the given ids have the same attribute values
-func equalUserID(id1 *pb.UserId, id2 *pb.UserId) bool {
-	if id1 == nil && id2 == nil {
-		return true
-	} else if id1 == nil || id2 == nil {
-		return false
-	} else if id1.Value != id2.Value {
-		return false
+	if err := grpcServer.Serve(listener); err != nil {
+		return err
 	}
-	return true
-}
-
-// equalTrainIDs returns true if the given repeated train ids have the same attribute values
-func equalTrainIDs(ids1 *pb.TrainIds, ids2 *pb.TrainIds) bool {
-	if ids1.GetIds() == nil && ids2.GetIds() == nil {
-		return true
-	} else if ids1.GetIds() == nil || ids2.GetIds() == nil {
-		return false
-	} else if ids1 == nil && ids2 == nil {
-		return true
-	} else if ids1 == nil || ids2 == nil {
-		return false
-	}
-	for _, id1 := range ids1.GetIds() {
-		var found bool
-		for _, id2 := range ids2.GetIds() {
-			found = false
-			if equalTrainID(id1, id2) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
-
-// equalTrainID returns true if the given train ids have the same attribute values
-func equalTrainID(id1 *pb.TrainId, id2 *pb.TrainId) bool {
-	if id1 == nil && id2 == nil {
-		return true
-	} else if id1 == nil || id2 == nil {
-		return false
-	} else if id1.Value != id2.Value {
-		return false
-	}
-	return true
-}
-
-func int64FromString(text string) int64 {
-	integer, _ := strconv.Atoi(text)
-	return int64(integer)
-}
-func int64ToString(num int64) string {
-	text := strconv.Itoa(int(num))
-	return text
-}
-
-func removeElementFromStringArray(slice []string, element string) []string {
-	for index, elem := range slice {
-		if elem == element {
-			return removeIndexFromStringArray(slice, index)
-		}
-	}
-	return slice
-}
-func removeIndexFromStringArray(slice []string, index int) []string {
-
-	return append(slice[:index], slice[index+1:]...)
-}
-
-func toProtoTrainIds(trainIds pq.StringArray) *pb.TrainIds {
-	if trainIds == nil {
-		return &pb.TrainIds{}
-	}
-	var ids []*pb.TrainId
-	for _, id := range trainIds {
-		ids = append(ids, &pb.TrainId{Value: int64FromString(id)})
-	}
-	return &pb.TrainIds{Ids: ids}
+	log.Info("Closing socket")
+	listener.Close()
+	return nil
 }
