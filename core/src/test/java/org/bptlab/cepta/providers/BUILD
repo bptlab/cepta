@@ -8,6 +8,7 @@ java_library(
         "//models/events:weather_data_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
+        "//models/events:train_delay_notification_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_javatuples_javatuples",

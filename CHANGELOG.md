@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 - [#213](https://github.com/bptlab/cepta/pull/213)
   - Single install helm chart for deploying to kubernetes clusters
   - Automatic packaging and distribution via GitHub Pages
+- [#241](https://github.com/bptlab/cepta/pull/241)
+  - added a pattern which detects a train staying in a station
 
 ##### Changed
 - WIP
