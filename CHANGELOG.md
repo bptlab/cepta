@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file.
   - Automatic packaging and distribution via GitHub Pages
 - [#241](https://github.com/bptlab/cepta/pull/241)
   - added a pattern which detects a train staying in a station
+- [#243](https://github.com/bptlab/cepta/pull/243)
+  - added a pattern which detects an arriving train without a corresponding planned data set
 
 ##### Changed
 - WIP
