@@ -18,13 +18,8 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 public class RemoveDuplicatesTests {
 
     @Test
-<<<<<<< HEAD
     public void IntegerTest() throws IOException {
         boolean noDuplicate = true;
-=======
-    public void TestRemoveIntegerDuplicate() throws IOException {
-        boolean pass = true;
->>>>>>> origin/dev
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(1);
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<Integer>();
         DataStream<Integer> remainingStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
