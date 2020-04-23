@@ -2,6 +2,7 @@ package org.bptlab.cepta;
 
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.pattern.Pattern;
 
 import org.bptlab.cepta.operators.CountOfEventsInStreamFunction;
 import org.bptlab.cepta.providers.CorrelatedLivePlannedDataProvider;
@@ -25,26 +26,42 @@ public class NoMatchingPlannedTrainDataPatternTests {
     @Test
     public void oneWithoutMatchingPlanned() throws Exception {
         DataStream<Tuple2<LiveTrainData, PlannedTrainData>> stream = CorrelatedLivePlannedDataProvider.oneWithoutMatchingPlanned();
-        Assert.assertEquals(1, countOfMatchesIn(stream));   
+        Assert.assertEquals(1, countOfMatchesIn(stream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern()));
+    }
+
+    @Test
+    public void oneArrivingWithoutMatchingPlanned() throws Exception {
+        DataStream<Tuple2<LiveTrainData, PlannedTrainData>> stream = CorrelatedLivePlannedDataProvider.oneWithoutMatchingPlanned();
+        Assert.assertEquals(1, countOfMatchesIn(stream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataForArrivingPattern()));
+    }
+    @Test
+    public void oneArrivingWithoutMatchingPlannedForDeparting() throws Exception {
+        DataStream<Tuple2<LiveTrainData, PlannedTrainData>> stream = CorrelatedLivePlannedDataProvider.oneWithoutMatchingPlanned();
+        Assert.assertEquals(0, countOfMatchesIn(stream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataForDepartingPattern()));
+    }
+    @Test
+    public void oneArrivingWithoutMatchingPlannedForDriveThrough() throws Exception {
+        DataStream<Tuple2<LiveTrainData, PlannedTrainData>> stream = CorrelatedLivePlannedDataProvider.oneWithoutMatchingPlanned();
+        Assert.assertEquals(0, countOfMatchesIn(stream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataForDriveThroughsPattern()));
     }
   
     @Test
     public void threeWithoutMatchingPlanned() throws Exception {
-        Assert.assertEquals(3, countOfMatchesIn(CorrelatedLivePlannedDataProvider.threeWithoutMatchingPlanned()));   
+        Assert.assertEquals(3, countOfMatchesIn(CorrelatedLivePlannedDataProvider.threeWithoutMatchingPlanned(), NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern()));   
     }
 
     @Test
     public void oneWithMatchingPlanned() throws Exception {
-        Assert.assertEquals(0, countOfMatchesIn(CorrelatedLivePlannedDataProvider.oneWithMatchingPlanned()));   
+        Assert.assertEquals(0, countOfMatchesIn(CorrelatedLivePlannedDataProvider.oneWithMatchingPlanned(), NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern()));   
     }
   
     @Test
     public void threeWithMatchingPlanned() throws Exception {
-        Assert.assertEquals(0, countOfMatchesIn(CorrelatedLivePlannedDataProvider.threeWithMatchingPlanned()));   
+        Assert.assertEquals(0, countOfMatchesIn(CorrelatedLivePlannedDataProvider.threeWithMatchingPlanned(), NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern()));   
     }
 
-    private int countOfMatchesIn(DataStream<Tuple2<LiveTrainData, PlannedTrainData>> input) throws Exception{
-        PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(input, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern);
+    private int countOfMatchesIn(DataStream<Tuple2<LiveTrainData, PlannedTrainData>> input, Pattern<Tuple2<LiveTrainData, PlannedTrainData>, ?> pattern ) throws Exception{
+        PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(input, pattern);
 
         DataStream<NoMatchingPlannedTrainDataEvent> generatedEvents = 
             patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc());
