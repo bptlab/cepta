@@ -39,6 +39,9 @@ public class LiveTrainDataProvider {
     return builder.build();
   }
 
+
+
+
   // @DataProvider(name = "live-train-data-provider")
   public static DataStream<LiveTrainData> matchingLiveTrainDatas(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -215,6 +218,11 @@ public class LiveTrainDataProvider {
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainSectionId(trainId).build();
   }
+  public static LiveTrainData trainEventWithEventTime( Timestamp timestamp ){
+      return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+              .setEventTime( timestamp ).build();
+  }
+
   private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainSectionId(trainId).setStationId(locationId).build();
@@ -225,7 +233,5 @@ public class LiveTrainDataProvider {
       .setEventClass(eventClass).build();
     return new Tuple2<>(weather, locationId);
   }
-
-
 
 }
