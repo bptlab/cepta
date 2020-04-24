@@ -52,7 +52,7 @@ public class SumOfDelayAtStationFunction {
                 HashMap<Long, Double> sums = new HashMap<Long, Double>();
                 for (TrainDelayNotification in: input) {
                     Long trainId = in.getTrainId();
-                    Long locationId = in.getLocationId();
+                    Long locationId = in.getStationId();
                     Double delay = in.getDelay();
                     if (!sums.containsKey(locationId)) {
                         sums.put(locationId, delay);

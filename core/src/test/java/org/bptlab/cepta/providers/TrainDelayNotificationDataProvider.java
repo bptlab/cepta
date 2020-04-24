@@ -10,7 +10,7 @@ public class TrainDelayNotificationDataProvider {
         public static TrainDelayNotification getDefaultLTrainDelayNotificationDataEvent() {
         TrainDelayNotification.Builder builder = TrainDelayNotification.newBuilder();
           builder.setTrainId(1);
-          builder.setLocationId(1);
+          builder.setStationId(1);
           builder.setDelay(1);
           return builder.build();
         }
@@ -33,17 +33,17 @@ public class TrainDelayNotificationDataProvider {
 
         private static TrainDelayNotification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(int locationId, int trainId, Double delay){
           return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).setTrainId(trainId).setDelay(delay).build();
+              .setStationId(locationId).setTrainId(trainId).setDelay(delay).build();
         }
 
         private static TrainDelayNotification trainDelayNotificationWithLocationIdWithTrainId(int locationId, int trainId){
           return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).setTrainId(trainId).build();
+              .setStationId(locationId).setTrainId(trainId).build();
         }
 
         private static TrainDelayNotification trainDelayNotificationWithLocationId(int locationId){
           return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).build();
+              .setStationId(locationId).build();
         }
 
         private static TrainDelayNotification trainDelayNotificationWithTrainId(int trainId){

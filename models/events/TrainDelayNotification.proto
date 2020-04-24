@@ -6,6 +6,6 @@ option java_outer_classname = "TrainDelayNotificationProtos";
 
 message TrainDelayNotification {
     int64 train_id = 1;
-    int64 location_id = 2;
+    int64 station_id = 2;
     double delay = 3;
 }

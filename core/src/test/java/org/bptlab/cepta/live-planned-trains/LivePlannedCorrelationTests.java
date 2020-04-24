@@ -1,7 +1,6 @@
 package org.bptlab.cepta;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -13,12 +12,9 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
-import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.*;
@@ -50,9 +46,9 @@ public class LivePlannedCorrelationTests {
 
       // Execute insert queries
       System.out.println("Inserting records into the table...");
-      sql = insertTrainWithTrainIdLocationIdQuery(42382923, 11111111);
+      sql = insertTrainWithTrainIdStationIdQuery(42382923, 11111111);
       stmt.executeUpdate(sql);
-      sql = insertTrainWithTrainIdLocationIdQuery(42093766, 11111111);
+      sql = insertTrainWithTrainIdStationIdQuery(42093766, 11111111);
       stmt.executeUpdate(sql);
       System.out.println("Inserted records into the table...");
 
@@ -143,7 +139,7 @@ public class LivePlannedCorrelationTests {
     return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
   }
 
-  private String insertTrainWithTrainIdLocationIdQuery(long trainId, long locationId){
+  private String insertTrainWithTrainIdStationIdQuery(long trainId, long locationId){
     return String.format(
       "INSERT INTO public.planned(" +
         "id, " +
