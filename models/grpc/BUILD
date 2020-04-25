@@ -3,6 +3,7 @@ load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "commonjs_dts_grpc_compile")
 load("@rules_proto_grpc//nodejs:defs.bzl", "nodejs_proto_compile")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_proto_library")
 
 # User management
 proto_library(
@@ -124,7 +125,7 @@ filegroup(
     srcs = [
         ":replayer_commonjs_dts_grpc_proto",
         ":replayer_nodejs_proto",
-        ":replayer_go_proto",
+        ":replayer_go_grpc",
         ":replayer_java_proto",
         ":auth_commonjs_dts_grpc_proto",
         ":auth_nodejs_proto",
