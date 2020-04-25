@@ -11,15 +11,15 @@ import "models/types/result.proto";
 service Replayer {
 
   // Basic controls
-  rpc SeekTo(google.protobuf.Timestamp) returns (models.types.result.Result) {}
-  rpc Reset(models.types.result.Empty) returns (models.types.result.Result) {}
-  rpc Start(ReplayStartOptions) returns (models.types.result.Result) {}
-  rpc Stop(models.types.result.Empty) returns (models.types.result.Result) {}
+  rpc SeekTo(google.protobuf.Timestamp) returns (models.types.result.Empty) {}
+  rpc Reset(models.types.result.Empty) returns (models.types.result.Empty) {}
+  rpc Start(ReplayStartOptions) returns (models.types.result.Empty) {}
+  rpc Stop(models.types.result.Empty) returns (models.types.result.Empty) {}
 
   // Configuration
-  rpc SetSpeed(Speed) returns (models.types.result.Result) {}
-  rpc SetType(ReplayModeOption) returns (models.types.result.Result) {}
-  rpc SetOptions(ReplaySetOptionsRequest) returns (models.types.result.Result) {}
+  rpc SetSpeed(Speed) returns (models.types.result.Empty) {}
+  rpc SetType(ReplayModeOption) returns (models.types.result.Empty) {}
+  rpc SetOptions(ReplaySetOptionsRequest) returns (models.types.result.Empty) {}
 
   // Query
   rpc GetStatus(models.types.result.Empty) returns (ReplayStatus) {}
