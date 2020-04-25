@@ -20,6 +20,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
+const parallel = true
+
 const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
 const userCollection = "mock_users"
@@ -109,6 +111,9 @@ func (test *Test) countUsers(t *testing.T) int64 {
 }
 
 func TestDefaultUser(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -140,6 +145,9 @@ func TestDefaultUser(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -198,6 +206,9 @@ func TestRemoveUser(t *testing.T) {
 }
 
 func TestAddUser(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -249,6 +260,9 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 

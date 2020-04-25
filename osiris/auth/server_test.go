@@ -20,6 +20,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+const parallel = true
+
 const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
 const userCollection = "mock_users"
@@ -79,7 +81,7 @@ func (test *Test) setup(t *testing.T) *Test {
 	log.SetLevel(logLevel)
 
 	// Start mongodb container
-	test.mongoC, dbConn, err = integrationtesting.StartMongoContainer()
+	test.mongoC, dbConn, err = integrationtesting.StartMongoContainer(integrationtesting.ContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -127,6 +129,9 @@ func (test *Test) teardown() {
 }
 
 func TestLogin(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -194,6 +199,9 @@ func TestLogin(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 	email := "test@example.com"
@@ -235,6 +243,9 @@ func TestValidation(t *testing.T) {
 }
 
 func TestDebugMode(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 	test.authServer.DisableAuth = true
