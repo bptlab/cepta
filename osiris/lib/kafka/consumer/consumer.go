@@ -1,7 +1,8 @@
-package kafkaconsumer
+package Consumer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -13,9 +14,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var KafkaConsumerCliOptions = libcli.CommonCliOptions(libcli.Kafka)
+// CliOptions ...
+var CliOptions = libcli.CommonCliOptions(libcli.Kafka)
 
-type KafkaConsumerConfig struct {
+// Config ...
+type Config struct {
 	Brokers             []string
 	Group               string
 	Version             string
@@ -23,16 +26,19 @@ type KafkaConsumerConfig struct {
 	ConnectionTolerance libcli.ConnectionTolerance
 }
 
-func (config KafkaConsumerConfig) GetBrokers() []string {
+// GetBrokers ...
+func (config Config) GetBrokers() []string {
 	return config.Brokers
 }
 
-func (config KafkaConsumerConfig) GetConnectionTolerance() libcli.ConnectionTolerance {
+// GetConnectionTolerance ...
+func (config Config) GetConnectionTolerance() libcli.ConnectionTolerance {
 	return config.ConnectionTolerance
 }
 
-func (config KafkaConsumerConfig) ParseCli(ctx *cli.Context) KafkaConsumerConfig {
-	return KafkaConsumerConfig{
+// ParseCli ...
+func (config Config) ParseCli(ctx *cli.Context) Config {
+	return Config{
 		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
 		Group:               ctx.String("kafka-group"),
 		Version:             ctx.String("kafka-version"),
@@ -41,17 +47,20 @@ func (config KafkaConsumerConfig) ParseCli(ctx *cli.Context) KafkaConsumerConfig
 	}
 }
 
-type KafkaConsumer struct {
+// Consumer ...
+type Consumer struct {
 	ready    chan error
 	Messages chan *sarama.ConsumerMessage
 	client   sarama.ConsumerGroup
 }
 
-func (consumer *KafkaConsumer) Cleanup(sarama.ConsumerGroupSession) error {
+// Cleanup ...
+func (consumer *Consumer) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (consumer *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+// ConsumeClaim ...
+func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
 		log.Debugf("Message claimed: value = %s, timestamp = %v, topic = %s", string(message.Value), message.Timestamp, message.Topic)
 		consumer.Messages <- message
@@ -60,16 +69,18 @@ func (consumer *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession,
 	return nil
 }
 
-func (consumer *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
-	close(consumer.ready)
+// Setup ...
+func (consumer *Consumer) Setup(sarama.ConsumerGroupSession) error {
+	consumer.ready <- nil
 	return nil
 }
 
-func (consumer *KafkaConsumer) Close() error {
+// Close ...
+func (consumer *Consumer) Close() error {
 	return consumer.client.Close()
 }
 
-func newConsumerGroup(options KafkaConsumerConfig, config *sarama.Config) (sarama.ConsumerGroup, error) {
+func newConsumerGroup(options Config, config *sarama.Config) (sarama.ConsumerGroup, error) {
 	var attempt int
 	for {
 		client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
@@ -86,23 +97,25 @@ func newConsumerGroup(options KafkaConsumerConfig, config *sarama.Config) (saram
 	}
 }
 
-func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerConfig) (KafkaConsumer, error) {
+// ConsumeGroup ...
+func ConsumeGroup(ctx context.Context, options Config) (*Consumer, *sync.WaitGroup, error) {
 	config := sarama.NewConfig()
+	// config.Consumer.Return.Errors = true
 
-	consumer := KafkaConsumer{
-		ready:    make(chan error),
+	c := &Consumer{
+		ready:    make(chan error, 2),
 		Messages: make(chan *sarama.ConsumerMessage),
 	}
 
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
-		return consumer, fmt.Errorf("Error parsing Kafka version: %v", err)
+		return c, nil, fmt.Errorf("Error parsing Kafka version: %v", err)
 	}
 	config.Version = version
 
-	consumer.client, err = newConsumerGroup(options, config)
+	c.client, err = newConsumerGroup(options, config)
 	if err != nil {
-		return consumer, fmt.Errorf("Error creating consumer group client: %v", err)
+		return c, nil, fmt.Errorf("Error creating consumer group client: %v", err)
 	}
 
 	wg := &sync.WaitGroup{}
@@ -110,27 +123,33 @@ func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerCo
 	go func() {
 		defer wg.Done()
 		for {
-			if err := consumer.client.Consume(ctx, options.Topics, &consumer); err != nil {
-				consumer.ready <- err
+			// Consume should be called inside an infinite loop, when a
+			// server-side rebalance happens, the consumer session will need to be
+			// recreated to get the new claims
+			if err := c.client.Consume(ctx, options.Topics, c); err != nil {
+				c.ready <- err
 			}
 			// check if context was cancelled, signaling that the consumer should stop
-			if err := ctx.Err(); err != nil {
-				consumer.ready <- err
+			if ctx.Err() != nil {
+				log.Debug("Context canceled")
+				c.ready <- err
+				break
 			}
-			// All set up
-			consumer.ready <- nil
+			c.ready = make(chan error, 2)
 		}
+		log.Debug("Consumer loop exiting")
 	}()
 
 	// Wait until the consumer has been set up
-	if err := <-consumer.ready; err != nil {
-		return consumer, fmt.Errorf("Error setting up consumer: %v", err)
+	if err = <-c.ready; err != nil {
+		return c, wg, fmt.Errorf("Error setting up consumer: %v", err)
 	}
+
 	log.Debug("Sarama consumer up and running!...")
-	return consumer, nil
+	return c, wg, nil
 }
 
-func newConsumer(options KafkaConsumerConfig, config *sarama.Config) (sarama.Consumer, error) {
+func newConsumer(options Config, config *sarama.Config) (sarama.Consumer, error) {
 	var attempt int
 	for {
 		client, err := sarama.NewConsumer(options.Brokers, config)
@@ -147,7 +166,8 @@ func newConsumer(options KafkaConsumerConfig, config *sarama.Config) (sarama.Con
 	}
 }
 
-func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerConfig) (sarama.PartitionConsumer, error) {
+// Consume ...
+func Consume(ctx context.Context, options Config) (sarama.PartitionConsumer, error) {
 	config := sarama.NewConfig()
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
@@ -156,10 +176,10 @@ func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerConfig)
 	config.Version = version
 
 	if len(options.Topics) != 1 {
-		return nil, fmt.Errorf("Need exactly one topic!")
+		return nil, errors.New("Need exactly one topic")
 	}
 
-	consumer := KafkaConsumer{
+	consumer := Consumer{
 		ready: make(chan error),
 	}
 
@@ -168,13 +188,13 @@ func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerConfig)
 		return nil, fmt.Errorf("Error creating consumer group client: %s", err.Error())
 	}
 
-	var kafkaConsumer sarama.PartitionConsumer
+	var Consumer sarama.PartitionConsumer
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		for {
-			if kafkaConsumer, err = client.ConsumePartition(options.Topics[0], 0, sarama.OffsetOldest); err != nil {
+			if Consumer, err = client.ConsumePartition(options.Topics[0], 0, sarama.OffsetOldest); err != nil {
 				consumer.ready <- err
 			}
 			// check if context was cancelled, signaling that the consumer should stop
@@ -190,5 +210,5 @@ func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerConfig)
 		return nil, fmt.Errorf("Error setting up consumer: %s", err.Error())
 	}
 	log.Debug("Sarama consumer up and running!...")
-	return kafkaConsumer, nil
+	return Consumer, nil
 }

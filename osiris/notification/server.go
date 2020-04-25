@@ -52,7 +52,7 @@ func serveWebsocket(pool *websocket.Pool, w http.ResponseWriter, r *http.Request
 	client.Read()
 }
 
-func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.KafkaConsumerConfig) {
+func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.Config) {
 	if !(len(options.Topics) == 1 && len(options.Topics[0]) > 0) {
 		options.Topics = []string{topic.Topic_DELAY_NOTIFICATIONS.String()}
 	}
@@ -60,7 +60,8 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 		options.Group = "DelayConsumerGroup"
 	}
 	log.Infof("Will consume topic %s from %s (group %s)", options.Topics, strings.Join(options.Brokers, ", "), options.Group)
-	kafkaConsumer, err := kafkaconsumer.KafkaConsumer{}.ConsumeGroup(ctx, options)
+	// TODO: Implement wg
+	kafkaConsumer, _, err := kafkaconsumer.ConsumeGroup(ctx, options)
 	if err != nil {
 		log.Warnf("Failed to connect to kafka broker (%s) (group %s) on topic %s",
 			strings.Join(options.Brokers, ", "), options.Group, options.Topics)
@@ -97,7 +98,7 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 
 func serve(cliCtx *cli.Context) error {
 	ctx, _ := context.WithCancel(context.Background()) // cancel
-	kafkaOptions := kafkaconsumer.KafkaConsumerConfig{}.ParseCli(cliCtx)
+	kafkaOptions := kafkaconsumer.Config{}.ParseCli(cliCtx)
 	pool := websocket.NewPool()
 	go pool.Start()
 	go subscribeKafkaToPool(ctx, pool, kafkaOptions)
@@ -115,7 +116,7 @@ func main() {
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
-	cliFlags = append(cliFlags, kafkaconsumer.KafkaConsumerCliOptions...)
+	cliFlags = append(cliFlags, kafkaconsumer.CliOptions...)
 
 	app := &cli.App{
 		Name:    "CEPTA Notification service",

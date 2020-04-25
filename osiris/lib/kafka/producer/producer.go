@@ -1,4 +1,4 @@
-package kafkaproducer
+package Producer
 
 import (
 	"context"
@@ -12,34 +12,40 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var KafkaProducerCliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
+// CliOptions ...
+var CliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
 
-type KafkaProducerConfig struct {
+// Config ...
+type Config struct {
 	Brokers             []string
 	ConnectionTolerance libcli.ConnectionTolerance
 }
 
-func (config KafkaProducerConfig) GetBrokers() []string {
+// GetBrokers ...
+func (config Config) GetBrokers() []string {
 	return config.Brokers
 }
 
-func (config KafkaProducerConfig) GetConnectionTolerance() libcli.ConnectionTolerance {
+// GetConnectionTolerance ...
+func (config Config) GetConnectionTolerance() libcli.ConnectionTolerance {
 	return config.ConnectionTolerance
 }
 
-func (config KafkaProducerConfig) ParseCli(ctx *cli.Context) KafkaProducerConfig {
-	return KafkaProducerConfig{
+// ParseCli ...
+func (config Config) ParseCli(ctx *cli.Context) Config {
+	return Config{
 		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
 		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
-type KafkaProducer struct {
+// Producer ...
+type Producer struct {
 	DataCollector     sarama.SyncProducer
 	AccessLogProducer sarama.AsyncProducer
 }
 
-func (p KafkaProducer) forBroker(brokerList []string) (*KafkaProducer, error) {
+func (p Producer) forBroker(brokerList []string) (*Producer, error) {
 	collector, err := newDataCollector(brokerList)
 	if err != nil {
 		return nil, err
@@ -48,13 +54,14 @@ func (p KafkaProducer) forBroker(brokerList []string) (*KafkaProducer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &KafkaProducer{
+	return &Producer{
 		DataCollector:     collector,
 		AccessLogProducer: producer,
 	}, nil
 }
 
-func (p KafkaProducer) Create(ctx context.Context, options KafkaProducerConfig) (*KafkaProducer, error) {
+// Create ...
+func Create(ctx context.Context, options Config) (*Producer, error) {
 	var attempt int
 	if options.ConnectionTolerance.MaxRetries < 1 && options.ConnectionTolerance.TimeoutSec > 0 {
 		options.ConnectionTolerance.MaxRetries = options.ConnectionTolerance.TimeoutSec
@@ -65,7 +72,7 @@ func (p KafkaProducer) Create(ctx context.Context, options KafkaProducerConfig) 
 		case <-ctx.Done():
 			return nil, fmt.Errorf("Failed to start kafka producer after %d attempts", attempt)
 		default:
-			producer, err := p.forBroker(options.Brokers)
+			producer, err := Producer{}.forBroker(options.Brokers)
 			if err != nil {
 				if attempt >= options.ConnectionTolerance.MaxRetries {
 					return nil, fmt.Errorf("Failed to start kafka producer: %v", err)
@@ -105,18 +112,20 @@ func newAccessLogProducer(brokerList []string) (sarama.AsyncProducer, error) {
 	return producer, err
 }
 
-func (s *KafkaProducer) Close() error {
-	if err := s.DataCollector.Close(); err != nil {
+// Close ...
+func (p *Producer) Close() error {
+	if err := p.DataCollector.Close(); err != nil {
 		log.Fatalf("Failed to shut down data collector cleanly", err)
 	}
-	if err := s.AccessLogProducer.Close(); err != nil {
+	if err := p.AccessLogProducer.Close(); err != nil {
 		log.Fatalf("Failed to shut down access log producer cleanly", err)
 	}
 	return nil
 }
 
-func (s *KafkaProducer) Send(topic string, pkey string, entry sarama.Encoder) {
-	s.AccessLogProducer.Input() <- &sarama.ProducerMessage{
+// Send ...
+func (p *Producer) Send(topic string, pkey string, entry sarama.Encoder) {
+	p.AccessLogProducer.Input() <- &sarama.ProducerMessage{
 		Topic: topic,
 		Key:   sarama.StringEncoder(pkey),
 		Value: entry,
