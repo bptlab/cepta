@@ -44,6 +44,7 @@ func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptio
 type KafkaConsumer struct {
 	ready    chan error
 	Messages chan *sarama.ConsumerMessage
+	client   sarama.ConsumerGroup
 }
 
 func (consumer *KafkaConsumer) Cleanup(sarama.ConsumerGroupSession) error {
@@ -62,6 +63,10 @@ func (consumer *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession,
 func (consumer *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
 	close(consumer.ready)
 	return nil
+}
+
+func (consumer *KafkaConsumer) Close() error {
+	return consumer.client.Close()
 }
 
 func newConsumerGroup(options KafkaConsumerOptions, config *sarama.Config) (sarama.ConsumerGroup, error) {
@@ -91,13 +96,13 @@ func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOp
 
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {
-		return consumer, fmt.Errorf("Error parsing Kafka version: %s", err.Error())
+		return consumer, fmt.Errorf("Error parsing Kafka version: %v", err)
 	}
 	config.Version = version
 
-	client, err := newConsumerGroup(options, config)
+	consumer.client, err = newConsumerGroup(options, config)
 	if err != nil {
-		return consumer, fmt.Errorf("Error creating consumer group client: %s", err.Error())
+		return consumer, fmt.Errorf("Error creating consumer group client: %v", err)
 	}
 
 	wg := &sync.WaitGroup{}
@@ -105,7 +110,7 @@ func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOp
 	go func() {
 		defer wg.Done()
 		for {
-			if err := client.Consume(ctx, options.Topics, &consumer); err != nil {
+			if err := consumer.client.Consume(ctx, options.Topics, &consumer); err != nil {
 				consumer.ready <- err
 			}
 			// check if context was cancelled, signaling that the consumer should stop
@@ -119,7 +124,7 @@ func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOp
 
 	// Wait until the consumer has been set up
 	if err := <-consumer.ready; err != nil {
-		return consumer, fmt.Errorf("Error setting up consumer: %s", err.Error())
+		return consumer, fmt.Errorf("Error setting up consumer: %v", err)
 	}
 	log.Debug("Sarama consumer up and running!...")
 	return consumer, nil
