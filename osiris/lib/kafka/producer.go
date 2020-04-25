@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -53,20 +54,29 @@ func (p KafkaProducer) forBroker(brokerList []string) (*KafkaProducer, error) {
 	}, nil
 }
 
-func (p KafkaProducer) Create(options KafkaProducerOptions) (*KafkaProducer, error) {
+func (p KafkaProducer) Create(ctx context.Context, options KafkaProducerOptions) (*KafkaProducer, error) {
 	var attempt int
+	if options.ConnectionTolerance.MaxRetries < 1 && options.ConnectionTolerance.TimeoutSec > 0 {
+		options.ConnectionTolerance.MaxRetries = options.ConnectionTolerance.TimeoutSec
+		options.ConnectionTolerance.RetryIntervalSec = 1
+	}
 	for {
-		producer, err := p.forBroker(options.Brokers)
-		if err != nil {
-			if attempt >= options.ConnectionTolerance.MaxRetries {
-				return nil, fmt.Errorf("Failed to start kafka producer: %s", err.Error())
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("Failed to start kafka producer after %d attempts", attempt)
+		default:
+			producer, err := p.forBroker(options.Brokers)
+			if err != nil {
+				if attempt >= options.ConnectionTolerance.MaxRetries {
+					return nil, fmt.Errorf("Failed to start kafka producer: %v", err)
+				}
+				attempt++
+				log.Infof("Failed to connect: %v. (Attempt %d of %d)", err, attempt, options.ConnectionTolerance.MaxRetries)
+				time.Sleep(time.Duration(options.ConnectionTolerance.RetryIntervalSec) * time.Second)
+			} else {
+				return producer, nil
 			}
-			attempt++
-			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, options.ConnectionTolerance.MaxRetries)
-			time.Sleep(time.Duration(options.ConnectionTolerance.RetryIntervalSec) * time.Second)
-			continue
 		}
-		return producer, nil
 	}
 }
 
