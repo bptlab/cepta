@@ -9,8 +9,8 @@ go_library(
         ":cli",
         ":utils",
         "//osiris/lib/db:go_default_library",
-        "//osiris/lib/kafka:consumer",
-        "//osiris/lib/kafka:producer",
+        "//osiris/lib/kafka/consumer:go_default_library",
+        "//osiris/lib/kafka/producer:go_default_library",
     ],
 )
 
