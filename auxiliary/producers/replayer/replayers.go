@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"fmt"
+
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	topics "github.com/bptlab/cepta/models/constants/topic"
@@ -33,7 +37,7 @@ func setSortAndID(SortFieldName string, IDFieldName string) extractors.MongoExtr
 }
 
 // Setup ...
-func (s *ReplayerServer) Setup() error {
+func (s *ReplayerServer) Setup(ctx context.Context) error {
 
 	// Initialization will happen later on
 	s.mongo = new(libdb.MongoDB)
@@ -193,5 +197,19 @@ func (s *ReplayerServer) Setup() error {
 		s.WeatherRplr,
 		s.GpsRplr,
 	}
+
+	// Connect to mongoDB
+	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
+	if err != nil {
+		return fmt.Errorf("Failed to initialize mongo database: %v", err)
+	}
+	*s.mongo = *mongo
+
+	// Connect to kafka
+	s.producer, err = kafkaproducer.KafkaProducer{}.Create(ctx, s.KafkaConfig)
+	if err != nil {
+		return fmt.Errorf("Cannot produce events: %v", err)
+	}
+
 	return nil
 }

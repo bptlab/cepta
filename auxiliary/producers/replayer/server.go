@@ -22,7 +22,7 @@ import (
 	topics "github.com/bptlab/cepta/models/constants/topic"
 
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -37,25 +37,16 @@ var BuildTime string = ""
 var server ReplayerServer
 var grpcServer *grpc.Server
 var done = make(chan bool, 1)
-var log *logrus.Logger
+var logger *log.Logger
 
 // ReplayerServer ...
 type ReplayerServer struct {
 	pb.UnimplementedReplayerServer
 
 	StartOptions pb.ReplayStartOptions
-
-	// Speed int32
-	// Limit       int
-	// Mode pb.ReplayType
-	// Timerange   pb.Timerange
-	// Ids         []string
-	// Included    []string
-	// Excluded    []string
-	Active bool
-	// Repeat      bool
-	KafkaConfig kafkaproducer.KafkaProducerOptions
-	MongoConfig libdb.MongoDBConfig
+	Active       bool
+	KafkaConfig  kafkaproducer.KafkaProducerOptions
+	MongoConfig  libdb.MongoDBConfig
 
 	Replayers []*Replayer
 
@@ -77,8 +68,9 @@ type ReplayerServer struct {
 	WeatherRplr               *Replayer
 	GpsRplr                   *Replayer
 
-	mongo    *libdb.MongoDB
-	producer *kafkaproducer.KafkaProducer
+	mongo       *libdb.MongoDB
+	cancelSetup context.Context
+	producer    *kafkaproducer.KafkaProducer
 }
 
 // NewReplayerServer ...
@@ -87,12 +79,13 @@ func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproduce
 		KafkaConfig: kafkaConfig,
 		MongoConfig: mongoConfig,
 	}
-	srv.Setup()
+	srv.StartOptions.Options = &pb.ReplayOptions{}
+	srv.StartOptions.Sources = []*pb.SourceQueryOptions{}
 	return srv
 }
 
 // SeekTo ...
-func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*result.Result, error) {
+func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*result.Empty, error) {
 	log.Infof("Seeking to: %v", in)
 
 	// Overrides all timerange starting points
@@ -105,24 +98,30 @@ func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*resul
 		// replayer.Options
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
 }
 
 // Reset ...
-func (s *ReplayerServer) Reset(ctx context.Context, in *result.Empty) (*result.Result, error) {
+func (s *ReplayerServer) Reset(ctx context.Context, in *result.Empty) (*result.Empty, error) {
 	log.Infof("Resetting")
 	for _, replayer := range s.Replayers {
 		// Send RESET control message
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
 }
 
 // Start ...
-func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*result.Result, error) {
+func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*result.Empty, error) {
 	log.Infof("Starting")
 	s.Active = true
-	s.StartOptions = *in
+	if in.Options != nil {
+		s.StartOptions.Options = in.Options
+	}
+	if in.Sources != nil {
+		s.StartOptions.Sources = in.Sources
+	}
+
 	// Include replayers
 	if len(s.StartOptions.Sources) < 1 {
 		for _, replayer := range s.Replayers {
@@ -136,11 +135,11 @@ func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (
 			replayer.Ctrl <- pb.InternalControlMessageType_START
 		}
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
 }
 
 // Stop ...
-func (s *ReplayerServer) Stop(ctx context.Context, in *result.Empty) (*result.Result, error) {
+func (s *ReplayerServer) Stop(ctx context.Context, in *result.Empty) (*result.Empty, error) {
 	log.Infof("Stopping")
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		log.Info(md)
@@ -150,11 +149,11 @@ func (s *ReplayerServer) Stop(ctx context.Context, in *result.Empty) (*result.Re
 		// Send STOP control message
 		replayer.Ctrl <- pb.InternalControlMessageType_STOP
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
 }
 
 // SetSpeed ...
-func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*result.Result, error) {
+func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*result.Empty, error) {
 	log.Infof("Setting speed to: %v", int(in.GetSpeed()))
 	// speed = int32(in.GetSpeed())
 	// Overrides all speed values
@@ -162,38 +161,47 @@ func (s *ReplayerServer) SetSpeed(ctx context.Context, in *pb.Speed) (*result.Re
 	for _, source := range s.StartOptions.Sources {
 		source.Options.Speed = in
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
 }
 
 // SetType ...
-func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayModeOption) (*result.Result, error) {
+func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayModeOption) (*result.Empty, error) {
 	log.Infof("Setting replay type to: %v", in.GetMode())
 	// Overrides all modes
 	s.StartOptions.Options.Mode = in.GetMode()
 	for _, source := range s.StartOptions.Sources {
 		source.Options.Mode = in.GetMode()
 	}
-	return &result.Result{Success: true}, nil
+	return &result.Empty{}, nil
+}
+
+func applyActiveOptions(options *pb.ActiveReplayOptions, dest *pb.ReplayOptions) {
+	dest.Speed = options.Speed
+	dest.Mode = options.Mode
+	dest.Timerange = options.Timerange
+	dest.Repeat = options.Repeat
 }
 
 // SetOptions ...
-func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptionsRequest) (*result.Result, error) {
+func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptionsRequest) (*result.Empty, error) {
 	log.Infof("Setting replay options")
-	/*
-		success, err := s.SetSpeed(ctx, in.GetSpeed())
-		if err != nil {
-			return success, err
+
+	// Set global options first
+	if in.Options != nil {
+		applyActiveOptions(in.Options, s.StartOptions.Options)
+	}
+
+	// Set source level options
+	for _, srcreq := range in.Sources {
+		// Find replaying source with matching topic
+		for _, source := range s.StartOptions.Sources {
+			if srcreq.Source == source.Source {
+				applyActiveOptions(srcreq, source.Options)
+				break
+			}
 		}
-		success, err = s.SeekTo(ctx, in.GetTimerange().GetStart())
-		if err != nil {
-			return success, err
-		}
-		success, err = s.SetType(ctx, &pb.ReplayModeOption{Mode: in.GetMode()})
-		if err != nil {
-			return success, err
-		}
-	*/
-	return &result.Result{Success: true}, nil
+	}
+	return &result.Empty{}, nil
 }
 
 // GetStatus ...
@@ -254,7 +262,7 @@ func (s *ReplayerServer) include(r *Replayer) {
 }
 
 // Serve ...
-func (s *ReplayerServer) Serve(listener net.Listener, log *logrus.Logger, includedSrcs []string, excludedSrcs []string) error {
+func (s *ReplayerServer) Serve(listener net.Listener, logger *log.Logger, includedSrcs []string, excludedSrcs []string) error {
 
 	// For reference: When using postgres as a replaying database:
 	/*
@@ -264,18 +272,6 @@ func (s *ReplayerServer) Serve(listener net.Listener, log *logrus.Logger, includ
 			log.Fatalf("failed to initialize postgres database: %v", err)
 		}
 	*/
-	// Connect to mongoDB
-	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
-	if err != nil {
-		log.Fatalf("Failed to initialize mongo database: %v", err)
-	}
-	*s.mongo = *mongo
-
-	// Connect to kafka
-	s.producer, err = kafkaproducer.KafkaProducer{}.Create(s.KafkaConfig)
-	if err != nil {
-		log.Fatalf("Cannot produce events: %s", err.Error())
-	}
 	defer func() {
 		if err := s.producer.Close(); err != nil {
 			log.Errorf("Failed to close kafka producer: %v", err)
@@ -290,7 +286,7 @@ func (s *ReplayerServer) Serve(listener net.Listener, log *logrus.Logger, includ
 		replayer.producer = s.producer
 		replayer.Ctrl = make(chan pb.InternalControlMessageType)
 		replayer.Brokers = s.KafkaConfig.Brokers
-		go replayer.Start(log)
+		go replayer.Start(logger)
 	}
 
 	log.Infof("Serving at %s", listener.Addr())
@@ -319,17 +315,20 @@ func (s *ReplayerServer) Shutdown() {
 		<-replayer.Ctrl
 		log.Debugf("Shutdown complete for %s", replayer.SourceName)
 	}
-
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	if grpcServer != nil {
+		grpcServer.Stop()
+	}
 }
 
 func main() {
 	// Register shutdown routine
+	setupCtx, cancelSetup := context.WithCancel(context.Background())
 	shutdown := make(chan os.Signal)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-shutdown
+		cancelSetup()
 		server.Shutdown()
 	}()
 
@@ -411,7 +410,7 @@ func main() {
 		},
 	}...)
 
-	log = logrus.New()
+	logger = log.New()
 
 	app := &cli.App{
 		Name:    "CEPTA Train data replayer producer",
@@ -420,10 +419,10 @@ func main() {
 		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {
 			go func() {
-				level, err := logrus.ParseLevel(ctx.String("log"))
+				level, err := log.ParseLevel(ctx.String("log"))
 				if err != nil {
 					log.Warnf("Log level '%s' does not exist.")
-					level = logrus.InfoLevel
+					level = log.InfoLevel
 				}
 				log.SetLevel(level)
 				port := fmt.Sprintf(":%d", ctx.Int("port"))
@@ -436,6 +435,9 @@ func main() {
 					libdb.MongoDBConfig{}.ParseCli(ctx),
 					kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx),
 				)
+				if err := server.Setup(setupCtx); err != nil {
+					log.Fatalf("Failed to setup replayer server: %v", err)
+				}
 				server.StartOptions.Options = &pb.ReplayOptions{Repeat: ctx.Bool("repeat")}
 
 				// Parse included and excluded values
@@ -488,7 +490,7 @@ func main() {
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: 5000}
 				}
 
-				server.Serve(listener, log, included, excluded)
+				server.Serve(listener, logger, included, excluded)
 			}()
 			<-done
 			log.Info("Exiting")

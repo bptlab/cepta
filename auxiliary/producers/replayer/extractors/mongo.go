@@ -102,6 +102,11 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 
 func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceQueryOptions) bson.A {
 	mustMatch := bson.D{}
+
+	if queryOptions.Options == nil {
+		queryOptions.Options = new(pb.ReplayOptions)
+	}
+
 	// Match ERRIDs
 	if len(queryOptions.Ids) > 0 && ex.Config.IDFieldName != "" {
 		ids := bson.A{}

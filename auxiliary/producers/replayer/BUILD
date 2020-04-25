@@ -96,31 +96,33 @@ go_library(
     ],
 )
 
+TEST_DEPS = [
+    "@com_github_romnnn_bsonpb//:go_default_library",
+    "@com_github_romnnn_deepequal//:go_default_library",
+    "@org_mongodb_go_mongo_driver//bson:go_default_library",
+    "@org_mongodb_go_mongo_driver//mongo:go_default_library",
+    "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
+    "@org_golang_google_grpc//:go_default_library",
+    "@com_github_testcontainers_testcontainers_go//:go_default_library",
+    "//osiris/lib/testing:go_default_library",
+    "//osiris/lib/kafka:consumer",
+]
+
 go_test(
     name = "replayer_internal",
     size = "medium",
-    srcs = ["tests/internal.go"],
+    srcs = ["tests/internal.go", "tests/provider.go"],
     embed = [":go_default_library"],
-    deps = [
-        "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-        "@com_github_testcontainers_testcontainers_go//:go_default_library",
-        "//osiris/lib/testing:go_default_library",
-    ],
+    deps = TEST_DEPS,
     tags = ["integration", "docker", "internal"],
 )
 
 go_test(
     name = "replayer_integration",
     size = "medium",
-    srcs = ["tests/integration.go"],
+    srcs = ["tests/integration.go", "tests/provider.go"],
     embed = [":go_default_library"],
-    deps = [
-        "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-        "@com_github_testcontainers_testcontainers_go//:go_default_library",
-        "//osiris/lib/testing:go_default_library",
-    ],
+    deps = TEST_DEPS,
     tags = ["integration", "docker"],
 )
 
