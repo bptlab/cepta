@@ -160,9 +160,9 @@ maven_install(
         "org.apache.commons:commons-lang3:3.9",
         "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
-        "org.testcontainers:testcontainers:1.12.5",
-        "org.testcontainers:kafka:1.12.5",
-        "org.testcontainers:postgresql:1.12.5",
+        "org.testcontainers:testcontainers:1.14.1",
+        "org.testcontainers:kafka:1.14.1",
+        "org.testcontainers:postgresql:1.14.1",
         "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
@@ -841,8 +841,8 @@ go_repository(
 go_repository(
     name = "com_github_testcontainers_testcontainers_go",
     importpath = "github.com/testcontainers/testcontainers-go",
-    sum = "h1:KZkEKNfnlsipJblzGCz6fmzd+0DzJ3djulYrislG3Zw=",
-    version = "v0.3.1",
+    sum = "h1:VbMekzjv6e5KmhiwMm5B1kjrCigoKYVORUVVe+QbAQc=",
+    version = "v0.5.1",
 )
 
 go_repository(
