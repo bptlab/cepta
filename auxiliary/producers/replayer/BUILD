@@ -104,7 +104,7 @@ TEST_DEPS = [
     "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
     "@org_golang_google_grpc//:go_default_library",
     "@com_github_testcontainers_testcontainers_go//:go_default_library",
-    "//osiris/lib/testing:go_default_library",
+    "@com_github_romnnn_testcontainers//:go_default_library",
     "//osiris/lib/kafka:consumer",
 ]
 

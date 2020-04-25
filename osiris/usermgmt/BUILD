@@ -91,7 +91,7 @@ go_test(
         "@org_mongodb_go_mongo_driver//mongo:go_default_library",
         "@org_mongodb_go_mongo_driver//mongo/options:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
-        "//osiris/lib/testing:go_default_library",
+        "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
     ],
 )

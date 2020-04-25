@@ -1453,3 +1453,17 @@ go_repository(
     sum = "h1:zpdCK+REwbk+rqjJmHhiCN6iBIigrZ39glqSF0P3KF0=",
     version = "v0.0.0-20181223230014-1083505acf35",
 )
+
+go_repository(
+    name = "com_github_cenkalti_backoff_v4",
+    importpath = "github.com/cenkalti/backoff/v4",
+    sum = "h1:JIufpQLbh4DkbQoii76ItQIUFzevQSqOLZca4eamEDs=",
+    version = "v4.0.2",
+)
+
+go_repository(
+    name = "com_github_romnnn_testcontainers",
+    importpath = "github.com/romnnn/testcontainers",
+    sum = "h1:6dU5ZRHHiHvDesYZF1jGHoQ2Idk2aKl2eHVS0ya7th4=",
+    version = "v0.1.1",
+)

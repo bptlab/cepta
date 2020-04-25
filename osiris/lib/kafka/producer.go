@@ -14,21 +14,21 @@ import (
 
 var KafkaProducerCliOptions = libcli.CommonCliOptions(libcli.KafkaBroker)
 
-type KafkaProducerOptions struct {
+type KafkaProducerConfig struct {
 	Brokers             []string
 	ConnectionTolerance libcli.ConnectionTolerance
 }
 
-func (config KafkaProducerOptions) GetBrokers() []string {
+func (config KafkaProducerConfig) GetBrokers() []string {
 	return config.Brokers
 }
 
-func (config KafkaProducerOptions) GetConnectionTolerance() libcli.ConnectionTolerance {
+func (config KafkaProducerConfig) GetConnectionTolerance() libcli.ConnectionTolerance {
 	return config.ConnectionTolerance
 }
 
-func (config KafkaProducerOptions) ParseCli(ctx *cli.Context) KafkaProducerOptions {
-	return KafkaProducerOptions{
+func (config KafkaProducerConfig) ParseCli(ctx *cli.Context) KafkaProducerConfig {
+	return KafkaProducerConfig{
 		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
 		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
@@ -54,7 +54,7 @@ func (p KafkaProducer) forBroker(brokerList []string) (*KafkaProducer, error) {
 	}, nil
 }
 
-func (p KafkaProducer) Create(ctx context.Context, options KafkaProducerOptions) (*KafkaProducer, error) {
+func (p KafkaProducer) Create(ctx context.Context, options KafkaProducerConfig) (*KafkaProducer, error) {
 	var attempt int
 	if options.ConnectionTolerance.MaxRetries < 1 && options.ConnectionTolerance.TimeoutSec > 0 {
 		options.ConnectionTolerance.MaxRetries = options.ConnectionTolerance.TimeoutSec

@@ -10,13 +10,15 @@ import (
 	topics "github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	"github.com/bptlab/cepta/models/types/result"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
-	integrationtesting "github.com/bptlab/cepta/osiris/lib/testing"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/romnnn/bsonpb"
 	"github.com/romnnn/deepequal"
+	tc "github.com/romnnn/testcontainers"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
@@ -36,7 +38,7 @@ func dailerFor(listener *bufconn.Listener) dialerFunc {
 	}
 }
 
-func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerOptions) (*ReplayerServer, error) {
+func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerConfig) (*ReplayerServer, error) {
 	r := NewReplayerServer(mongoConfig, kafkaConfig)
 	if err := r.Setup(context.Background()); err != nil {
 		t.Fatalf("Failed to setup replayer server: %v", err)
@@ -53,15 +55,16 @@ func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 
 // Test ...
 type Test struct {
-	Net              testcontainers.Network
-	MongoC           testcontainers.Container
-	KafkaC           testcontainers.Container
-	ZkC              testcontainers.Container
-	KafkaConn        integrationtesting.KafkaContainerConnectionConfig
-	MongoConn        libdb.MongoDBConfig
-	ReplayerEndpoint *grpc.ClientConn
-	ReplayerServer   *ReplayerServer
-	ReplayerClient   pb.ReplayerClient
+	Net                 testcontainers.Network
+	MongoC              testcontainers.Container
+	KafkaC              testcontainers.Container
+	ZkC                 testcontainers.Container
+	KafkaProducerConfig kafkaproducer.KafkaProducerConfig
+	KafkaConsumerConfig kafkaconsumer.KafkaConsumerConfig
+	MongoConfig         libdb.MongoDBConfig
+	ReplayerEndpoint    *grpc.ClientConn
+	ReplayerServer      *ReplayerServer
+	ReplayerClient      pb.ReplayerClient
 }
 
 // Setup ...
@@ -69,12 +72,6 @@ func (test *Test) Setup(t *testing.T) *Test {
 	var err error
 	log.SetLevel(logLevel)
 
-	// Create a docker network for the tests
-	// provider, err := testcontainers.NewDockerProvider()
-	if err != nil {
-		t.Fatalf("Failed to get the docker provider: %v", err)
-		return test
-	}
 	networkName := "test-network"
 	test.Net, err = testcontainers.GenericNetwork(context.Background(), testcontainers.GenericNetworkRequest{
 		NetworkRequest: testcontainers.NetworkRequest{
@@ -88,19 +85,46 @@ func (test *Test) Setup(t *testing.T) *Test {
 		t.Fatalf("Failed to create the docker test network: %v", err)
 		return test
 	}
+	defer test.Net.Remove(context.Background())
+
+	containerOptions := tc.ContainerOptions{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Networks: []string{networkName},
+		},
+	}
 
 	// Start mongodb container
-	test.MongoC, test.MongoConn, err = integrationtesting.StartMongoContainer(integrationtesting.ContainerOptions{Network: networkName})
+	var mongoConfig tc.MongoDBConfig
+	test.MongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
 	}
+	test.MongoConfig = libdb.MongoDBConfig{
+		Host:                mongoConfig.Host,
+		Port:                mongoConfig.Port,
+		User:                mongoConfig.User,
+		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
+		Password:            mongoConfig.Password,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	}
 
 	// Start kafka container
-	test.KafkaC, test.ZkC, test.KafkaConn, err = integrationtesting.StartKafkaContainer(integrationtesting.ContainerOptions{Network: networkName})
+	var kafkaConfig *tc.KafkaContainerConnectionConfig
+	test.KafkaC, kafkaConfig, test.ZkC, _, err = tc.StartKafkaContainer(tc.KafkaContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
+	}
+	test.KafkaConsumerConfig = kafkaconsumer.KafkaConsumerConfig{
+		Group:               fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
+		Brokers:             kafkaConfig.Brokers,
+		Version:             kafkaConfig.KafkaVersion,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	}
+	test.KafkaProducerConfig = kafkaproducer.KafkaProducerConfig{
+		Brokers:             kafkaConfig.Brokers,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
 	}
 
 	// Create endpoint
@@ -112,9 +136,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 	}
 
 	// Start the GRPC server
-	// time.Sleep(100 * time.Second)
-	// log.Fatal(test.KafkaConn.ProducerConfig())
-	test.ReplayerServer, err = setUpReplayerServer(t, replayerListener, test.MongoConn, test.KafkaConn.ProducerConfig())
+	test.ReplayerServer, err = setUpReplayerServer(t, replayerListener, test.MongoConfig, test.KafkaProducerConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the replayer service: %v", err)
 		return test
@@ -158,7 +180,7 @@ func (test *Test) AssertHasOptions(t *testing.T, expected *pb.ReplayStartOptions
 
 // InsertForTopic ...
 func (test *Test) InsertForTopic(topic topics.Topic, entries []proto.Message) error {
-	mongoDB, err := libdb.MongoDatabase(&test.MongoConn)
+	mongoDB, err := libdb.MongoDatabase(&test.MongoConfig)
 	if err != nil {
 		return fmt.Errorf("Failed to initialize mongo database: %v", err)
 	}

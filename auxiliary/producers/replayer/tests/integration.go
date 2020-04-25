@@ -85,9 +85,8 @@ func TestReset(t *testing.T) {
 	})
 
 	// Start the consumer
-	options := test.KafkaConn.ConsumerConfig()
+	options := test.KafkaConsumerConfig
 	options.Topics = []string{topics.Topic_LIVE_TRAIN_DATA.String()}
-	options.Group = "TestConsumerGroup"
 	kafkaConsumer, err := kafkaconsumer.KafkaConsumer{}.ConsumeGroup(context.Background(), options)
 	if err != nil {
 		t.Fatalf("Failed to start the kafka consumer: %v", err)

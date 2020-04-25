@@ -15,7 +15,7 @@ import (
 
 var KafkaConsumerCliOptions = libcli.CommonCliOptions(libcli.Kafka)
 
-type KafkaConsumerOptions struct {
+type KafkaConsumerConfig struct {
 	Brokers             []string
 	Group               string
 	Version             string
@@ -23,16 +23,16 @@ type KafkaConsumerOptions struct {
 	ConnectionTolerance libcli.ConnectionTolerance
 }
 
-func (config KafkaConsumerOptions) GetBrokers() []string {
+func (config KafkaConsumerConfig) GetBrokers() []string {
 	return config.Brokers
 }
 
-func (config KafkaConsumerOptions) GetConnectionTolerance() libcli.ConnectionTolerance {
+func (config KafkaConsumerConfig) GetConnectionTolerance() libcli.ConnectionTolerance {
 	return config.ConnectionTolerance
 }
 
-func (config KafkaConsumerOptions) ParseCli(ctx *cli.Context) KafkaConsumerOptions {
-	return KafkaConsumerOptions{
+func (config KafkaConsumerConfig) ParseCli(ctx *cli.Context) KafkaConsumerConfig {
+	return KafkaConsumerConfig{
 		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
 		Group:               ctx.String("kafka-group"),
 		Version:             ctx.String("kafka-version"),
@@ -69,7 +69,7 @@ func (consumer *KafkaConsumer) Close() error {
 	return consumer.client.Close()
 }
 
-func newConsumerGroup(options KafkaConsumerOptions, config *sarama.Config) (sarama.ConsumerGroup, error) {
+func newConsumerGroup(options KafkaConsumerConfig, config *sarama.Config) (sarama.ConsumerGroup, error) {
 	var attempt int
 	for {
 		client, err := sarama.NewConsumerGroup(options.Brokers, options.Group, config)
@@ -86,7 +86,7 @@ func newConsumerGroup(options KafkaConsumerOptions, config *sarama.Config) (sara
 	}
 }
 
-func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOptions) (KafkaConsumer, error) {
+func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerConfig) (KafkaConsumer, error) {
 	config := sarama.NewConfig()
 
 	consumer := KafkaConsumer{
@@ -130,7 +130,7 @@ func (c KafkaConsumer) ConsumeGroup(ctx context.Context, options KafkaConsumerOp
 	return consumer, nil
 }
 
-func newConsumer(options KafkaConsumerOptions, config *sarama.Config) (sarama.Consumer, error) {
+func newConsumer(options KafkaConsumerConfig, config *sarama.Config) (sarama.Consumer, error) {
 	var attempt int
 	for {
 		client, err := sarama.NewConsumer(options.Brokers, config)
@@ -147,7 +147,7 @@ func newConsumer(options KafkaConsumerOptions, config *sarama.Config) (sarama.Co
 	}
 }
 
-func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerOptions) (sarama.PartitionConsumer, error) {
+func (c KafkaConsumer) Consume(ctx context.Context, options KafkaConsumerConfig) (sarama.PartitionConsumer, error) {
 	config := sarama.NewConfig()
 	version, err := sarama.ParseKafkaVersion(options.Version)
 	if err != nil {

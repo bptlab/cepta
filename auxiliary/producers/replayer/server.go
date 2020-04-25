@@ -45,7 +45,7 @@ type ReplayerServer struct {
 
 	StartOptions pb.ReplayStartOptions
 	Active       bool
-	KafkaConfig  kafkaproducer.KafkaProducerOptions
+	KafkaConfig  kafkaproducer.KafkaProducerConfig
 	MongoConfig  libdb.MongoDBConfig
 
 	Replayers []*Replayer
@@ -74,7 +74,7 @@ type ReplayerServer struct {
 }
 
 // NewReplayerServer ...
-func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerOptions) ReplayerServer {
+func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerConfig) ReplayerServer {
 	srv := ReplayerServer{
 		KafkaConfig: kafkaConfig,
 		MongoConfig: mongoConfig,
@@ -433,7 +433,7 @@ func main() {
 
 				server = NewReplayerServer(
 					libdb.MongoDBConfig{}.ParseCli(ctx),
-					kafkaproducer.KafkaProducerOptions{}.ParseCli(ctx),
+					kafkaproducer.KafkaProducerConfig{}.ParseCli(ctx),
 				)
 				if err := server.Setup(setupCtx); err != nil {
 					log.Fatalf("Failed to setup replayer server: %v", err)

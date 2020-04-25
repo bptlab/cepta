@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/bptlab/cepta/models/types/users"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	integrationtesting "github.com/bptlab/cepta/osiris/lib/testing"
+	tc "github.com/romnnn/testcontainers"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -65,11 +67,12 @@ type Test struct {
 
 func (test *Test) setup(t *testing.T) *Test {
 	var err error
-	var dbConn libdb.MongoDBConfig
+	var mongoConfig tc.MongoDBConfig
 	log.SetLevel(logLevel)
 
 	// Start mongodb container
-	test.mongoC, dbConn, err = integrationtesting.StartMongoContainer()
+
+	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -84,7 +87,14 @@ func (test *Test) setup(t *testing.T) *Test {
 	}
 
 	// Start the GRPC server
-	test.userServer, err = setUpUserMgmtServer(t, userListener, dbConn)
+	test.userServer, err = setUpUserMgmtServer(t, userListener, libdb.MongoDBConfig{
+		Host:                mongoConfig.Host,
+		Port:                mongoConfig.Port,
+		User:                mongoConfig.User,
+		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
+		Password:            mongoConfig.Password,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	})
 	if err != nil {
 		t.Fatalf("Failed to setup the user management service: %v", err)
 		return test

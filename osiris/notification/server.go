@@ -52,7 +52,7 @@ func serveWebsocket(pool *websocket.Pool, w http.ResponseWriter, r *http.Request
 	client.Read()
 }
 
-func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.KafkaConsumerOptions) {
+func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.KafkaConsumerConfig) {
 	if !(len(options.Topics) == 1 && len(options.Topics[0]) > 0) {
 		options.Topics = []string{topic.Topic_DELAY_NOTIFICATIONS.String()}
 	}
@@ -97,7 +97,7 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 
 func serve(cliCtx *cli.Context) error {
 	ctx, _ := context.WithCancel(context.Background()) // cancel
-	kafkaOptions := kafkaconsumer.KafkaConsumerOptions{}.ParseCli(cliCtx)
+	kafkaOptions := kafkaconsumer.KafkaConsumerConfig{}.ParseCli(cliCtx)
 	pool := websocket.NewPool()
 	go pool.Start()
 	go subscribeKafkaToPool(ctx, pool, kafkaOptions)
