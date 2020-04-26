@@ -1,6 +1,7 @@
 package extractors
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -42,7 +43,7 @@ func (ex *PostgresExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 }
 
 // StartQuery ...
-func (ex *PostgresExtractor) StartQuery(tableName string, queryOptions *pb.SourceQueryOptions) error {
+func (ex *PostgresExtractor) StartQuery(ctx context.Context, tableName string, queryOptions *pb.SourceReplay) error {
 	dbQuery := ex.makeQuery(queryOptions)
 	var err error
 	ex.rows, err = dbQuery.Rows()
@@ -71,7 +72,7 @@ func (ex *PostgresExtractor) database() *gorm.DB {
 	return ex.DB.DB
 }
 
-func (ex *PostgresExtractor) makeQuery(queryOptions *pb.SourceQueryOptions) *gorm.DB {
+func (ex *PostgresExtractor) makeQuery(queryOptions *pb.SourceReplay) *gorm.DB {
 	query := ex.database().Model(ex.Extractor.GetInstance())
 
 	// Macth ERRIDs

@@ -1,6 +1,7 @@
 package extractors
 
 import (
+	"context"
 	"time"
 
 	"database/sql"
@@ -18,7 +19,7 @@ type DbExtractor interface {
 // Extractor ...
 type Extractor interface {
 	Get() (time.Time, *pb.ReplayedEvent, error)
-	StartQuery(sourceName string, queryOptions *pb.SourceQueryOptions) error
+	StartQuery(ctx context.Context, sourceName string, options *pb.SourceReplay) error
 	Next() bool
 	Done()
 	SetDebug(bool)

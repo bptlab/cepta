@@ -12,8 +12,9 @@ go_library(
     deps = [
         "//models/events:event_go_proto",
         "//models/grpc:replayer_go_grpc",
-        "//osiris/lib:utils",
+        "//osiris/lib/utils:go_default_library",
         "//osiris/lib/db:go_default_library",
+        "@com_github_sirupsen_logrus//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_jinzhu_gorm//:go_default_library",
