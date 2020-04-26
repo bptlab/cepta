@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cli",
-        ":utils",
+        "//osiris/lib/utils:go_default_library",
         "//osiris/lib/db:go_default_library",
         "//osiris/lib/kafka/consumer:go_default_library",
         "//osiris/lib/kafka/producer:go_default_library",
@@ -22,25 +22,44 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/lib/cli",
     visibility = ["//visibility:public"],
     deps = [
-        ":utils",
+        "//osiris/lib/utils:go_default_library",
         "@com_github_romnnn_flags4urfavecli//flags:go_default_library",
         "@com_github_urfave_cli_v2//:go_default_library",
     ],
 )
 
-go_library(
-    name = "utils",
-    srcs = [
-        "converters.go",
-        "utils.go",
+sub_tests = [
+    "//osiris/lib/utils:test",
+]
+
+test_suite(
+    name = "smoke",
+    tags = [
+        "-docker",
+        "-internal",
     ],
-    importpath = "github.com/bptlab/cepta/osiris/lib/utils",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
-        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
-        "@org_golang_google_grpc//metadata:go_default_library",
-        "@com_github_mitchellh_mapstructure//:go_default_library",
-    ]
+    tests = sub_tests,
+)
+
+test_suite(
+    name = "unit",
+    tags = [
+        "-internal",
+        "unit",
+    ],
+    tests = sub_tests,
+)
+
+test_suite(
+    name = "integration",
+    tags = [
+        "-internal",
+        "integration",
+    ],
+    tests = sub_tests,
+)
+
+test_suite(
+    name = "internal",
+    tests = sub_tests,
 )
