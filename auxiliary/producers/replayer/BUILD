@@ -79,15 +79,16 @@ go_library(
         "//models/events:weather_data_go_proto",
         "//models/grpc:replayer_go_grpc",
         "//osiris/lib:cli",
-        "//osiris/lib:utils",
+        "//osiris/lib/utils:go_default_library",
         "//osiris/lib/db:go_default_library",
-        "//osiris/lib/kafka:producer",
+        "//osiris/lib/kafka/producer:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_jinzhu_gorm//dialects/postgres:go_default_library",
         "@com_github_romnnn_flags4urfavecli//values:go_default_library",
@@ -105,13 +106,24 @@ TEST_DEPS = [
     "@org_golang_google_grpc//:go_default_library",
     "@com_github_testcontainers_testcontainers_go//:go_default_library",
     "@com_github_romnnn_testcontainers//:go_default_library",
-    "//osiris/lib/kafka:consumer",
+    "@com_github_shopify_sarama//:go_default_library",
+    "//osiris/lib/kafka/consumer:go_default_library",
+    "//osiris/lib/kafka:go_default_library",
 ]
+
+filegroup(
+    name = "test-helpers",
+    srcs = [
+        "tests/provider.go",
+        "tests/mockdata.go",
+        "tests/assertions.go",
+    ],
+)
 
 go_test(
     name = "replayer_internal",
     size = "medium",
-    srcs = ["tests/internal.go", "tests/provider.go"],
+    srcs = ["tests/internal.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,
     tags = ["integration", "docker", "internal"],
@@ -120,7 +132,7 @@ go_test(
 go_test(
     name = "replayer_integration",
     size = "medium",
-    srcs = ["tests/integration.go", "tests/provider.go"],
+    srcs = ["tests/integration.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,
     tags = ["integration", "docker"],
