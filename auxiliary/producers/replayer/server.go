@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -21,7 +23,9 @@ import (
 
 	topics "github.com/bptlab/cepta/models/constants/topic"
 
+	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
@@ -39,13 +43,17 @@ var grpcServer *grpc.Server
 var done = make(chan bool, 1)
 var logger *log.Logger
 
+const (
+	sortEventsLimit = 100000
+)
+
 // ReplayerServer ...
 type ReplayerServer struct {
 	pb.UnimplementedReplayerServer
 
 	StartOptions pb.ReplayStartOptions
 	Active       bool
-	KafkaConfig  kafkaproducer.KafkaProducerConfig
+	KafkaConfig  kafkaproducer.Config
 	MongoConfig  libdb.MongoDBConfig
 
 	Replayers []*Replayer
@@ -70,17 +78,17 @@ type ReplayerServer struct {
 
 	mongo       *libdb.MongoDB
 	cancelSetup context.Context
-	producer    *kafkaproducer.KafkaProducer
+	producer    *kafkaproducer.Producer
 }
 
 // NewReplayerServer ...
-func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerConfig) ReplayerServer {
+func NewReplayerServer(mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.Config) ReplayerServer {
 	srv := ReplayerServer{
 		KafkaConfig: kafkaConfig,
 		MongoConfig: mongoConfig,
 	}
 	srv.StartOptions.Options = &pb.ReplayOptions{}
-	srv.StartOptions.Sources = []*pb.SourceQueryOptions{}
+	srv.StartOptions.Sources = []*pb.SourceReplay{}
 	return srv
 }
 
@@ -111,31 +119,150 @@ func (s *ReplayerServer) Reset(ctx context.Context, in *result.Empty) (*result.E
 	return &result.Empty{}, nil
 }
 
-// Start ...
-func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (*result.Empty, error) {
-	log.Infof("Starting")
-	s.Active = true
-	if in.Options != nil {
-		s.StartOptions.Options = in.Options
+func mergeReplayerOptions(dest proto.Message, merge proto.Message) error {
+	if utils.IsNilInterface(merge) {
+		return nil
 	}
-	if in.Sources != nil {
-		s.StartOptions.Sources = in.Sources
+	if dest == nil {
+		return errors.New("Merge option destination can not be nil")
+	}
+	proto.SetDefaults(merge)
+	msg := proto.Clone(merge)
+	return utils.MergeWithOverride(dest, msg)
+}
+
+func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
+	newStartOptions := pb.ReplayStartOptions{
+		Options: &defaultReplayOptions,
+	}
+	proto.SetDefaults(in)
+
+	log.Infof("Requested options: %v", in)
+
+	// Set default options if no options are provided
+	if err := mergeReplayerOptions(&newStartOptions, proto.Clone(in)); err != nil {
+		return errors.New("Failed to merge replay options")
 	}
 
-	// Include replayers
-	if len(s.StartOptions.Sources) < 1 {
+	// log.Infof("Requested options: %v", in)
+
+	// proto.SetDefaults(&newStartOptions)
+	// log.Infof("Merge 1: %v", newStartOptions)
+
+	// Include all replayers if no sources are specified
+	if len(newStartOptions.GetSources()) < 1 {
 		for _, replayer := range s.Replayers {
-			s.include(replayer)
+			include(replayer, &newStartOptions.Sources)
 		}
 	}
-	for _, source := range s.StartOptions.Sources {
+
+	// log.Infof("Merge 2: %v", newStartOptions)
+
+	// Merge source and global options
+	for _, source := range newStartOptions.Sources {
+		source.Options = proto.Clone(newStartOptions.Options).(*pb.ReplayOptions)
+	}
+
+	// log.Infof("Merge 3: %v", newStartOptions)
+	for _, inSource := range in.Sources {
+		for _, source := range newStartOptions.Sources {
+			if inSource.Source == source.Source {
+				// log.Infof("Requested Sources is %v", in)
+				// log.Infof("Requested Sources is %v", inSource)
+				// log.Errorf("Merging %v with %v", source.Options, inSource.Options)
+				if err := mergeReplayerOptions(source.Options, inSource.Options); err != nil {
+					return errors.New("Failed to merge replay options")
+				}
+			}
+		}
+	}
+
+	for _, source := range newStartOptions.GetSources() {
+		if replayer, included := getReplayer(s.Replayers, source.Source); included {
+			replayer.Options = source
+		}
+	}
+	s.StartOptions = newStartOptions
+	return nil
+}
+
+// Start ...
+func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (res *result.Empty, err error) {
+	if s.Active {
+		err = errors.New("Replayer is already started and must be stopped first")
+		return
+	}
+	s.Active = true
+	res = &result.Empty{}
+	/*
+		newStartOptions := pb.ReplayStartOptions{
+			Options: &defaultReplayOptions,
+		}
+		proto.SetDefaults(in)
+
+		log.Infof("Requested options: %v", in)
+
+		// Set default options if no options are provided
+		if err = mergeReplayerOptions(&newStartOptions, proto.Clone(in)); err != nil {
+			err = errors.New("Failed to merge replay options")
+			return
+		}
+
+		// log.Infof("Requested options: %v", in)
+
+		// proto.SetDefaults(&newStartOptions)
+		// log.Infof("Merge 1: %v", newStartOptions)
+
+		// Include all replayers if no sources are specified
+		if len(newStartOptions.GetSources()) < 1 {
+			for _, replayer := range s.Replayers {
+				include(replayer, &newStartOptions.Sources)
+			}
+		}
+
+		// log.Infof("Merge 2: %v", newStartOptions)
+
+		// Merge source and global options
+		for _, source := range newStartOptions.Sources {
+			source.Options = proto.Clone(newStartOptions.Options).(*pb.ReplayOptions)
+		}
+
+		// log.Infof("Merge 3: %v", newStartOptions)
+		for _, inSource := range in.Sources {
+			for _, source := range newStartOptions.Sources {
+				if inSource.Source == source.Source {
+					// log.Infof("Requested Sources is %v", in)
+					// log.Infof("Requested Sources is %v", inSource)
+					// log.Errorf("Merging %v with %v", source.Options, inSource.Options)
+					if err = mergeReplayerOptions(source.Options, inSource.Options); err != nil {
+						err = errors.New("Failed to merge replay options")
+						return
+					}
+				}
+			}
+		}
+
+		// go func() {
+		for _, source := range newStartOptions.GetSources() {
+			if replayer, included := getReplayer(s.Replayers, source.Source); included {
+				// Send START control message
+				replayer.Options = source
+				replayer.Ctrl <- pb.InternalControlMessageType_START
+			}
+		}
+		// }()
+		s.StartOptions = newStartOptions
+	*/
+	s.setStartOptions(in)
+	for _, source := range s.StartOptions.GetSources() {
 		if replayer, included := getReplayer(s.Replayers, source.Source); included {
 			// Send START control message
-			replayer.Options = source
 			replayer.Ctrl <- pb.InternalControlMessageType_START
 		}
 	}
-	return &result.Empty{}, nil
+	// log.Infof("Options: %v", s.StartOptions.GetOptions())
+	log.Infof("Sources: %v", s.StartOptions.GetSources())
+	return
 }
 
 // Stop ...
@@ -144,11 +271,13 @@ func (s *ReplayerServer) Stop(ctx context.Context, in *result.Empty) (*result.Em
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		log.Info(md)
 	}
-	s.Active = false
-	for _, replayer := range s.Replayers {
-		// Send STOP control message
-		replayer.Ctrl <- pb.InternalControlMessageType_STOP
-	}
+	go func() {
+		s.Active = false
+		for _, replayer := range s.Replayers {
+			// Send STOP control message
+			replayer.Ctrl <- pb.InternalControlMessageType_STOP
+		}
+	}()
 	return &result.Empty{}, nil
 }
 
@@ -175,11 +304,13 @@ func (s *ReplayerServer) SetType(ctx context.Context, in *pb.ReplayModeOption) (
 	return &result.Empty{}, nil
 }
 
-func applyActiveOptions(options *pb.ActiveReplayOptions, dest *pb.ReplayOptions) {
-	dest.Speed = options.Speed
-	dest.Mode = options.Mode
-	dest.Timerange = options.Timerange
-	dest.Repeat = options.Repeat
+func applyActiveOptions(options *pb.ActiveReplayOptions, dest *pb.ReplayOptions) error {
+	return mergeReplayerOptions(dest, &pb.ReplayOptions{
+		Speed:     options.Speed,
+		Mode:      options.Mode,
+		Timerange: options.Timerange,
+		Repeat:    options.Repeat,
+	})
 }
 
 // SetOptions ...
@@ -189,15 +320,17 @@ func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptions
 	// Set global options first
 	if in.Options != nil {
 		applyActiveOptions(in.Options, s.StartOptions.Options)
+		for _, source := range s.StartOptions.Sources {
+			applyActiveOptions(in.Options, source.Options)
+		}
 	}
 
 	// Set source level options
-	for _, srcreq := range in.Sources {
+	for _, source := range s.StartOptions.Sources {
 		// Find replaying source with matching topic
-		for _, source := range s.StartOptions.Sources {
-			if srcreq.Source == source.Source {
-				applyActiveOptions(srcreq, source.Options)
-				break
+		for _, srcReq := range in.Sources {
+			if srcReq.Source == source.Source {
+				applyActiveOptions(srcReq, source.Options)
 			}
 		}
 	}
@@ -219,16 +352,110 @@ func (s *ReplayerServer) GetOptions(ctx context.Context, in *result.Empty) (*pb.
 // Query ...
 func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) error {
 	log.Infof("Handling query for %d sources", len(in.Sources))
+
+	// Update to  new startOptions
+	var updateStartOptions pb.ReplayStartOptions
+	for _, source := range in.Sources {
+		updateStartOptions.Sources = append(updateStartOptions.Sources, &pb.SourceReplay{
+			Source: source.Source,
+			Ids:    source.Ids,
+			Options: &pb.ReplayOptions{
+				Timerange: source.GetOptions().GetTimerange(),
+				Limit:     source.GetOptions().GetLimit(),
+				Offset:    source.GetOptions().GetOffset(),
+			},
+		})
+	}
+	s.setStartOptions(&updateStartOptions)
+
+	sort := in.GetSort()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var events []*pb.ReplayedEvent
+	var eventCount int
+	handler := func(r *Replayer) func(event *pb.ReplayedEvent) {
+		return func(event *pb.ReplayedEvent) {
+			if !sort {
+				// Send right away
+				if err := stream.Send(event); err != nil {
+					r.log.Errorf("Failed to send: %v", err)
+				}
+			} else {
+				events = append(events, event)
+				eventCount++
+				if eventCount > sortEventsLimit {
+					// Too many events to sort. Abort.
+					cancel()
+				}
+			}
+		}
+	}
+
 	for _, source := range in.Sources {
 		if replayer, included := getReplayer(s.Replayers, source.Source); included {
 			// Collect all replay datasets from all replayers
-			replayer.Options = source
-			if err := replayer.queryAndSend(stream); err != nil {
-				return err
+			if err := replayer.queryAndSend(ctx, source, handler(replayer)); err != nil {
+				if ctx.Err() == nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// All done, sort now. This will HURT memory but okay for usage in tests with small datasets
+	if sort {
+		if ctx.Err() != nil {
+			return errors.New("Too many events. Either disable sort or set a limit")
+		}
+		replayTime := func(e1, e2 *pb.ReplayedEvent) bool {
+			if t1, err := utils.FromProtoTime(e1.GetReplayTimestamp()); err == nil {
+				if t2, err := utils.FromProtoTime(e2.GetReplayTimestamp()); err == nil {
+					return t1.Sub(t2) < 0
+				}
+			}
+			return false
+		}
+		by(replayTime).sort(events)
+
+		for _, event := range events {
+			if err := stream.Send(event); err != nil {
+				log.Errorf("Failed to send: %v", err)
 			}
 		}
 	}
 	return nil
+}
+
+type by func(e1, e2 *pb.ReplayedEvent) bool
+
+func (b by) sort(events []*pb.ReplayedEvent) {
+	es := &eventSorter{
+		events: events,
+		by:     b,
+	}
+	sort.Sort(es)
+}
+
+// planetSorter joins a By function and a slice of Planets to be sorted.
+type eventSorter struct {
+	events []*pb.ReplayedEvent
+	by     func(e1, e2 *pb.ReplayedEvent) bool // Closure used in the Less method.
+}
+
+// Len is part of sort.Interface.
+func (s *eventSorter) Len() int {
+	return len(s.events)
+}
+
+// Swap is part of sort.Interface.
+func (s *eventSorter) Swap(i, j int) {
+	s.events[i], s.events[j] = s.events[j], s.events[i]
+}
+
+// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
+func (s *eventSorter) Less(i, j int) bool {
+	return s.by(s.events[i], s.events[j])
 }
 
 func getReplayer(replayers []*Replayer, included topics.Topic) (*Replayer, bool) {
@@ -250,13 +477,14 @@ func filterReplayers(replayers []*Replayer, filterFunc func(r *Replayer) bool) [
 	return included
 }
 
-func (s *ReplayerServer) include(r *Replayer) {
-	for _, source := range s.StartOptions.Sources {
+func include(r *Replayer, sources *[]*pb.SourceReplay) {
+	// Check if the replayer already exists
+	for _, source := range *sources {
 		if source.Source == r.Topic {
 			return
 		}
 	}
-	s.StartOptions.Sources = append(s.StartOptions.Sources, &pb.SourceQueryOptions{
+	*sources = append(*sources, &pb.SourceReplay{
 		Source: r.Topic,
 	})
 }
@@ -342,7 +570,7 @@ func main() {
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
 	cliFlags = append(cliFlags, libdb.MongoDatabaseCliOptions...)
-	cliFlags = append(cliFlags, kafkaproducer.KafkaProducerCliOptions...)
+	cliFlags = append(cliFlags, kafkaproducer.CliOptions...)
 	cliFlags = append(cliFlags, []cli.Flag{
 		&cli.GenericFlag{
 			Name: "include-sources",
@@ -376,14 +604,14 @@ func main() {
 		},
 		&cli.IntFlag{
 			Name:    "frequency",
-			Value:   5000,
+			Value:   500, // 500x speedup
 			Aliases: []string{"freq", "speed"},
 			EnvVars: []string{"FREQUENCY", "SPEED", "FREQ"},
 			Usage:   "speedup factor for proportional replay (as integer)",
 		},
 		&cli.IntFlag{
 			Name:    "pause",
-			Value:   2000,
+			Value:   2000, // 2sec intervals
 			Aliases: []string{"wait"},
 			EnvVars: []string{"PAUSE"},
 			Usage:   "pause between sending events when using constant replay (in milliseconds)",
@@ -425,6 +653,7 @@ func main() {
 					level = log.InfoLevel
 				}
 				log.SetLevel(level)
+				logger.SetLevel(level)
 				port := fmt.Sprintf(":%d", ctx.Int("port"))
 				listener, err := net.Listen("tcp", port)
 				if err != nil {
@@ -433,12 +662,12 @@ func main() {
 
 				server = NewReplayerServer(
 					libdb.MongoDBConfig{}.ParseCli(ctx),
-					kafkaproducer.KafkaProducerConfig{}.ParseCli(ctx),
+					kafkaproducer.Config{}.ParseCli(ctx),
 				)
 				if err := server.Setup(setupCtx); err != nil {
 					log.Fatalf("Failed to setup replayer server: %v", err)
 				}
-				server.StartOptions.Options = &pb.ReplayOptions{Repeat: ctx.Bool("repeat")}
+				server.StartOptions.Options = &pb.ReplayOptions{Repeat: &wrappers.BoolValue{Value: ctx.Bool("repeat")}}
 
 				// Parse included and excluded values
 				included := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
@@ -456,14 +685,14 @@ func main() {
 					return true
 				})
 				for _, r := range replayers {
-					server.include(r)
+					include(r, &server.StartOptions.Sources)
 				}
 
 				// Parse replay mode
 				if mode, found := pb.ReplayMode_value[strings.ToUpper(ctx.String("mode"))]; found {
-					server.StartOptions.Options.Mode = pb.ReplayMode(mode)
+					server.StartOptions.GetOptions().Mode = pb.ReplayMode(mode)
 				} else {
-					server.StartOptions.Options.Mode = pb.ReplayMode_PROPORTIONAL
+					server.StartOptions.GetOptions().Mode = pb.ReplayMode_PROPORTIONAL
 				}
 
 				// Parse timerange
@@ -479,13 +708,13 @@ func main() {
 				}
 
 				// Parse pause / frequency
-				switch server.StartOptions.Options.Mode {
+				switch server.StartOptions.GetOptions().GetMode() {
 				case pb.ReplayMode_CONSTANT:
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: int32(ctx.Int("pause"))}
-					log.Infof("Using constant replay with pause=%d", server.StartOptions.Options.Speed)
+					log.Infof("Using constant replay with pause=%d", server.StartOptions.GetOptions().GetSpeed().GetSpeed())
 				case pb.ReplayMode_PROPORTIONAL:
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: int32(ctx.Int("frequency"))}
-					log.Infof("Using proportional replay with frequency=%d", server.StartOptions.Options.Speed)
+					log.Infof("Using proportional replay with frequency=%d", server.StartOptions.GetOptions().GetSpeed().GetSpeed())
 				default:
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: 5000}
 				}
