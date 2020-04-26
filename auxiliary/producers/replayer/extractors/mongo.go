@@ -3,11 +3,15 @@ package extractors
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	eventpb "github.com/bptlab/cepta/models/events/event"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -58,6 +62,13 @@ func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 		return replayTime, nil, err
 	}
 
+	// Extract time from bson
+	if sortFieldValue, ok := result.Map()[ex.Config.SortFieldName]; ok {
+		if dtt, ok := sortFieldValue.(primitive.DateTime); ok {
+			replayTime = dtt.Time()
+		}
+	}
+
 	// Marshal to bson bytes first
 	resultBytes, mErr := bson.Marshal(result)
 	if mErr != nil {
@@ -75,13 +86,14 @@ func (ex *MongoExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
 }
 
 // StartQuery ...
-func (ex *MongoExtractor) StartQuery(collectionName string, queryOptions *pb.SourceQueryOptions) error {
+func (ex *MongoExtractor) StartQuery(ctx context.Context, collectionName string, queryOptions *pb.SourceReplay) error {
 	ex.unmarshaler = bsonpb.Unmarshaler{AllowUnknownFields: true}
 	collection := ex.DB.DB.Collection(collectionName)
 	aggregation := ex.buildAggregation(queryOptions)
+	log.Debug(aggregation)
 	var err error
 	allowDisk := true
-	ex.cur, err = collection.Aggregate(context.Background(), aggregation, &options.AggregateOptions{AllowDiskUse: &allowDisk})
+	ex.cur, err = collection.Aggregate(ctx, aggregation, &options.AggregateOptions{AllowDiskUse: &allowDisk})
 	return err
 }
 
@@ -92,7 +104,9 @@ func (ex *MongoExtractor) Next() bool {
 
 // Done ...
 func (ex *MongoExtractor) Done() {
-	ex.cur.Close(context.Background())
+	if ex.cur != nil {
+		ex.cur.Close(context.Background())
+	}
 }
 
 // SetDebug ...
@@ -100,8 +114,19 @@ func (ex *MongoExtractor) SetDebug(debug bool) {
 	ex.debug = debug
 }
 
-func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceQueryOptions) bson.A {
-	mustMatch := bson.D{}
+func (ex *MongoExtractor) getIDFieldType() reflect.Type {
+	protoFieldName := strings.Title(strings.TrimSpace(ex.Config.IDFieldName))
+	t := reflect.TypeOf(ex.Proto).Elem()
+	f, ok := t.FieldByName(protoFieldName)
+	if !ok {
+		log.Errorf("Could not get ID field \"%s\" of proto %v. Falling back to string", protoFieldName, t)
+		return reflect.TypeOf("")
+	}
+	return f.Type
+}
+
+func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A {
+	mustMatch := bson.A{}
 
 	if queryOptions.Options == nil {
 		queryOptions.Options = new(pb.ReplayOptions)
@@ -109,22 +134,54 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceQueryOptions) 
 
 	// Match ERRIDs
 	if len(queryOptions.Ids) > 0 && ex.Config.IDFieldName != "" {
+		// Get target type
+		tT := ex.getIDFieldType()
 		ids := bson.A{}
 		for _, id := range queryOptions.Ids {
-			ids = append(ids, id)
+			idV := reflect.ValueOf(id)
+
+			switch tT.Kind() {
+			case reflect.Int, reflect.Int32, reflect.Int64:
+				if idV.Type().ConvertibleTo(tT) {
+					ids = append(ids, idV.Convert(tT).Int())
+				} else if idV.Kind() == reflect.String {
+					converted, err := strconv.Atoi(id)
+					if err != nil {
+						log.Error("Failed to convert ID value %v to required int: %v", id, err)
+					} else {
+						ids = append(ids, converted)
+					}
+				} else {
+					log.Error("Skipping bad ID %v of type %v (wanted int)", idV, idV.Type())
+				}
+			case reflect.String:
+				if idV.Kind() == reflect.String {
+					ids = append(ids, idV.String())
+				} else if idV.Kind() == reflect.Int || idV.Kind() == reflect.Int32 || idV.Kind() == reflect.Int64 {
+					ids = append(ids, strconv.Itoa(int(idV.Int())))
+				} else {
+					log.Error("Skipping bad ID %v of type %v (wanted string)", idV, idV.Type())
+				}
+			default:
+				// Not implemented: Slice, Map, Invalid, Bool
+				log.Error("Unsupported ID type %v for Value %v", idV.Type(), idV)
+			}
 		}
-		mustMatch = append(mustMatch, bson.E{ex.Config.IDFieldName, bson.E{"$in", ids}})
+		mustMatch = append(mustMatch, bson.D{{strings.TrimSpace(ex.Config.IDFieldName), bson.D{{"$in", ids}}}})
 	}
 
 	// Match time range
 	if constraints := mongoTimerangeQuery(ex.Config.SortFieldName, queryOptions.Options.Timerange); len(constraints) > 0 {
-		mustMatch = append(mustMatch, bson.E{ex.Config.SortFieldName, constraints})
+		mustMatch = append(mustMatch, bson.D{{ex.Config.SortFieldName, constraints}})
 	}
 
 	aggregation := bson.A{
-		bson.D{{"$match", mustMatch}},
 		bson.D{{"$sort", bson.D{{ex.Config.SortFieldName, 1}}}}, // Order by column (ascending order)
 		bson.D{{"$skip", queryOptions.Options.Offset}},          // Set offset
+	}
+
+	if len(mustMatch) > 0 {
+		aggregation = append(aggregation, bson.D{{"$match", bson.D{{"$and", mustMatch}}}})
 	}
 
 	// Set limit
