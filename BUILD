@@ -62,6 +62,8 @@ test_suite(
     tags = ["smoke"],
     tests = [
         "//core:smoke",
+        "//auxiliary/producers/replayer:smoke",
+        "//osiris/lib:smoke",
         "//osiris/auth:smoke",
         "//osiris/notification:smoke",
         "//osiris/query:smoke",
@@ -74,6 +76,8 @@ test_suite(
     tags = ["unit"],
     tests = [
         "//core:unit",
+        "//auxiliary/producers/replayer:unit",
+        "//osiris/lib:unit",
         "//osiris/auth:unit",
         "//osiris/notification:unit",
         "//osiris/query:unit",
@@ -86,6 +90,8 @@ test_suite(
     tags = ["integration"],
     tests = [
         "//core:integration",
+        "//auxiliary/producers/replayer:integration",
+        "//osiris/lib:integration",
         "//osiris/auth:integration",
         "//osiris/notification:integration",
         "//osiris/query:integration",
@@ -98,6 +104,8 @@ test_suite(
     tags = ["internal"],
     tests = [
         "//core:internal",
+        "//auxiliary/producers/replayer:internal",
+        "//osiris/lib:internal",
         "//osiris/auth:internal",
         "//osiris/notification:internal",
         "//osiris/query:internal",
