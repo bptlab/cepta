@@ -81,6 +81,9 @@ func (test *Test) setup(t *testing.T) *Test {
 	var err error
 	var mongoConfig tc.MongoDBConfig
 	log.SetLevel(logLevel)
+	if parallel {
+		t.Parallel()
+	}
 
 	// Start mongodb container
 	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
@@ -139,9 +142,6 @@ func (test *Test) teardown() {
 }
 
 func TestLogin(t *testing.T) {
-	if parallel {
-		t.Parallel()
-	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -209,9 +209,6 @@ func TestLogin(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
-	if parallel {
-		t.Parallel()
-	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 	email := "test@example.com"
@@ -253,9 +250,6 @@ func TestValidation(t *testing.T) {
 }
 
 func TestDebugMode(t *testing.T) {
-	if parallel {
-		t.Parallel()
-	}
 	test := new(Test).setup(t)
 	defer test.teardown()
 	test.authServer.DisableAuth = true
