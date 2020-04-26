@@ -10,6 +10,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	"github.com/bptlab/cepta/osiris/lib/kafka"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -19,31 +20,20 @@ var CliOptions = libcli.CommonCliOptions(libcli.Kafka)
 
 // Config ...
 type Config struct {
-	Brokers             []string
-	Group               string
-	Version             string
-	Topics              []string
-	ConnectionTolerance libcli.ConnectionTolerance
-}
-
-// GetBrokers ...
-func (config Config) GetBrokers() []string {
-	return config.Brokers
-}
-
-// GetConnectionTolerance ...
-func (config Config) GetConnectionTolerance() libcli.ConnectionTolerance {
-	return config.ConnectionTolerance
+	kafka.Config
+	Group  string
+	Topics []string
 }
 
 // ParseCli ...
 func (config Config) ParseCli(ctx *cli.Context) Config {
 	return Config{
-		Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
-		Group:               ctx.String("kafka-group"),
-		Version:             ctx.String("kafka-version"),
-		Topics:              strings.Split(ctx.String("kafka-topics"), ","),
-		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
+		Config: kafka.Config{}.ParseCli(ctx),
+		// Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
+		Group: ctx.String("kafka-group"),
+		// Version:             ctx.String("kafka-version"),
+		Topics: strings.Split(ctx.String("kafka-topics"), ","),
+		// ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
