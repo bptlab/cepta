@@ -102,7 +102,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "livetraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}, setSortAndID("trainId", "trainId")), // id is mostly nil so we choose trainId
+		}, &livetrainpb.LiveTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_LIVE_TRAIN_DATA,
 	}
 
@@ -118,7 +118,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "plannedtraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
-		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("trainId", "trainId")), // id is mostly nil so we choose trainId
+		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_PLANNED_TRAIN_DATA,
 	}
 
@@ -206,7 +206,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	*s.mongo = *mongo
 
 	// Connect to kafka
-	s.producer, err = kafkaproducer.KafkaProducer{}.Create(ctx, s.KafkaConfig)
+	s.producer, err = kafkaproducer.Create(ctx, s.KafkaConfig)
 	if err != nil {
 		return fmt.Errorf("Cannot produce events: %v", err)
 	}
