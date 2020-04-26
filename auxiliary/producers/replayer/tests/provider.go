@@ -3,21 +3,28 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/Shopify/sarama"
 	topics "github.com/bptlab/cepta/models/constants/topic"
+	eventpb "github.com/bptlab/cepta/models/events/event"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	"github.com/bptlab/cepta/models/types/result"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	kafka "github.com/bptlab/cepta/osiris/lib/kafka"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
+	tspb "github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/romnnn/bsonpb"
-	"github.com/romnnn/deepequal"
 	tc "github.com/romnnn/testcontainers"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +32,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 )
+
+// const logLevel = logrus.DebugLevel
 
 const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
@@ -38,7 +47,7 @@ func dailerFor(listener *bufconn.Listener) dialerFunc {
 	}
 }
 
-func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.KafkaProducerConfig) (*ReplayerServer, error) {
+func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig, kafkaConfig kafkaproducer.Config) (*ReplayerServer, error) {
 	r := NewReplayerServer(mongoConfig, kafkaConfig)
 	if err := r.Setup(context.Background()); err != nil {
 		t.Fatalf("Failed to setup replayer server: %v", err)
@@ -59,8 +68,8 @@ type Test struct {
 	MongoC              testcontainers.Container
 	KafkaC              testcontainers.Container
 	ZkC                 testcontainers.Container
-	KafkaProducerConfig kafkaproducer.KafkaProducerConfig
-	KafkaConsumerConfig kafkaconsumer.KafkaConsumerConfig
+	KafkaProducerConfig kafkaproducer.Config
+	KafkaConsumerConfig kafkaconsumer.Config
 	MongoConfig         libdb.MongoDBConfig
 	ReplayerEndpoint    *grpc.ClientConn
 	ReplayerServer      *ReplayerServer
@@ -71,16 +80,17 @@ type Test struct {
 func (test *Test) Setup(t *testing.T) *Test {
 	var err error
 	log.SetLevel(logLevel)
+	if parallel {
+		t.Parallel()
+	}
 
-	networkName := "test-network"
-	test.Net, err = testcontainers.GenericNetwork(context.Background(), testcontainers.GenericNetworkRequest{
-		NetworkRequest: testcontainers.NetworkRequest{
-			Driver:         "bridge",
-			Name:           networkName,
-			Attachable:     true,
-			CheckDuplicate: true,
-		},
-	})
+	networkName := fmt.Sprintf("test-network-%s", tc.UniqueID())
+	test.Net, err = tc.CreateNetwork(testcontainers.NetworkRequest{
+		Driver:         "bridge",
+		Name:           networkName,
+		Attachable:     true,
+		CheckDuplicate: true,
+	}, 5)
 	if err != nil {
 		t.Fatalf("Failed to create the docker test network: %v", err)
 		return test
@@ -116,15 +126,20 @@ func (test *Test) Setup(t *testing.T) *Test {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
 	}
-	test.KafkaConsumerConfig = kafkaconsumer.KafkaConsumerConfig{
-		Group:               fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
-		Brokers:             kafkaConfig.Brokers,
-		Version:             kafkaConfig.KafkaVersion,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	test.KafkaConsumerConfig = kafkaconsumer.Config{
+		Config: kafka.Config{
+			Brokers:             kafkaConfig.Brokers,
+			Version:             kafkaConfig.KafkaVersion,
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		},
+		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
 	}
-	test.KafkaProducerConfig = kafkaproducer.KafkaProducerConfig{
-		Brokers:             kafkaConfig.Brokers,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	test.KafkaProducerConfig = kafkaproducer.Config{
+		Config: kafka.Config{
+			Brokers:             kafkaConfig.Brokers,
+			Version:             kafkaConfig.KafkaVersion,
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		},
 	}
 
 	// Create endpoint
@@ -148,38 +163,72 @@ func (test *Test) Setup(t *testing.T) *Test {
 
 // Teardown ...
 func (test *Test) Teardown() {
+	test.ReplayerServer.Shutdown()
+	test.ReplayerEndpoint.Close()
 	test.MongoC.Terminate(context.Background())
 	test.KafkaC.Terminate(context.Background())
 	test.ZkC.Terminate(context.Background())
 	test.Net.Remove(context.Background())
-	test.ReplayerEndpoint.Close()
-	test.ReplayerServer.Shutdown()
 }
 
-// AssertStatusIs ...
-func (test *Test) AssertStatusIs(t *testing.T, expected *pb.ReplayStatus) {
-	status, err := test.ReplayerClient.GetStatus(context.Background(), &result.Empty{})
+func (test *Test) startWithSpeed(t *testing.T, speedup int, mode pb.ReplayMode) {
+	_, err := test.ReplayerClient.Start(context.Background(), &pb.ReplayStartOptions{
+		Sources: []*pb.SourceReplay{
+			{Source: topics.Topic_LIVE_TRAIN_DATA, Options: &pb.ReplayOptions{Speed: &pb.Speed{Speed: int32(speedup)}, Mode: mode, Repeat: &wrappers.BoolValue{Value: true}}},
+		},
+	})
 	if err != nil {
-		t.Fatalf("Failed to get status of the replayer: %v", err)
-	}
-	if equal, err := deepequal.DeepEqual(status, expected); !equal {
-		t.Fatalf("Expected status of the replayer to be %v but got: %v: %v", expected, status, err)
+		t.Fatalf("Failed to start the replayer: %v", err)
 	}
 }
 
-// AssertHasOptions ...
-func (test *Test) AssertHasOptions(t *testing.T, expected *pb.ReplayStartOptions) {
-	status, err := test.ReplayerClient.GetOptions(context.Background(), &result.Empty{})
+func (test *Test) startConsumer(t *testing.T) (*kafkaconsumer.Consumer, context.CancelFunc, *sync.WaitGroup) {
+	ctx, cancel := context.WithCancel(context.Background())
+	options := test.KafkaConsumerConfig
+	options.Topics = []string{topics.Topic_LIVE_TRAIN_DATA.String()}
+	kafkaConsumer, wg, err := kafkaconsumer.ConsumeGroup(ctx, options)
 	if err != nil {
-		t.Fatalf("Failed to get options of the replayer: %v", err)
+		t.Fatalf("Failed to start the kafka consumer: %v", err)
 	}
-	if equal, err := deepequal.DeepEqual(status, expected); !equal {
-		t.Fatalf("Expected options of the replayer to be %q but got: %q: %v", expected, status, err)
-	}
+	return kafkaConsumer, cancel, wg
 }
 
-// InsertForTopic ...
-func (test *Test) InsertForTopic(topic topics.Topic, entries []proto.Message) error {
+func (test *Test) streamResults(t *testing.T, request *pb.QueryOptions) []*pb.ReplayedEvent {
+	stream, err := test.ReplayerClient.Query(context.Background(), request)
+	if err != nil {
+		t.Errorf("Failed to query replayer: %v", err)
+	}
+	var results []*pb.ReplayedEvent
+	for {
+		result, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Errorf("Error during receive of stream: %v", err)
+		}
+		results = append(results, result)
+	}
+	return results
+}
+
+func mapLiveTrainQueryIds(results []*pb.ReplayedEvent) []string {
+	var observed []string
+	for _, r := range results {
+		observed = append(observed, strconv.Itoa(int(r.GetEvent().GetLiveTrain().GetTrainId())))
+	}
+	return observed
+}
+
+func mapLiveTrainQueryTimes(results []*pb.ReplayedEvent) []time.Time {
+	var observed []time.Time
+	for _, r := range results {
+		observed = append(observed, fromProtoTime(r.GetReplayTimestamp()))
+	}
+	return observed
+}
+
+func (test *Test) insertForTopic(topic topics.Topic, entries []proto.Message) error {
 	mongoDB, err := libdb.MongoDatabase(&test.MongoConfig)
 	if err != nil {
 		return fmt.Errorf("Failed to initialize mongo database: %v", err)
@@ -207,11 +256,52 @@ func (test *Test) InsertForTopic(topic topics.Topic, entries []proto.Message) er
 		}
 		docs = append(docs, bson)
 	}
-	if len(docs) > 0 {
-		_, err := collection.InsertMany(context.Background(), docs)
-		if err != nil {
-			return err
-		}
+
+	log.Debugf("%d docs into collection %s", len(docs), collection.Name())
+	_, err = collection.InsertMany(context.Background(), docs)
+	if err != nil {
+		return err
 	}
 	return nil
+}
+
+func toProtoTime(t time.Time) *tspb.Timestamp {
+	tt, err := utils.ToProtoTime(t)
+	if err != nil {
+		panic(err)
+	}
+	return tt
+}
+
+func fromProtoTime(t *tspb.Timestamp) time.Time {
+	tt, err := utils.FromProtoTime(t)
+	if err != nil {
+		panic(err)
+	}
+	return tt
+}
+
+type firstEvents struct {
+	count    int
+	consumer *kafkaconsumer.Consumer
+}
+
+func (e firstEvents) do(handler func(index int, event eventpb.Event, raw *sarama.ConsumerMessage, err error)) {
+	done := make(chan bool)
+	var i int
+	go func() {
+		for {
+			if i == e.count {
+				done <- true
+			}
+			msg := <-e.consumer.Messages
+			if i < e.count {
+				var event eventpb.Event
+				err := proto.Unmarshal(msg.Value, &event)
+				handler(i, event, msg, err)
+			}
+			i++
+		}
+	}()
+	<-done
 }
