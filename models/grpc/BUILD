@@ -79,6 +79,7 @@ proto_library(
         "//models/events:event_proto",
         "//models/types:result_proto",
         "@com_google_protobuf//:timestamp_proto",
+        "@com_google_protobuf//:wrappers_proto",
     ],
 )
 

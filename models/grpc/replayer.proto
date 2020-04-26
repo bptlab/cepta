@@ -3,6 +3,7 @@ package models.grpc;
 option go_package = "github.com/bptlab/cepta/models/grpc/replayer";
 option java_package = "org.bptlab.cepta.models.grpc.replayer";
 
+import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 import "models/constants/Topic.proto";
 import "models/events/Event.proto";
@@ -60,21 +61,34 @@ message Timerange {
   google.protobuf.Timestamp end = 2;
 }
 
+message ActiveReplayOptions {
+  models.constants.Topic source = 1; // For mapping
+  Speed speed = 2;
+  ReplayMode mode = 3;
+  Timerange timerange = 4;
+  google.protobuf.BoolValue repeat = 5;
+}
+
 message ReplayOptions {
   Speed speed = 1;
   ReplayMode mode = 2;
   Timerange timerange = 3;
   int32 limit = 5;
   int32 offset = 6;
-  bool repeat = 7;
+  google.protobuf.BoolValue repeat = 7;
+  /*
+  // Possible refactoring: Combine replay and query options here
+  oneof options {
+    string name = 4;
+    SubMessage sub_message = 9;
+  }
+  */
 }
 
-message ActiveReplayOptions {
-  models.constants.Topic source = 1; // For mapping
-  Speed speed = 2;
-  ReplayMode mode = 3;
-  Timerange timerange = 4;
-  bool repeat = 5;
+message SourceQueryOptions {
+  Timerange timerange = 1;
+  int32 limit = 2;
+  int32 offset = 3;
 }
 
 message ReplaySetOptionsRequest {
@@ -82,19 +96,26 @@ message ReplaySetOptionsRequest {
   ActiveReplayOptions options = 2;
 }
 
-message SourceQueryOptions {
+message SourceQuery {
+  models.constants.Topic source = 1;  // For mapping
+  repeated string ids = 2;
+  SourceQueryOptions options = 3;
+}
+
+message SourceReplay {
   models.constants.Topic source = 1;  // For mapping
   repeated string ids = 2;
   ReplayOptions options = 3;
 }
 
 message ReplayStartOptions {
-  repeated SourceQueryOptions sources = 1;
+  repeated SourceReplay sources = 1;
   ReplayOptions options = 2;
 }
 
 message QueryOptions {
-  repeated SourceQueryOptions sources = 1;
+  repeated SourceQuery sources = 1;
+  bool sort = 4;
 }
 
 message ReplayedEvent {
