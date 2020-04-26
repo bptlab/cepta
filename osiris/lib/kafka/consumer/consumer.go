@@ -29,11 +29,8 @@ type Config struct {
 func (config Config) ParseCli(ctx *cli.Context) Config {
 	return Config{
 		Config: kafka.Config{}.ParseCli(ctx),
-		// Brokers:             strings.Split(ctx.String("kafka-brokers"), ","),
-		Group: ctx.String("kafka-group"),
-		// Version:             ctx.String("kafka-version"),
+		Group:  ctx.String("kafka-group"),
 		Topics: strings.Split(ctx.String("kafka-topics"), ","),
-		// ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }
 
