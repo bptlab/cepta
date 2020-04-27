@@ -1,8 +1,7 @@
 syntax = "proto3";
-package correlatedEvents;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/correlatedEvents";
 option java_package = "org.bptlab.cepta.models.events.correlatedEvents";
-option java_outer_classname = "StaysInStationEventProtos";
 
 import "google/protobuf/timestamp.proto";
 

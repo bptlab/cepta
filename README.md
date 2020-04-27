@@ -1,3 +1,7 @@
+<p align="center">
+  <img style="display:inline-block" width="400px" src="https://user-images.githubusercontent.com/19370911/80150874-706f2e80-85b9-11ea-92e8-2a4bf79c0314.png">
+</p>
+
 CEPTA - Complex Event Processing Transportation Analysis
 
 [![Build Status](https://travis-ci.com/bptlab/cepta.svg?branch=master)](https://travis-ci.com/bptlab/cepta)
@@ -8,7 +12,11 @@ The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
 techniques in the context of intermodal transportation.
 The project is under active development and will regularly 
-push updates to the [demo instance](https://bpt-lab.org/cepta). 
+push updates to the [demo instance](https://bpt-lab.org/cepta).
+
+For more information, see [bptlab.github.io/cepta/](https://bptlab.github.io/cepta/).
+
+![Screenshot](web/images/screenshot-light.png)
 
 #### Building
 To build all executables of the entire project:

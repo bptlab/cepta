@@ -12,7 +12,7 @@ import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.providers.JavaDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import sun.security.util.Length;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import java.lang.reflect.*;
 
 public class DataCleansingTests {

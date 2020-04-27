@@ -21,7 +21,7 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
 
 public class SumOfDelayAtStationTests {
     @Test
-    public void TestSumOfDelaysAtStation() throws IOException {
+    public void TestSumOfDelaysAtStationWithTrainDelayNotification() throws IOException {
 
         boolean pass = true;
         Long expectedStation1 = 1L;
@@ -67,7 +67,7 @@ public class SumOfDelayAtStationTests {
     }
 
     @Test
-    public void TestSumOfDelaysAtStation2() throws IOException {
+    public void TestSumOfDelaysAtStationWithLiveTrainData() throws IOException {
 
         boolean pass = true;
         Long expectedStation1 = 1L;

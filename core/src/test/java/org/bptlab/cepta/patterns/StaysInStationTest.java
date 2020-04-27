@@ -12,11 +12,11 @@ import org.junit.Test;
 import sun.reflect.annotation.ExceptionProxy;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventProtos.StaysInStationEvent;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import java.util.*;
 
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 
 public class StaysInStationTest {
 

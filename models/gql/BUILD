@@ -15,7 +15,6 @@ proto_library(
     visibility = ["//visibility:public"],
     deps = [
         ":gql_proto",
-        "//models/types:basic_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -36,9 +35,7 @@ go_proto_library(
     proto = ":query_proto",
     visibility = ["//visibility:public"],
     deps = [
-        ":gql_go_proto",
-        "//models/types:basic_go_proto",
-        # "@com_google_protobuf//ptypes/timestamp:go_default_library",
+        ":gql_go_proto"
     ],
 )
 

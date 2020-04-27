@@ -53,10 +53,10 @@ go_library(
         "BuildTime": "{buildDate}",
     },
     deps = [
-        "//models/constants:constants_go_proto",
+        "//models/constants:topic_go_proto",
         "//models/events:train_delay_notification_go_proto",
         "//osiris/notification/websocket:go_default_library",
-        "//osiris/lib/kafka:consumer",
+        "//osiris/lib/kafka/consumer:go_default_library",
         "//ci/versioning:go_default_library",
         "//osiris/lib:cli",
         "@com_github_golang_protobuf//jsonpb:go_default_library",

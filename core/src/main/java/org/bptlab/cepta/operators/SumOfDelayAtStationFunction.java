@@ -8,7 +8,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 
 import org.apache.flink.util.Collector;
 

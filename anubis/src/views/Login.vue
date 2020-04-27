@@ -67,9 +67,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { AuthModule } from "@/store/modules/auth";
-import { UserLoginRequest } from "@/generated/protobuf/models/grpc/authentication_pb";
+import { UserLoginRequest } from "@/generated/protobuf/models/grpc/auth_pb";
 
-import { Status } from "grpc-web";
+import { Error } from "grpc-web";
 
 @Component({
   name: "Login",
@@ -105,10 +105,10 @@ export default class Login extends Vue {
           this.$router.push("/");
         }, 1000);
       })
-      .catch((error: Status) => {
+      .catch((error: Error) => {
         this.hasError = true;
-        this.errorTitle = `Error ${error.code}`;
-        this.errorMessage = error.details;
+        this.errorTitle = `Login failed (${error.code})`;
+        this.errorMessage = error.message;
         this.clearForm();
       });
   }

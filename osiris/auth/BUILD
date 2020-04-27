@@ -86,7 +86,7 @@ go_test(
     size = "medium",
     tags = ["integration", "docker"],
     deps = [
-        "//osiris/lib/testing:go_default_library",
+        "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
         "//osiris/usermgmt:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
