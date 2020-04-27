@@ -127,6 +127,8 @@ func (r *Replayer) produce() error {
 			if err := r.Extractor.StartQuery(ctx, r.SourceName, r.Options); err != nil {
 				if ctx.Err() == nil {
 					r.log.Error("Cannot reset: ", err)
+				} else {
+					exit = true
 				}
 				ready = false
 			} else {
@@ -241,7 +243,6 @@ func (r *Replayer) Start(log *logrus.Logger) {
 		r.awaitShutdown()
 		return
 	}
-	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
 	err := r.bootstrap()
 	if err != nil {
 		r.log.Error(err)
