@@ -1458,6 +1458,6 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:n0PuOEGfc/jph4m7LA2H9NoX+HWQ8zxFyA72OqjKMoM=",
-    version = "v0.1.2",
+    sum = "h1:JJYqRY0lg2DYBtTg5YuQldCVDJ+L2LlsD8FbtdmVHeI=",
+    version = "v0.1.3",
 )
