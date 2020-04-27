@@ -103,7 +103,8 @@ TEST_DEPS = [
     "@com_github_romnnn_deepequal//:go_default_library",
     "@org_mongodb_go_mongo_driver//bson:go_default_library",
     "@org_mongodb_go_mongo_driver//mongo:go_default_library",
-    "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
+    # "@com_github_grpc_grpc_go//test/bufconn:go_default_library",
+    "@org_golang_google_grpc//test/bufconn:go_default_library",
     "@org_golang_google_grpc//:go_default_library",
     "@com_github_testcontainers_testcontainers_go//:go_default_library",
     "@com_github_romnnn_testcontainers//:go_default_library",
@@ -123,7 +124,7 @@ filegroup(
 
 go_test(
     name = "replayer_internal",
-    size = "medium",
+    size = "large",
     srcs = ["tests/internal.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,
@@ -132,7 +133,7 @@ go_test(
 
 go_test(
     name = "replayer_integration",
-    size = "medium",
+    size = "large",
     srcs = ["tests/integration.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,

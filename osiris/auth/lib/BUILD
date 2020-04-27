@@ -32,6 +32,6 @@ go_library(
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_lib_pq//:go_default_library",
         "@com_github_selvatico_go_mocket//:go_default_library",
-        "@com_github_grpc_grpc_go//test/bufconn:go_default_library"
+        "@org_golang_google_grpc//test/bufconn:go_default_library"
     ],
 )

@@ -57,7 +57,7 @@ import java.util.Properties;
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "0.2.1",
+    version = "0.3.1",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
