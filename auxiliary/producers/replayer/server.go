@@ -40,11 +40,6 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
-var server ReplayerServer
-var grpcServer *grpc.Server
-var done = make(chan bool, 1)
-var logger *log.Logger
-
 const (
 	sortEventsLimit = 100000
 )
@@ -79,6 +74,8 @@ type ReplayerServer struct {
 	GpsRplr                   *Replayer
 
 	mongo             *libdb.MongoDB
+	grpcServer        *grpc.Server
+	done              chan bool
 	cancelSetup       context.Context
 	producer          *kafkaproducer.Producer
 	logLevel          log.Level
@@ -419,7 +416,7 @@ func include(r *Replayer, sources *[]*pb.SourceReplay) {
 }
 
 // Serve ...
-func (s *ReplayerServer) Serve(listener net.Listener, logger *log.Logger, includedSrcs []string, excludedSrcs []string) error {
+func (s *ReplayerServer) Serve(listener net.Listener, includedSrcs []string, excludedSrcs []string) error {
 
 	// For reference: When using postgres as a replaying database:
 	/*
@@ -438,6 +435,8 @@ func (s *ReplayerServer) Serve(listener net.Listener, logger *log.Logger, includ
 		}
 	}()
 
+	logger := log.New()
+
 	for _, replayer := range s.Replayers {
 		// Set common replayer parameters
 		replayer.producer = s.producer
@@ -450,22 +449,22 @@ func (s *ReplayerServer) Serve(listener net.Listener, logger *log.Logger, includ
 
 	log.Infof("Serving at %s", listener.Addr())
 	log.Info("Replayer ready")
-	grpcServer = grpc.NewServer(
+	s.grpcServer = grpc.NewServer(
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
-				MaxConnectionIdle:     60 * time.Minute,
-				MaxConnectionAgeGrace: 60 * time.Minute,
+				MaxConnectionIdle:     10 * time.Minute,
+				MaxConnectionAgeGrace: 10 * time.Minute,
 			},
 		),
 	)
-	pb.RegisterReplayerServer(grpcServer, s)
+	pb.RegisterReplayerServer(s.grpcServer, s)
 
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := s.grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 	log.Info("Closing socket")
 	listener.Close()
-	done <- true
+	s.done <- true
 	return nil
 }
 
@@ -482,22 +481,12 @@ func (s *ReplayerServer) Shutdown() {
 		log.Debugf("Shutdown complete for %s", replayer.SourceName)
 	}
 	log.Info("Stopping GRPC server")
-	if grpcServer != nil {
-		grpcServer.Stop()
+	if s.grpcServer != nil {
+		s.grpcServer.GracefulStop()
 	}
 }
 
 func main() {
-	// Register shutdown routine
-	setupCtx, cancelSetup := context.WithCancel(context.Background())
-	shutdown := make(chan os.Signal)
-	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-shutdown
-		cancelSetup()
-		server.Shutdown()
-	}()
-
 	var sources []string
 	for t := range topics.Topic_value {
 		sources = append(sources, t)
@@ -596,14 +585,13 @@ func main() {
 		},
 	}...)
 
-	logger = log.New()
-
 	app := &cli.App{
 		Name:    "CEPTA Train data replayer producer",
 		Version: versioning.BinaryVersion(Version, BuildTime),
 		Usage:   "Produces train data events by replaying a database dump",
 		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {
+			done := make(chan bool, 1)
 			go func() {
 				var err error
 				port := fmt.Sprintf(":%d", ctx.Int("port"))
@@ -612,10 +600,22 @@ func main() {
 					log.Fatalf("failed to listen: %v", err)
 				}
 
-				server = NewReplayerServer(
+				server := NewReplayerServer(
 					libdb.MongoDBConfig{}.ParseCli(ctx),
 					kafkaproducer.Config{}.ParseCli(ctx),
 				)
+
+				// Register shutdown routine
+				setupCtx, cancelSetup := context.WithCancel(context.Background())
+				shutdown := make(chan os.Signal)
+				signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+				go func() {
+					<-shutdown
+					cancelSetup()
+					server.Shutdown()
+				}()
+
+				server.done = done
 				server.extractorLogLevel, err = log.ParseLevel(ctx.String("extractor-log"))
 				server.replayLogLevel, err = log.ParseLevel(ctx.String("replay-log"))
 				server.logLevel, err = log.ParseLevel(ctx.String("log"))
@@ -676,7 +676,7 @@ func main() {
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: 5000}
 				}
 
-				server.Serve(listener, logger, included, excluded)
+				server.Serve(listener, included, excluded)
 			}()
 			<-done
 			log.Info("Exiting")
