@@ -37,9 +37,11 @@
                 name="inputCheckboxesCall"
                 class="peer"
               />
+              <!-- Disabled for now
               <label for="inputCall1" class=" peers peer-greed js-sb ai-c">
                 <span class="peer peer-greed">Remember Me</span>
               </label>
+              -->
             </div>
           </div>
           <!-- Submit -->
@@ -65,6 +67,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { AuthModule } from "@/store/modules/auth";
+import { UserLoginRequest } from "@/generated/protobuf/models/grpc/auth_pb";
+
+import { Error } from "grpc-web";
 
 @Component({
   name: "Login",
@@ -73,13 +78,12 @@ import { AuthModule } from "@/store/modules/auth";
 export default class Login extends Vue {
   email: string = "";
   password: string = "";
-  shouldRemember: boolean = false;
+  shouldRemember: boolean = true;
   hasError: boolean = false;
   isRedirecting: boolean = false;
   errorTitle: string = "Login failed";
   errorMessage: string = "Check your email and password";
 
-  //computed
   get appAllowsRegister() {
     return this.$store.state.appAllowsRegister;
   }
@@ -88,30 +92,25 @@ export default class Login extends Vue {
     this.password = "";
   }
 
-  mounted() {}
-
   login() {
-    /* 
     this.hasError = false;
-    AuthModule.authRequest({ email: this.email, password: this.password }).then(
-      () => {
+    let request = new UserLoginRequest();
+    request.setEmail(this.email);
+    request.setPassword(this.password);
+    request.setRemember(this.shouldRemember);
+    AuthModule.authRequest(request)
+      .then(success => {
         this.isRedirecting = true;
         setTimeout(() => {
           this.$router.push("/");
         }, 1000);
-      },
-      ({ error, message }) => {
+      })
+      .catch((error: Error) => {
         this.hasError = true;
-        this.errorTitle = error;
-        this.errorMessage = message;
+        this.errorTitle = `Login failed (${error.code})`;
+        this.errorMessage = error.message;
         this.clearForm();
-      }
-     */
-    let jsonBody: string = `{ email: "${this.email}", password: "${this.password}"}`;
-    this.$http.post(
-      "http://warm-plains-47366.herokuapp.com/api/user/login",
-      jsonBody
-    );
+      });
   }
 }
 </script>

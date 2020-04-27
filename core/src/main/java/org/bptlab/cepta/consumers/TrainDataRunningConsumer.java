@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.util.Collections;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 
 public class TrainDataRunningConsumer extends Consumer {
 

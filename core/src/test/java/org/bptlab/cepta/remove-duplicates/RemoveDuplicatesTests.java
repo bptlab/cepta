@@ -13,7 +13,7 @@ import org.bptlab.cepta.operators.RemoveDuplicatesFunction;
 import org.bptlab.cepta.providers.JavaDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 
 public class RemoveDuplicatesTests {
 
@@ -66,7 +66,6 @@ public class RemoveDuplicatesTests {
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            System.out.println(duplicateFreeData.get(i));
             if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
                 flag = true; 
             } else if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {

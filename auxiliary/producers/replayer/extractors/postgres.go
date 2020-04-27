@@ -1,66 +1,54 @@
 package extractors
 
 import (
+	"context"
 	"fmt"
 	"time"
-	"github.com/golang/protobuf/proto"
+
+	"database/sql"
+
+	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
-	"database/sql"
-	pb "github.com/bptlab/cepta/models/grpc/replayer"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
-// DbExtractor ...
-type DbExtractor interface {
-	GetAll(*sql.Rows, *gorm.DB) (time.Time, proto.Message, error)
-	GetInstance() interface{}
-}
-
-// Extractor ...
-type Extractor interface {
-	Get() (time.Time, proto.Message, error)
-	StartQuery(sourceName string, IDFieldName string, query *ReplayQuery) error
-	Next() bool
-	Done()
-	SetDebug(bool)
-}
-
-// ReplayQuery ... 
-type ReplayQuery struct {
-	IncludeIds *[]string
-	Timerange  *pb.Timerange
-	SortColumn string
-	Limit      *int
-	Offset     int
+// PostgresExtractorConfig ...
+type PostgresExtractorConfig struct {
+	IDColumnName   string
+	SortColumnName string
 }
 
 // PostgresExtractor ...
 type PostgresExtractor struct {
 	Extractor DbExtractor
-	DB *libdb.PostgresDB
-	debug bool
-	rows *sql.Rows
-	IDFieldName string
+	DB        *libdb.PostgresDB
+	Config    PostgresExtractorConfig
+	debug     bool
+	rows      *sql.Rows
+	logger    *log.Logger
 }
 
 // NewPostgresExtractor ...
 func NewPostgresExtractor(db *libdb.PostgresDB, extractor DbExtractor) *PostgresExtractor {
 	return &PostgresExtractor{
-		DB: db,
+		DB:        db,
 		Extractor: extractor,
+		logger:    log.New(),
 	}
 }
 
 // Get ...
-func (ex *PostgresExtractor) Get() (time.Time, proto.Message, error) {
-	return ex.Extractor.GetAll(ex.rows, ex.DB.DB)
+func (ex *PostgresExtractor) Get() (time.Time, *pb.ReplayedEvent, error) {
+	// TODO: Implement: return ex.Extractor.GetAll(ex.rows, ex.DB.DB)
+	return time.Time{}, nil, nil
 }
 
 // StartQuery ...
-func (ex *PostgresExtractor) StartQuery(tableName string, IDFieldName string, query *ReplayQuery) error {
-	ex.IDFieldName = IDFieldName
-	dbQuery := ex.makeQuery(query)
+func (ex *PostgresExtractor) StartQuery(ctx context.Context, tableName string, queryOptions *pb.SourceReplay) error {
+	dbQuery := ex.makeQuery(queryOptions)
 	var err error
 	ex.rows, err = dbQuery.Rows()
 	return err
@@ -76,9 +64,9 @@ func (ex *PostgresExtractor) Done() {
 	ex.rows.Close()
 }
 
-// SetDebug ...
-func (ex *PostgresExtractor) SetDebug(debug bool) {
-	ex.debug = debug
+// SetLogLevel ...
+func (ex *PostgresExtractor) SetLogLevel(level logrus.Level) {
+	ex.logger.SetLevel(level)
 }
 
 func (ex *PostgresExtractor) database() *gorm.DB {
@@ -88,28 +76,28 @@ func (ex *PostgresExtractor) database() *gorm.DB {
 	return ex.DB.DB
 }
 
-func (ex *PostgresExtractor) makeQuery(queryOptions *ReplayQuery) *gorm.DB {
+func (ex *PostgresExtractor) makeQuery(queryOptions *pb.SourceReplay) *gorm.DB {
 	query := ex.database().Model(ex.Extractor.GetInstance())
 
 	// Macth ERRIDs
-	if queryOptions.IncludeIds != nil && ex.IDFieldName != "" {
-		for _, id := range *(queryOptions.IncludeIds) {
-			query = query.Where(fmt.Sprintf("%s=%s", ex.IDFieldName, id))
+	if len(queryOptions.Ids) > 0 && ex.Config.IDColumnName != "" {
+		for _, id := range queryOptions.Ids {
+			query = query.Where(fmt.Sprintf("%s=%s", ex.Config.IDColumnName, id))
 		}
 	}
 
 	// Match time range
-	for _, constraint := range postgresTimerangeQuery(queryOptions.SortColumn, queryOptions.Timerange) {
+	for _, constraint := range postgresTimerangeQuery(ex.Config.SortColumnName, queryOptions.Options.Timerange) {
 		query = query.Where(constraint)
 	}
 	// Order by column (ascending order)
-	query = query.Order(fmt.Sprintf("%s asc", queryOptions.SortColumn))
+	query = query.Order(fmt.Sprintf("%s asc", ex.Config.SortColumnName))
 	// Set limit
-	if queryOptions.Limit != nil {
-		query = query.Limit(*(queryOptions.Limit))
+	if queryOptions.Options.Limit != 0 {
+		query = query.Limit(queryOptions.Options.Limit)
 	}
 	// Set offset
-	query = query.Offset(queryOptions.Offset)
+	query = query.Offset(queryOptions.Options.Offset)
 	return query
 }
 

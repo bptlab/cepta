@@ -133,7 +133,7 @@ services:
   core:
     image: bazel/core:image
     command:
-      - --broker=kafka:29092
+      - --broker=kafka:9092
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
@@ -142,8 +142,8 @@ services:
 
   notification:
     image: bazel/osiris/notification:image
-    command:
-      - --brokers=kafka:29092
+    environment:
+      KAFKA_BROKERS: kafka:9092
     ports:
       - ${CEPTA_NOTIFICATION_BACKEND_PORT}:80
     depends_on:
@@ -152,24 +152,50 @@ services:
       - kafka
       - replayer
 
+  auth:
+    image: bazel/osiris/auth:image
+    ports:
+      - ${CEPTA_AUTH_BACKEND_PORT}:80
+    volumes:
+      - ../../keys/sample/auth.key:/etc/keys/sign.key
+      - ../../keys/sample/auth.jwk.json:/etc/keys/jwks.json
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
+      SIGNING_KEY: /etc/keys/sign.key
+      JWKS_JSON: /etc/keys/jwks.json
+    depends_on:
+      - mongodb
+
+  usermgmt:
+    image: bazel/osiris/usermgmt:image
+    ports:
+      - ${CEPTA_USERMGMT_BACKEND_PORT}:80
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
+      INITIAL_EMAIL: cepta@cepta.org
+      INITIAL_PASSWORD: cepta
+      CLEAR: "true"
+    depends_on:
+      - mongodb
+
   replayer:
     image: bazel/auxiliary/producers/replayer:image
     depends_on:
       - kafka
       #- postgres # now we use mongodb as replayer DB
       #- mongodb  # in most cases we use an external mongoDB
-    command:
-      - --brokers=kafka:29092
-      - --port=9000
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      PORT: 9000
       # Benchmark indicates MongoDB is the bottleneck
-      # - --mode=constant
-      # - --pause=0
-      #- --postgres-host=postgres
-      #- --postgres-port=${CEPTA_POSTGRES_PORT}
-      - --mongodb-host=mongodb
-      - --mongodb-port=${CEPTA_MONGODB_PORT}
-      # Do not use quotation here as this will be used in the postgres query
-      # - --must-match=train_id=47298333
+      # REPLAY_MODE: constant
+      # PAUSE: 0
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: ${CEPTA_MONGODB_PORT}
     ports:
       - ${CEPTA_PRODUCER_TRAIN_DATA_GRPC_PORT}:9000
 

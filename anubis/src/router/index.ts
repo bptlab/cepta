@@ -1,25 +1,33 @@
 import Vue from "vue";
-import store from "@/store";
-import Router, { Route, RouteConfig } from "vue-router";
+import Router, { RouteConfig } from "vue-router";
 import Main from "@/views/Main.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
+import { AuthModule } from "@/store/modules/auth";
 
 Vue.use(Router);
 
-let authenticationRequired: boolean = false;
+let authenticationRequired: boolean = true;
 
-// Handle authentication
-const ifNotAuthenticated = (to: any, from: any, next: any) => {
-  if (store.getters.isAuthenticated || !authenticationRequired) {
+const checkAuthenticated = (): boolean => {
+  let token = Vue.cookies?.get("user-token") as string;
+  AuthModule.setAuthToken(token);
+  return (
+    (token != undefined && token != null && token.length > 0) ||
+    !authenticationRequired
+  );
+};
+
+const checkNotAlreadyAuthenticated = (to: any, from: any, next: any) => {
+  if (!checkAuthenticated()) {
     next();
     return;
   }
-  next("/");
+  next({ name: "dashboard" });
 };
 
-const ifAuthenticated = (to: any, from: any, next: any) => {
-  if (store.getters.isAuthenticated || !authenticationRequired) {
+const requireAuthenticated = (to: any, from: any, next: any) => {
+  if (checkAuthenticated()) {
     next();
     return;
   }
@@ -28,12 +36,6 @@ const ifAuthenticated = (to: any, from: any, next: any) => {
 
 export const routes: RouteConfig[] = [
   {
-    path: "/",
-    beforeEnter: ifAuthenticated,
-    meta: { requiresAuth: true },
-    redirect: "/dashboard"
-  },
-  {
     path: "/(login|signup)",
     redirect: "/dashboard",
     component: Landing,
@@ -41,33 +43,29 @@ export const routes: RouteConfig[] = [
       {
         path: "/login",
         name: "login",
-        beforeEnter: ifNotAuthenticated,
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
+        beforeEnter: checkNotAlreadyAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Login.vue")
+          import(/* webpackChunkName: "login" */ "@/views/Login.vue")
       },
       {
         path: "/signup",
         name: "signup",
+        beforeEnter: checkNotAlreadyAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Signup.vue")
+          import(/* webpackChunkName: "signup" */ "@/views/Signup.vue")
       }
     ]
   },
-
   {
     path: "/user",
     redirect: "/user/settings",
-    meta: { requiresAuth: true },
-    beforeEnter: ifAuthenticated,
+    beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
         path: "manage/transports",
         name: "manage",
-        meta: { requiresAuth: true, useSearchToFilter: true },
+        meta: { useSearchToFilter: true },
         component: () =>
           import(
             /* webpackChunkName: "transportmanager" */ "@/views/TransportManager.vue"
@@ -76,7 +74,6 @@ export const routes: RouteConfig[] = [
       {
         path: "settings",
         name: "settings",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "usersettings" */ "@/views/UserSettings.vue"
@@ -85,7 +82,6 @@ export const routes: RouteConfig[] = [
       {
         path: "profile/settings",
         name: "profile",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "userprofilesettings" */ "@/views/UserProfileSettings.vue"
@@ -94,7 +90,6 @@ export const routes: RouteConfig[] = [
       {
         path: "notifications",
         name: "notifications",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "usernotifications" */ "@/views/UserNotifications.vue"
@@ -105,39 +100,32 @@ export const routes: RouteConfig[] = [
   {
     path: "/dashboard",
     redirect: "/dashboard/home",
-    meta: { requiresAuth: true },
-    beforeEnter: ifAuthenticated,
+    name: "dashboard",
+    beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
         path: "home",
         name: "home",
-        meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
       },
       {
         path: "feed",
         name: "feed",
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
         component: () =>
           import(/* webpackChunkName: "feed" */ "@/views/Feed.vue")
       },
       {
         path: "map",
         name: "map",
-        meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: ifAuthenticated,
+        meta: { useSearchToFilter: true },
         component: () => import(/* webpackChunkName: "map" */ "@/views/Map.vue")
       },
       {
         path: "transport/:transport",
         name: "transport",
         props: true,
-        meta: { requiresAuth: true },
-        beforeEnter: ifAuthenticated,
         component: () =>
           import(
             /* webpackChunkName: "transportdetail" */ "@/views/TransportDetail.vue"
@@ -164,13 +152,19 @@ export const routes: RouteConfig[] = [
       }
     ]
   },
+
+  {
+    path: "/",
+    redirect: "/dashboard"
+  },
+
   // Default fallback
   { path: "*", redirect: { name: "error404" } }
 ];
 
 const createRouter = () =>
   new Router({
-    mode: "history", // Disabled due to Github Pages doesn't support this, enable this if you need.
+    mode: "history",
     scrollBehavior: (to, from, savedPosition) => {
       if (savedPosition) {
         return savedPosition;

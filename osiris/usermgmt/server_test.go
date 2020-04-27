@@ -7,240 +7,306 @@ import (
 	"testing"
 	"time"
 
-	auth "github.com/bptlab/cepta/models/grpc/authentication"
-	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	authserv "github.com/bptlab/cepta/osiris/authentication"
+	"github.com/bptlab/cepta/models/types/users"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	"github.com/grpc/grpc-go/test/bufconn"
-	"github.com/jinzhu/gorm"
-	mocket "github.com/selvatico/go-mocket"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
+
+	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
+	tc "github.com/romnnn/testcontainers"
+	"github.com/testcontainers/testcontainers-go"
 )
 
-var successMessage *pb.Success = &pb.Success{Success: true}
-var gormDB *gorm.DB
-var ldb *libdb.PostgresDB
+const parallel = true
 
-// constants for testing
-var emailParam string = "example@mail.de"
-var passwordParam string = "password"
-var userIDProto *pb.UserId = &pb.UserId{Value: 1}
-var userWithoutTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: nil}
-var userWithTrainsProto *pb.User = &pb.User{Id: userIDProto, Email: emailParam, Password: passwordParam, Trains: trainIdsProto}
-var userWithoutTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam}
-var userWithTrainsStringResponseDB map[string]interface{} = map[string]interface{}{"id": "1", "email": emailParam, "password": passwordParam, "train_ids": "{1,2}"} // no space in the array!
-var trainIDProto *pb.TrainId = &pb.TrainId{Value: 1}
-var trainIdsProto *pb.TrainIds = &pb.TrainIds{Ids: []*pb.TrainId{&pb.TrainId{Value: 1}, &pb.TrainId{Value: 2}}}
-
+const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
+const userCollection = "mock_users"
 
-var lis *bufconn.Listener
+type DialerFunc = func(string, time.Duration) (net.Conn, error)
 
-func SetUpAll(t *testing.T) {
-	SetUpDatabase()
-	SetUpServerConnection(t)
-}
-func SetUpDatabase() {
-	mocket.Catcher.Register()
-	// uncomment to log all catcher things. add to test to log only things happening there
-	// mocket.Catcher.Logging = true
-	db, err := gorm.Open(mocket.DriverName, "connection_string") // Can be any connection string
-	if err != nil {
-		print(err)
+func dailerFor(listener *bufconn.Listener) DialerFunc {
+	return func(string, time.Duration) (net.Conn, error) {
+		return listener.Dial()
 	}
-	gormDB = db
-	// uncomment to log all queries asked to mock db. add to test to log only things happening there
-	// gormDB.LogMode(true)
-	ldb = &libdb.PostgresDB{DB: gormDB}
 }
-func SetUpServerConnection(t *testing.T) {
-	lis = bufconn.Listen(bufSize)
-	s := grpc.NewServer()
-	ctx := context.Background()
-	auth.RegisterAuthenticationServer(s, &authserv.Server{DB: ldb})
-	pb.RegisterUserManagementServer(s, &server{
-		db: ldb,
-		authClient: func(inconn *grpc.ClientConn) auth.AuthenticationClient {
-			conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-			if err != nil {
-				t.Fatalf("Failed to dial bufnet: %v", err)
-			}
-			return auth.NewAuthenticationClient(conn)
+
+func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*UserMgmtServer, error) {
+	server := NewUserMgmtServer(mongoConfig)
+	server.UserCollection = userCollection
+	server.DefaultUser = users.InternalUser{
+		User: &users.User{
+			Email: "default-user@web.de",
 		},
-	})
+		Password: "admins-have-the-best-passwords",
+	}
+	if err := server.Setup(); err != nil {
+		t.Fatalf("Failed to setup user management server: %v", err)
+	}
 	go func() {
-		if err := s.Serve(lis); err != nil {
-			fmt.Printf("Server exited with error: %v", err)
-		}
+		server.Serve(listener)
 	}()
+	return &server, nil
 }
 
-func TestAddTrain(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-	request := &pb.UserIdTrainIdInput{
-		UserId:  userIDProto,
-		TrainId: trainIDProto,
-	}
-	response, err := client.AddTrain(context.Background(), request)
-	if err != nil {
-		t.Errorf("AddTrain() should work without error. Error: %v", err)
-	}
-	if response.Success != true {
-		t.Errorf("AddTrain() should return success message, but it was %v", response)
-	}
+func teardownServer(server interface{ Shutdown() }) {
+	server.Shutdown()
 }
 
-func TestAddUser(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-	request := &pb.User{
-		Id:       userIDProto,
-		Email:    emailParam,
-		Password: passwordParam,
-	}
-	response, err := client.AddUser(context.Background(), request)
-	if err != nil {
-		t.Errorf("AddUser() should work without error. Error: %v", err)
-	}
-	if response.Success != true {
-		t.Errorf("AddUser should return success message. It was %v", response)
-	}
+type Test struct {
+	mongoC       testcontainers.Container
+	userEndpoint *grpc.ClientConn
+	userServer   *UserMgmtServer
+	userClient   pb.UserManagementClient
 }
 
-func TestGetTrainIds(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+func (test *Test) setup(t *testing.T) *Test {
+	var err error
+	var mongoConfig tc.MongoDBConfig
+	log.SetLevel(logLevel)
+	if parallel {
+		t.Parallel()
+	}
+
+	// Start mongodb container
+
+	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
+	if err != nil {
+		t.Fatalf("Failed to start the mongodb container: %v", err)
+		return test
+	}
+
+	// Create endpoint
+	userListener := bufconn.Listen(bufSize)
+	test.userEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithDialer(dailerFor(userListener)), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
+		return test
 	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
 
-	request := userIDProto
-
-	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-	response, err := client.GetTrainIds(context.Background(), request)
+	// Start the GRPC server
+	test.userServer, err = setUpUserMgmtServer(t, userListener, libdb.MongoDBConfig{
+		Host:                mongoConfig.Host,
+		Port:                mongoConfig.Port,
+		User:                mongoConfig.User,
+		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
+		Password:            mongoConfig.Password,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	})
 	if err != nil {
-		t.Errorf("GetTrainIds should work without error. Got: %v", err)
+		t.Fatalf("Failed to setup the user management service: %v", err)
+		return test
 	}
-	if !equalTrainIDs(response, trainIdsProto) {
-		t.Errorf("GetTrainIds should return the user's train ids: %v, but it was %v", trainIdsProto, response)
-	}
+
+	test.userClient = pb.NewUserManagementClient(test.userEndpoint)
+	return test
 }
 
-func TestGetUserWithoutTrains(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-
-	request := &pb.UserId{
-		Value: 1,
-	}
-
-	userReply := []map[string]interface{}{userWithoutTrainsStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-
-	response, err := client.GetUser(context.Background(), request)
-	if err != nil {
-		t.Errorf("GetUser should work without error. Got: %v", err)
-	}
-	if !equalUser(response, userWithoutTrainsProto) {
-		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithoutTrainsProto, response)
-	}
-}
-func TestGetUserWithTrains(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-
-	request := &pb.UserId{
-		Value: 1,
-	}
-
-	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-
-	response, err := client.GetUser(context.Background(), request)
-	if err != nil {
-		t.Errorf("GetUser should work without error. Got: %v", err)
-	}
-	if !equalUser(response, userWithTrainsProto) {
-		t.Errorf("GetUser should return the user information: %v, but it was %v", userWithTrainsProto, response)
-	}
+func (test *Test) teardown() {
+	test.mongoC.Terminate(context.Background())
+	test.userEndpoint.Close()
+	teardownServer(test.userServer)
 }
 
-func TestRemoveTrain(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
+func (test *Test) countUsers(t *testing.T) int64 {
+	dbCollection := test.userServer.DB.DB.Collection(test.userServer.UserCollection)
+	opts := options.Count().SetMaxTime(2 * time.Second)
+	count, err := dbCollection.CountDocuments(context.TODO(), bson.D{}, opts)
 	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
+		t.Fatalf("Failed to count users in database: %v", err)
 	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-	userReply := []map[string]interface{}{userWithTrainsStringResponseDB}
-	mocket.Catcher.Reset().NewMock().WithQuery(`SELECT * FROM "users"  WHERE "users"."deleted_at" IS NULL AND (("users"."id" = 1)) ORDER BY "users"."id" ASC LIMIT 1`).WithReply(userReply)
-	request := &pb.UserIdTrainIdInput{
-		UserId:  userIDProto,
-		TrainId: trainIDProto,
+	return count
+}
+
+func TestDefaultUser(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Assert exactly one user is in the database
+	count := test.countUsers(t)
+	if count != 1 {
+		t.Fatalf("Initial database has %d users (expected 1)", count)
 	}
-	response, err := client.RemoveTrain(context.Background(), request)
+
+	// Assert calling setup again will not add a user
+	err := test.userServer.Setup()
 	if err != nil {
-		t.Errorf("RemoveTrain should work without error. Error: %v", err)
+		t.Fatal(err)
 	}
-	if response.Success != true {
-		t.Errorf("RemoveTrain should return success message, but it was %v", response)
+	if newCount := test.countUsers(t); newCount != 1 {
+		t.Fatalf("Calling Setup() again did change the number of users (from %d to %d). Expected 1.", count, newCount)
+	}
+
+	// Assert user can be found
+	defaultUser, err := test.userClient.GetUser(context.Background(), &pb.GetUserRequest{
+		Email: test.userServer.DefaultUser.User.Email,
+	})
+	if err != nil {
+		t.Fatalf("Failed to get default user: %v", err)
+	}
+	if defaultUser.Email != test.userServer.DefaultUser.User.Email {
+		t.Fatalf("Received default user has unexpected email (%s != %s)", defaultUser.Email, test.userServer.DefaultUser.User.Email)
 	}
 }
 
 func TestRemoveUser(t *testing.T) {
-	SetUpAll(t)
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	// conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithDialer(bufDialer), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Failed to dial bufnet: %v", err)
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Assert exactly one user is in the database
+	if count := test.countUsers(t); count != 1 {
+		t.Fatalf("Initial database has %d users (expected 1)", count)
 	}
-	defer conn.Close()
-	client := pb.NewUserManagementClient(conn)
-	request := userIDProto
-	response, err := client.RemoveUser(context.Background(), request)
+
+	defaultUser, err := test.userClient.GetUser(context.Background(), &pb.GetUserRequest{
+		Email: test.userServer.DefaultUser.User.Email,
+	})
 	if err != nil {
-		t.Errorf("RemoveUser() should work without error. Error: %v", err)
+		t.Fatalf("Failed to get default user: %v", err)
 	}
-	if response.Success != true {
-		t.Errorf("RemoveUser should return success message. It was %v", response)
+
+	removeDefaultUser := func() error {
+		_, err := test.userClient.RemoveUser(context.Background(), &pb.RemoveUserRequest{
+			UserId: defaultUser.Id,
+		})
+		return err
+	}
+
+	// Assert removing the default user fails when there is no other user
+	if err := removeDefaultUser(); err == nil {
+		t.Fatal("Expected error when trying to delete only admin user left")
+	}
+
+	// Assert still one user in the database
+	if count := test.countUsers(t); count != 1 {
+		t.Fatalf("Default user has been deleted. Have %d users now.", count)
+	}
+
+	// Add new user
+	newAdmin := &users.InternalUser{
+		User:     &users.User{Email: "my-email"},
+		Password: "hard-to-guess",
+	}
+	if _, err := test.userClient.AddUser(context.Background(), &pb.AddUserRequest{User: newAdmin}); err != nil {
+		t.Fatalf("Failed to add new user: %v: %v", newAdmin, err)
+	}
+
+	// Assert two users in the database
+	if count := test.countUsers(t); count != 2 {
+		t.Fatalf("Assumed default user and a new user in the database. Have %d users.", count)
+	}
+
+	// Assert removing the default works now
+	if err := removeDefaultUser(); err != nil {
+		t.Fatal("Expected to be able to delete default user when there is another admin left: %v", err)
+	}
+
+	// Assert only new user in the database now
+	if count := test.countUsers(t); count != 1 {
+		t.Fatalf("Assumed only one user in the database after the default user has been deleted. Have %d users.", count)
 	}
 }
 
-func bufDialer(string, time.Duration) (net.Conn, error) {
-	return lis.Dial()
+func TestAddUser(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Assert exactly one user is in the database
+	if count := test.countUsers(t); count != 1 {
+		t.Fatalf("Initial database has %d users (expected 1)", count)
+	}
+
+	// Assert adding a valid new user succeeds
+	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User:     &users.User{Email: "my-email@mail.de"},
+		Password: "hard-to-guess",
+	}}
+	addedUser, err := test.userClient.AddUser(context.Background(), newUserReq)
+	if err != nil {
+		t.Fatalf("Failed to add new user: %v: %v", newUserReq.User, err)
+	}
+
+	// Assert adding the same user again fails because emails clash
+	if _, err := test.userClient.AddUser(context.Background(), newUserReq); err == nil {
+		t.Fatal("Expected error when adding the same user")
+	}
+
+	// Assert adding the same user with another password fails because emails clash
+	modUserReq := newUserReq
+	modUserReq.User.Password = "different"
+	if _, err := test.userClient.AddUser(context.Background(), modUserReq); err == nil {
+		t.Fatal("Expected error when adding a user with same email but different password")
+	}
+
+	// Assert adding a new user assigns a new unique ID
+	newUserWithIDReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User: &users.User{
+			Email: "different-email@mail.de",
+			Id:    &users.UserID{Id: "custom-id"},
+		},
+		Password: "hard-to-guess",
+	}}
+	addedUser2, err := test.userClient.AddUser(context.Background(), newUserWithIDReq)
+	if err != nil {
+		t.Fatal("Failed to add new user: %v: %v", newUserWithIDReq.User, err)
+	}
+	if addedUser2.Id.Id == "custom-id" {
+		t.Fatal("Expected custom ids to be overridde for new users")
+	}
+	if addedUser2.Id.Id == addedUser.Id.Id {
+		t.Fatal("Expected different user ids to be generated for each user")
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Add a new user
+	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User:     &users.User{Email: "email@mail.de"},
+		Password: "hard-to-guess",
+	}}
+	added, err := test.userClient.AddUser(context.Background(), newUserReq)
+	if err != nil {
+		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
+	}
+
+	assertCanFindUser := func(req *pb.GetUserRequest) (*users.User, error) {
+		found, err := test.userClient.GetUser(context.Background(), req)
+		if err != nil {
+			t.Fatalf("Failed to get user by querying for %v: %v", req, err)
+		}
+		if found == nil {
+			t.Fatalf("Failed to get user by querying for %v", req)
+		}
+		return found, err
+	}
+
+	// Assert user is found by email
+	assertCanFindUser(&pb.GetUserRequest{
+		Email: newUserReq.User.User.Email,
+	})
+
+	// Assert user is found by ID
+	assertCanFindUser(&pb.GetUserRequest{
+		UserId: added.Id,
+	})
+
+	// Assert user is found by ID and Email and ID takes precedence
+	assertCanFindUser(&pb.GetUserRequest{
+		UserId: added.Id,
+		Email:  "not the real email",
+	})
+
+	// Assert user is found by ID and Email when ID is not found
+	assertCanFindUser(&pb.GetUserRequest{
+		UserId: &users.UserID{Id: "dumb-id"},
+		Email:  newUserReq.User.User.Email,
+	})
 }

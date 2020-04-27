@@ -12,7 +12,11 @@ The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
 techniques in the context of intermodal transportation.
 The project is under active development and will regularly 
-push updates to the [demo instance](https://bpt-lab.org/cepta). 
+push updates to the [demo instance](https://bpt-lab.org/cepta).
+
+For more information, see [bptlab.github.io/cepta/](https://bptlab.github.io/cepta/).
+
+![Screenshot](web/images/screenshot-light.png)
 
 #### Building
 To build all executables of the entire project:
@@ -48,5 +52,5 @@ For instructions see `docs/deployment/dev.md` or `docs/deployment/prod.md` respe
 
 Summary: To run the latest version, run 
 ```bash
-CEPTA_VERSION="v0.2.0" docker-compose -f deployment/prod/docker-compose.yml up
+CEPTA_VERSION="v0.3.1" docker-compose -f deployment/prod/docker-compose.yml up
 ```

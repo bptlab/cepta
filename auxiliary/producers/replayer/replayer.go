@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
+	"github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,57 +21,171 @@ type Replayer struct {
 	Ctrl        chan pb.InternalControlMessageType
 	SourceName  string
 	IDFieldName string
-	Query       *extractors.ReplayQuery
-	Speed       *int32
-	Active      *bool
-	Repeat      bool
-	Mode        *pb.ReplayType
+	Options     *pb.SourceReplay
 	Extractor   extractors.Extractor
-	Topic       string
+	Topic       topic.Topic
 	Brokers     []string
 	log         *logrus.Entry
 	running     bool
-	producer    *kafkaproducer.KafkaProducer
+	producer    *kafkaproducer.Producer
 }
 
-func (r Replayer) produce() error {
+var (
+	defaultSpeed = map[pb.ReplayMode]int32{
+		pb.ReplayMode_CONSTANT:     2000, // 2 Secs
+		pb.ReplayMode_PROPORTIONAL: 500,  // 500x speedup
+	}
+	defaultMode          = pb.ReplayMode_PROPORTIONAL
+	defaultReplayOptions = pb.ReplayOptions{
+		Mode:   defaultMode,
+		Speed:  &pb.Speed{Speed: defaultSpeed[defaultMode]},
+		Repeat: &wrappers.BoolValue{Value: true},
+	}
+)
+
+func (r *Replayer) queryAndSend(ctx context.Context, query *pb.SourceQuery, handlerFunc func(re *pb.ReplayedEvent)) error {
 	if r.Extractor == nil {
 		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
 	}
-
-	err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
-	if err != nil {
+	if err := r.Extractor.StartQuery(context.Background(), r.SourceName, r.Options); err != nil {
 		return err
 	}
 
-	recentTime := time.Time{}
-	passedTime := time.Duration(0)
 	for {
+		exit := false
 		select {
+		case <-ctx.Done():
+			// Query was canceled
+			exit = true
 		case ctrlMessage := <-r.Ctrl:
 			switch ctrlMessage {
 			case pb.InternalControlMessageType_SHUTDOWN:
 				// Acknowledge shutdown
 				r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
-				return err
-			case pb.InternalControlMessageType_RESET:
-				// Recreate the query
-				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
-				if err != nil {
-					r.log.Error("Cannot reset")
-				}
+				return nil
 			}
 		default:
-			if !*r.Active {
+			if r.Extractor.Next() {
+				replayTime, replayedEvent, err := r.Extractor.Get()
+				if err != nil {
+					r.log.Errorf("Failed to get from database: %v", err)
+					continue
+				}
+				if ptime, err := utils.ToProtoTime(replayTime); err == nil {
+					replayedEvent.ReplayTimestamp = ptime
+				}
+				r.log.Debugf("%v", replayedEvent)
+				handlerFunc(replayedEvent)
+			} else {
+				// Do not repeat when querying
+				exit = true
+				break
+			}
+		}
+		if exit {
+			break
+		}
+	}
+	r.log.Debug("Exiting")
+	r.Extractor.Done()
+	return nil
+}
+
+func (r *Replayer) bootstrap() error {
+	// Wait for control message
+	defer func() {
+		// Acknowledge shutdown
+		r.Ctrl <- pb.InternalControlMessageType_SHUTDOWN
+	}()
+	for {
+		ctrlMessage := <-r.Ctrl
+		switch ctrlMessage {
+		case pb.InternalControlMessageType_SHUTDOWN:
+			return nil
+		case pb.InternalControlMessageType_START:
+			r.running = true
+			return r.produce()
+		default:
+			// Noop
+		}
+	}
+}
+
+func (r *Replayer) produce() error {
+	var ready, exit bool
+	defer r.Extractor.Done()
+	defer r.log.Warn("Exiting")
+
+	startQuery := func() {
+		r.Extractor.Done()
+		done := make(chan bool)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		go func() {
+			// This can potentially take a long time
+			ready = false
+			if err := r.Extractor.StartQuery(ctx, r.SourceName, r.Options); err != nil {
+				if ctx.Err() == nil {
+					r.log.Error("Cannot reset: ", err)
+				} else {
+					exit = true
+				}
+				ready = false
+			} else {
+				ready = true
+			}
+			done <- true
+		}()
+		select {
+		case <-done:
+			return
+		case ctrlMessage := <-r.Ctrl:
+			// Abort heavy aggregation on all control messages except START
+			if ctrlMessage == pb.InternalControlMessageType_SHUTDOWN {
+				exit = true
+				return
+			} else if ctrlMessage != pb.InternalControlMessageType_START {
+				return
+			}
+		}
+	}
+
+	startQuery()
+	if ready {
+		r.log.Info("Ready")
+	}
+
+	recentTime := time.Time{}
+	passedTime := time.Duration(0)
+	for {
+		if exit {
+			break
+		}
+		select {
+		case ctrlMessage := <-r.Ctrl:
+			switch ctrlMessage {
+			case pb.InternalControlMessageType_SHUTDOWN:
+				exit = true
+				break
+			case pb.InternalControlMessageType_RESET:
+				// Recreate the query
+				startQuery()
+			case pb.InternalControlMessageType_START:
+				r.running = true
+			case pb.InternalControlMessageType_STOP:
+				r.running = false
+			}
+		default:
+			if !r.running || !ready {
 				time.Sleep(1 * time.Second)
 			} else if r.Extractor.Next() {
-				newTime, event, err := r.Extractor.Get()
+				newTime, replayedEvent, err := r.Extractor.Get()
 				if err != nil {
 					r.log.Errorf("Fail: %s", err.Error())
 					continue
 				}
-				r.log.Debugf("%v", event)
-				eventBytes, err := proto.Marshal(event)
+				r.log.Debugf("%v", replayedEvent.Event)
+				eventBytes, err := proto.Marshal(replayedEvent.Event)
 				if err != nil {
 					r.log.Errorf("Failed to marshal proto:", err)
 					continue
@@ -78,15 +195,18 @@ func (r Replayer) produce() error {
 					passedTime = newTime.Sub(recentTime)
 				}
 				r.log.Debugf("%v have passed since the last event", passedTime)
-				r.producer.Send(r.Topic, r.Topic, sarama.ByteEncoder(eventBytes))
-				r.log.Debugf("Speed is %d, mode is %s", *r.Speed, *r.Mode)
+				r.producer.Send(r.Topic.String(), r.Topic.String(), sarama.ByteEncoder(eventBytes))
 
-				waitTime := int64(0)
-				switch *r.Mode {
-				case pb.ReplayType_CONSTANT:
-					waitTime = int64(*r.Speed) * time.Second.Nanoseconds()
-				case pb.ReplayType_PROPORTIONAL:
-					waitTime = passedTime.Nanoseconds() / utils.MaxInt64(1, int64(*r.Speed))
+				mode := r.Options.GetOptions().GetMode()
+				speed := r.Options.GetOptions().GetSpeed().GetSpeed()
+				r.log.Debugf("Speed is %d, mode is %s", speed, mode)
+
+				var waitTime int64
+				switch mode {
+				case pb.ReplayMode_CONSTANT:
+					waitTime = int64(speed) * time.Millisecond.Nanoseconds()
+				case pb.ReplayMode_PROPORTIONAL:
+					waitTime = passedTime.Nanoseconds() / utils.MaxInt64(1, int64(speed))
 				default:
 					waitTime = 10
 				}
@@ -95,31 +215,36 @@ func (r Replayer) produce() error {
 				time.Sleep(time.Duration(waitTime))
 				recentTime = newTime
 
-			} else if r.Repeat {
-				err := r.Extractor.StartQuery(r.SourceName, r.IDFieldName, r.Query)
-				if err != nil {
-					r.log.Error("Cannot repeat replay")
-				}
+			} else if r.Options.GetOptions().GetRepeat().GetValue() == true {
+				startQuery()
 			}
 		}
 	}
-	r.Extractor.Done()
 	return nil
 }
 
-// Start ...
-func (r Replayer) Start(log *logrus.Logger) error {
-	r.log = log.WithField("source", r.SourceName)
-	r.log.Info("Starting to produce")
-	defer func() {
-		if err := r.producer.Close(); err != nil {
-			r.log.Errorf("Failed to close server", err)
+func (r *Replayer) awaitShutdown() {
+	select {
+	case ctrlMessage := <-r.Ctrl:
+		if ctrlMessage == pb.InternalControlMessageType_SHUTDOWN {
+			return
 		}
-	}()
-	r.Extractor.SetDebug(r.log.Logger.IsLevelEnabled(logrus.DebugLevel))
-	err := r.produce()
-	if err != nil {
-		log.Error(err)
+	default:
+		// Noop
 	}
-	return nil
+}
+
+// Start ...
+func (r *Replayer) Start(log *logrus.Logger) {
+	r.log = log.WithField("source", r.SourceName)
+	r.log.Info("Starting")
+	if r.Extractor == nil {
+		r.log.Errorf("Missing extractor. Waiting for shutdown.", r.SourceName)
+		r.awaitShutdown()
+		return
+	}
+	err := r.bootstrap()
+	if err != nil {
+		r.log.Error(err)
+	}
 }
