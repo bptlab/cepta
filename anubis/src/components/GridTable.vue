@@ -8,13 +8,20 @@
           @click="sortBy(key)"
           :class="{ active: sortKey == key }"
         >
-          {{ key | capitalize }}
-          <span
-            class="arrow"
-            :class="sortKey == key && sortOrder > 0 ? 'asc' : 'dsc'"
-          >
+          <span>
+            {{ key | capitalize }}
+            <span
+              class="icon"
+              :class="
+                sortKey == key && sortOrder > 0
+                  ? 'icon-angle-up'
+                  : 'icon-angle-down'
+              "
+            >
+            </span>
           </span>
         </th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -23,20 +30,21 @@
           v-for="key in gridColumns"
           :key="index.toString() + key"
           :class="
-            key == 'delay'
+            key == delayKey
               ? entry[key] <= 0
                 ? 'delay-green'
                 : 'delay-red'
               : 'default'
           "
         >
-          <span v-if="key == 'delay'">
-            {{ entry[key] > 0 ? "+" : "" }}
-            {{ !(entry[key] >= 0) ? "-" : "" }}{{ Math.abs(entry[key]) }}
-            Minutes
+          <span v-if="key == delayKey">
+            {{ entry[key] | formatDelay }}
           </span>
           <span v-else>{{ entry[key] }}</span>
         </td>
+        <router-link :to="{ name: 'map', query: { track: entry['ID'] } }">
+          <td class="track"><span class="icon icon-target"></span> Track</td>
+        </router-link>
       </tr>
     </tbody>
   </table>
@@ -46,12 +54,16 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import MasonryLayout from "@/components/MasonryLayout.vue";
 import MasonryLayoutTile from "@/components/MasonryLayoutTile.vue";
+import { formatDelay } from "../utils";
 
 @Component({
   name: "GridTable",
   filters: {
-    capitalize(str: string) {
+    capitalize(str: string): string {
       return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    formatDelay(delay: number): string {
+      return formatDelay(delay);
     }
   },
   components: {
@@ -67,15 +79,17 @@ export default class GridTable extends Vue {
         locationID: "none",
         locationName: "none",
         plannedETA: "none",
-        delay: "0",
+        delta: "0",
         predictedETA: "none"
       }
     ]
   })
-  private gridData!: { [key: string]: string }[];
+  gridData!: { [key: string]: string }[];
+  // TODO: Make filterKey v-model compatible
   @Prop({ default: "" }) private filterKey!: string;
-  sortKey: string = "";
-  sortOrder: number = 1;
+  @Prop({ default: "delta" }) private delayKey!: string;
+  sortKey: string = "delta";
+  sortOrder: number = -1;
 
   get filteredGridData(): { [key: string]: string }[] {
     let filterKey = this.filterKey && this.filterKey.toLowerCase();
@@ -114,14 +128,23 @@ export default class GridTable extends Vue {
 </script>
 
 <style lang="sass" scoped>
-.fullsize
+.grid-table
   width: 100%
 
-.grid-table
-  border: 2px solid black
-  border-radius: 3px
-  color: red
+  th, td
+    text-align: left
+    vertical-align: middle
+    padding: 8px
+    border: 1px solid gray
 
+    &.track>a
+      text-align: center
+      margin-right: 5px
+      float: right
+
+    &.delay-red
+      +theme(color, c-delay-warning)
+      font-weight: bold
   th
     cursor: pointer
     -webkit-user-select: none
@@ -129,31 +152,28 @@ export default class GridTable extends Vue {
     -ms-user-select: none
     user-select: none
 
-  td.delay-red
-    color: red
-    font-weight: bold
+    .icon
+      margin-left: 10px
+      margin-right: 5px
+      opacity: 0.2
 
-  td.delay-green
-    color: green
+    &.active
+      .icon
+        font-weight: bold
+        opacity: 1
 
-  th.active .arrow
-    opacity: 1
+  th:last-child
+    border: none
+    width: 80px
 
-  .arrow
-    display: inline-block
-    vertical-align: middle
-    width: 0
-    height: 0
-    margin-left: 5px
-    opacity: 0.33
+  a .track
+    +theme(color, c-table-text)
 
-    &.asc
-      border-left: 4px solid transparent
-      border-right: 4px solid transparent
-      border-bottom: 4px solid #fff
+  .track
+    +theme(background-color, bgc-table-button)
+    +theme-color-diff(border-color, bgc-table-button, 10)
+    width: 80px
 
-    &.dsc
-      border-left: 4px solid transparent
-      border-right: 4px solid transparent
-      border-top: 4px solid #fff
+    &:hover
+      +theme-color-diff(background-color, bgc-table-button, 10)
 </style>

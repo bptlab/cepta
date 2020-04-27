@@ -15,7 +15,10 @@
         <!-- Search -->
         <li class="search-box" :class="{ active: searchToggled }">
           <a class="search-toggle no-pdd-right" @click.prevent="toggleSearch">
-            <i class="search-icon icon-search pdd-right-10"></i>
+            <i
+              class="search-icon pdd-right-10"
+              :class="isFilter ? 'icon-filter' : 'icon-search'"
+            ></i>
             <i class="search-icon-close icon-close pdd-right-10"></i>
           </a>
         </li>
@@ -29,18 +32,86 @@
             ref="searchInput"
             v-model="search"
             type="text"
-            placeholder="Search..."
+            :placeholder="isFilter ? 'Filter...' : 'Search...'"
           />
+          <div class="search-context">
+            <ul class="results">
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+              <li>CPTA 1836458 <span class="icon icon-close"></span></li>
+            </ul>
+            <ul class="hints">
+              <li>
+                <div>Result 1 <span class="icon icon-plus"></span></div>
+              </li>
+            </ul>
+          </div>
         </li>
       </ul>
+
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
+        <li>
+          <a class="time" @click="toggleTimezone">
+            <span class="current-time">{{ currentTime }}</span
+            ><span class="timezone">{{ timezones[timezone] }}</span>
+          </a>
+        </li>
+
+        <li>
+          <a
+            :title="
+              connectionDegraded ? 'System degraded' : 'All systems operational'
+            "
+          >
+            <span
+              class="system-status"
+              :class="{ degraded: connectionDegraded }"
+            ></span>
+          </a>
+        </li>
+
+        <li v-if="monitorUrl">
+          <!-- Alternativ: pulse bar-chart -->
+          <a
+            title="Open monitoring"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="monitorUrl"
+            id="monitorBtn"
+            class="btn"
+          >
+            <span class="icon icon-pulse"></span>
+          </a>
+        </li>
+
+        <li>
+          <a
+            title="Change theme"
+            id="themeToggleBtn"
+            @click="toggleTheme"
+            class="btn"
+          >
+            <span class="icon icon-palette"></span>
+          </a>
+        </li>
+
+        <li>
+          <a title="Reload" id="reloadBtn" @click="reload()" class="btn">
+            <span
+              class="icon icon-reload icon-flip-vertical"
+              :class="{ 'icon-spin': isLoading }"
+            ></span>
+          </a>
+        </li>
+
         <navbar-dropdown>
           <template v-slot:icon>
-            <span
+            <a
               id="replayBtn"
-              :class="{ btn: true, 'btn-danger': isReplaying }"
+              class="btn"
+              :class="isReplaying ? 'btn-danger' : 'inactive-replayer'"
             >
               {{ replayStatus }}
               <beat-loader
@@ -49,7 +120,7 @@
                 :color="'#ffffff'"
                 :size="'8px'"
               ></beat-loader>
-            </span>
+            </a>
           </template>
           <template v-slot:content>
             <form>
@@ -85,7 +156,7 @@
                 <div class="form-check form-check-inline">
                   <input
                     class="form-check-input"
-                    v-model="replayTypeInput"
+                    v-model="replayModeInput"
                     type="radio"
                     name="inlineRadioOptions"
                     id="constantReplayCheckbox"
@@ -98,7 +169,7 @@
                 <div class="form-check form-check-inline">
                   <input
                     class="form-check-input"
-                    v-model="replayTypeInput"
+                    v-model="replayModeInput"
                     type="radio"
                     name="inlineRadioOptions"
                     id="proportionalReplayCheckbox"
@@ -122,7 +193,7 @@
                 <button
                   @click.prevent="updateReplay"
                   id="updateReplayButton"
-                  class="btn btn-info"
+                  class="btn btn-cepta-default"
                   :disabled="!replayerConfigChanged"
                 >
                   Apply
@@ -169,13 +240,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
 import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
 import AccountDropdown from "@/components/AccountDropdown.vue";
 import NavbarDropdown from "@/components/NavbarDropdown.vue";
-import { GrpcModule } from "../store/modules/grpc";
+import { ReplayerModule } from "../store/modules/replayer";
 import { AppModule } from "../store/modules/app";
 import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
@@ -183,9 +254,13 @@ import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue
 import {
   Speed,
   ReplayStartOptions,
-  ReplayType,
-  ReplayTypeOption
-} from "@/generated/protobuf/replayer_pb";
+  ReplayMode,
+  ReplayOptions,
+  SourceReplay,
+  ReplaySetOptionsRequest,
+  ActiveReplayOptions
+} from "../generated/protobuf/models/grpc/replayer_pb";
+import { COOKIE_THEME } from "../constants";
 
 @Component({
   name: "NavigationBar",
@@ -203,14 +278,24 @@ export default class NavigationBar extends Vue {
   search: any = null;
   replaySpeed: number = 0;
   replayIdsInput: string = "";
-  defaultReplayType: ReplayType =
-    ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
-  replayTypeInput: string = Object.keys(ReplayType)[0];
+  defaultReplayMode: ReplayMode =
+    ReplayMode[Object.keys(ReplayMode)[0] as keyof typeof ReplayMode];
+  replayModeInput: string = Object.keys(ReplayMode)[0];
+  currentTime: string = "";
 
-  private equalArrays(a1: string[], a2: string[]): boolean {
-    return (
-      a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
-    );
+  private equalArrays(a1?: string[], a2?: string[]): boolean {
+    return a1 != undefined && a2 != undefined
+      ? a1.length === a2.length && a1.sort().every((v, i) => v === a2.sort()[i])
+      : false;
+  }
+
+  get connectionDegraded(): boolean {
+    // TODO Implement
+    return false;
+  }
+
+  get monitorUrl(): string | undefined {
+    return process.env.MONITORING_URL;
   }
 
   get replayerConfigChanged() {
@@ -218,7 +303,7 @@ export default class NavigationBar extends Vue {
     let speedChanged = !(
       (this.replayingSpeed?.getSpeed() || 0) === this.replaySpeed
     );
-    let typeChanged = !(this.replayingType === this.replayType);
+    let typeChanged = !(this.replayingType === this.replayMode);
     return idsChanged || speedChanged || typeChanged;
   }
 
@@ -231,37 +316,49 @@ export default class NavigationBar extends Vue {
     );
   }
 
-  get replayType(): ReplayType {
-    let index = this.replayTypeInput
+  get replayMode(): ReplayMode {
+    let index = this.replayModeInput
       ?.trim()
-      ?.toUpperCase() as keyof typeof ReplayType;
-    return ReplayType[index] === undefined
-      ? this.defaultReplayType
-      : ReplayType[index];
+      ?.toUpperCase() as keyof typeof ReplayMode;
+    return ReplayMode[index] === undefined
+      ? this.defaultReplayMode
+      : ReplayMode[index];
   }
 
   get isReplaying() {
-    return GrpcModule.isReplaying;
+    return ReplayerModule.isReplaying;
+  }
+
+  get isLoading() {
+    return AppModule.isLoading;
   }
 
   get replayStatus() {
-    return GrpcModule.replayStatus;
+    return ReplayerModule.replayStatus;
   }
 
-  get replayingIds() {
-    return GrpcModule.replayingOptions?.getIdsList();
+  get replayingIds(): string[] {
+    return [
+      ...new Set(
+        ReplayerModule.replayingOptions
+          ?.getSourcesList()
+          ?.reduce((accumulator: string[], currentValue: SourceReplay) => {
+            return accumulator.concat(currentValue.getIdsList());
+          }, [] as string[])
+      )
+    ] as string[];
   }
 
   get replayingType() {
-    return GrpcModule.replayingOptions?.getType();
+    return ReplayerModule.replayingOptions?.getOptions()?.getMode();
   }
 
   get replayingSpeed() {
-    return GrpcModule.replayingOptions?.getSpeed();
+    return ReplayerModule.replayingOptions?.getOptions()?.getSpeed();
   }
 
   get isConstantReplay(): boolean {
-    return this.replayType === ReplayType.CONSTANT;
+    return this.replayMode === ReplayMode.CONSTANT;
   }
 
   get replayFrequencyMin(): number {
@@ -281,29 +378,91 @@ export default class NavigationBar extends Vue {
     ); // Bitwise-OR the value with zero to get int
   }
 
-  get replayOptions() {
+  get isFilter(): boolean {
+    return this.$route.meta.useSearchToFilter as boolean;
+  }
+
+  get themeClass(): string {
+    return AppModule.themeClass;
+  }
+
+  get replayStartOptions(): ReplayStartOptions {
     let options = new ReplayStartOptions();
     let errids = this.replayIds || new Array<string>();
-    options.setIdsList(errids);
-    options.setType(this.replayType);
+    options.getSourcesList()?.forEach(s => s.setIdsList(errids));
+    if (!options.hasOptions()) {
+      options.setOptions(new ReplayOptions());
+    }
+    options.getOptions()?.setMode(this.replayMode);
     if (this.scaledReplaySpeed) {
       let speed = new Speed();
       speed.setSpeed(this.scaledReplaySpeed);
-      options.setSpeed(speed);
+      options.getOptions()?.setSpeed(speed);
     }
     return options;
   }
 
+  get replayUpdateOptions() {
+    let updateOptions = new ReplaySetOptionsRequest();
+    let replayOptions = new ActiveReplayOptions();
+    let options = this.replayStartOptions.getOptions();
+    if (options) {
+      replayOptions.setSpeed(options.getSpeed());
+      replayOptions.setMode(options.getMode());
+      replayOptions.setTimerange(options.getTimerange());
+      replayOptions.setRepeat(options.getRepeat());
+    }
+    updateOptions.setOptions(replayOptions);
+    return updateOptions;
+  }
+
+  dateLocale: string = "en-GB";
+  timezone: number = 0;
+  timezones: Array<string> = ["UTC", "EET", "WET", "CET"];
+  timezonesLong: Array<string> = [
+    "UTC",
+    "Europe/Moscow",
+    "Europe/Lisbon",
+    "Europe/Berlin"
+  ];
+
+  toggleTimezone() {
+    this.timezone = (this.timezone + 1) % this.timezones.length;
+    this.newTime();
+  }
+
+  newTime() {
+    var date = new Date();
+    this.currentTime = date.toLocaleString(this.dateLocale, {
+      timeZone: this.timezonesLong[this.timezone]
+    });
+  }
+
+  updateTime() {
+    this.newTime();
+    setTimeout(this.updateTime, 1000);
+  }
+
+  reload() {
+    AppModule.requestReload()
+      .then(() => {})
+      .catch(() => {});
+  }
+
+  toggleTheme() {
+    AppModule.toggleTheme();
+  }
+
   toggleReplay() {
-    GrpcModule.toggleReplayer(this.replayOptions);
+    ReplayerModule.toggleReplayer(this.replayStartOptions);
   }
 
   updateReplay() {
-    GrpcModule.setReplayOptions(this.replayOptions);
+    ReplayerModule.setReplayOptions(this.replayUpdateOptions);
   }
 
   resetReplay() {
-    GrpcModule.resetReplayer();
+    ReplayerModule.resetReplayer();
   }
 
   toggleSearch() {
@@ -325,7 +484,8 @@ export default class NavigationBar extends Vue {
   }
 
   mounted(): void {
-    GrpcModule.queryReplayer().then(() => {
+    this.updateTime();
+    ReplayerModule.queryReplayer().then(() => {
       if (this.replayingSpeed != undefined)
         this.replaySpeed = this.replayingSpeed?.getSpeed();
     });
@@ -333,9 +493,7 @@ export default class NavigationBar extends Vue {
 
   checkForUpdate() {
     let id = (this.$refs["searchInput"] as HTMLInputElement).value;
-    // this.send(id)
     let reg = new RegExp("^[0-9]*$");
-    debugger;
 
     //only Numbers update our list of train data
     if (reg.test(id)) this.$router.push({ name: "traindata", params: { id } });
@@ -372,19 +530,21 @@ export default class NavigationBar extends Vue {
 
 .header
   +theme(background-color, bgc-navbar)
-  border-bottom: 1px solid $border-color
+  border-bottom-width: 1px
+  border-bottom-style: solid
+  +theme-color-diff(border-bottom-color, bgc-navbar, 6)
   display: block
   margin-bottom: 0
   padding: 0
   position: fixed
-  transition: all 0.2s ease
-  //width: calc(100% - #{$offscreen-size})
+  // transition: all 0.2s ease
+  // width: calc(100% - #{$offscreen-size})
   width: 100%
   z-index: 800
+  width: calc(100% - #{$offscreen-size})
 
   +to($breakpoint-md)
     width: 100%
-
 
   +between($breakpoint-md, $breakpoint-xl)
     width: calc(100% - #{$collapsed-size})
@@ -393,7 +553,9 @@ export default class NavigationBar extends Vue {
   .header-container
     +clearfix
 
-    height: $header-height
+    .btn
+      color: inherit
+      height: calc(#{$header-height} / 2)
 
     .nav-left,
     .nav-right
@@ -404,45 +566,63 @@ export default class NavigationBar extends Vue {
 
       > li
         float: left
+        transition: all 0.1s ease-in-out
+        line-height: $header-height
 
         > a
-          color: $default-text-color
           display: block
           line-height: $header-height
-          min-height: $header-height
+          height: $header-height
           padding: 0 15px
-          transition: all 0.2s ease-in-out
 
           i
             font-size: 17px
 
-          &:hover,
-          &:focus
-            color: $default-dark
-            text-decoration: none
-
           +to($breakpoint-md)
             padding: 0 15px
 
+        &:hover,
+        &:focus
+          +theme(color, c-accent-text)
+          text-decoration: none
+
     .nav-left
       float: left
-      margin-left: 15px
+      width: calc(100% - 650px)
+      padding-left: 15px
       transition: 0.2s ease
 
-      +from($breakpoint-xl)
-        margin-left: 230px
-
     .nav-right
+      width: 650px
       float: right
-      margin-right: 10px
-      margin-top: 15px
+      padding-right: 10px
+
+      .time
+        width: 190px
+        padding: 0px
+        cursor: pointer
+
+        .timezone
+          padding-left: 10px
+
+
+      .system-status
+        width: 10px
+        height: 10px
+        border-radius: 5px
+        background-color: green
+        display: inline-block
+
+        &.degraded
+          background-color: red
 
       #replayBtn
-        float: left
-        height: calc(#{$header-height} / 2)
-        margin: 0
-        margin-right: 20px
-        width: auto
+        // margin: 0
+
+        &.inactive-replayer:hover
+          +theme(color, c-accent-text)
+          // +theme-color-diff(background-color, bgc-navbar, 10)
+
 
   .search-box
     .search-icon-close
@@ -457,11 +637,13 @@ export default class NavigationBar extends Vue {
 
   .search-input
     display: none
+    width: calc(100% - 100px)
 
     &.active
       display: inline-block
 
     input
+      +theme(color, c-default-text)
       background-color: transparent
       border: 0
       box-shadow: none
@@ -470,7 +652,6 @@ export default class NavigationBar extends Vue {
       margin-top: 12px
       outline: none
       padding: 5px
-      width: 500px
 
       +to($breakpoint-sm)
         width: 160px
@@ -482,6 +663,48 @@ export default class NavigationBar extends Vue {
       +placeholder
         color: lighten($default-text-color, 20%)
         font-style: italic
+
+    .search-context
+      padding-bottom: 15px
+      .icon
+        font-size: 0.7rem
+      .results, .hints
+        list-style: none
+        width: 100%
+        display: inline-block
+        text-decoration: none
+        margin: 0
+        padding: 0
+
+      .results>li, .hints>li>div
+          +transition(all 0.2s ease-in)
+          line-height: 20px
+          vertical-align: middle
+          padding: 2px 6px
+          border-radius: 8px
+          margin: 2px
+          float: left
+          cursor: pointer
+
+    .search-context
+      .results
+        li
+          +theme-color-diff(background-color, bgc-navbar, 10)
+          &:hover
+            +theme-color-diff(background-color, bgc-navbar, 20)
+
+      .hints>li
+        div
+          border: 1px solid transparent
+          +transition(all 0.2s ease-in)
+          display: inline-block
+          .icon
+            opacity: 0
+        &:hover
+          div
+            +theme-color-diff(border-color, bgc-navbar, 20)
+            .icon
+              opacity: 1
 
 // ---------------------------------------------------------
 // @Collapsed State

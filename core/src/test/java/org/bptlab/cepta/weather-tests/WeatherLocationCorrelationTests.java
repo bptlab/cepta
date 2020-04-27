@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.bptlab.cepta.providers.WeatherDataProvider;
-import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Ignore;

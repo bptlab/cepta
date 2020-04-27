@@ -1,8 +1,7 @@
 syntax = "proto3";
-package location;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/info";
 option java_package = "org.bptlab.cepta.models.events.info"; //should this be in events? since this is more a database thing
-option java_outer_classname = "InfoDataProtos";
 
 
 message InfrastructureManagerData {

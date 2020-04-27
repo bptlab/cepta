@@ -14,6 +14,13 @@ services:
         logging:
             # Disable logging
             driver: none
+        # Normally, deploy requires docker swarm, but we are running in compat
+        deploy:
+            resources:
+                limits:
+                    memory: 20gb
+                reservations:
+                    memory: 500m
 
     mongoclient:
         image: "mongoclient/mongoclient"

@@ -1,16 +1,19 @@
 <template>
-  <div id="error-container" class="pos-a w-100 h-100 d-f  ai-c jc-c">
+  <div id="error-container" class="pos-a w-100 h-100 d-f ai-c jc-c">
     <div id="error-view" class="d-f">
       <router-view class="d-f" id="concrete-error-view" />
       <div id="global-error-view">
-        <div>
-          <a id="joke" href="https://www.youtube.com/watch?v=1vrEljMfXYo">
-            https://www.youtube.com/watch?v=1vrEljMfXYo
-          </a>
+        <p>
           <router-link to="/" type="primary" class="btn btn-primary">
             Take me home
           </router-link>
-        </div>
+        </p>
+        <br />
+        <p>
+          <a id="joke" href="https://www.youtube.com/watch?v=1vrEljMfXYo">
+            https://www.youtube.com/watch?v=1vrEljMfXYo
+          </a>
+        </p>
       </div>
     </div>
   </div>
@@ -30,19 +33,18 @@ export default class Error extends Vue {
 
 <style lang="sass">
 #error-container
-  position: relative
+  background-color: inherit
   #error-view
     display: inline-block
     position: relative
   #concrete-error-view
     position: relative
   #global-error-view
-    position: relative
-    margin: 0 auto
-    & > *
-      display: inline-block
-      position: relative
-    a
-      position: relative
-      margin: 20px
+    display: table
+    width: 100%
+    & > p
+      text-align: center
+      display: table-row
+    #joke
+      font-size: 0.4rem
 </style>

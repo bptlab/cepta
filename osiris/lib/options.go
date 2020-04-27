@@ -34,7 +34,40 @@ const (
 	// Service options
 	ServicePort
 	ServiceLogLevel
+
+	// Connection Tolerance
+	ServiceConnectionTolerance
+	ConnectionTimeoutSec
+	MaxRetries
+	RetryIntervalSec
 )
+
+// ConnectionTolerance ...
+type ConnectionTolerance struct {
+	TimeoutSec       int
+	MaxRetries       int
+	RetryIntervalSec int
+}
+
+func (ct ConnectionTolerance) ParseCli(ctx *cli.Context) ConnectionTolerance {
+	t := ConnectionTolerance{
+		TimeoutSec:       ctx.Int("connection-timeout-sec"),
+		MaxRetries:       ctx.Int("connection-max-retries"),
+		RetryIntervalSec: ctx.Int("connection-retry-interval-sec"),
+	}
+	if t.TimeoutSec > 0 {
+		t.MaxRetries = 1
+		t.RetryIntervalSec = t.TimeoutSec
+	}
+	return t
+}
+
+func (ct ConnectionTolerance) Timeout() int {
+	if ct.TimeoutSec > 0 {
+		return ct.TimeoutSec
+	}
+	return ct.MaxRetries * ct.RetryIntervalSec
+}
 
 func CommonCliOptions(options ...int) []cli.Flag {
 	commonFlags := []cli.Flag{}
@@ -173,6 +206,33 @@ func CommonCliOptions(options ...int) []cli.Flag {
 				Aliases: []string{"p"},
 				EnvVars: []string{"PORT"},
 				Usage:   "Service port",
+			}}
+
+		case ServiceConnectionTolerance:
+			newOptions = CommonCliOptions(ConnectionTimeoutSec, MaxRetries, RetryIntervalSec)
+		case ConnectionTimeoutSec:
+			newOptions = []cli.Flag{&cli.IntFlag{
+				Name:    "connection-timeout-sec",
+				Value:   0, // Default is max retries and retry interval
+				Aliases: []string{"timeout-sec"},
+				EnvVars: []string{"TIMEOUT_SEC", "CONNECTION_TIMEOUT_SEC"},
+				Usage:   "Timeout for connections during startup",
+			}}
+		case MaxRetries:
+			newOptions = []cli.Flag{&cli.IntFlag{
+				Name:    "connection-max-retries",
+				Value:   12,
+				Aliases: []string{"max-retries"},
+				EnvVars: []string{"MAX_RETRIES", "CONNECTION_MAX_RETRIES"},
+				Usage:   "Max number of retries when connections fail during startup",
+			}}
+		case RetryIntervalSec:
+			newOptions = []cli.Flag{&cli.IntFlag{
+				Name:    "connection-retry-interval-sec",
+				Value:   10,
+				Aliases: []string{"retry-interval-sec"},
+				EnvVars: []string{"RETRY_INTERVAL_SEC", "CONNECTION_RETRY_INTERVAL_SEC"},
+				Usage:   "Number of seconds between connection attempts",
 			}}
 		default:
 			// Do not add any

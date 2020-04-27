@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/bptlab/cepta/ci/versioning"
-	"github.com/bptlab/cepta/constants"
+	"github.com/bptlab/cepta/models/constants/topic"
 	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
@@ -52,18 +52,20 @@ func serveWebsocket(pool *websocket.Pool, w http.ResponseWriter, r *http.Request
 	client.Read()
 }
 
-func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.KafkaConsumerOptions) {
+func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kafkaconsumer.Config) {
 	if !(len(options.Topics) == 1 && len(options.Topics[0]) > 0) {
-		options.Topics = []string{constants.Topics_DELAY_NOTIFICATIONS.String()}
+		options.Topics = []string{topic.Topic_DELAY_NOTIFICATIONS.String()}
 	}
 	if options.Group == "" {
 		options.Group = "DelayConsumerGroup"
 	}
 	log.Infof("Will consume topic %s from %s (group %s)", options.Topics, strings.Join(options.Brokers, ", "), options.Group)
-	kafkaConsumer, err := kafkaconsumer.ConsumeKafkaGroup(ctx, options)
+	// TODO: Implement wg
+	kafkaConsumer, _, err := kafkaconsumer.ConsumeGroup(ctx, options)
 	if err != nil {
-		log.Fatalf("Failed to connect to kafka broker (%s) (group %s) on topic %s: %s",
-			strings.Join(options.Brokers, ", "), options.Group, options.Topics, err.Error())
+		log.Warnf("Failed to connect to kafka broker (%s) (group %s) on topic %s",
+			strings.Join(options.Brokers, ", "), options.Group, options.Topics)
+		log.Fatal(err.Error())
 	}
 
 	noopTicker := time.NewTicker(time.Second * 10)
@@ -96,7 +98,7 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 
 func serve(cliCtx *cli.Context) error {
 	ctx, _ := context.WithCancel(context.Background()) // cancel
-	kafkaOptions := kafkaconsumer.KafkaConsumerOptions{}.ParseCli(cliCtx)
+	kafkaOptions := kafkaconsumer.Config{}.ParseCli(cliCtx)
 	pool := websocket.NewPool()
 	go pool.Start()
 	go subscribeKafkaToPool(ctx, pool, kafkaOptions)
@@ -113,7 +115,8 @@ func serve(cliCtx *cli.Context) error {
 func main() {
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
-	cliFlags = append(cliFlags, kafkaconsumer.KafkaConsumerCliOptions...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
+	cliFlags = append(cliFlags, kafkaconsumer.CliOptions...)
 
 	app := &cli.App{
 		Name:    "CEPTA Notification service",

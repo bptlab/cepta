@@ -1,24 +1,24 @@
 <template>
   <li class="notifications dropdown">
     <!-- Toggle -->
-    <div data-toggle="dropdown">
-      <span class="counter bgc-red">{{ number }}</span>
+    <a data-toggle="dropdown">
+      <span class="counter">{{ number }}</span>
       <a class="dropdown-toggle no-after">
         <slot name="icon"></slot>
       </a>
-    </div>
+    </a>
     <!-- Dropdown menu -->
     <ul class="dropdown-menu">
-      <li class="pX-20 pY-15 bdB">
+      <li class="pX-20 bdB">
         <i class="icon-bell pR-10"></i>
         <span class="fsz-sm fw-600">{{ title }}</span>
       </li>
       <li>
-        <ul class="ovY-a pos-r scrollable lis-n p-0 m-0 fsz-sm">
+        <ul class="pos-r scrollable lis-n p-0 m-0 fsz-sm">
           <slot name="entries"></slot>
         </ul>
       </li>
-      <li v-if="more" class="pX-20 pY-15 ta-c bdT">
+      <li v-if="more" class="pX-20 ta-c bdT">
         <span>
           <a class="cH-blue fsz-sm td-n">
             View all {{ title }}
@@ -54,56 +54,67 @@ export default class NotificationsDropdown extends Vue {
 </script>
 
 <style scoped lang="sass">
-.dropdown-menu
-  left: auto
-  right: 0
-
-  > li
-    width: 100%
-
-    > a
-      line-height: 1.5
-      min-height: auto
-      padding: 10px 15px
-
-.notifications
+.dropdown
+  display: block
+  height: $header-height
+  cursor: pointer
+  margin-left: 15px
   position: relative
-  padding: 7px
 
-  .counter
-    background-color: $default-danger
-    border-radius: 50px
-    color: $default-white
-    font-size: 10px
-    line-height: 1
-    padding: 3px 5.5px
-    position: absolute
-    right: 16px
-    top: 16px
-    opacity: 0.8
+  a
+    transition: all 0.1s ease-in-out
 
   .dropdown-menu
+    +theme(background-color, bgc-navbar)
+    line-height: 35px
+    +theme(color, c-default-text)
+    left: auto
+    right: 0
     min-width: 350px
     padding: 0
 
     +to($breakpoint-sm)
       max-width: 300px
 
-.dropdown-menu
-  display: block
-  margin: 0
-  transform-origin: top right
-  transform: scale(0, 0)
-  transition: transform 0.15s ease-out
+    display: block
+    margin: 0
+    transform-origin: top right
+    transform: scale(0, 0)
 
-  .divider
-    border-bottom: 1px solid $border-color
-    height: 1px
-    overflow: hidden
+    .divider
+      border-bottom-width: 1px
+      border-bottom-style: solid
+      +theme-color-diff(border-bottom-color, bgc-navbar, 6)
+      height: 1px
+      overflow: hidden
 
-  > li
-    > a
-      transition: all 0.2s ease-out
+    > li
+      padding: 2px 12px
+      width: 100%
+
+    li ul li, > li:last-child
+      &:hover
+        +theme-color-diff(background-color, bgc-navbar, 10)
+
+    li ul li a
+      +theme(color, c-default-link)
+
+    a
+      padding: 10px 15px
+
+  .counter
+    +theme(background-color, bgc-btn-default)
+    border-radius: 10px
+    color: $default-white
+    font-size: 10px
+    line-height: 20px
+    text-align: center
+    display: block
+    width: 20px
+    height: 20px
+    position: absolute
+    left: calc(50% - 20px)
+    bottom: calc(50% - 17px)
 
 .show
   .dropdown-menu
