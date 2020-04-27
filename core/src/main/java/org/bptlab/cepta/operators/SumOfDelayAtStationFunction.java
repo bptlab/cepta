@@ -26,8 +26,8 @@ public class SumOfDelayAtStationFunction<T extends Object> {
     The window is a fixed event number window.
     It will return a Stream of Tuple2 with the location Id and the sum of delay. 
     */
-    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String locationAttributName) {
-        DataStream<Tuple2<Long, Double>> resultStream = inputStream
+    public DataStream<Tuple2<Integer, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String locationAttributName) {
+        DataStream<Tuple2<Integer, Double>> resultStream = inputStream
         .keyBy(
             new KeySelector<T, Integer>(){
                 Integer key = Integer.valueOf(0);
@@ -46,22 +46,19 @@ public class SumOfDelayAtStationFunction<T extends Object> {
         return resultStream;
     };
 
-    public ProcessWindowFunction<T, Tuple2<Long, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String locationAttributName) {
-        return new ProcessWindowFunction<T, Tuple2<Long, Double>, Integer, GlobalWindow>() {
+    public ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String locationAttributName) {
+        return new ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow>() {
             @Override
-            public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Long, Double>> out) throws Exception {
-                HashMap<Long, Double> sums = new HashMap<Long, Double>();
+            public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Integer, Double>> out) throws Exception {
+                HashMap<Integer, Double> sums = new HashMap<Integer, Double>();
                 for (T in: input) {
                     Class c = in.getClass();
                     String methodName = "get" + locationAttributName;
                     Method method = c.getDeclaredMethod(methodName);
-                    Long locationId = Long.valueOf(method.invoke(in).toString());
+                    Integer locationId = Integer.valueOf(method.invoke(in).toString());
                     method = c.getDeclaredMethod("getDelay");
                     Double delay = Double.valueOf(method.invoke(in).toString());
 
-                   // Long trainId = in.getTrainId();
-                   // Long locationId = in.getLocationId();
-                   // Double delay = in.getDelay();
                     if (!sums.containsKey(locationId)) {
                         sums.put(locationId, delay);
                     } else {
@@ -71,9 +68,9 @@ public class SumOfDelayAtStationFunction<T extends Object> {
                     }
                 }
 
-                for (Long location: sums.keySet()) {
+                for (Integer location: sums.keySet()) {
                     Double delay = sums.get(location);
-                    out.collect(new Tuple2<Long, Double>(location, delay) );
+                    out.collect(new Tuple2<Integer, Double>(location, delay) );
                 }
             }
         };
