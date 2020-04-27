@@ -33,11 +33,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// const logLevel = logrus.DebugLevel
-
 const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
-const userCollection = "mock_users"
 
 type dialerFunc = func(string, time.Duration) (net.Conn, error)
 
@@ -142,9 +139,12 @@ func (test *Test) Setup(t *testing.T) *Test {
 		},
 	}
 
+	var replayerListener = bufconn.Listen(bufSize)
+
 	// Create endpoint
-	replayerListener := bufconn.Listen(bufSize)
-	test.ReplayerEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithDialer(dailerFor(replayerListener)), grpc.WithInsecure())
+	test.ReplayerEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+		return replayerListener.Dial()
+	}), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test

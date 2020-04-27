@@ -342,12 +342,9 @@ export default class NavigationBar extends Vue {
       ...new Set(
         ReplayerModule.replayingOptions
           ?.getSourcesList()
-          ?.reduce(
-            (accumulator: string[], currentValue: SourceReplay) => {
-              return accumulator.concat(currentValue.getIdsList());
-            },
-            [] as string[]
-          )
+          ?.reduce((accumulator: string[], currentValue: SourceReplay) => {
+            return accumulator.concat(currentValue.getIdsList());
+          }, [] as string[])
       )
     ] as string[];
   }
