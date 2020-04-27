@@ -142,7 +142,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 	// Create endpoint
 	test.ReplayerEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 		return replayerListener.Dial()
-	}), grpc.WithInsecure(), grpc.WithBlock())
+	}), grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
