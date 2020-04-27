@@ -1,4 +1,18 @@
 $base-color-dark: #161616;
+$base-color-dark-inactive-sidebar: rgb(102, 102, 102); // rgb(53, 53, 53);
+$base-color-light-inactive-sidebar: rgb(122, 122, 122);
+$primary-color-dark: #00d587;
+$primary-color-light: #f7521e;
+$secondary-color: #0a70c9;
+$tertiary-color: #c9ae1e;
+$quaternary-color: #1f14c9;
+
+
+
+$shouldDarken: (
+  'light': true,
+  'dark': false
+) !default;
 
 $themes: (
     'light': (
@@ -9,9 +23,26 @@ $themes: (
         'bgc-sidebar': #FFF,
         'bgc-navbar': #FFF,
         'bgc-content': #FFF,
+        'bgc-sidebar-active': #FFF,
+        'bgc-btn-default': #f7521e,
         'c-default-text': #000,
-        'c-accent-text': white,
-        'c-logo-text': #009688,
+        'c-delay-alert': rgb(247, 0, 84),
+        'c-delay-warning': #f7521e,
+        'c-delay-fine': rgb(111, 221, 20),
+        'c-accent-text': #f7521e,
+        'c-logo-text': #000,
+        'c-map-position-text': #000,
+        'c-sidebar-dot': #f7521e,
+        'c-sidebar-text': #f7521e,
+        'c-sidebar-icon-active': #f7521e,
+        'c-sidebar-icon-dashboard': $base-color-light-inactive-sidebar,
+        'c-sidebar-icon-manage': $base-color-light-inactive-sidebar,
+        'c-sidebar-icon-feed': $base-color-light-inactive-sidebar,
+        'c-sidebar-icon-map': $base-color-light-inactive-sidebar,
+        'bgc-table-button': #f7521e,
+        'c-table-text': #fff,
+        'bgc-scrollbar': #f7521e,
+        'c-default-link': $secondary-color,
     ),
     'dark': (
         /*
@@ -21,9 +52,26 @@ $themes: (
         'bgc-sidebar': $base-color-dark,
         'bgc-navbar': $base-color-dark,
         'bgc-content': $base-color-dark,
-        'c-default-text': white,
-        'c-accent-text': #009688,
-        'c-logo-text': #009688,
+        'bgc-sidebar-active': $base-color-dark,
+        'bgc-btn-default': rgb(247, 99, 0),
+        'c-default-text': #fff,
+        'c-delay-alert': rgb(247, 29, 0),
+        'c-delay-warning': rgb(247, 99, 0),
+        'c-delay-fine': $primary-color-dark,
+        'c-accent-text': $primary-color-dark,
+        'c-logo-text': #fff,
+        'c-map-position-text': $primary-color-dark,
+        'c-sidebar-dot': $primary-color-dark,
+        'c-sidebar-text': $primary-color-dark,
+        'c-sidebar-icon-active': $primary-color-dark,
+        'c-sidebar-icon-dashboard': $base-color-dark-inactive-sidebar,
+        'c-sidebar-icon-manage': $base-color-dark-inactive-sidebar, // rgb(247, 0, 235),
+        'c-sidebar-icon-feed': $base-color-dark-inactive-sidebar, //  rgb(247, 0, 41),
+        'c-sidebar-icon-map': $base-color-dark-inactive-sidebar, // rgb(161, 247, 0),
+        'bgc-table-button': $primary-color-dark,
+        'c-table-text': $base-color-dark,
+        'bgc-scrollbar': $primary-color-dark,
+        'c-default-link': $secondary-color,
     )
 ) !default;
 
@@ -40,16 +88,92 @@ $themes: (
   }
 }
 
-@mixin theme-highlight($property, $key, $args:'') {
+/* TODO: Theme color diff mixin */
+@mixin theme-box-shadow($property, $key, $darken, $args:'') {
   @each $theme, $colors in $themes {
-    .theme-#{$theme}.theme-beats & {
-      #{$property}: map-get($colors, 'c-beats-' + $key) #{$args};
+    .theme-#{$theme} & {
+      #{$property}: darken(map-get($colors, $key), $darken) #{$args};
     }
-    .theme-#{$theme}.theme-request & {
-      #{$property}: map-get($colors, 'c-request-' + $key) #{$args};
+  }
+}
+
+@function invert($color, $amount: 100%) {
+  $inverse: change-color($color, $hue: hue($color) + 180);
+  @return mix($inverse, $color, $amount);
+}
+
+
+// pow() - Raise number to the nth power
+//
+// @param {number} $base      The base number
+// @param {number} $exponents The exponent to which to raise $base
+@function pow($base, $exponents) {
+  $raised: 1;
+
+  @for $i from 1 through $exponents {
+    $raised: $raised * $base;
+  }
+
+  @return $raised;
+}
+
+/// Returns the luminance of `$color` as a float (between 0 and 1)
+/// 1 is pure white, 0 is pure black
+/// @param {Color} $color - Color
+/// @return {Number}
+/// @link http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef Reference
+// From https://css-tricks.com/snippets/sass/luminance-color-function/
+@function luminance($color) {
+  $colors: (
+    'red': red($color),
+    'green': green($color),
+    'blue': blue($color)
+  );
+
+  @each $name, $value in $colors {
+    $adjusted: 0;
+    $value: $value / 255;
+
+    @if $value < 0.03928 {
+      $value: $value / 12.92;
+    } @else {
+      $value: ($value + .055) / 1.055;
+      $value: pow($value, 2.4);
     }
-    .theme-#{$theme}.theme-audio & {
-      #{$property}: map-get($colors, 'c-audio-' + $key) #{$args};
+
+    $colors: map-merge($colors, ($name: $value));
+  }
+
+  @return (map-get($colors, 'red') * .2126) + (map-get($colors, 'green') * .7152) + (map-get($colors, 'blue') * .0722);
+}
+
+/* Theme color diff mixin */
+@mixin theme-color-diff1($property, $key, $diff, $args:'') {
+  @each $theme, $colors in $themes {
+    @if map-get($shouldDarken, $theme) {
+      .theme-#{$theme} & {
+        #{$property}: darken(map-get($colors, $key), $diff) #{$args};
+      }
+    } @else {
+      .theme-#{$theme} & {
+        #{$property}: lighten(map-get($colors, $key), $diff) #{$args};
+      }
+    }
+  }
+}
+
+/* Theme color diff mixin */
+@mixin theme-color-diff($property, $key, $diff, $args:'') {
+  @each $theme, $colors in $themes {
+    $color: map-get($colors, $key);
+    @if luminance($color) > 0.5 {
+      .theme-#{$theme} & {
+        #{$property}: darken(map-get($colors, $key), $diff) #{$args};
+      }
+    } @else {
+      .theme-#{$theme} & {
+        #{$property}: lighten(map-get($colors, $key), $diff) #{$args};
+      }
     }
   }
 }
@@ -79,21 +203,6 @@ $themes: (
   @each $theme, $colors in $themes {
     .theme-#{$theme} & {
       #{$property}: lighten(map-get($colors, $key), $lighten) #{$args};
-    }
-  }
-}
-
-/* Theme highlight lighten mixin */
-@mixin theme-highlight-lighten($property, $key, $lighten, $args:'') {
-  @each $theme, $colors in $themes {
-    .theme-#{$theme}.theme-beats & {
-      #{$property}: lighten(map-get($colors, 'c-beats-' + $key), $lighten) #{$args};
-    }
-    .theme-#{$theme}.theme-request & {
-      #{$property}: lighten(map-get($colors, 'c-request-' + $key), $lighten) #{$args};
-    }
-    .theme-#{$theme}.theme-audio & {
-      #{$property}: lighten(map-get($colors, 'c-audio-' + $key), $lighten) #{$args};
     }
   }
 }

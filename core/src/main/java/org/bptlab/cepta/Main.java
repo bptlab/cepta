@@ -34,7 +34,7 @@ import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.constants.Topics;
+import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
-import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -57,11 +57,35 @@ import java.util.Properties;
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "0.1.1",
+    version = "0.2.1",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
+
+  private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
+  private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
+  private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+
+  private void setupConsumers() {
+    this.liveTrainDataConsumer =
+        new FlinkKafkaConsumer011<LiveTrainData>(
+          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+          new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
+          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+
+    this.plannedTrainDataConsumer =
+        new FlinkKafkaConsumer011<>(
+          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+            new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
+            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+
+    this.weatherDataConsumer =
+        new FlinkKafkaConsumer011<>(
+            Topic.WEATHER_DATA.getValueDescriptor().getName(),
+            new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
+            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+  }
 
   @Mixin
   KafkaConfig kafkaConfig = new KafkaConfig();
@@ -71,46 +95,11 @@ public class Main implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    logger.info("Starting cepta core...");
-
-    try (InputStream input = new FileInputStream("build-data.properties")) {
-
-      Properties prop = new Properties();
-
-      // load a properties file
-      prop.load(input);
-
-      // get the property value and print it out
-      System.out.println(prop.getProperty("db.url"));
-      System.out.println(prop.getProperty("db.user"));
-      System.out.println(prop.getProperty("db.password"));
-
-    } catch (IOException ex) {
-        ex.printStackTrace();
-    }
+    logger.info("Starting CEPTA core...");
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.setParallelism(1);
-
-    
-    FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<LiveTrainData>(
-          Topics.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
-
-    FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topics.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
-
-    FlinkKafkaConsumer011<WeatherData> weatherDataConsumer =
-        new FlinkKafkaConsumer011<>(
-            Topics.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+    this.setupConsumers();
 
     // Add consumer as source for data stream
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
@@ -159,7 +148,7 @@ public class Main implements Callable<Integer> {
 
 
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topics.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
+        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
         new GenericBinaryProtoSerializer<TrainDelayNotification>(),
         delaySenderConfig.getProperties());
 

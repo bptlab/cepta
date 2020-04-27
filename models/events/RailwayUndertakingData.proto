@@ -1,0 +1,10 @@
+syntax = "proto3";
+package models.events;
+option go_package = "github.com/bptlab/cepta/models/events/info";
+option java_package = "org.bptlab.cepta.models.events.info"; //should this be in events? since this is more a database thing
+
+message RailwayUndertakingData {
+    int64 ru_id = 1;
+    int64 im_id = 2;
+    string ru_name = 3;
+}

@@ -1,7 +1,7 @@
 ---
 name: User Story
 about: User Story template
-title: "[Not estimated yet]"
+title: ""
 labels: ''
 assignees: ''
 
@@ -21,14 +21,14 @@ assignees: ''
 
 ## Tasks
 - [ ] Open Pull Request
-- [ ] Gain knowledge about different best practices
-- [ ] Prepare a short presentation to share your insights with the Team
+- [ ] share your insights with the Team
+- [ ] _add tasks here!_
 
 
 
 ## Acceptance Criteria
 - [ ] Documented
-- [ ] Merged in master
+- [ ] Merged in dev
 - [ ] Linter is okay
 - [ ] Tests are written and green
 - [ ] Code Review done

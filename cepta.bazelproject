@@ -1,0 +1,31 @@
+directories:
+  .
+  core
+  osiris
+  models
+  auxiliary
+
+# Automatically includes all relevant targets under the 'directories' above
+derive_targets_from_directories: true
+
+targets:
+  # If source code isn't resolving, add additional targets that compile it here
+
+additional_languages:
+  # Uncomment any additional languages you want supported
+  # android
+  # dart
+  go
+  # javascript
+  # kotlin
+  # python
+  # scala
+  typescript
+
+import_run_configurations:
+  ijwb/Run__Core.xml
+  ijwb/Run__Replayer.xml
+  ijwb/Test__integration.xml
+  ijwb/Test__internal.xml
+  ijwb/Test__smoke.xml
+  ijwb/Test__unit.xml

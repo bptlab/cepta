@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import com.google.protobuf.Timestamp;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.bptlab.cepta.models.events.weather.WeatherDataProtos.WeatherData;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 
 public class WeatherDataProvider {
 
