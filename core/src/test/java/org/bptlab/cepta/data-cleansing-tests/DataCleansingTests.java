@@ -180,7 +180,7 @@ public class DataCleansingTests {
         DataStream<LiveTrainData> liveTrainDataStream = LiveTrainDataProvider.LiveTrainDatStream();  
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<LiveTrainData>(); 
     
-        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, 4, "TrainId");
+        DataStream<LiveTrainData> cleansedStream = DataCleansingFunction.cleanseStream(liveTrainDataStream, 4, "TrainIdSectionId");
 
         ArrayList<LiveTrainData> cleansedLiveTrainData = new ArrayList<>();
         Iterator<LiveTrainData> iterator = DataStreamUtils.collect(cleansedStream);

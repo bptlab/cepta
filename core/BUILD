@@ -18,6 +18,7 @@ java_binary(
         "//core/src/main/java/org/bptlab/cepta/operators",
         "//core/src/main/java/org/bptlab/cepta/serialization",
         "//core/src/main/java/org/bptlab/cepta/utils/types",
+        "//core/src/main/java/org/bptlab/cepta/patterns",
         "//models/constants:topic_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
@@ -39,6 +40,7 @@ java_binary(
         "@maven//:org_apache_kafka_kafka_clients",
         "@maven//:org_slf4j_slf4j_api",
         "@maven//:org_slf4j_slf4j_log4j12",
+        "@maven//:org_apache_flink_flink_cep_2_11",
     ],
 )
 
@@ -113,6 +115,9 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
     "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
+    "//core/src/test/java/org/bptlab/cepta/sum-of-delay-at-station:sum-of-delay-at-station",
+    "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
+    "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
 ]
 
 test_suite(
