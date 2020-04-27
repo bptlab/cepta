@@ -10,12 +10,12 @@ import (
 	"github.com/bptlab/cepta/models/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	tc "github.com/romnnn/testcontainers"

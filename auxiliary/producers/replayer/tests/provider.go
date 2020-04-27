@@ -23,7 +23,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/romnnn/bsonpb"
 	tc "github.com/romnnn/testcontainers"
 	"github.com/sirupsen/logrus"
@@ -31,6 +30,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 )
 
 const logLevel = logrus.ErrorLevel
@@ -142,7 +142,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 	// Create endpoint
 	test.ReplayerEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 		return replayerListener.Dial()
-	}), grpc.WithInsecure())
+	}), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
@@ -191,12 +191,12 @@ func (test *Test) startConsumer(t *testing.T) (*kafkaconsumer.Consumer, context.
 	return kafkaConsumer, cancel, wg
 }
 
-func (test *Test) streamResults(t *testing.T, request *pb.QueryOptions) []*pb.ReplayedEvent {
+func (test *Test) streamResults(t *testing.T, request *pb.QueryOptions) (results []*pb.ReplayedEvent) {
 	stream, err := test.ReplayerClient.Query(context.Background(), request)
 	if err != nil {
-		t.Errorf("Failed to query replayer: %v", err)
+		t.Fatalf("Failed to query replayer: %v", err)
+		return
 	}
-	var results []*pb.ReplayedEvent
 	for {
 		result, err := stream.Recv()
 		if err == io.EOF {
@@ -207,7 +207,7 @@ func (test *Test) streamResults(t *testing.T, request *pb.QueryOptions) []*pb.Re
 		}
 		results = append(results, result)
 	}
-	return results
+	return
 }
 
 func mapLiveTrainQueryIds(results []*pb.ReplayedEvent) []string {
