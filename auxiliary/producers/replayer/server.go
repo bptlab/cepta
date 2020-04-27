@@ -26,6 +26,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	tspb "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/romnnn/flags4urfavecli/values"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
@@ -76,9 +77,12 @@ type ReplayerServer struct {
 	WeatherRplr               *Replayer
 	GpsRplr                   *Replayer
 
-	mongo       *libdb.MongoDB
-	cancelSetup context.Context
-	producer    *kafkaproducer.Producer
+	mongo             *libdb.MongoDB
+	cancelSetup       context.Context
+	producer          *kafkaproducer.Producer
+	logLevel          log.Level
+	replayLogLevel    log.Level
+	extractorLogLevel log.Level
 }
 
 // NewReplayerServer ...
@@ -512,8 +516,10 @@ func (s *ReplayerServer) Serve(listener net.Listener, logger *log.Logger, includ
 	for _, replayer := range s.Replayers {
 		// Set common replayer parameters
 		replayer.producer = s.producer
-		replayer.Ctrl = make(chan pb.InternalControlMessageType)
+		replayer.Ctrl = make(chan pb.InternalControlMessageType, 10)
 		replayer.Brokers = s.KafkaConfig.Brokers
+		replayer.Extractor.SetLogLevel(s.extractorLogLevel)
+		logger.SetLevel(s.replayLogLevel)
 		go replayer.Start(logger)
 	}
 
@@ -572,6 +578,26 @@ func main() {
 	cliFlags = append(cliFlags, libdb.MongoDatabaseCliOptions...)
 	cliFlags = append(cliFlags, kafkaproducer.CliOptions...)
 	cliFlags = append(cliFlags, []cli.Flag{
+		&cli.GenericFlag{
+			Name: "extractor-log",
+			Value: &values.EnumValue{
+				Enum:    []string{"info", "debug", "warn", "fatal", "trace", "error", "panic"},
+				Default: "info",
+			},
+			Aliases: []string{"extractor-log-level"},
+			EnvVars: []string{"EXTRACTOR_LOG", "EXTRACTOR_LOG_LEVEL"},
+			Usage:   "Log level",
+		},
+		&cli.GenericFlag{
+			Name: "replay-log",
+			Value: &values.EnumValue{
+				Enum:    []string{"info", "debug", "warn", "fatal", "trace", "error", "panic"},
+				Default: "info",
+			},
+			Aliases: []string{"replay-log-level"},
+			EnvVars: []string{"REPLAY_LOG", "REPLAY_LOG_LEVEL"},
+			Usage:   "Log level",
+		},
 		&cli.GenericFlag{
 			Name: "include-sources",
 			Value: &clivalues.EnumListValue{
@@ -647,13 +673,7 @@ func main() {
 		Flags:   cliFlags,
 		Action: func(ctx *cli.Context) error {
 			go func() {
-				level, err := log.ParseLevel(ctx.String("log"))
-				if err != nil {
-					log.Warnf("Log level '%s' does not exist.")
-					level = log.InfoLevel
-				}
-				log.SetLevel(level)
-				logger.SetLevel(level)
+				var err error
 				port := fmt.Sprintf(":%d", ctx.Int("port"))
 				listener, err := net.Listen("tcp", port)
 				if err != nil {
@@ -664,6 +684,11 @@ func main() {
 					libdb.MongoDBConfig{}.ParseCli(ctx),
 					kafkaproducer.Config{}.ParseCli(ctx),
 				)
+				server.extractorLogLevel, err = log.ParseLevel(ctx.String("extractor-log"))
+				server.replayLogLevel, err = log.ParseLevel(ctx.String("replay-log"))
+				server.logLevel, err = log.ParseLevel(ctx.String("log"))
+				log.SetLevel(server.logLevel)
+
 				if err := server.Setup(setupCtx); err != nil {
 					log.Fatalf("Failed to setup replayer server: %v", err)
 				}
