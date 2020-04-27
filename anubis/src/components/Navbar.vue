@@ -256,7 +256,7 @@ import {
   ReplayStartOptions,
   ReplayMode,
   ReplayOptions,
-  SourceQueryOptions,
+  SourceReplay,
   ReplaySetOptionsRequest,
   ActiveReplayOptions
 } from "../generated/protobuf/models/grpc/replayer_pb";
@@ -343,7 +343,7 @@ export default class NavigationBar extends Vue {
         ReplayerModule.replayingOptions
           ?.getSourcesList()
           ?.reduce(
-            (accumulator: string[], currentValue: SourceQueryOptions) => {
+            (accumulator: string[], currentValue: SourceReplay) => {
               return accumulator.concat(currentValue.getIdsList());
             },
             [] as string[]
