@@ -45,8 +45,8 @@ public class LiveTrainDataProvider {
     env.setParallelism(1);
     ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-    liveTrains.add(trainEventWithTrainIdLocationId(42382923, 11111111));
-    liveTrains.add(trainEventWithTrainIdLocationId(42093766, 11111111));
+    liveTrains.add(trainEventWithTrainSectionIdLocationId(42382923, 11111111));
+    liveTrains.add(trainEventWithTrainSectionIdLocationId(42093766, 11111111));
     DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
         .assignTimestampsAndWatermarks(
             new AscendingTimestampExtractor<LiveTrainData>() {
@@ -64,9 +64,9 @@ public class LiveTrainDataProvider {
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
 
-    LiveTrainData ele1 = trainEventWithTrainID(2);
-    LiveTrainData ele2 = trainEventWithTrainID(3);
-    LiveTrainData ele3 = trainEventWithTrainID(4);
+    LiveTrainData ele1 = trainEventWithTrainSectionID(2);
+    LiveTrainData ele2 = trainEventWithTrainSectionID(3);
+    LiveTrainData ele3 = trainEventWithTrainSectionID(4);
 
     DataStream<LiveTrainData> liveTrainStream = env.fromElements(ele1, ele2, ele3);
 
@@ -77,9 +77,9 @@ public class LiveTrainDataProvider {
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
 
-    LiveTrainData ele1 = trainEventWithTrainID(5);
-    LiveTrainData ele2 = trainEventWithTrainID(2);
-    LiveTrainData ele3 = trainEventWithTrainID(2);
+    LiveTrainData ele1 = trainEventWithTrainSectionID(5);
+    LiveTrainData ele2 = trainEventWithTrainSectionID(2);
+    LiveTrainData ele3 = trainEventWithTrainSectionID(2);
 
     DataStream<LiveTrainData> liveTrainStream = env.fromElements(ele1, ele2, ele3);
 
@@ -92,8 +92,8 @@ public class LiveTrainDataProvider {
     env.setParallelism(1);
     ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-    liveTrains.add(trainEventWithTrainID(11111111));
-    liveTrains.add(trainEventWithTrainID(22222222));
+    liveTrains.add(trainEventWithTrainSectionID(11111111));
+    liveTrains.add(trainEventWithTrainSectionID(22222222));
     DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
         .assignTimestampsAndWatermarks(
             new AscendingTimestampExtractor<LiveTrainData>() {
@@ -211,11 +211,15 @@ public class LiveTrainDataProvider {
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setStationId(locationId).build();
   }
-  public static LiveTrainData trainEventWithTrainID(int trainId){
+  public static LiveTrainData trainEventWithTrainSectionID(int trainId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainSectionId(trainId).build();
   }
-  private static LiveTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+  public static LiveTrainData trainEventWithTrainSectionIdEventTime(int trainId, Timestamp eventTime){
+    return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
+        .setTrainSectionId(trainId).setEventTime(eventTime).build();
+  }
+  private static LiveTrainData trainEventWithTrainSectionIdLocationId(int trainId, int locationId){
     return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
         .setTrainSectionId(trainId).setStationId(locationId).build();
   }

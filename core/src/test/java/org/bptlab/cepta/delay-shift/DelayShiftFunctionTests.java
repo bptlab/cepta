@@ -58,17 +58,13 @@ public class DelayShiftFunctionTests {
 
          // Execute insert queries
          System.out.println("Inserting records into the table...");
-         sql = insertTrainWithSectionIdQuery(42382923);
-         System.out.println(sql);
+         sql = insertTrainWithSectionIdStationIdQuery(42382923, 1);
          stmt.executeUpdate(sql);
-         sql = insertTrainWithSectionIdQuery(42382923);
-         System.out.println(sql);
+         sql = insertTrainWithSectionIdStationIdQuery(42382923, 2);
          stmt.executeUpdate(sql);
-         sql = insertTrainWithSectionIdQuery(42093766);
-         System.out.println(sql);
+         sql = insertTrainWithSectionIdStationIdQuery(42093766, 3);
          stmt.executeUpdate(sql);
-         sql = insertTrainWithSectionIdQuery(333);
-         System.out.println(sql);
+         sql = insertTrainWithSectionIdStationIdQuery(333, 666);
          stmt.executeUpdate(sql);
          System.out.println("Inserted records into the table...");
 
@@ -96,7 +92,7 @@ public class DelayShiftFunctionTests {
    }
 
    @Test
-   public void testIdMatch() throws IOException {
+   public void testRightAmount() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
          postgres.start();
          initDatabase(postgres);
@@ -116,6 +112,35 @@ public class DelayShiftFunctionTests {
             delayEvents.add(delay);
          }
          Assert.assertEquals(3, delayEvents.size());
+      }
+   }
+
+   @Test
+   public void testDelayNotificationGeneration() throws IOException {
+      try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+         postgres.start();
+         initDatabase(postgres);
+         String address = postgres.getContainerIpAddress();
+         Integer port = postgres.getFirstMappedPort();
+         PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
+         
+         DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
+         DataStream<TrainDelayNotification> delayStream = AsyncDataStream
+            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
+               100000, TimeUnit.MILLISECONDS, 1);
+
+         Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(delayStream);
+         ArrayList<TrainDelayNotification> delayEvents = new ArrayList<>();
+         while(iterator.hasNext()){
+            TrainDelayNotification delay = iterator.next();
+            delayEvents.add(delay);
+         }
+
+         ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(1).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(2).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42093766).setLocationId(3).setDelay(1).build());
+         Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }
  
@@ -144,6 +169,28 @@ public class DelayShiftFunctionTests {
          "ingestion_time , " +
          "original_train_id )" +
       "VALUES (1, %d, 3, '1970-01-19 09:10:21.737', 5, 6, 7, '1970-01-19 09:06:21.737', '1970-01-19 09:06:21.737', 10, 11, 12, 13, 14, '1970-01-19 09:06:21.737', 16)", trainId);
+   }
+
+   private String insertTrainWithSectionIdStationIdQuery(long trainId, int stationId){
+      return String.format(
+      "INSERT INTO public.planned(" +
+         "id, " +
+         "train_section_id , " +
+         "station_id , " +
+         "planned_event_time , " +
+         "status , " +
+         "first_train_id , " +
+         "train_id , " +
+         "planned_departure_time_start_station , " +
+         "planned_arrival_time_end_station , " +
+         "ru_id , " +
+         "end_station_id , " +
+         "im_id , " +
+         "following_im_id , " +
+         "message_status , " +
+         "ingestion_time , " +
+         "original_train_id )" +
+      "VALUES (1, %d, %d, '1970-01-19 09:10:21.737', 5, 6, 7, '1970-01-19 09:06:21.737', '1970-01-19 09:06:21.737', 10, 11, 12, 13, 14, '1970-01-19 09:06:21.737', 16)", trainId, stationId);
    }
 
    private String createPlannedDatabaseQuery(){
