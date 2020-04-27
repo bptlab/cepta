@@ -1,9 +1,7 @@
 syntax = "proto3";
-package location;
-option go_package = "github.com/bptlab/cepta/models/events/info";
-option java_package = "org.bptlab.cepta.models.events.info"; //should this be in events? since this is more a database thing
-option java_outer_classname = "InfoDataProtos";
-
+package models.events;
+option go_package = "github.com/bptlab/cepta/models/events/countrydata";
+option java_package = "org.bptlab.cepta.models.events.countrydata"; //should this be in events? since this is more a database thing
 
 message CountryData {
     int64 country_im_id = 1;

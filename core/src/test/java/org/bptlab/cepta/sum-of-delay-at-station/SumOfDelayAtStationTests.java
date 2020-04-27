@@ -15,7 +15,7 @@ import org.bptlab.cepta.operators.SumOfDelayAtStationFunction;
 
 import org.bptlab.cepta.providers.TrainDelayNotificationDataProvider;
 
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 
 public class SumOfDelayAtStationTests {
     @Test

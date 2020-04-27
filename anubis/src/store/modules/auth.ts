@@ -1,4 +1,4 @@
-import { AuthenticationClient } from "@/generated/protobuf/models/grpc/authentication_grpc_web_pb";
+import { AuthenticationClient } from "@/generated/protobuf/models/grpc/auth_grpc_web_pb";
 import {
   VuexModule,
   Module,
@@ -13,7 +13,8 @@ import {
   UserLoginRequest,
   AuthenticationToken,
   TokenValidationRequest
-} from "@/generated/protobuf/models/grpc/authentication_pb";
+} from "@/generated/protobuf/models/grpc/auth_pb";
+import { Error, StatusCode } from "grpc-web";
 
 export interface IAuthState {
   client: AuthenticationClient;
@@ -60,8 +61,7 @@ class Auth extends VuexModule implements IAuthState {
     return new Promise<AuthenticationToken>((resolve, reject) => {
       this.setAuthState(AuthenticationState.Loading);
       this.client.login(request, undefined, (err, response) => {
-        debugger;
-        if (err != undefined) {
+        if (err) {
           this.setAuthState(AuthenticationState.Failed);
           Vue.cookies.remove("user-token");
           reject(err);
@@ -95,6 +95,15 @@ class Auth extends VuexModule implements IAuthState {
           reject(false);
         }
       });
+    });
+  }
+
+  @Action({ rawError: true })
+  public async checkUnauthenticated(error: Error): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (error != undefined && error != null) {
+        if (error.code == StatusCode.UNAUTHENTICATED) this.checkToken();
+      }
     });
   }
 

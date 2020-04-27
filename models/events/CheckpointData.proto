@@ -1,8 +1,7 @@
 syntax = "proto3";
-package checkpoint;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/checkpoint";
 option java_package = "org.bptlab.cepta.models.events.checkpoint";
-option java_outer_classname = "CheckpointDataProtos";
 
 import "google/protobuf/timestamp.proto";
 

@@ -1,7 +1,6 @@
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_java//java:defs.bzl", "java_proto_library")
-load("@rules_typescript_proto//:index.bzl", "typescript_proto_library")
 load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "ts_grpc_compile")
 load("@rules_proto_grpc//nodejs:defs.bzl", "nodejs_proto_compile")
 
@@ -363,7 +362,7 @@ go_proto_library(
 
 proto_library(
     name = "country_data_proto",
-    srcs = ["InfrastructureManagerData.proto"],
+    srcs = ["CountryData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
@@ -383,7 +382,7 @@ go_proto_library(
 
 proto_library(
     name = "railway_undertaking_data_proto",
-    srcs = ["RailwayUntertakingData.proto"],
+    srcs = ["RailwayUndertakingData.proto"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:timestamp_proto"],
 )
@@ -454,11 +453,76 @@ java_proto_library(
     deps = [":no_matching_planned_train_data_event_proto"],
 )
 
+proto_library(
+    name = "event_proto",
+    srcs = ["Event.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":checkpoint_data_proto",
+        ":country_data_proto",
+        ":crew_activity_data_proto",
+        ":crew_prep_end_data_proto",
+        ":crew_shift_data_proto",
+        ":crew_transition_data_proto",
+        ":delay_explanation_data_proto",
+        ":gps_trip_update_proto",
+        ":infrastructure_manager_data_proto",
+        ":live_train_data_proto",
+        ":location_data_proto",
+        ":planned_train_data_proto",
+        ":predicted_train_data_proto",
+        ":railway_undertaking_data_proto",
+        ":station_data_proto",
+        ":train_delay_notification_proto",
+        ":train_information_data_proto",
+        ":vehicle_data_proto",
+        ":weather_data_proto",
+        "//models/constants:topic_proto",
+    ],
+)
+
+go_proto_library(
+    name = "event_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/event",
+    proto = ":event_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":checkpoint_data_go_proto",
+        ":country_data_go_proto",
+        ":crew_activity_data_go_proto",
+        ":crew_prep_end_data_go_proto",
+        ":crew_shift_data_go_proto",
+        ":crew_transition_data_go_proto",
+        ":delay_explanation_data_go_proto",
+        ":gps_trip_update_go_proto",
+        ":infrastructure_manager_data_go_proto",
+        ":live_train_data_go_proto",
+        ":location_data_go_proto",
+        ":planned_train_data_go_proto",
+        ":predicted_train_data_go_proto",
+        ":railway_undertaking_data_go_proto",
+        ":station_data_go_proto",
+        ":train_delay_notification_go_proto",
+        ":train_information_data_go_proto",
+        ":vehicle_data_go_proto",
+        ":weather_data_go_proto",
+        "//models/constants:topic_go_proto",
+    ],
+)
+
+java_proto_library(
+    name = "event_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":event_proto"],
+)
+
 filegroup(
     name = "events",
     srcs = [
         ":checkpoint_data_go_proto",
         ":checkpoint_data_java_proto",
+        ":country_data_go_proto",
+        ":country_data_java_proto",
         ":crew_activity_data_go_proto",
         ":crew_activity_data_java_proto",
         ":crew_prep_end_data_go_proto",
@@ -473,10 +537,6 @@ filegroup(
         ":gps_trip_update_java_proto",
         ":infrastructure_manager_data_go_proto",
         ":infrastructure_manager_data_java_proto",
-        ":train_delay_notification_ts_proto",
-        ":train_delay_notification_nodejs_proto",
-        ":country_data_go_proto",
-        ":country_data_java_proto",
         ":live_train_data_go_proto",
         ":live_train_data_java_proto",
         ":location_data_go_proto",
@@ -491,6 +551,8 @@ filegroup(
         ":station_data_java_proto",
         ":train_delay_notification_go_proto",
         ":train_delay_notification_java_proto",
+        ":train_delay_notification_nodejs_proto",
+        ":train_delay_notification_ts_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
         ":vehicle_data_go_proto",

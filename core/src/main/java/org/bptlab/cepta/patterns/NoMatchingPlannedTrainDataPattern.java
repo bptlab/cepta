@@ -12,9 +12,9 @@ import org.apache.flink.cep.pattern.conditions.*;
 import org.apache.flink.cep.functions.PatternProcessFunction;
 import org.apache.flink.cep.functions.PatternProcessFunction.Context;
 import org.apache.flink.util.Collector;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
-import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventProtos.NoMatchingPlannedTrainDataEvent;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
 
 import java.util.*;
 

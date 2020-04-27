@@ -15,7 +15,13 @@ import (
 
 // MongoDB ...
 type MongoDB struct {
-	DB *mongo.Database
+	Client *mongo.Client
+	DB     *mongo.Database
+}
+
+// Close ...
+func (db *MongoDB) Close() error {
+	return db.Client.Disconnect(context.Background())
 }
 
 // MongoDBConfig ...
@@ -65,5 +71,5 @@ func MongoDatabase(config *MongoDBConfig) (*MongoDB, error) {
 		return nil, fmt.Errorf("Could not ping database within %d seconds: %s (%s:%s)", config.ConnectionTolerance.Timeout(), err.Error(), databaseConnectionURI, databaseName)
 	}
 	database := client.Database(databaseName)
-	return &MongoDB{DB: database}, nil
+	return &MongoDB{DB: database, Client: client}, nil
 }

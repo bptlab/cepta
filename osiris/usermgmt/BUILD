@@ -61,7 +61,7 @@ go_library(
         "//osiris/auth:go_default_library",
         "//osiris/usermgmt/lib:go_default_library",
         "//osiris/lib:cli",
-        "//osiris/lib:utils",
+        "//osiris/lib/utils:go_default_library",
         "//ci/versioning:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
@@ -91,7 +91,7 @@ go_test(
         "@org_mongodb_go_mongo_driver//mongo:go_default_library",
         "@org_mongodb_go_mongo_driver//mongo/options:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
-        "//osiris/lib/testing:go_default_library",
+        "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
     ],
 )

@@ -10,7 +10,7 @@ java_test(
         "//core/src/main/java/org/bptlab/cepta/operators",
         "//core/src/main/java/org/bptlab/cepta/config",
         "//core/src/test/java/org/bptlab/cepta/providers",
-
+        
         "//models/events:live_train_data_java_proto",
 
         "@maven//:org_apache_flink_flink_cep_2_11",
