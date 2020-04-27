@@ -87,7 +87,7 @@ public class SumOfDelayAtStationTests {
         if (locationAndDelayArray.size() == 0) {
             pass = false;
         }
-
+        
         for (Tuple2<Long, Double> tuple : locationAndDelayArray) {
             // check if first station matches expected delay
             if (tuple.f0.equals(expectedStation1)) {
@@ -95,6 +95,35 @@ public class SumOfDelayAtStationTests {
                     pass = false;
                 }
             } 
+        }
+        Assert.assertTrue(pass);
+    }
+
+    @Test
+    public void TestSumOfDelaysAtStationRightNumberOfTuples() throws IOException {
+
+        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction<TrainDelayNotification>();
+        // the provider provides four TrainDelayNotification elements
+        // element 1 has stationId 1, trainId 1, delay 10
+        // element 2 has stationId 2, trainId 2, delay 5
+        // element 3 has stationId 1, trainId 2, delay 15
+        // element 4 has stationId 2, trainId 1, delay 8
+        DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
+
+        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "LocationId");
+        ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<Long, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        while(iterator.hasNext()){
+            Tuple2<Long, Double> tuple = iterator.next();
+            locationAndDelayArray.add(tuple);
+        }
+        // check if any tuple is present
+        if (locationAndDelayArray.size() == 0) {
+            pass = false;
+        }
+        // check if there are only 2 Tuples present
+        if (locationAndDelayArray.size() == 2) {
+            pass = false;
         }
         Assert.assertTrue(pass);
     }
