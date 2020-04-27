@@ -7,9 +7,9 @@ java_test(
     size = "small",
     tags = ["unit"],
     deps = [
-        "//core/src/main/java/org/bptlab/cepta/operators",
-        "//core/src/main/java/org/bptlab/cepta/config",
-        "//core/src/test/java/org/bptlab/cepta/providers",
+        "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
+        "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
