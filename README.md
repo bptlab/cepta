@@ -8,7 +8,11 @@ The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
 techniques in the context of intermodal transportation.
 The project is under active development and will regularly 
-push updates to the [demo instance](https://bpt-lab.org/cepta). 
+push updates to the [demo instance](https://bpt-lab.org/cepta).
+
+For more information, see [bptlab.github.io/cepta/](https://bptlab.github.io/cepta/).
+
+![Screenshot](web/images/screenshot-light.png)
 
 #### Building
 To build all executables of the entire project:
