@@ -8,6 +8,7 @@ import (
 
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 // DbExtractor ...
@@ -22,5 +23,5 @@ type Extractor interface {
 	StartQuery(ctx context.Context, sourceName string, options *pb.SourceReplay) error
 	Next() bool
 	Done()
-	SetDebug(bool)
+	SetLogLevel(logrus.Level)
 }

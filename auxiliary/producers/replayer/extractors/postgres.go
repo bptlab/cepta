@@ -11,6 +11,8 @@ import (
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // PostgresExtractorConfig ...
@@ -26,6 +28,7 @@ type PostgresExtractor struct {
 	Config    PostgresExtractorConfig
 	debug     bool
 	rows      *sql.Rows
+	logger    *log.Logger
 }
 
 // NewPostgresExtractor ...
@@ -33,6 +36,7 @@ func NewPostgresExtractor(db *libdb.PostgresDB, extractor DbExtractor) *Postgres
 	return &PostgresExtractor{
 		DB:        db,
 		Extractor: extractor,
+		logger:    log.New(),
 	}
 }
 
@@ -60,9 +64,9 @@ func (ex *PostgresExtractor) Done() {
 	ex.rows.Close()
 }
 
-// SetDebug ...
-func (ex *PostgresExtractor) SetDebug(debug bool) {
-	ex.debug = debug
+// SetLogLevel ...
+func (ex *PostgresExtractor) SetLogLevel(level logrus.Level) {
+	ex.logger.SetLevel(level)
 }
 
 func (ex *PostgresExtractor) database() *gorm.DB {

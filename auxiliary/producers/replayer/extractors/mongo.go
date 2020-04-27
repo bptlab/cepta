@@ -11,6 +11,7 @@ import (
 	eventpb "github.com/bptlab/cepta/models/events/event"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/golang/protobuf/proto"
@@ -40,6 +41,7 @@ type MongoExtractor struct {
 	debug       bool
 	cur         *mongo.Cursor
 	unmarshaler bsonpb.Unmarshaler
+	logger      *log.Logger
 }
 
 // NewMongoExtractor ...
@@ -49,6 +51,7 @@ func NewMongoExtractor(db *libdb.MongoDB, wrapperFunc WrapperFunc, proto proto.M
 		Config:      config,
 		WrapperFunc: wrapperFunc,
 		Proto:       proto,
+		logger:      log.New(),
 	}
 }
 
@@ -90,7 +93,7 @@ func (ex *MongoExtractor) StartQuery(ctx context.Context, collectionName string,
 	ex.unmarshaler = bsonpb.Unmarshaler{AllowUnknownFields: true}
 	collection := ex.DB.DB.Collection(collectionName)
 	aggregation := ex.buildAggregation(queryOptions)
-	log.Debug(aggregation)
+	ex.logger.Debug(aggregation)
 	var err error
 	allowDisk := true
 	ex.cur, err = collection.Aggregate(ctx, aggregation, &options.AggregateOptions{AllowDiskUse: &allowDisk})
@@ -109,9 +112,9 @@ func (ex *MongoExtractor) Done() {
 	}
 }
 
-// SetDebug ...
-func (ex *MongoExtractor) SetDebug(debug bool) {
-	ex.debug = debug
+// SetLogLevel ...
+func (ex *MongoExtractor) SetLogLevel(level logrus.Level) {
+	ex.logger.SetLevel(level)
 }
 
 func (ex *MongoExtractor) getIDFieldType() reflect.Type {
@@ -119,7 +122,7 @@ func (ex *MongoExtractor) getIDFieldType() reflect.Type {
 	t := reflect.TypeOf(ex.Proto).Elem()
 	f, ok := t.FieldByName(protoFieldName)
 	if !ok {
-		log.Errorf("Could not get ID field \"%s\" of proto %v. Falling back to string", protoFieldName, t)
+		ex.logger.Errorf("Could not get ID field \"%s\" of proto %v. Falling back to string", protoFieldName, t)
 		return reflect.TypeOf("")
 	}
 	return f.Type
@@ -147,12 +150,12 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A
 				} else if idV.Kind() == reflect.String {
 					converted, err := strconv.Atoi(id)
 					if err != nil {
-						log.Error("Failed to convert ID value %v to required int: %v", id, err)
+						ex.logger.Error("Failed to convert ID value %v to required int: %v", id, err)
 					} else {
 						ids = append(ids, converted)
 					}
 				} else {
-					log.Error("Skipping bad ID %v of type %v (wanted int)", idV, idV.Type())
+					ex.logger.Error("Skipping bad ID %v of type %v (wanted int)", idV, idV.Type())
 				}
 			case reflect.String:
 				if idV.Kind() == reflect.String {
@@ -160,11 +163,11 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A
 				} else if idV.Kind() == reflect.Int || idV.Kind() == reflect.Int32 || idV.Kind() == reflect.Int64 {
 					ids = append(ids, strconv.Itoa(int(idV.Int())))
 				} else {
-					log.Error("Skipping bad ID %v of type %v (wanted string)", idV, idV.Type())
+					ex.logger.Error("Skipping bad ID %v of type %v (wanted string)", idV, idV.Type())
 				}
 			default:
 				// Not implemented: Slice, Map, Invalid, Bool
-				log.Error("Unsupported ID type %v for Value %v", idV.Type(), idV)
+				ex.logger.Error("Unsupported ID type %v for Value %v", idV.Type(), idV)
 			}
 		}
 		mustMatch = append(mustMatch, bson.D{{strings.TrimSpace(ex.Config.IDFieldName), bson.D{{"$in", ids}}}})
