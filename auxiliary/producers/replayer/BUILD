@@ -124,7 +124,7 @@ filegroup(
 
 go_test(
     name = "replayer_internal",
-    size = "eternal",
+    size = "large",
     srcs = ["tests/internal.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,
@@ -133,7 +133,7 @@ go_test(
 
 go_test(
     name = "replayer_integration",
-    size = "eternal",
+    size = "large",
     srcs = ["tests/integration.go", ":test-helpers"],
     embed = [":go_default_library"],
     deps = TEST_DEPS,
