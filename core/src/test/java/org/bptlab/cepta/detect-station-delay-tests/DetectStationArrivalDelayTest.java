@@ -20,14 +20,11 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DetectStationArrivalDelayTest {
-    @Test
-    public void testDelayPositive() throws IOException {
-        AtomicBoolean pass = new AtomicBoolean(true);
-        //Duration delay = Duration.newBuilder().setSeconds(3600).build();
 
+    public DataStream<Tuple2<LiveTrainData,PlannedTrainData>> initStream(int delay) {
         long millis = System.currentTimeMillis();
         Timestamp plannedTime = Timestamp.newBuilder().setSeconds(millis/1000).build();
-        Timestamp liveTime = Timestamp.newBuilder().setSeconds(plannedTime.getSeconds() + 3600).build();
+        Timestamp liveTime = Timestamp.newBuilder().setSeconds(plannedTime.getSeconds() + delay).build();
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
@@ -37,7 +34,12 @@ public class DetectStationArrivalDelayTest {
 
         DataStream<Tuple2<LiveTrainData,PlannedTrainData>> matchedStream = env.fromElements(new Tuple2<LiveTrainData,PlannedTrainData>(liveEvent,plannedEvent));
 
-        DataStream<TrainDelayNotification> trainDelayStream = matchedStream.process(new DetectStationArrivalDelay()).name("train-delays");
+        return matchedStream;
+    }
+
+    public boolean checkForDelay(DataStream<TrainDelayNotification> trainDelayStream, int delay) throws IOException {
+        // We need Atomic here to be able to change the boolean within the for each line 55
+        AtomicBoolean pass = new AtomicBoolean(true);
 
         Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(trainDelayStream);
         ArrayList<TrainDelayNotification> delayNotification = new ArrayList<>();
@@ -46,16 +48,59 @@ public class DetectStationArrivalDelayTest {
             delayNotification.add(notification);
         }
 
-        if (delayNotification.size() != 1) {
+        if (delayNotification.size() != 1 && delay !=0) {
             pass.set(false);
+        } else if (delay == 0) {
+            if (delayNotification.size() >= 1) {
+                pass.set(false);
+            }
         }
 
         delayNotification.forEach( (trainDelayNotification) -> {
-            if ( trainDelayNotification.getDelay() != 3600 ) {
+            if ( trainDelayNotification.getDelay() != delay ) {
                 pass.set(false);
             }
         });
 
-        Assert.assertTrue(pass.get());
+        return pass.get();
+    }
+
+    @Test
+    public void testDelayPositive() throws IOException {
+        boolean pass = true;
+        //in seconds
+        int delay = 3600;
+
+        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+
+        pass = checkForDelay(trainDelayStream, delay);
+
+        Assert.assertTrue(pass);
+    }
+
+    @Test
+    public void testDelayNegative() throws IOException {
+        boolean pass = true;
+        //in seconds
+        int delay = -3600;
+
+        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+
+        pass = checkForDelay(trainDelayStream, delay);
+
+        Assert.assertTrue(pass);
+    }
+
+    @Test
+    public void testNoDelay() throws IOException {
+        boolean pass = true;
+        //in seconds
+        int delay = 0;
+
+        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+
+        pass = checkForDelay(trainDelayStream, delay);
+
+        Assert.assertTrue(pass);
     }
 }
