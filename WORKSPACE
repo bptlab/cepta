@@ -791,13 +791,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_grpc_grpc_go",
-    importpath = "github.com/grpc/grpc-go",
-    sum = "h1:L3bSl2pSMfZbQcFd4Zy2+lD20lms8QNa5RkGHlXzIVQ=",
-    version = "v1.28.1",
-)
-
-go_repository(
     name = "com_github_konsorten_go_windows_terminal_sequences",
     importpath = "github.com/konsorten/go-windows-terminal-sequences",
     sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
@@ -807,8 +800,8 @@ go_repository(
 go_repository(
     name = "org_golang_google_grpc",
     importpath = "google.golang.org/grpc",
-    sum = "h1:bO/TA4OxCOummhSf10siHuG7vJOiwh7SpRpFZDkOgl4=",
-    version = "v1.28.0",
+    sum = "h1:EC2SB8S04d2r73uptxphDSUG+kTKVgjRPF+N3xpxRB4=",
+    version = "v1.29.1",
 )
 
 go_repository(
@@ -1465,6 +1458,6 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:n0PuOEGfc/jph4m7LA2H9NoX+HWQ8zxFyA72OqjKMoM=",
-    version = "v0.1.2",
+    sum = "h1:JJYqRY0lg2DYBtTg5YuQldCVDJ+L2LlsD8FbtdmVHeI=",
+    version = "v0.1.3",
 )

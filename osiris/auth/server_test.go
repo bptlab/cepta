@@ -14,12 +14,12 @@ import (
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/grpc/grpc-go/test/bufconn"
 	tc "github.com/romnnn/testcontainers"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 )
 
 const parallel = true
