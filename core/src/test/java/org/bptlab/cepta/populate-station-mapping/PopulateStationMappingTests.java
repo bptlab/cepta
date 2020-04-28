@@ -38,7 +38,7 @@ public class PopulateStationMappingTests {
 
   private static final boolean debug = false;
 
-  @Test
+  /*@Test
   public void testPopulateStationMappings() throws IOException, InterruptedException {
       KafkaContainer kafka = new KafkaContainer();
       kafka.start();
@@ -54,5 +54,5 @@ public class PopulateStationMappingTests {
       final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
       eventStream.forEachRemaining(e -> System.out.println(e));
-  }
+  }*/
 }
