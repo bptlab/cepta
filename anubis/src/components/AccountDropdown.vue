@@ -5,11 +5,12 @@
       class="dropdown-toggle no-after peers fxw-nw ai-c"
       data-toggle="dropdown"
     >
-      <div class="peer mR-10">
-        <img class="w-2r bdrs-50p" :src="picture" alt="" />
+      <div class="peer mR-10 user-icon-container">
+        <!--<img class="w-2r bdrs-50p" :src="picture" alt="" />-->
+        <i class="icon-user mR-10"></i>
       </div>
-      <div class="peer">
-        <span class="fsz-sm">{{ username }}</span>
+      <div class="peer user-email-container">
+        <span class="fsz-sm">{{ email }}</span>
       </div>
     </a>
     <!-- Dropdown menu items -->
@@ -44,6 +45,7 @@
 import AccountDropdownElement from "../components/AccountDropdownElement.vue";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { AuthModule } from "../store/modules/auth";
+import { UserManagementModule } from "../store/modules/usermgmt";
 
 @Component({
   name: "AccountDropdown",
@@ -52,10 +54,12 @@ import { AuthModule } from "../store/modules/auth";
   }
 })
 export default class AccountDropdown extends Vue {
-  @Prop({ default: "Account Dropdown" }) private username!: string;
   @Prop({ default: null }) private picture!: string;
 
-  open: boolean = false;
+  get email(): string {
+    let email = UserManagementModule.currentUser?.getEmail() ?? "";
+    return email.length > 15 ? email.split("@")[0] : email;
+  }
 
   logout() {
     AuthModule.authLogout();
@@ -74,6 +78,23 @@ export default class AccountDropdown extends Vue {
 
   a
     transition: all 0.1s ease-in-out
+
+  .user-email-container
+    max-width: 120px
+    // overflow: hidden
+    // display: block
+    // word-break: break-all
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    text-align: center
+
+  .user-icon-container
+    .icon-user
+      padding: 10px
+      border-radius: 50%
+      background-color: #b3ccff
+      color: white
 
   .dropdown-menu
     +theme(background-color, bgc-navbar)

@@ -15,18 +15,26 @@ static_resources:
                     - name: grpc_services
                       domains: ["*"]
                       routes:
-                        - match: { prefix: "/api/grpc/replayer/" }
-                          route:
-                            prefix_rewrite: "/"
-                            cluster: traindatareplayer_service
-                            cors:
-                              # allow_origin: ["*"]
-                              allow_headers: content-type, x-grpc-web, authorization
-                            # max_grpc_timeout: 0s
                         - match: { prefix: "/grpc/auth/" }
                           route:
                             prefix_rewrite: "/"
                             cluster: auth_service
+                            cors:
+                              # allow_origin: ["*"]
+                              allow_headers: content-type, x-grpc-web, authorization
+                            # max_grpc_timeout: 0s
+                        - match: { prefix: "/api/grpc/replayer/" }
+                          route:
+                            prefix_rewrite: "/"
+                            cluster: replayer_service
+                            cors:
+                              # allow_origin: ["*"]
+                              allow_headers: content-type, x-grpc-web, authorization
+                            # max_grpc_timeout: 0s
+                        - match: { prefix: "/api/grpc/usermgmt/" }
+                          route:
+                            prefix_rewrite: "/"
+                            cluster: usermgmt_service
                             cors:
                               # allow_origin: ["*"]
                               allow_headers: content-type, x-grpc-web, authorization
@@ -65,7 +73,7 @@ static_resources:
                   - name: envoy.grpc_web
                   - name: envoy.router
   clusters:
-    - name: traindatareplayer_service
+    - name: replayer_service
       connect_timeout: 15.0s
       type: logical_dns
       http2_protocol_options: {}
@@ -94,6 +102,7 @@ static_resources:
     - name: usermgmt_service
       connect_timeout: 15.0s
       type: logical_dns
+      http2_protocol_options: {}
       lb_policy: round_robin
       hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_USERMGMT_BACKEND_PORT} }}]
 
