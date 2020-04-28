@@ -589,20 +589,20 @@ export default class NavigationBar extends Vue {
 
     .nav-left
       float: left
-      width: calc(100% - 700px)
+      width: calc(100% - 750px)
       padding-left: 15px
       transition: 0.2s ease
       li
         float: left
 
     .nav-right
-      width: 700px
+      width: 750px
       float: right
       padding-right: 10px
 
       .time
         width: 190px
-        padding: 0px
+        padding: 0
         cursor: pointer
 
         .timezone
