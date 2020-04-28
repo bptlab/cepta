@@ -28,8 +28,8 @@ import org.apache.flink.cep.CEP;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.util.Collector;
 import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
@@ -67,25 +67,25 @@ public class Main implements Callable<Integer> {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
-  private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
-  private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+  private FlinkKafkaConsumer<LiveTrainData> liveTrainDataConsumer;
+  private FlinkKafkaConsumer<PlannedTrainData> plannedTrainDataConsumer;
+  private FlinkKafkaConsumer<WeatherData> weatherDataConsumer;
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<LiveTrainData>(
+        new FlinkKafkaConsumer<LiveTrainData>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
           new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
           new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
     this.plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
+        new FlinkKafkaConsumer<>(
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     this.weatherDataConsumer =
-        new FlinkKafkaConsumer011<>(
+        new FlinkKafkaConsumer<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
@@ -154,7 +154,7 @@ public class Main implements Callable<Integer> {
         .withKeySerializer(Optional.of(LongSerializer::new));
 
 
-    FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
+    FlinkKafkaProducer<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer<>(
         Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
         new GenericBinaryProtoSerializer<TrainDelayNotification>(),
         delaySenderConfig.getProperties());
@@ -169,7 +169,7 @@ public class Main implements Callable<Integer> {
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
-    FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
+    FlinkKafkaProducer<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer<>(
             Topic.STAYS_IN_STATION.getValueDescriptor().getName(),
             new GenericBinaryProtoSerializer<StaysInStationEvent>(),
             staysInStationKafkaConfig.getProperties());

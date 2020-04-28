@@ -146,8 +146,8 @@ GRPC_JAVA_VERSION = "1.28.1"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
@@ -183,7 +183,7 @@ maven_install(
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
-        "org.apache.flink:flink-connector-kafka-0.11_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
+        "org.apache.flink:flink-connector-kafka_%s:%s" % (SCALA_VERSION, "1.10.0"),
         "org.apache.flink:flink-cep_2.11:%s" % FLINK_VERSION,
     ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
     generate_compat_repositories = True,
