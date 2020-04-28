@@ -8,11 +8,11 @@ import "models/types/result.proto";
 
 service UserManagement {
   rpc GetUser(GetUserRequest) returns (models.types.users.User) {}
-  rpc UpdateUser(UpdateUserRequest) returns (models.types.result.Result) {}
+  rpc UpdateUser(UpdateUserRequest) returns (models.types.result.Empty) {}
   // rpc AddTransport(models.types.transports.TransportID) returns (Success) {}
   // rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
   rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
-  rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Result) {}
+  rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Empty) {}
 }
 
 message GetUserRequest {

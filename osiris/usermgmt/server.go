@@ -34,11 +34,6 @@ var BuildTime string = ""
 var server UserMgmtServer
 var grpcServer *grpc.Server
 
-var (
-	success = result.Result{Success: true}
-	failure = result.Result{Success: false}
-)
-
 // UserMgmtServer  ...
 type UserMgmtServer struct {
 	pb.UnimplementedUserManagementServer
@@ -92,22 +87,22 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 }
 
 // UpdateUser ...
-func (s *UserMgmtServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (*result.Result, error) {
+func (s *UserMgmtServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (*result.Empty, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
 	}
 	if err := lib.UpdateUser(s.DB.DB.Collection(s.UserCollection), in.User.User.Id, in.User); err != nil {
-		return &failure, err
+		return &result.Empty{}, status.Error(codes.Internal, "Failed to update the user")
 	}
-	return &success, nil
+	return &result.Empty{}, nil
 }
 
 // AddUser ...
 func (s *UserMgmtServer) AddUser(ctx context.Context, in *pb.AddUserRequest) (*users.User, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
 	}
 
 	// Check if user with same mail already exists
@@ -128,23 +123,23 @@ func (s *UserMgmtServer) AddUser(ctx context.Context, in *pb.AddUserRequest) (*u
 }
 
 // RemoveUser ...
-func (s *UserMgmtServer) RemoveUser(ctx context.Context, in *pb.RemoveUserRequest) (*result.Result, error) {
+func (s *UserMgmtServer) RemoveUser(ctx context.Context, in *pb.RemoveUserRequest) (*result.Empty, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
 	}
 	// Check for at least one other admin user
 	ok, err := lib.HasAdminUser(s.DB.DB.Collection(s.UserCollection), []*users.UserID{in.UserId})
 	if err != nil {
-		return &failure, status.Error(codes.Internal, "Failed to check admin users")
+		return &result.Empty{}, status.Error(codes.Internal, "Failed to check admin users")
 	}
 	if !ok {
-		return &failure, status.Error(codes.PermissionDenied, "Require at least one admin user")
+		return &result.Empty{}, status.Error(codes.PermissionDenied, "Require at least one admin user")
 	}
 	if err := lib.RemoveUser(s.DB.DB.Collection(s.UserCollection), in.UserId); err != nil {
-		return &failure, err
+		return &result.Empty{}, err
 	}
-	return &success, nil
+	return &result.Empty{}, nil
 }
 
 func main() {
