@@ -17,8 +17,6 @@ import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
 
 import org.apache.flink.api.java.functions.KeySelector;
 
-import javax.management.Notification;
-
 public class SumOfDelayAtStationFunction {
 
     /* This function expects a Stream of TrainDelayNotification events and a window size
