@@ -31,6 +31,14 @@ static_resources:
                               # allow_origin: ["*"]
                               allow_headers: content-type, x-grpc-web, authorization
                             # max_grpc_timeout: 0s
+                        - match: { prefix: "/grpc/usermgmt/" }
+                          route:
+                            prefix_rewrite: "/"
+                            cluster: usermgmt_service
+                            cors:
+                              # allow_origin: ["*"]
+                              allow_headers: content-type, x-grpc-web, authorization
+                            # max_grpc_timeout: 0s
                         - match: { prefix: "/api" }
                           route:
                             cluster: osiris_service
