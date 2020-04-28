@@ -3,7 +3,6 @@ package lib
 import (
 	"context"
 	"errors"
-
 	"github.com/bptlab/cepta/models/types/users"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
@@ -105,27 +104,26 @@ func UpdateUser(db *mongo.Collection, userID *users.UserID, update *users.Intern
 	if mErr != nil {
 		return mErr
 	}
-	targetUserBson, mErr := marshaler.Marshal(&users.InternalUser{User: &users.User{Id: userID}})
-	if mErr != nil {
-		return mErr
+	targetUserBson, err := queryUser(&users.InternalUser{User: &users.User{Id: userID}})
+	if err != nil {
+		return err
 	}
 	// Update the user
-	_, err := db.UpdateOne(context.Background(), targetUserBson, newUserBson)
+	log.Debugf("Updating user %v to %v", targetUserBson, newUserBson)
+	_, err = db.ReplaceOne(context.Background(), targetUserBson, newUserBson)
 	return err
 }
 
 // AddUser adds a new user to the database
 func AddUser(db *mongo.Collection, user *users.InternalUser) (*users.User, error) {
 	if user.User == nil {
-		return nil, errors.New("User is empty")
+		return nil, errors.New("user is empty")
 	}
-
-	// TODO: Check email is not in use
 
 	// Generate a new user ID
 	userID, idErr := uuid.NewRandom()
 	if idErr != nil {
-		return nil, errors.New("Failed to generate a user ID. Please try again")
+		return nil, errors.New("failed to generate a user ID. Please try again")
 	}
 	user.User.Id = &users.UserID{Id: userID.String()}
 	userBson, mErr := defaultMarshaler.Marshal(user)
@@ -150,4 +148,17 @@ func RemoveUser(db *mongo.Collection, userID *users.UserID) error {
 	log.Debugf("Removing user: %v", query)
 	_, err := db.DeleteOne(context.Background(), query)
 	return err
+}
+
+func CountUsers(db *mongo.Collection) (int64, error) {
+	var count int64
+	cur, err := db.Find(context.Background(), bson.D{})
+	if err != nil {
+		return count, err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		count++
+	}
+	return count, nil
 }

@@ -50,7 +50,7 @@ func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 		t.Fatalf("Failed to setup replayer server: %v", err)
 	}
 	go func() {
-		if err := r.Serve(listener, []string{}, []string{}); err != nil {
+		if err := r.Serve(listener); err != nil {
 			t.Fatalf("Failed to serve the replayer: %v", err)
 		}
 	}()

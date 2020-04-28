@@ -148,7 +148,7 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import { MappedTransport, Transport } from "../models/geo";
 import { formatDelay } from "../utils";
 import ListViewCell from "@/components/ListViewCell.vue";
-import { UserModule } from "@/store/modules/user";
+import { UserManagementModule } from "@/store/modules/usermgmt";
 
 @Component({
   name: "MapCell",
@@ -172,7 +172,7 @@ export default class MapCell extends Vue {
   }
 
   get delayThresholds(): { hard: number; soft: number } {
-    return UserModule.delayThresholds;
+    return UserManagementModule.delayThresholds;
   }
 
   trackTransport() {

@@ -152,7 +152,7 @@ func (r *Replayer) produce() error {
 
 	startQuery()
 	if ready {
-		r.log.Info("Ready")
+		r.log.Info("Started")
 	}
 
 	recentTime := time.Time{}
@@ -237,7 +237,7 @@ func (r *Replayer) awaitShutdown() {
 // Start ...
 func (r *Replayer) Start(log *logrus.Logger) {
 	r.log = log.WithField("source", r.SourceName)
-	r.log.Info("Starting")
+	r.log.Info("Waiting")
 	if r.Extractor == nil {
 		r.log.Errorf("Missing extractor. Waiting for shutdown.", r.SourceName)
 		r.awaitShutdown()

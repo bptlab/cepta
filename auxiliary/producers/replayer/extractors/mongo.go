@@ -131,16 +131,12 @@ func (ex *MongoExtractor) getIDFieldType() reflect.Type {
 func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A {
 	mustMatch := bson.A{}
 
-	if queryOptions.Options == nil {
-		queryOptions.Options = new(pb.ReplayOptions)
-	}
-
 	// Match ERRIDs
-	if len(queryOptions.Ids) > 0 && ex.Config.IDFieldName != "" {
+	if len(queryOptions.GetIds()) > 0 && ex.Config.IDFieldName != "" {
 		// Get target type
 		tT := ex.getIDFieldType()
 		ids := bson.A{}
-		for _, id := range queryOptions.Ids {
+		for _, id := range queryOptions.GetIds() {
 			idV := reflect.ValueOf(id)
 
 			switch tT.Kind() {
@@ -174,13 +170,13 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A
 	}
 
 	// Match time range
-	if constraints := mongoTimerangeQuery(ex.Config.SortFieldName, queryOptions.Options.Timerange); len(constraints) > 0 {
+	if constraints := mongoTimerangeQuery(ex.Config.SortFieldName, queryOptions.GetOptions().GetTimerange()); len(constraints) > 0 {
 		mustMatch = append(mustMatch, bson.D{{ex.Config.SortFieldName, constraints}})
 	}
 
 	aggregation := bson.A{
 		bson.D{{"$sort", bson.D{{ex.Config.SortFieldName, 1}}}}, // Order by column (ascending order)
-		bson.D{{"$skip", queryOptions.Options.Offset}},          // Set offset
+		bson.D{{"$skip", queryOptions.GetOptions().GetOffset()}},          // Set offset
 	}
 
 	if len(mustMatch) > 0 {
@@ -188,8 +184,8 @@ func (ex *MongoExtractor) buildAggregation(queryOptions *pb.SourceReplay) bson.A
 	}
 
 	// Set limit
-	if queryOptions.Options.Limit > 0 {
-		aggregation = append(aggregation, bson.D{{"$limit", queryOptions.Options.Limit}})
+	if queryOptions.GetOptions().GetLimit() > 0 {
+		aggregation = append(aggregation, bson.D{{"$limit", queryOptions.GetOptions().GetLimit()}})
 	}
 
 	return aggregation
