@@ -151,3 +151,31 @@ java_proto_library(
     visibility = ["//visibility:public"],
     deps = [":users_proto"],
 )
+
+filegroup(
+    name = "types",
+    srcs = [
+        ":carrier_go_proto",
+        ":carrier_java_proto",
+        ":carrier_proto",
+        ":coordinate_go_proto",
+        ":coordinate_java_proto",
+        ":coordinate_proto",
+        ":country_go_proto",
+        ":country_java_proto",
+        ":country_proto",
+        ":ids_go_proto",
+        ":ids_java_proto",
+        ":ids_proto",
+        ":result_go_proto",
+        ":result_java_proto",
+        ":result_proto",
+        ":transport_go_proto",
+        ":transport_java_proto",
+        ":transport_proto",
+        ":users_go_proto",
+        ":users_java_proto",
+        ":users_proto",
+    ],
+    visibility = ["//visibility:public"],
+)

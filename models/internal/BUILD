@@ -109,6 +109,8 @@ proto_library(
     deps = [
         ":station_proto",
         ":cargo_proto",
+        ":delay_proto",
+        "@com_google_protobuf//:timestamp_proto",
         "//models/internal/types:ids_proto",
         "//models/internal/types:carrier_proto",
         "//models/internal/types:transport_proto",
@@ -123,6 +125,7 @@ go_proto_library(
     deps = [
         ":station_go_proto",
         ":cargo_go_proto",
+        ":delay_go_proto",
         "//models/internal/types:ids_go_proto",
         "//models/internal/types:carrier_go_proto",
         "//models/internal/types:transport_go_proto",
