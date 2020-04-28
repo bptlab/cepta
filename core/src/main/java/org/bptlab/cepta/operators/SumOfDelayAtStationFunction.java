@@ -2,6 +2,7 @@ package org.bptlab.cepta.operators;
 
 import java.lang.Object;
 import java.util.HashMap;
+import java.lang.reflect.*;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -18,42 +19,46 @@ import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
 
 import org.apache.flink.api.java.functions.KeySelector;
 
-public class SumOfDelayAtStationFunction {
+public class SumOfDelayAtStationFunction<T extends Object> {
 
     /* This function expects a Stream of TrainDelayNotification events and a window size
     and sums up all delay based on the location Id's in the given window size.
     The window is a fixed event number window.
     It will return a Stream of Tuple2 with the location Id and the sum of delay. 
     */
-    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<TrainDelayNotification> inputStream, int windowSize) {
-        DataStream<Tuple2<Long, Double>> resultStream = inputStream
+    public DataStream<Tuple2<Integer, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String locationAttributName) {
+        DataStream<Tuple2<Integer, Double>> resultStream = inputStream
         .keyBy(
-            new KeySelector<TrainDelayNotification, Integer>(){
+            new KeySelector<T, Integer>(){
                 Integer key = Integer.valueOf(0);
-                public Integer getKey(TrainDelayNotification event){
+                public Integer getKey(T event){
                     Integer returnKey = key/windowSize;
                     key++;
                     return returnKey;
-                } 
+                }
             }
         )
         .window(GlobalWindows.create()).trigger(
             CustomCountTrigger.of(windowSize)
         ).process(
-            sumOfDelayAtStationWindowProcessFunction()
+            sumOfDelayAtStationWindowProcessFunction(locationAttributName)
         );
         return resultStream;
-    }; 
+    };
 
-    public static ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
-        return new ProcessWindowFunction<TrainDelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
+    public ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String locationAttributName) {
+        return new ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow>() {
             @Override
-            public void process(Integer key, Context context, Iterable<TrainDelayNotification> input, Collector<Tuple2<Long, Double>> out) throws Exception {
-                HashMap<Long, Double> sums = new HashMap<Long, Double>();
-                for (TrainDelayNotification in: input) {
-                    Long trainId = in.getTrainId();
-                    Long locationId = in.getLocationId();
-                    Double delay = in.getDelay();
+            public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Integer, Double>> out) throws Exception {
+                HashMap<Integer, Double> sums = new HashMap<Integer, Double>();
+                for (T in: input) {
+                    Class c = in.getClass();
+                    String methodName = "get" + locationAttributName;
+                    Method method = c.getDeclaredMethod(methodName);
+                    Integer locationId = Integer.valueOf(method.invoke(in).toString());
+                    method = c.getDeclaredMethod("getDelay");
+                    Double delay = Double.valueOf(method.invoke(in).toString());
+
                     if (!sums.containsKey(locationId)) {
                         sums.put(locationId, delay);
                     } else {
@@ -63,10 +68,9 @@ public class SumOfDelayAtStationFunction {
                     }
                 }
 
-                for (Long location: sums.keySet()) {
-                  
+                for (Integer location: sums.keySet()) {
                     Double delay = sums.get(location);
-                    out.collect(new Tuple2<Long, Double>(location, delay) );
+                    out.collect(new Tuple2<Integer, Double>(location, delay) );
                 }
             }
         };
