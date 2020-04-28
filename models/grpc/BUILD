@@ -1,9 +1,11 @@
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 load("@rules_proto_grpc//github.com/grpc/grpc-web:defs.bzl", "commonjs_dts_grpc_compile")
 load("@rules_proto_grpc//nodejs:defs.bzl", "nodejs_proto_compile")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_proto_library")
 
-# User management 
+# User management
 proto_library(
     name = "usermgmt_proto",
     srcs = ["usermgmt.proto"],
@@ -93,19 +95,46 @@ nodejs_proto_compile(
 )
 
 # Replayer
+
 proto_library(
     name = "replayer_proto",
     srcs = ["replayer.proto"],
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
+    deps = [
+        "//models/constants:topic_proto",
+        "//models/events:event_proto",
+        "//models/types:result_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
 )
 
 go_proto_library(
-    name = "replayer_go_proto",
+    name = "replayer_go_grpc",
     compilers = ["@io_bazel_rules_go//proto:go_grpc"],
     importpath = "github.com/bptlab/cepta/models/grpc/replayer",
     proto = ":replayer_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/constants:topic_go_proto",
+        "//models/events:event_go_proto",
+        "//models/types:result_go_proto",
+    ],
+)
+
+java_proto_library(
+    name = "replayer_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":replayer_proto"],
+)
+
+java_grpc_library(
+    name = "replayer_java_grpc",
+    srcs = [":replayer_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":replayer_java_proto",
+    ],
 )
 
 commonjs_dts_grpc_compile(
@@ -123,7 +152,8 @@ filegroup(
     srcs = [
         ":replayer_commonjs_dts_grpc_proto",
         ":replayer_nodejs_proto",
-        ":replayer_go_proto",
+        ":replayer_go_grpc",
+        ":replayer_java_proto",
         ":auth_commonjs_dts_grpc_proto",
         ":auth_nodejs_proto",
         ":auth_go_proto",

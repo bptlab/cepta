@@ -52,39 +52,31 @@
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
-        <li>
-          <a class="time" @click="toggleTimezone">
-            <span class="current-time">{{ currentTime }}</span
-            ><span class="timezone">{{ timezones[timezone] }}</span>
-          </a>
-        </li>
+        <!-- User account -->
+        <account-dropdown
+          username="Admin"
+          picture="https://randomuser.me/api/portraits/lego/5.jpg"
+        />
 
-        <li>
-          <a
-            :title="
-              connectionDegraded ? 'System degraded' : 'All systems operational'
-            "
-          >
-            <span
-              class="system-status"
-              :class="{ degraded: connectionDegraded }"
-            ></span>
-          </a>
-        </li>
-
-        <li v-if="monitorUrl">
-          <!-- Alternativ: pulse bar-chart -->
-          <a
-            title="Open monitoring"
-            target="_blank"
-            rel="noopener noreferrer"
-            :href="monitorUrl"
-            id="monitorBtn"
-            class="btn"
-          >
-            <span class="icon icon-pulse"></span>
-          </a>
-        </li>
+        <notifications-dropdown
+          title="Notifications"
+          :number="2"
+          more="notifications"
+        >
+          <template v-slot:icon>
+            <i class="icon-bell"></i>
+          </template>
+          <template v-slot:entries>
+            <notification-dropdown-element
+              headline="A new user signed up for the platform"
+              sub-headline="13 mins ago"
+            />
+            <notification-dropdown-element
+              headline="ERRID 777 arrived 10 minutes later than predicted in Berlin - Hauptbahnhof"
+              sub-headline="20 mins ago"
+            />
+          </template>
+        </notifications-dropdown>
 
         <li>
           <a
@@ -103,6 +95,20 @@
               class="icon icon-reload icon-flip-vertical"
               :class="{ 'icon-spin': isLoading }"
             ></span>
+          </a>
+        </li>
+
+        <li v-if="monitorUrl">
+          <!-- Alternativ: pulse bar-chart -->
+          <a
+            title="Open monitoring"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="monitorUrl"
+            id="monitorBtn"
+            class="btn"
+          >
+            <span class="icon icon-pulse"></span>
           </a>
         </li>
 
@@ -156,7 +162,7 @@
                 <div class="form-check form-check-inline">
                   <input
                     class="form-check-input"
-                    v-model="replayTypeInput"
+                    v-model="replayModeInput"
                     type="radio"
                     name="inlineRadioOptions"
                     id="constantReplayCheckbox"
@@ -169,7 +175,7 @@
                 <div class="form-check form-check-inline">
                   <input
                     class="form-check-input"
-                    v-model="replayTypeInput"
+                    v-model="replayModeInput"
                     type="radio"
                     name="inlineRadioOptions"
                     id="proportionalReplayCheckbox"
@@ -209,31 +215,26 @@
             </form>
           </template>
         </navbar-dropdown>
-        <notifications-dropdown
-          title="Notifications"
-          :number="2"
-          more="notifications"
-        >
-          <template v-slot:icon>
-            <i class="icon-bell"></i>
-          </template>
-          <template v-slot:entries>
-            <notification-dropdown-element
-              headline="A new user signed up for the platform"
-              sub-headline="13 mins ago"
-            />
-            <notification-dropdown-element
-              headline="ERRID 777 arrived 10 minutes later than predicted in Berlin - Hauptbahnhof"
-              sub-headline="20 mins ago"
-            />
-          </template>
-        </notifications-dropdown>
 
-        <!-- User account -->
-        <account-dropdown
-          username="Admin"
-          picture="https://randomuser.me/api/portraits/lego/5.jpg"
-        />
+        <li>
+          <a
+            :title="
+              connectionDegraded ? 'System degraded' : 'All systems operational'
+            "
+          >
+            <span
+              class="system-status"
+              :class="{ degraded: connectionDegraded }"
+            ></span>
+          </a>
+        </li>
+
+        <li>
+          <a class="time" @click="toggleTimezone">
+            <span class="current-time">{{ currentTime }}</span
+            ><span class="timezone">{{ timezones[timezone] }}</span>
+          </a>
+        </li>
       </ul>
     </div>
   </div>
@@ -254,8 +255,11 @@ import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue
 import {
   Speed,
   ReplayStartOptions,
-  ReplayType,
-  ReplayTypeOption
+  ReplayMode,
+  ReplayOptions,
+  SourceReplay,
+  ReplaySetOptionsRequest,
+  ActiveReplayOptions
 } from "../generated/protobuf/models/grpc/replayer_pb";
 import { COOKIE_THEME } from "../constants";
 
@@ -275,9 +279,9 @@ export default class NavigationBar extends Vue {
   search: any = null;
   replaySpeed: number = 0;
   replayIdsInput: string = "";
-  defaultReplayType: ReplayType =
-    ReplayType[Object.keys(ReplayType)[0] as keyof typeof ReplayType];
-  replayTypeInput: string = Object.keys(ReplayType)[0];
+  defaultReplayMode: ReplayMode =
+    ReplayMode[Object.keys(ReplayMode)[0] as keyof typeof ReplayMode];
+  replayModeInput: string = Object.keys(ReplayMode)[0];
   currentTime: string = "";
 
   private equalArrays(a1?: string[], a2?: string[]): boolean {
@@ -300,7 +304,7 @@ export default class NavigationBar extends Vue {
     let speedChanged = !(
       (this.replayingSpeed?.getSpeed() || 0) === this.replaySpeed
     );
-    let typeChanged = !(this.replayingType === this.replayType);
+    let typeChanged = !(this.replayingType === this.replayMode);
     return idsChanged || speedChanged || typeChanged;
   }
 
@@ -313,13 +317,13 @@ export default class NavigationBar extends Vue {
     );
   }
 
-  get replayType(): ReplayType {
-    let index = this.replayTypeInput
+  get replayMode(): ReplayMode {
+    let index = this.replayModeInput
       ?.trim()
-      ?.toUpperCase() as keyof typeof ReplayType;
-    return ReplayType[index] === undefined
-      ? this.defaultReplayType
-      : ReplayType[index];
+      ?.toUpperCase() as keyof typeof ReplayMode;
+    return ReplayMode[index] === undefined
+      ? this.defaultReplayMode
+      : ReplayMode[index];
   }
 
   get isReplaying() {
@@ -334,20 +338,28 @@ export default class NavigationBar extends Vue {
     return ReplayerModule.replayStatus;
   }
 
-  get replayingIds() {
-    return ReplayerModule.replayingOptions?.getIdsList();
+  get replayingIds(): string[] {
+    return [
+      ...new Set(
+        ReplayerModule.replayingOptions
+          ?.getSourcesList()
+          ?.reduce((accumulator: string[], currentValue: SourceReplay) => {
+            return accumulator.concat(currentValue.getIdsList());
+          }, [] as string[])
+      )
+    ] as string[];
   }
 
   get replayingType() {
-    return ReplayerModule.replayingOptions?.getType();
+    return ReplayerModule.replayingOptions?.getOptions()?.getMode();
   }
 
   get replayingSpeed() {
-    return ReplayerModule.replayingOptions?.getSpeed();
+    return ReplayerModule.replayingOptions?.getOptions()?.getSpeed();
   }
 
   get isConstantReplay(): boolean {
-    return this.replayType === ReplayType.CONSTANT;
+    return this.replayMode === ReplayMode.CONSTANT;
   }
 
   get replayFrequencyMin(): number {
@@ -375,17 +387,34 @@ export default class NavigationBar extends Vue {
     return AppModule.themeClass;
   }
 
-  get replayOptions() {
+  get replayStartOptions(): ReplayStartOptions {
     let options = new ReplayStartOptions();
     let errids = this.replayIds || new Array<string>();
-    options.setIdsList(errids);
-    options.setType(this.replayType);
+    options.getSourcesList()?.forEach(s => s.setIdsList(errids));
+    if (!options.hasOptions()) {
+      options.setOptions(new ReplayOptions());
+    }
+    options.getOptions()?.setMode(this.replayMode);
     if (this.scaledReplaySpeed) {
       let speed = new Speed();
       speed.setSpeed(this.scaledReplaySpeed);
-      options.setSpeed(speed);
+      options.getOptions()?.setSpeed(speed);
     }
     return options;
+  }
+
+  get replayUpdateOptions() {
+    let updateOptions = new ReplaySetOptionsRequest();
+    let replayOptions = new ActiveReplayOptions();
+    let options = this.replayStartOptions.getOptions();
+    if (options) {
+      replayOptions.setSpeed(options.getSpeed());
+      replayOptions.setMode(options.getMode());
+      replayOptions.setTimerange(options.getTimerange());
+      replayOptions.setRepeat(options.getRepeat());
+    }
+    updateOptions.setOptions(replayOptions);
+    return updateOptions;
   }
 
   dateLocale: string = "en-GB";
@@ -426,11 +455,11 @@ export default class NavigationBar extends Vue {
   }
 
   toggleReplay() {
-    ReplayerModule.toggleReplayer(this.replayOptions);
+    ReplayerModule.toggleReplayer(this.replayStartOptions);
   }
 
   updateReplay() {
-    ReplayerModule.setReplayOptions(this.replayOptions);
+    ReplayerModule.setReplayOptions(this.replayUpdateOptions);
   }
 
   resetReplay() {
@@ -537,7 +566,7 @@ export default class NavigationBar extends Vue {
       position: relative
 
       > li
-        float: left
+        float: right
         transition: all 0.1s ease-in-out
         line-height: $header-height
 
@@ -560,18 +589,20 @@ export default class NavigationBar extends Vue {
 
     .nav-left
       float: left
-      width: calc(100% - 650px)
+      width: calc(100% - 750px)
       padding-left: 15px
       transition: 0.2s ease
+      li
+        float: left
 
     .nav-right
-      width: 650px
+      width: 750px
       float: right
       padding-right: 10px
 
       .time
         width: 190px
-        padding: 0px
+        padding: 0
         cursor: pointer
 
         .timezone

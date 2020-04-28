@@ -163,7 +163,6 @@ services:
       KAFKA_BROKERS: kafka:9092
       MONGODB_HOST: mongodb
       MONGODB_PORT: ${CEPTA_MONGODB_PORT}
-      # LOG: DEBUG
       SIGNING_KEY: /etc/keys/sign.key
       JWKS_JSON: /etc/keys/jwks.json
     depends_on:

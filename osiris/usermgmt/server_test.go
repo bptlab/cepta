@@ -2,26 +2,30 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"reflect"
 	"testing"
 	"time"
-	"reflect"
 
-	"github.com/bptlab/cepta/models/types/users"
 	"github.com/bptlab/cepta/models/types/result"
 	"github.com/bptlab/cepta/models/types/transports"
+	"github.com/bptlab/cepta/models/types/users"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	integrationtesting "github.com/bptlab/cepta/osiris/lib/testing"
+	tc "github.com/romnnn/testcontainers"
 	"github.com/testcontainers/testcontainers-go"
 )
+
+const parallel = true
 
 const logLevel = logrus.ErrorLevel
 const bufSize = 1024 * 1024
@@ -66,11 +70,15 @@ type Test struct {
 
 func (test *Test) setup(t *testing.T) *Test {
 	var err error
-	var dbConn libdb.MongoDBConfig
+	var mongoConfig tc.MongoDBConfig
 	log.SetLevel(logLevel)
+	if parallel {
+		t.Parallel()
+	}
 
 	// Start mongodb container
-	test.mongoC, dbConn, err = integrationtesting.StartMongoContainer()
+
+	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -85,7 +93,14 @@ func (test *Test) setup(t *testing.T) *Test {
 	}
 
 	// Start the GRPC server
-	test.userServer, err = setUpUserMgmtServer(t, userListener, dbConn)
+	test.userServer, err = setUpUserMgmtServer(t, userListener, libdb.MongoDBConfig{
+		Host:                mongoConfig.Host,
+		Port:                mongoConfig.Port,
+		User:                mongoConfig.User,
+		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
+		Password:            mongoConfig.Password,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	})
 	if err != nil {
 		t.Fatalf("Failed to setup the user management service: %v", err)
 		return test
@@ -177,7 +192,7 @@ func TestRemoveUser(t *testing.T) {
 
 	// Add new user
 	newAdmin := &users.InternalUser{
-		User:     &users.User{Email: "my-email"},
+		User:     &users.User{Email: "my-email@web.de"},
 		Password: "hard-to-guess",
 	}
 	if _, err := test.userClient.AddUser(context.Background(), &pb.AddUserRequest{User: newAdmin}); err != nil {
@@ -257,10 +272,10 @@ func TestGetUser(t *testing.T) {
 
 	// Add a new user
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User:     &users.User{
-		  Email: "email@mail.de",
-		  Transports:   []*transports.TransportID{&transports.TransportID{Id: "14"}},
-		  },
+		User: &users.User{
+			Email:      "email@mail.de",
+			Transports: []*transports.TransportID{&transports.TransportID{Id: "14"}},
+		},
 		Password: "hard-to-guess",
 	}}
 	added, err := test.userClient.AddUser(context.Background(), newUserReq)
@@ -311,15 +326,15 @@ func TestGetTrainListFromUser(t *testing.T) {
 	test := new(Test).setup(t)
 	defer test.teardown()
 
-  transportList := []*transports.TransportID{&transports.TransportID{Id: "13"}}
+	transportList := []*transports.TransportID{&transports.TransportID{Id: "13"}}
 
 	// Add a new user
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User:           &users.User{
-		  Email:        "example@gmail.com",
-		  Transports:   transportList,
+		User: &users.User{
+			Email:      "example@gmail.com",
+			Transports: transportList,
 		},
-		Password:       "hard-to-guess",
+		Password: "hard-to-guess",
 	}}
 	added, err := test.userClient.AddUser(context.Background(), newUserReq)
 	if err != nil {
@@ -334,9 +349,9 @@ func TestGetTrainListFromUser(t *testing.T) {
 		if found == nil {
 			t.Fatalf("Failed to get user trains by querying for %v", req)
 		}
-    expected := &pb.TrainListResult{TransportId: transportList}
+		expected := &pb.TrainListResult{TransportId: transportList}
 		if reflect.DeepEqual(found.TransportId, expected.TransportId) {
-		  t.Fatalf("Failed to receive the correct trains, expected: %v and received: %v", expected, found)
+			t.Fatalf("Failed to receive the correct trains, expected: %v and received: %v", expected, found)
 		}
 	}
 
@@ -353,19 +368,19 @@ func TestGetAllUser(t *testing.T) {
 
 	// Add a new user
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User:           &users.User{
-		  Email:        "example@gmail.com",
-		  Transports:   []*transports.TransportID{&transports.TransportID{Id: "13"}},
+		User: &users.User{
+			Email:      "example@gmail.com",
+			Transports: []*transports.TransportID{&transports.TransportID{Id: "13"}},
 		},
-		Password:       "hard-to-guess",
+		Password: "hard-to-guess",
 	}}
 	_, err := test.userClient.AddUser(context.Background(), newUserReq)
 	if err != nil {
 		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
 	}
 
-	assertCanFindAllUsers := func(){
-		found, err := test.userClient.GetAllUser(context.Background(), &result.Empty{} )
+	assertCanFindAllUsers := func() {
+		found, err := test.userClient.GetAllUser(context.Background(), &result.Empty{})
 		if err != nil {
 			t.Fatalf("Failed to get user by querying: %v", err)
 		}
@@ -373,7 +388,7 @@ func TestGetAllUser(t *testing.T) {
 			t.Fatal("Failed to get user by querying")
 		}
 
-    t.Fatal(found)
+		// t.Fatal(found)
 
 		// if found != newUserReq.User || found != newOtherUserReq.User {
 		//  t.Fatal("Failed to get the correct users")

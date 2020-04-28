@@ -20,7 +20,6 @@ func FindUser(db *mongo.Collection, email string) (*users.InternalUser, error) {
 		return nil, err
 	}
 
-
 	// Check for the user in the database
 	flatUserBson, err := flatbson.Flattened(userBson, ".")
 	if err != nil {

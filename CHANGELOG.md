@@ -1,9 +1,39 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
 
-### [0.3.0] - 2020-04-24
+### [0.4.0] - 2020-05-02
 ##### Added
 - WIP
+- [#259](https://github.com/bptlab/cepta/pull/259)
+  - Integration of the `usermgmt` service with the frontend via module
+  - Display information about the current user
+  - Edit and remove own user functionality
+  - New *AddUser* view
+- [#240](https://github.com/bptlab/cepta/pull/240)
+  - Subscription to correct Kafka queue
+  - Connection to UserDB
+  - Add rabbitMQ
+  - Save User Notifications in rabbitMQ when logged out
+  - Send Notification to the users frontend over websocket when logged in
+- [#231](https://github.com/bptlab/cepta/pull/231)
+  - Track the average speed of transports
+
+##### Changed
+- WIP
+- [#220](https://github.com/bptlab/cepta/pull/220)
+  - generic internal high level models to be used in ESP pipelines
+- [#213](https://github.com/bptlab/cepta/pull/213)
+  - Single install helm chart for deploying to kubernetes clusters
+  - Automatic packaging and distribution via GitHub Pages
+
+##### Removed
+- WIP
+
+### [0.3.0] - 2020-04-27
+##### Added
+- [#244](https://github.com/bptlab/cepta/pull/244)
+  - Pattern class for LiveTrainDataEvents whose status is incoming (1-3) without a matching PlannedTrainDataEvent (after correlation)
+  - Schema for NoMatchingPlannedTrainDataEvents
 - [#242](https://github.com/bptlab/cepta/pull/242)
   - Abstractions for starting mongo containers in golang tests
   - Implement e2e authentication via envoy `http.jwt_authn.v2alpha.JwtAuthentication`
@@ -11,30 +41,24 @@ All notable changes to this project will be documented in this file.
   - Integration tests for authentication
   - Integration of authentication in the frontend
   - Add `auth` and `usermgmt` microservices in dev and prod docker env
-- [#231](https://github.com/bptlab/cepta/pull/231)
-  - Track the average speed of transports
-  - t.b.a.
-- [#220](https://github.com/bptlab/cepta/pull/220)
-  - generic internal high level models to be used in ESP pipelines
-- [#213](https://github.com/bptlab/cepta/pull/213)
-  - Single install helm chart for deploying to kubernetes clusters
-  - Automatic packaging and distribution via GitHub Pages
-- [#240](https://github.com/bptlab/cepta/pull/240)
-  - Subscription to correct Kafka queue
-  - Connection to UserDB
-  - Add rabbitMQ
-  - Save User Notifications in rabbitMQ when logged out
-  - Send Notification to the users frontend over websocket when logged in
- 
+- [#241](https://github.com/bptlab/cepta/pull/241)
+  - Add pattern which detects a train staying in a station
+  - *Remove-duplicate* function which removes all duplicate events in a DataStream
+  - Add pattern which detects an arriving train without a corresponding planned data set
+- [#239](https://github.com/bptlab/cepta/pull/239)
+  - custom operator which sums up all delays at stations
+- [#230](https://github.com/bptlab/cepta/pull/230)
+  - GRPC `Query()` interface for the replayer to be used from within internal tests
+  - Scalable container based integration tests for the replayer using [testcontainers](https://github.com/romnnn/testcontainers)
+
 ##### Changed
-- WIP
 - [#242](https://github.com/bptlab/cepta/pull/242)
   - Complete rewrite of auth and user management microservices
+- [#230](https://github.com/bptlab/cepta/pull/230)
+  - Consistency and refactoring of models
+  - A lot of bugfixes and refactoring
 - [#217](https://github.com/bptlab/cepta/pull/217)
   - consistent naming of bazel targets
-
-##### Removed
-- WIP
 
 ### [0.2.0] - 2020-04-17
 ##### Added
@@ -74,6 +98,7 @@ All notable changes to this project will be documented in this file.
 ##### Added
 - Initial versioned release
 
+[0.4.0]: https://github.com/bptlab/cepta/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bptlab/cepta/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/bptlab/cepta/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/bptlab/cepta/releases/tag/v0.1.0

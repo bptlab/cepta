@@ -19,7 +19,7 @@ go_library(
         "//osiris/lib/db:go_default_library",
         "//osiris/auth:go_default_library",
         "//osiris/lib:cli",
-        "//osiris/lib:utils",
+        "//osiris/lib/utils:go_default_library",
         "@com_github_romnnn_flatbson//:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_google_uuid//:go_default_library",

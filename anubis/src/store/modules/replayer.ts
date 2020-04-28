@@ -8,12 +8,14 @@ import {
 } from "vuex-module-decorators";
 import store from "@/store";
 import {
-  Empty,
   Speed,
   Timerange,
   ReplayStartOptions,
-  ReplayOptions
+  ReplayOptions,
+  ReplaySetOptionsRequest,
+  ActiveReplayOptions
 } from "@/generated/protobuf/models/grpc/replayer_pb";
+import { Empty } from "@/generated/protobuf/models/types/result_pb";
 
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import { AuthModule } from "./auth";
@@ -21,7 +23,7 @@ import { AuthModule } from "./auth";
 export interface IReplayerState {
   replayer: ReplayerClient;
   isReplaying: boolean;
-  replayingOptions?: ReplayStartOptions;
+  replayingOptions: ReplayStartOptions;
   replayStatus: String;
 }
 
@@ -37,17 +39,25 @@ class Replayer extends VuexModule implements IReplayerState {
     let ts = new Timestamp();
     ts.fromDate(date);
     this.replayer.seekTo(ts, AuthModule.authHeader, (err, response) => {
-      if (err) AuthModule.checkToken();
-      if (response.getSuccess()) {
+      if (err) {
+        alert(err.message);
+      } else {
         let updatedReplayTimeRange = new Timerange();
         updatedReplayTimeRange.setEnd(
-          this.replayingOptions.getRange()?.getEnd() || new Timestamp()
+          this.replayingOptions
+            .getOptions()
+            ?.getTimerange()
+            ?.getEnd() || new Timestamp()
         );
         updatedReplayTimeRange.setStart(ts);
-        this.replayingOptions.setRange(updatedReplayTimeRange);
-      } else {
-        alert("Operation failed");
+        if (!this.replayingOptions.hasOptions()) {
+          this.replayingOptions.setOptions(new ReplayOptions());
+        }
+        this.replayingOptions
+          .getOptions()
+          ?.setTimerange(updatedReplayTimeRange);
       }
+      AuthModule.checkUnauthenticated(err);
     });
   }
 
@@ -57,16 +67,24 @@ class Replayer extends VuexModule implements IReplayerState {
       new Empty(),
       AuthModule.authHeader,
       (err, response) => {
-        if (err) AuthModule.checkToken();
-        this.setReplaying(response?.getActive() || false);
+        if (err) {
+          alert(err.message);
+        } else {
+          this.setReplaying(response?.getActive() || false);
+        }
+        AuthModule.checkUnauthenticated(err);
       }
     );
     this.replayer.getOptions(
       new Empty(),
       AuthModule.authHeader,
       (err, response) => {
-        if (err) AuthModule.checkToken();
-        this.setReplayingOptions(response);
+        if (err) {
+          alert(err.message);
+        } else {
+          this.setReplayingOptions(response);
+        }
+        AuthModule.checkUnauthenticated(err);
       }
     );
   }
@@ -76,12 +94,15 @@ class Replayer extends VuexModule implements IReplayerState {
     let speed = new Speed();
     speed.setSpeed(value);
     this.replayer.setSpeed(speed, AuthModule.authHeader, (err, response) => {
-      if (err) AuthModule.checkToken();
-      if (response.getSuccess()) {
-        this.replayingOptions.setSpeed(speed);
+      if (err) {
+        alert(err.message);
       } else {
-        alert("Operation failed");
+        if (!this.replayingOptions.hasOptions()) {
+          this.replayingOptions.setOptions(new ReplayOptions());
+        }
+        this.replayingOptions.getOptions()?.setSpeed(speed);
       }
+      AuthModule.checkUnauthenticated(err);
     });
   }
 
@@ -97,13 +118,14 @@ class Replayer extends VuexModule implements IReplayerState {
   }
 
   @Mutation
-  public updateReplayingOptions(options: ReplayOptions) {
-    let updatedOptions = new ReplayStartOptions();
-    updatedOptions.setIdsList(this.replayingOptions.getIdsList());
-    updatedOptions.setSpeed(options.getSpeed());
-    updatedOptions.setRange(options.getRange());
-    updatedOptions.setType(options.getType());
-    this.setReplayingOptions(updatedOptions);
+  public updateReplayingOptions(options: ActiveReplayOptions) {
+    if (!this.replayingOptions.hasOptions()) {
+      this.replayingOptions.setOptions(new ReplayOptions());
+    }
+    this.replayingOptions.getOptions()?.setSpeed(options.getSpeed());
+    this.replayingOptions.getOptions()?.setMode(options.getMode());
+    this.replayingOptions.getOptions()?.setTimerange(options.getTimerange());
+    this.replayingOptions.getOptions()?.setRepeat(options.getRepeat());
   }
 
   @Action({ rawError: true })
@@ -114,11 +136,10 @@ class Replayer extends VuexModule implements IReplayerState {
   @Action({ rawError: true })
   public async resetReplayer() {
     this.replayer.reset(new Empty(), AuthModule.authHeader, (err, response) => {
-      if (err) AuthModule.checkToken();
-      if (!err && response.getSuccess()) {
-      } else {
-        alert("Operation failed");
+      if (err) {
+        alert(err.message);
       }
+      AuthModule.checkUnauthenticated(err);
     });
   }
 
@@ -126,30 +147,31 @@ class Replayer extends VuexModule implements IReplayerState {
   public async startReplayer(options?: ReplayStartOptions) {
     let newOptions = options || new ReplayStartOptions();
     this.replayer.start(newOptions, AuthModule.authHeader, (err, response) => {
-      if (err) AuthModule.checkToken();
-      if (!err && response.getSuccess()) {
+      if (err) {
+        alert(err.message);
+      } else {
         this.setReplaying(true);
         this.setReplayingOptions(newOptions);
-      } else {
-        alert("Operation failed");
       }
+      AuthModule.checkUnauthenticated(err);
     });
   }
 
   @Action({ rawError: true })
-  public async setReplayOptions(options?: ReplayOptions) {
-    let newOptions = options || new ReplayOptions();
+  public async setReplayOptions(options?: ReplaySetOptionsRequest) {
+    let newOptions = options || new ReplaySetOptionsRequest();
     this.replayer.setOptions(
       newOptions,
       AuthModule.authHeader,
       (err, response) => {
-        if (err) AuthModule.checkToken();
-        if (!err && response.getSuccess()) {
-          this.setReplaying(true);
-          this.updateReplayingOptions(newOptions);
+        if (err) {
+          alert(err.message);
         } else {
-          alert("Operation failed");
+          let activeOptions =
+            options?.getOptions() || new ActiveReplayOptions();
+          this.updateReplayingOptions(activeOptions);
         }
+        AuthModule.checkUnauthenticated(err);
       }
     );
   }
@@ -157,12 +179,12 @@ class Replayer extends VuexModule implements IReplayerState {
   @Action({ rawError: true })
   public async stopReplayer() {
     this.replayer.stop(new Empty(), AuthModule.authHeader, (err, response) => {
-      if (err) AuthModule.checkToken();
-      if (!err && response.getSuccess()) {
-        this.setReplaying(false);
+      if (err) {
+        alert(err.message);
       } else {
-        alert("Operation failed");
+        this.setReplaying(false);
       }
+      AuthModule.checkUnauthenticated(err);
     });
   }
 

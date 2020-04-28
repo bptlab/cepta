@@ -43,8 +43,6 @@ public class RemoveDuplicatesFunction<T extends Object> {
         .process(new ProcessWindowFunction<T, T, Integer, GlobalWindow>() {
             @Override
             public void process(Integer key, Context context, Iterable<T> input, Collector<T> out) throws Exception {
-                System.out.println("IN PROCESS");
-               
                 LinkedHashSet<T> hashSet = new LinkedHashSet<>();
                 for (T in: input) {
                     hashSet.add(in);

@@ -11,7 +11,9 @@ message UserID {
 message User {
     UserID id = 1;
     string email = 2;
-    repeated models.types.transports.TransportID transports = 4;
+    string first_name = 3;
+    string last_name = 4;
+    repeated models.types.transports.TransportID transports = 5;
 }
 
 message InternalUser {

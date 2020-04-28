@@ -1,4 +1,4 @@
-import { AuthenticationClient } from "@/generated/protobuf/models/grpc/authentication_grpc_web_pb";
+import { AuthenticationClient } from "@/generated/protobuf/models/grpc/auth_grpc_web_pb";
 import {
   VuexModule,
   Module,
@@ -13,7 +13,9 @@ import {
   UserLoginRequest,
   AuthenticationToken,
   TokenValidationRequest
-} from "@/generated/protobuf/models/grpc/authentication_pb";
+} from "@/generated/protobuf/models/grpc/auth_pb";
+import { Error, StatusCode } from "grpc-web";
+import { UserManagementModule } from "./usermgmt";
 
 export interface IAuthState {
   client: AuthenticationClient;
@@ -60,10 +62,10 @@ class Auth extends VuexModule implements IAuthState {
     return new Promise<AuthenticationToken>((resolve, reject) => {
       this.setAuthState(AuthenticationState.Loading);
       this.client.login(request, undefined, (err, response) => {
-        debugger;
-        if (err != undefined) {
+        if (err) {
           this.setAuthState(AuthenticationState.Failed);
           Vue.cookies.remove("user-token");
+          Vue.cookies.remove("user-email");
           reject(err);
         } else {
           let token = response.getToken();
@@ -71,6 +73,9 @@ class Auth extends VuexModule implements IAuthState {
           this.setAuthState(AuthenticationState.Authenticated);
           if (request.getRemember() == true) {
             Vue.cookies.set("user-token", token, {
+              expires: response.getExpiration()
+            });
+            Vue.cookies.set("user-email", response.getEmail(), {
               expires: response.getExpiration()
             });
           }
@@ -99,10 +104,21 @@ class Auth extends VuexModule implements IAuthState {
   }
 
   @Action({ rawError: true })
+  public async checkUnauthenticated(error: Error): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (error != undefined) {
+        if (error.code == StatusCode.UNAUTHENTICATED) this.checkToken();
+      }
+    });
+  }
+
+  @Action({ rawError: true })
   public authLogout() {
     Vue.cookies.remove("user-token");
+    Vue.cookies.remove("user-email");
     delete Vue.axios.defaults.headers.common["Authorization"];
     this.setAuthToken("");
+    UserManagementModule.setCurrentUserEmail("");
     this.setAuthState(null);
     router.push({ name: "login" });
   }
