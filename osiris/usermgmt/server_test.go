@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"reflect"
 	"testing"
 	"time"
+	"io"
 
 	"github.com/bptlab/cepta/models/types/result"
 	"github.com/bptlab/cepta/models/types/transports"
 	"github.com/bptlab/cepta/models/types/users"
+	"github.com/golang/protobuf/proto"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/sirupsen/logrus"
@@ -291,22 +292,15 @@ func TestGetUser(t *testing.T) {
 		if found == nil {
 			t.Fatalf("Failed to get user by querying for %v", req)
 		}
+		if equal := proto.Equal(found, added); !equal {
+			t.Fatalf("Found user: %v doesn't match expected: %v", found, added)
+		}
 		return found, err
 	}
-
-	// Assert user is found by email
-	assertCanFindUser(&pb.GetUserRequest{
-		Email: newUserReq.User.User.Email,
-	})
 
 	// Assert user is found by ID
 	assertCanFindUser(&pb.GetUserRequest{
 		UserId: added.Id,
-	})
-
-	// Assert user is found by trainId
-	assertCanFindUser(&pb.GetUserRequest{
-		TrainId: newUserReq.User.User.Transports[0],
 	})
 
 	// Assert user is found by ID and Email and ID takes precedence
@@ -315,51 +309,28 @@ func TestGetUser(t *testing.T) {
 		Email:  "not the real email",
 	})
 
-	// Assert user is found by ID and Email when ID is not found
+	// Assert user is found by trainId
+	assertCanFindUser(&pb.GetUserRequest{
+		TrainId: newUserReq.User.User.Transports[0],
+	})
+
+	// Assert user is found by email
+	assertCanFindUser(&pb.GetUserRequest{
+		Email: newUserReq.User.User.Email,
+	})
+
+
+	// Assert user is found by Email when ID is not found
 	assertCanFindUser(&pb.GetUserRequest{
 		UserId: &users.UserID{Id: "dumb-id"},
 		Email:  newUserReq.User.User.Email,
 	})
-}
 
-func TestGetTrainListFromUser(t *testing.T) {
-	test := new(Test).setup(t)
-	defer test.teardown()
-
-	transportList := []*transports.TransportID{&transports.TransportID{Id: "13"}}
-
-	// Add a new user
-	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User: &users.User{
-			Email:      "example@gmail.com",
-			Transports: transportList,
-		},
-		Password: "hard-to-guess",
-	}}
-	added, err := test.userClient.AddUser(context.Background(), newUserReq)
-	if err != nil {
-		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
-	}
-
-	assertCanFindUsersTransports := func(req *pb.TrainListRequest) {
-		found, err := test.userClient.GetTrainListFromUser(context.Background(), req)
-		if err != nil {
-			t.Fatalf("Failed to get user trains by querying for %v: %v", req, err)
-		}
-		if found == nil {
-			t.Fatalf("Failed to get user trains by querying for %v", req)
-		}
-		expected := &pb.TrainListResult{TransportId: transportList}
-		if reflect.DeepEqual(found.TransportId, expected.TransportId) {
-			t.Fatalf("Failed to receive the correct trains, expected: %v and received: %v", expected, found)
-		}
-	}
-
-	// Assert users transports are found by ID
-	assertCanFindUsersTransports(&pb.TrainListRequest{
-		UserId: added.Id,
+	// Assert user is found by trainID when ID is not found
+	assertCanFindUser(&pb.GetUserRequest{
+	  UserId: &users.UserID{Id: "dumb-id"},
+		TrainId: newUserReq.User.User.Transports[0],
 	})
-
 }
 
 func TestGetAllUser(t *testing.T) {
@@ -374,28 +345,42 @@ func TestGetAllUser(t *testing.T) {
 		},
 		Password: "hard-to-guess",
 	}}
-	_, err := test.userClient.AddUser(context.Background(), newUserReq)
+	added, err := test.userClient.AddUser(context.Background(), newUserReq)
 	if err != nil {
 		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
 	}
 
 	assertCanFindAllUsers := func() {
-		found, err := test.userClient.GetAllUser(context.Background(), &result.Empty{})
-		if err != nil {
-			t.Fatalf("Failed to get user by querying: %v", err)
-		}
-		if found == nil {
-			t.Fatal("Failed to get user by querying")
-		}
+	  // 2 Users must be in the database
+	  count := test.countUsers(t)
+	  var receivedUserCount int64 = 0
+	  var lastUser *users.User
 
-		// t.Fatal(found)
+		stream, err := test.userClient.GetAllUser(context.Background(), &result.Empty{})
+    if err != nil {
+      t.Fatalf("Failed to receive stream from the usermgmt service %v", err)
+    }
 
-		// if found != newUserReq.User || found != newOtherUserReq.User {
-		//  t.Fatal("Failed to get the correct users")
-		//}
-	}
+    for {
+      user, err := stream.Recv()
+      if err == io.EOF {
+        break
+      }
+      if err != nil {
+        t.Fatalf("Failed to receive user from our stream: %v", err)
+      }
+      receivedUserCount++
+      lastUser = user
+    }
 
-	// Assert users transports are found by ID
+    if count != receivedUserCount {
+      t.Fatalf("Failed to receive all users in our Database. Received: %d, Expected: %d", receivedUserCount, count)
+    }
+
+    if equal := proto.Equal(lastUser, added); !equal {
+        t.Fatal("Last added user in the database doesn't match last returned user")
+      }
+  }
+
 	assertCanFindAllUsers()
-
 }

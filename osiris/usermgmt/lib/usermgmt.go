@@ -76,7 +76,7 @@ func GetUserByTrainId(db *mongo.Collection, trainID *transports.TransportID) (*u
 }
 
 func GetAllUser(db *mongo.Collection, stream pb.UserManagement_GetAllUserServer) error {
-  cur, err := db.Find(context.Background(), &users.InternalUser{})
+  cur, err := db.Find(context.Background(), bson.D{})
 	if err == nil {
 		defer cur.Close(context.Background())
 		for cur.Next(context.Background()) {
@@ -86,7 +86,6 @@ func GetAllUser(db *mongo.Collection, stream pb.UserManagement_GetAllUserServer)
 			  log.Errorf("The result of the query has a wrong format: %v", err)
 				continue
 			}
-
 			if err := stream.Send(result.User); err != nil {
 			  return err
 			}
@@ -94,23 +93,6 @@ func GetAllUser(db *mongo.Collection, stream pb.UserManagement_GetAllUserServer)
 		return nil
 	}
 	return err
-    /*
-    // log.Fatalf("result: %v", result["user"])
-    resultAll := result["user"]
-    resultEmail := resultAll["email"]
-    log.Fatalf("result: %v", resultEmail)
-    userResult = users.User{
-      Email: result["user"].(string),
-      Id: result["user"].(*users.UserID ),
-      Transports: result["user"].([]*transports.TransportID ),
-    }
-
-    log.Fatalf("result: %v", userResult)
-    userResults = append(userResults, &userResult)
-  }
-
-	return userResults, err
-	*/
 }
 
 func getUser(db *mongo.Collection, user *users.User) (*users.User, error) {
@@ -137,7 +119,6 @@ func getUser(db *mongo.Collection, user *users.User) (*users.User, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return userResult.User, err
 }
 
