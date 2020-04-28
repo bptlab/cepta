@@ -156,7 +156,7 @@ import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import { MapTripPosition, Transport } from "../models/geo";
 import StationCell from "@/components/StationCell.vue";
 import { formatDelay } from "@/utils";
-import { UserModule } from "@/store/modules/user";
+import { UserManagementModule } from "@/store/modules/usermgmt";
 
 @Component({
   name: "Map",
@@ -174,7 +174,7 @@ export default class TrainData extends Vue {
   private selectedStation: MapTripPosition | null = null;
 
   get delayThresholds(): { hard: number; soft: number } {
-    return UserModule.delayThresholds;
+    return UserManagementModule.delayThresholds;
   }
 
   get selectedStationCoords(): [number, number] | undefined {

@@ -19,9 +19,11 @@ message TokenValidationRequest {
 
 message  TokenValidationResult {
   bool valid = 1;
+  string email = 2;
 }
 
 message AuthenticationToken {
   string token = 1;
-  int64 expiration = 2;
+  string email = 2;
+  int64 expiration = 3;
 }
