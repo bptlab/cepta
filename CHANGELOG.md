@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 ### [0.3.0] - 2020-04-24
 ##### Added
 - WIP
+- [#248](https://github.com/bptlab/cepta/pull/248)
+  - Refactors Delay detection based on Live and Planned Station arrival Data including tests
+  - changes TrainDelayNotification location_id to station_id to match conventions of other events
 - [#242](https://github.com/bptlab/cepta/pull/242)
   - Abstractions for starting mongo containers in golang tests
   - Implement e2e authentication via envoy `http.jwt_authn.v2alpha.JwtAuthentication`
