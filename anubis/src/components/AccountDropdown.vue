@@ -5,8 +5,9 @@
       class="dropdown-toggle no-after peers fxw-nw ai-c"
       data-toggle="dropdown"
     >
-      <div class="peer mR-10">
-        <img class="w-2r bdrs-50p" :src="picture" alt="" />
+      <div class="peer mR-10 user-icon-container">
+        <!--<img class="w-2r bdrs-50p" :src="picture" alt="" />-->
+        <i class="icon-user mR-10"></i>
       </div>
       <div class="peer">
         <span class="fsz-sm">{{ username }}</span>
@@ -74,6 +75,13 @@ export default class AccountDropdown extends Vue {
 
   a
     transition: all 0.1s ease-in-out
+
+  .user-icon-container
+    .icon-user
+      padding: 10px
+      border-radius: 50%
+      background-color: #b3ccff
+      color: white
 
   .dropdown-menu
     +theme(background-color, bgc-navbar)

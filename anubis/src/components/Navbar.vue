@@ -52,39 +52,31 @@
       <!-- Rightmost notifications and account -->
       <!-- Notifications -->
       <ul class="nav-right">
-        <li>
-          <a class="time" @click="toggleTimezone">
-            <span class="current-time">{{ currentTime }}</span
-            ><span class="timezone">{{ timezones[timezone] }}</span>
-          </a>
-        </li>
+        <!-- User account -->
+        <account-dropdown
+          username="Admin"
+          picture="https://randomuser.me/api/portraits/lego/5.jpg"
+        />
 
-        <li>
-          <a
-            :title="
-              connectionDegraded ? 'System degraded' : 'All systems operational'
-            "
-          >
-            <span
-              class="system-status"
-              :class="{ degraded: connectionDegraded }"
-            ></span>
-          </a>
-        </li>
-
-        <li v-if="monitorUrl">
-          <!-- Alternativ: pulse bar-chart -->
-          <a
-            title="Open monitoring"
-            target="_blank"
-            rel="noopener noreferrer"
-            :href="monitorUrl"
-            id="monitorBtn"
-            class="btn"
-          >
-            <span class="icon icon-pulse"></span>
-          </a>
-        </li>
+        <notifications-dropdown
+          title="Notifications"
+          :number="2"
+          more="notifications"
+        >
+          <template v-slot:icon>
+            <i class="icon-bell"></i>
+          </template>
+          <template v-slot:entries>
+            <notification-dropdown-element
+              headline="A new user signed up for the platform"
+              sub-headline="13 mins ago"
+            />
+            <notification-dropdown-element
+              headline="ERRID 777 arrived 10 minutes later than predicted in Berlin - Hauptbahnhof"
+              sub-headline="20 mins ago"
+            />
+          </template>
+        </notifications-dropdown>
 
         <li>
           <a
@@ -103,6 +95,20 @@
               class="icon icon-reload icon-flip-vertical"
               :class="{ 'icon-spin': isLoading }"
             ></span>
+          </a>
+        </li>
+
+        <li v-if="monitorUrl">
+          <!-- Alternativ: pulse bar-chart -->
+          <a
+            title="Open monitoring"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="monitorUrl"
+            id="monitorBtn"
+            class="btn"
+          >
+            <span class="icon icon-pulse"></span>
           </a>
         </li>
 
@@ -209,31 +215,26 @@
             </form>
           </template>
         </navbar-dropdown>
-        <notifications-dropdown
-          title="Notifications"
-          :number="2"
-          more="notifications"
-        >
-          <template v-slot:icon>
-            <i class="icon-bell"></i>
-          </template>
-          <template v-slot:entries>
-            <notification-dropdown-element
-              headline="A new user signed up for the platform"
-              sub-headline="13 mins ago"
-            />
-            <notification-dropdown-element
-              headline="ERRID 777 arrived 10 minutes later than predicted in Berlin - Hauptbahnhof"
-              sub-headline="20 mins ago"
-            />
-          </template>
-        </notifications-dropdown>
 
-        <!-- User account -->
-        <account-dropdown
-          username="Admin"
-          picture="https://randomuser.me/api/portraits/lego/5.jpg"
-        />
+        <li>
+          <a
+            :title="
+              connectionDegraded ? 'System degraded' : 'All systems operational'
+            "
+          >
+            <span
+              class="system-status"
+              :class="{ degraded: connectionDegraded }"
+            ></span>
+          </a>
+        </li>
+
+        <li>
+          <a class="time" @click="toggleTimezone">
+            <span class="current-time">{{ currentTime }}</span
+            ><span class="timezone">{{ timezones[timezone] }}</span>
+          </a>
+        </li>
       </ul>
     </div>
   </div>
@@ -565,7 +566,7 @@ export default class NavigationBar extends Vue {
       position: relative
 
       > li
-        float: left
+        float: right
         transition: all 0.1s ease-in-out
         line-height: $header-height
 
@@ -588,12 +589,14 @@ export default class NavigationBar extends Vue {
 
     .nav-left
       float: left
-      width: calc(100% - 650px)
+      width: calc(100% - 700px)
       padding-left: 15px
       transition: 0.2s ease
+      li
+        float: left
 
     .nav-right
-      width: 650px
+      width: 700px
       float: right
       padding-right: 10px
 
