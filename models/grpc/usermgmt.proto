@@ -11,8 +11,13 @@ service UserManagement {
   rpc UpdateUser(UpdateUserRequest) returns (models.types.result.Empty) {}
   // rpc AddTransport(models.types.transports.TransportID) returns (Success) {}
   // rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
+  rpc GetUserCount(models.types.result.Empty) returns (UserCount) {}
   rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
   rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Empty) {}
+}
+
+message UserCount {
+  int64 value = 1;
 }
 
 message GetUserRequest {

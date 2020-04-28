@@ -13,7 +13,8 @@ import {
   GetUserRequest,
   UpdateUserRequest,
   AddUserRequest,
-  RemoveUserRequest
+  RemoveUserRequest,
+  UserCount
 } from "@/generated/protobuf/models/grpc/usermgmt_pb";
 import { Empty } from "@/generated/protobuf/models/types/result_pb";
 import { User } from "@/generated/protobuf/models/types/users_pb";
@@ -42,6 +43,23 @@ class UserManagement extends VuexModule implements UserManagementState {
     } else {
       this.currentUser = undefined;
     }
+  }
+
+  @Action({ rawError: true })
+  public async getUserCount(): Promise<UserCount> {
+    return new Promise<UserCount>((resolve, reject) => {
+      this.client.getUserCount(
+        new Empty(),
+        AuthModule.authHeader,
+        (err, response) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(response);
+          }
+        }
+      );
+    });
   }
 
   @Action({ rawError: true })
