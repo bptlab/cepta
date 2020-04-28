@@ -3,7 +3,7 @@ package lib
 import (
 	"context"
 
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	"github.com/romnnn/bsonpb"
 	"github.com/romnnn/flatbson"
 	log "github.com/sirupsen/logrus"

@@ -9,7 +9,7 @@ proto_library(
 
 go_proto_library(
     name = "coordinate_go_proto",
-    importpath = "github.com/bptlab/cepta/models/types/coordinate",
+    importpath = "github.com/bptlab/cepta/models/internal/types/coordinate",
     proto = ":coordinate_proto",
     visibility = ["//visibility:public"],
 )
@@ -21,6 +21,50 @@ java_proto_library(
 )
 
 proto_library(
+    name = "ids_proto",
+    srcs = ["ids.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "ids_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/ids",
+    proto = ":ids_proto",
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "ids_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":ids_proto"],
+)
+
+proto_library(
+    name = "carrier_proto",
+    srcs = ["carrier.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ids_proto",
+    ],
+)
+
+go_proto_library(
+    name = "carrier_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/carrier",
+    proto = ":carrier_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ids_go_proto",
+    ],
+)
+
+java_proto_library(
+    name = "carrier_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":carrier_proto"],
+)
+
+proto_library(
     name = "result_proto",
     srcs = ["result.proto"],
     visibility = ["//visibility:public"],
@@ -28,7 +72,7 @@ proto_library(
 
 go_proto_library(
     name = "result_go_proto",
-    importpath = "github.com/bptlab/cepta/models/types/result",
+    importpath = "github.com/bptlab/cepta/models/internal/types/result",
     proto = ":result_proto",
     visibility = ["//visibility:public"],
 )
@@ -40,22 +84,45 @@ java_proto_library(
 )
 
 proto_library(
-    name = "transports_proto",
-    srcs = ["transports.proto"],
+    name = "country_proto",
+    srcs = ["country.proto"],
     visibility = ["//visibility:public"],
 )
 
 go_proto_library(
-    name = "transports_go_proto",
-    importpath = "github.com/bptlab/cepta/models/types/transports",
-    proto = ":transports_proto",
+    name = "country_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/result",
+    proto = ":country_proto",
     visibility = ["//visibility:public"],
 )
 
 java_proto_library(
-    name = "transports_java_proto",
+    name = "country_java_proto",
     visibility = ["//visibility:public"],
-    deps = [":transports_proto"],
+    deps = [":country_proto"],
+)
+
+proto_library(
+    name = "transport_proto",
+    srcs = ["transport.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ids_proto",
+    ],
+)
+
+go_proto_library(
+    name = "transport_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/transport",
+    proto = ":transport_proto",
+    visibility = ["//visibility:public"],
+    deps = [":ids_go_proto"],
+)
+
+java_proto_library(
+    name = "transport_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":transport_proto"],
 )
 
 proto_library(
@@ -63,17 +130,19 @@ proto_library(
     srcs = ["users.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        ":transports_proto",
+        ":ids_proto",
+        ":transport_proto",
     ],
 )
 
 go_proto_library(
     name = "users_go_proto",
-    importpath = "github.com/bptlab/cepta/models/types/users",
+    importpath = "github.com/bptlab/cepta/models/internal/types/users",
     proto = ":users_proto",
     visibility = ["//visibility:public"],
     deps = [
-        ":transports_go_proto",
+        ":ids_go_proto",
+        ":transport_go_proto",
     ],
 )
 

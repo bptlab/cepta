@@ -9,7 +9,7 @@ import (
 
 	authpb "github.com/bptlab/cepta/models/grpc/auth"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"

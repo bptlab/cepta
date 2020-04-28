@@ -14,7 +14,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/internal/types/result"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"

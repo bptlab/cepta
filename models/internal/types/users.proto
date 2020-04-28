@@ -1,8 +1,9 @@
 syntax = "proto3";
-package models.types.users;
-option go_package = "github.com/bptlab/cepta/models/types/users";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/users";
+option java_package = "org.bptlab.cepta.models.internal.types.users";
 
-import "models/types/transports.proto";
+import "models/internal/types/ids.proto";
 
 message UserID {
     string id = 1;
@@ -11,7 +12,7 @@ message UserID {
 message User {
     UserID id = 1;
     string email = 2;
-    repeated models.types.transports.TransportID transports = 4;
+    repeated models.internal.types.CeptaTransportID transports = 4;
 }
 
 message InternalUser {

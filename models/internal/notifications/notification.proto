@@ -1,0 +1,60 @@
+syntax = "proto3";
+package models.internal.notifications;
+option go_package = "github.com/bptlab/cepta/models/internal/notifications/notification";
+option java_package = "org.bptlab.cepta.models.internal.notifications.notification";
+
+import "models/internal/types/ids.proto";
+import "models/internal/delay.proto";
+
+// GENERIC NOTIFICATION
+message Notification {
+    Type type = 1;
+    Urgency urgency = 2;
+
+    oneof notification {
+        DelayNotification delay = 100;
+        HazardNotification hazard = 101;
+        SystemNotification system = 102;
+    }
+}
+
+message DelayNotification {
+    models.internal.types.CeptaTransportID cepta_id = 1;
+    models.internal.types.CeptaStationID station_id = 2;
+    models.internal.Delay delay = 3;
+}
+
+message HazardNotification {
+    // TODO
+}
+
+message SystemNotification {
+    // TODO
+}
+
+message AccumulatedNotifications {
+    repeated Notification notifications = 1;
+    int32 total = 2;
+}
+
+enum Urgency {
+    NORMAL = 0;
+    LOW = 1;
+    HIGH = 2;
+}
+
+enum Type {
+    UNKNOWN = 0;
+    BROADCAST = 1;
+    PERSONALIZED = 2;
+}
+
+enum HazardType {
+    UNKNOWN_HAZARD = 0;
+    CLOSURE = 1;
+    ACCIDENT = 2;
+    BLOCKED = 3;
+    BANNED = 4;
+
+    OTHER = 100;
+}

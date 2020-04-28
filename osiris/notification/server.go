@@ -11,7 +11,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/models/constants/topic"
-	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
+	delay "github.com/bptlab/cepta/models/internal/notifications/notification"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	"github.com/bptlab/cepta/osiris/notification/websocket"
@@ -76,7 +76,7 @@ func subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool, options kaf
 		for {
 			select {
 			case msg := <-kafkaConsumer.Messages:
-				delayEvent := &delay.TrainDelayNotification{}
+				delayEvent := &delay.Notification{}
 				err = proto.Unmarshal(msg.Value, delayEvent)
 				if err != nil {
 					log.Errorf("unmarshaling error: ", err)

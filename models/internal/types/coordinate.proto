@@ -1,7 +1,7 @@
 syntax = "proto3";
-package models.types;
-option go_package = "github.com/bptlab/cepta/models/types/coordinate";
-option java_package = "org.bptlab.cepta.models.types.coordinate";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/coordinate";
+option java_package = "org.bptlab.cepta.models.internal.types.coordinate";
 
 message Coordinate {
     double latitude = 1;

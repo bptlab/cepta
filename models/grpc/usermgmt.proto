@@ -2,37 +2,37 @@ syntax = "proto3";
 package models.grpc.usermgmt;
 option go_package = "github.com/bptlab/cepta/models/grpc/usermgmt";
 
-import "models/types/transports.proto";
-import "models/types/users.proto";
-import "models/types/result.proto";
+import "models/internal/types/transport.proto";
+import "models/internal/types/users.proto";
+import "models/internal/types/result.proto";
 
 service UserManagement {
-  rpc GetUser(GetUserRequest) returns (models.types.users.User) {}
-  rpc UpdateUser(UpdateUserRequest) returns (models.types.result.Result) {}
-  // rpc AddTransport(models.types.transports.TransportID) returns (Success) {}
+  rpc GetUser(GetUserRequest) returns (models.internal.types.User) {}
+  rpc UpdateUser(UpdateUserRequest) returns (models.internal.types.Result) {}
+  // rpc AddTransport(models.types.transport.TransportID) returns (Success) {}
   // rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
-  rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
-  rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Result) {}
+  rpc AddUser(AddUserRequest) returns (models.internal.types.User) {}
+  rpc RemoveUser(RemoveUserRequest) returns (models.internal.types.Result) {}
 }
 
 message GetUserRequest {
-  models.types.users.UserID user_id = 1;
+  models.internal.types.UserID user_id = 1;
   string email = 2;
 }
 
 message UpdateUserRequest {
-  models.types.users.InternalUser user = 1;
+  models.internal.types.InternalUser user = 1;
 }
 
 message AddTransportRequest {
-  models.types.transports.Transport transport = 1;
+  models.internal.types.Transport transport = 1;
   string email = 2;
 }
 
 message AddUserRequest {
-  models.types.users.InternalUser user = 1;
+  models.internal.types.InternalUser user = 1;
 }
 
 message RemoveUserRequest {
-  models.types.users.UserID user_id = 1;
+  models.internal.types.UserID user_id = 1;
 }

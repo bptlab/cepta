@@ -10,7 +10,7 @@ import (
 	topics "github.com/bptlab/cepta/models/constants/topic"
 	eventpb "github.com/bptlab/cepta/models/events/event"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/internal/types/result"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/romnnn/deepequal"

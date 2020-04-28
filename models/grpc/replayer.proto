@@ -7,24 +7,24 @@ import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 import "models/constants/Topic.proto";
 import "models/events/Event.proto";
-import "models/types/result.proto";
+import "models/internal/types/result.proto";
 
 service Replayer {
 
   // Basic controls
-  rpc SeekTo(google.protobuf.Timestamp) returns (models.types.result.Empty) {}
-  rpc Reset(models.types.result.Empty) returns (models.types.result.Empty) {}
-  rpc Start(ReplayStartOptions) returns (models.types.result.Empty) {}
-  rpc Stop(models.types.result.Empty) returns (models.types.result.Empty) {}
+  rpc SeekTo(google.protobuf.Timestamp) returns (models.internal.types.Empty) {}
+  rpc Reset(models.internal.types.Empty) returns (models.internal.types.Empty) {}
+  rpc Start(ReplayStartOptions) returns (models.internal.types.Empty) {}
+  rpc Stop(models.internal.types.Empty) returns (models.internal.types.Empty) {}
 
   // Configuration
-  rpc SetSpeed(Speed) returns (models.types.result.Empty) {}
-  rpc SetType(ReplayModeOption) returns (models.types.result.Empty) {}
-  rpc SetOptions(ReplaySetOptionsRequest) returns (models.types.result.Empty) {}
+  rpc SetSpeed(Speed) returns (models.internal.types.Empty) {}
+  rpc SetType(ReplayModeOption) returns (models.internal.types.Empty) {}
+  rpc SetOptions(ReplaySetOptionsRequest) returns (models.internal.types.Empty) {}
 
   // Query
-  rpc GetStatus(models.types.result.Empty) returns (ReplayStatus) {}
-  rpc GetOptions(models.types.result.Empty) returns (ReplayStartOptions) {}
+  rpc GetStatus(models.internal.types.Empty) returns (ReplayStatus) {}
+  rpc GetOptions(models.internal.types.Empty) returns (ReplayStartOptions) {}
 
   // Custom querying for internal testing infrastructure
   rpc Query(QueryOptions) returns (stream ReplayedEvent) {}
