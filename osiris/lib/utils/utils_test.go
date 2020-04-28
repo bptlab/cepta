@@ -10,6 +10,29 @@ import (
 
 const parallel = true
 
+
+func TestIsValidEmail(t *testing.T) {
+	if parallel {
+		t.Parallel()
+	}
+	for _, sample := range []struct {
+		Input    string
+		Expected bool
+	}{
+		{"cepta@cepta.org", true},
+		{"a@b.de", true},
+		{"a@b", true},
+		{"a", false},
+		{"@b", false},
+		{"@", false},
+		{"a@b@", false},
+	} {
+		if valid := IsValidEmail(sample.Input); valid != sample.Expected {
+			t.Errorf("Expected IsValidEmail(%s) = %v but got %v", sample.Input, sample.Expected, valid)
+		}
+	}
+}
+
 func TestMaxInt64(t *testing.T) {
 	if parallel {
 		t.Parallel()

@@ -24,6 +24,9 @@ additional_languages:
 
 import_run_configurations:
   ijwb/Run__Core.xml
+  ijwb/Build__Core.xml
+  ijwb/Build__Cepta.xml
+  ijwb/Build__Docker_Images.xml
   ijwb/Run__Replayer.xml
   ijwb/Test__integration.xml
   ijwb/Test__internal.xml

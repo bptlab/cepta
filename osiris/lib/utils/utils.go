@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"reflect"
+	"regexp"
 
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/mapstructure"
@@ -23,6 +24,11 @@ func AbsInt64(x int64) int64 {
 		return -x
 	}
 	return x
+}
+
+func IsValidEmail(s string) bool {
+	re := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	return re.MatchString(s)
 }
 
 // IsNilInterface ...
