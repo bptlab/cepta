@@ -311,7 +311,7 @@ export default class Sidebar extends Vue {
         line-height: 45px
         height: auto
         right: 20px
-        top: 0px
+        top: 0
         position: absolute
         transition: all 0.05s ease-in
 

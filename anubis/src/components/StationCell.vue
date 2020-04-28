@@ -65,7 +65,7 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { formatDelay } from "../utils";
 import ListViewCell from "@/components/ListViewCell.vue";
-import { UserModule } from "@/store/modules/user";
+import { UserManagementModule } from "@/store/modules/usermgmt";
 import { MapTripPosition } from "@/models/geo";
 
 @Component({
@@ -92,7 +92,7 @@ export default class StationCell extends Vue {
   }
 
   get delayThresholds(): { hard: number; soft: number } {
-    return UserModule.delayThresholds;
+    return UserManagementModule.delayThresholds;
   }
 
   viewStation() {
