@@ -135,6 +135,7 @@ func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginReques
 			if token, err := s.signJwt(&users.UserID{Id: userID.String()}); err == nil {
 				return &pb.AuthenticationToken{
 					Token:      token,
+					Email: 		in.GetEmail(),
 					Expiration: s.ExpireSeconds,
 				}, nil
 			}
@@ -154,6 +155,7 @@ func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginReques
 	if token, err := s.signJwt(user.User.Id); err == nil {
 		return &pb.AuthenticationToken{
 			Token:      token,
+			Email: 		user.GetUser().GetEmail(),
 			Expiration: s.ExpireSeconds,
 		}, nil
 	}
