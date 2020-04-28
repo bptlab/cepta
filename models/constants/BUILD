@@ -16,7 +16,7 @@ java_proto_library(
 
 go_proto_library(
     name = "constants_go_proto",
-    importpath = "github.com/bptlab/cepta/constants",
+    importpath = "github.com/bptlab/cepta/models/constants",
     proto = ":constants_proto",
     visibility = ["//visibility:public"],
 )

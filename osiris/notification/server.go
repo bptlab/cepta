@@ -24,7 +24,6 @@ import (
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
 	"github.com/bptlab/cepta/osiris/notification/websocket"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
-	lib "github.com/bptlab/cepta/osiris/notification/lib"
 	rmqProducer "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	rmqConsumer "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
 
