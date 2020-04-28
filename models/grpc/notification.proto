@@ -1,0 +1,8 @@
+syntax = "proto3";
+package models.grpc.notification;
+option go_package = "github.com/bptlab/cepta/models/grpc/notification";
+
+service Notification {
+
+}
+
