@@ -48,6 +48,7 @@ const (
 type ReplayerServer struct {
 	pb.UnimplementedReplayerServer
 
+	Immediate    bool
 	StartOptions pb.ReplayStartOptions
 	Active       bool
 	KafkaConfig  kafkaproducer.Config
@@ -105,7 +106,6 @@ func (s *ReplayerServer) SeekTo(ctx context.Context, in *tspb.Timestamp) (*resul
 	}
 	for _, replayer := range s.Replayers {
 		// Send RESET control message
-		// replayer.Options
 		replayer.Ctrl <- pb.InternalControlMessageType_RESET
 	}
 	return &result.Empty{}, nil
@@ -138,8 +138,6 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 		Options: &defaultReplayOptions,
 	}
 	proto.SetDefaults(in)
-
-	log.Infof("Requested options: %v", in)
 
 	// Set default options if no options are provided
 	if err := mergeReplayerOptions(&newStartOptions, proto.Clone(in)); err != nil {
@@ -186,14 +184,19 @@ func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (
 	s.Active = true
 	res = &result.Empty{}
 	s.setStartOptions(in)
+	s.start()
+	log.Debugf("Sources: %v", s.StartOptions.GetSources())
+	return
+}
+
+func (s *ReplayerServer) start() {
+	log.Debugf("Start options: %v", s.StartOptions)
 	for _, source := range s.StartOptions.GetSources() {
 		if replayer, included := getReplayer(s.Replayers, source.Source); included {
 			// Send START control message
 			replayer.Ctrl <- pb.InternalControlMessageType_START
 		}
 	}
-	log.Debugf("Sources: %v", s.StartOptions.GetSources())
-	return
 }
 
 // Stop ...
@@ -416,7 +419,7 @@ func include(r *Replayer, sources *[]*pb.SourceReplay) {
 }
 
 // Serve ...
-func (s *ReplayerServer) Serve(listener net.Listener, includedSrcs []string, excludedSrcs []string) error {
+func (s *ReplayerServer) Serve(listener net.Listener) error {
 
 	// For reference: When using postgres as a replaying database:
 	/*
@@ -448,7 +451,6 @@ func (s *ReplayerServer) Serve(listener net.Listener, includedSrcs []string, exc
 	}
 
 	log.Infof("Serving at %s", listener.Addr())
-	log.Info("Replayer ready")
 	s.grpcServer = grpc.NewServer(
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
@@ -458,6 +460,18 @@ func (s *ReplayerServer) Serve(listener net.Listener, includedSrcs []string, exc
 		),
 	)
 	pb.RegisterReplayerServer(s.grpcServer, s)
+
+	log.Info("Replayer ready")
+	if s.Immediate {
+		go func() {
+			log.Info("Immediate replay will start in 1 second")
+			time.Sleep(1 * time.Second)
+			s.setStartOptions(&s.StartOptions)
+			s.start()
+		}()
+	} else {
+		log.Info("Waiting for GRPC START request")
+	}
 
 	if err := s.grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
@@ -539,6 +553,13 @@ func main() {
 			EnvVars: []string{"EXCLUDE_SOURCES"},
 			Usage:   "sources to be excluded from the replay (default: none)",
 		},
+		&cli.BoolFlag{
+			Name: "immediate",
+			Value: false,
+			Aliases: []string{"no-wait", "instant"},
+			EnvVars: []string{"IMMEDIATE", "NO_WAIT", "INSTANT"},
+			Usage:   "do not wait for a start signal and start producing immediately",
+		},
 		&cli.GenericFlag{
 			Name: "mode",
 			Value: &clivalues.EnumValue{
@@ -564,10 +585,10 @@ func main() {
 			Usage:   "pause between sending events when using constant replay (in milliseconds)",
 		},
 		&cli.BoolFlag{
-			Name:    "repeat",
-			Value:   true,
-			EnvVars: []string{"REPEAT"},
-			Usage:   "whether or not to automatically resume and repeat the replay",
+			Name:    "no-repeat",
+			Value:   false,
+			EnvVars: []string{"DISABLE_REPEAT"},
+			Usage:   "disable resume after replay ended",
 		},
 		&cli.GenericFlag{
 			Name:    "start-timestamp",
@@ -616,6 +637,7 @@ func main() {
 				}()
 
 				server.done = done
+				server.Immediate = ctx.Bool("immediate")
 				server.extractorLogLevel, err = log.ParseLevel(ctx.String("extractor-log"))
 				server.replayLogLevel, err = log.ParseLevel(ctx.String("replay-log"))
 				server.logLevel, err = log.ParseLevel(ctx.String("log"))
@@ -624,7 +646,7 @@ func main() {
 				if err := server.Setup(setupCtx); err != nil {
 					log.Fatalf("Failed to setup replayer server: %v", err)
 				}
-				server.StartOptions.Options = &pb.ReplayOptions{Repeat: &wrappers.BoolValue{Value: ctx.Bool("repeat")}}
+				server.StartOptions.Options = &pb.ReplayOptions{Repeat: &wrappers.BoolValue{Value: !ctx.Bool("no-repeat")}}
 
 				// Parse included and excluded values
 				included := clivalues.EnumListValue{}.Parse(ctx.String("include-sources"))
@@ -633,10 +655,10 @@ func main() {
 				log.Infof("Exclude: %s", excluded)
 
 				replayers := filterReplayers(server.Replayers, func(r *Replayer) bool {
-					if len(included) > 0 && !utils.Contains(included, r.Topic.String()) {
+					if len(included) > 0 && !utils.Contains(included, strings.ToLower(r.Topic.String())) {
 						return false
 					}
-					if len(excluded) > 0 && utils.Contains(excluded, r.Topic.String()) {
+					if len(excluded) > 0 && utils.Contains(excluded, strings.ToLower(r.Topic.String())) {
 						return false
 					}
 					return true
@@ -676,7 +698,7 @@ func main() {
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: 5000}
 				}
 
-				server.Serve(listener, included, excluded)
+				server.Serve(listener)
 			}()
 			<-done
 			log.Info("Exiting")

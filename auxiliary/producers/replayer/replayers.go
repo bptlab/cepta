@@ -6,6 +6,7 @@ import (
 
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/bptlab/cepta/auxiliary/producers/replayer/extractors"
 	topics "github.com/bptlab/cepta/models/constants/topic"
@@ -199,6 +200,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	}
 
 	// Connect to mongoDB
+	log.Info("Connecting to MongoDB...")
 	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
 	if err != nil {
 		return fmt.Errorf("Failed to initialize mongo database: %v", err)
@@ -206,6 +208,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	*s.mongo = *mongo
 
 	// Connect to kafka
+	log.Info("Connecting to Kafka...")
 	s.producer, err = kafkaproducer.Create(ctx, s.KafkaConfig)
 	if err != nil {
 		return fmt.Errorf("Cannot produce events: %v", err)
