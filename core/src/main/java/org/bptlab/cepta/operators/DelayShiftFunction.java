@@ -71,14 +71,13 @@ public class DelayShiftFunction extends
         asyncInvoke will be called for each incoming element
         the resultFuture is where the outgoing element will be
         */
-        java.sql.Timestamp temp = prototimestampToSqlTimestamp(liveEvent.getEventTime());
-
+        java.sql.Timestamp liveEventTimeSql = prototimestampToSqlTimestamp(liveEvent.getEventTime());
         String query = String
             .format("select * from public.planned where train_section_id = %d"
                 + " and date(planned_event_time) = date('%s')",
-                liveEvent.getTrainSectionId(), temp);
+                liveEvent.getTrainSectionId(), liveEventTimeSql);
         final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
-
+        
         /*
         We create a new CompletableFuture which will be automatically and asynchronously done with the value
         from the given supplier.
@@ -123,12 +122,13 @@ public class DelayShiftFunction extends
                     }
                 }
                 resultFuture.complete(delays);
-        });
+            });
+        
     }
 
     private java.sql.Timestamp prototimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
         long seconds = protoTimestamp.getSeconds();
-        java.sql.Timestamp timestamp = new java.sql.Timestamp(seconds);
+        java.sql.Timestamp timestamp = new java.sql.Timestamp(seconds*1000);
         return timestamp;
     }
 
