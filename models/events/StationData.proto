@@ -1,8 +1,7 @@
 syntax = "proto3";
-package station;
+package models.events;
 option go_package = "github.com/bptlab/cepta/models/events/station";
 option java_package = "org.bptlab.cepta.models.events.station";
-option java_outer_classname = "StationDataProtos";
 
 import "google/protobuf/timestamp.proto";
 

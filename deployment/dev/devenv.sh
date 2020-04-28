@@ -13,7 +13,7 @@ else
   bazel run //:build-images
 fi
 
-docker-compose \
+docker-compose --compatibility \
   -f core.compose.yml \
   -f cockpit.compose.yml \
   -f envoy.compose.yml \

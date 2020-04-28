@@ -13,7 +13,7 @@ import org.bptlab.cepta.operators.RemoveDuplicatesFunction;
 import org.bptlab.cepta.providers.JavaDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 
 public class RemoveDuplicatesTests {
 

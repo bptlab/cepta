@@ -1,12 +1,9 @@
 syntax = "proto3";
-package constants;
-option go_package = "github.com/bptlab/cepta/constants";
+package models.constants;
+option go_package = "github.com/bptlab/cepta/models/constants/topic";
+option java_package = "org.bptlab.cepta.models.constants.topic";
 
-option java_multiple_files = true;
-option java_package = "org.bptlab.cepta.constants";
-// option java_outer_classname = "Constants";
-
-enum Topics {
+enum Topic {
   CHECKPOINT_DATA = 0;
   CREW_ACTIVITY_DATA = 1;
   CREW_END_DATA = 2;

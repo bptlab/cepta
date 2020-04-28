@@ -23,7 +23,7 @@ const checkNotAlreadyAuthenticated = (to: any, from: any, next: any) => {
     next();
     return;
   }
-  next("/");
+  next({ name: "dashboard" });
 };
 
 const requireAuthenticated = (to: any, from: any, next: any) => {
@@ -36,11 +36,6 @@ const requireAuthenticated = (to: any, from: any, next: any) => {
 
 export const routes: RouteConfig[] = [
   {
-    path: "/",
-    meta: { requiresAuth: true },
-    redirect: "/dashboard"
-  },
-  {
     path: "/(login|signup)",
     redirect: "/dashboard",
     component: Landing,
@@ -49,32 +44,28 @@ export const routes: RouteConfig[] = [
         path: "/login",
         name: "login",
         beforeEnter: checkNotAlreadyAuthenticated,
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Login.vue")
+          import(/* webpackChunkName: "login" */ "@/views/Login.vue")
       },
       {
         path: "/signup",
         name: "signup",
         beforeEnter: checkNotAlreadyAuthenticated,
         component: () =>
-          import(/* webpackChunkName: "about" */ "@/views/Signup.vue")
+          import(/* webpackChunkName: "signup" */ "@/views/Signup.vue")
       }
     ]
   },
   {
     path: "/user",
     redirect: "/user/settings",
-    meta: { requiresAuth: true },
     beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
         path: "manage/transports",
         name: "manage",
-        meta: { requiresAuth: true, useSearchToFilter: true },
+        meta: { useSearchToFilter: true },
         component: () =>
           import(
             /* webpackChunkName: "transportmanager" */ "@/views/TransportManager.vue"
@@ -83,7 +74,6 @@ export const routes: RouteConfig[] = [
       {
         path: "settings",
         name: "settings",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "usersettings" */ "@/views/UserSettings.vue"
@@ -92,7 +82,6 @@ export const routes: RouteConfig[] = [
       {
         path: "profile/settings",
         name: "profile",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "userprofilesettings" */ "@/views/UserProfileSettings.vue"
@@ -101,7 +90,6 @@ export const routes: RouteConfig[] = [
       {
         path: "notifications",
         name: "notifications",
-        meta: { requiresAuth: true },
         component: () =>
           import(
             /* webpackChunkName: "usernotifications" */ "@/views/UserNotifications.vue"
@@ -112,39 +100,32 @@ export const routes: RouteConfig[] = [
   {
     path: "/dashboard",
     redirect: "/dashboard/home",
-    meta: { requiresAuth: true },
+    name: "dashboard",
     beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
         path: "home",
         name: "home",
-        meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: requireAuthenticated,
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
       },
       {
         path: "feed",
         name: "feed",
-        meta: { requiresAuth: true },
-        beforeEnter: requireAuthenticated,
         component: () =>
           import(/* webpackChunkName: "feed" */ "@/views/Feed.vue")
       },
       {
         path: "map",
         name: "map",
-        meta: { requiresAuth: true, useSearchToFilter: true },
-        beforeEnter: requireAuthenticated,
+        meta: { useSearchToFilter: true },
         component: () => import(/* webpackChunkName: "map" */ "@/views/Map.vue")
       },
       {
         path: "transport/:transport",
         name: "transport",
         props: true,
-        meta: { requiresAuth: true },
-        beforeEnter: requireAuthenticated,
         component: () =>
           import(
             /* webpackChunkName: "transportdetail" */ "@/views/TransportDetail.vue"
@@ -171,13 +152,19 @@ export const routes: RouteConfig[] = [
       }
     ]
   },
+
+  {
+    path: "/",
+    redirect: "/dashboard"
+  },
+
   // Default fallback
   { path: "*", redirect: { name: "error404" } }
 ];
 
 const createRouter = () =>
   new Router({
-    mode: "history", // Disabled due to Github Pages doesn't support this, enable this if you need.
+    mode: "history",
     scrollBehavior: (to, from, savedPosition) => {
       if (savedPosition) {
         return savedPosition;

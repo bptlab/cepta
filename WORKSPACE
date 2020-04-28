@@ -66,6 +66,13 @@ rules_closure_dependencies(
 rules_closure_toolchains()
 
 http_archive(
+    name = "io_grpc_grpc_java",
+    sha256 = "c9ef39599b613a812843f1c43c90db9767f203b9a2ae6787f6bc715198e7dcb9",
+    strip_prefix = "grpc-java-1.28.1",
+    url = "https://github.com/grpc/grpc-java/archive/v1.28.1.zip",
+)
+
+http_archive(
     name = "rules_typescript_proto",
     sha256 = "0c76ae0d04eaa4d4c5f12556615cb70d294082ee672aee6dd849fea4ec2075ee",
     strip_prefix = "rules_typescript_proto-0.0.3",
@@ -135,6 +142,8 @@ RULES_JVM_EXTERNAL_TAG = "3.2"
 
 RULES_JVM_EXTERNAL_SHA = "82262ff4223c5fda6fb7ff8bd63db8131b51b413d26eb49e3131037e79e324af"
 
+GRPC_JAVA_VERSION = "1.28.1"
+
 http_archive(
     name = "rules_jvm_external",
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
@@ -143,15 +152,17 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
+load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
 
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
         "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
-        "org.testcontainers:testcontainers:1.12.5",
-        "org.testcontainers:kafka:1.12.5",
-        "org.testcontainers:postgresql:1.12.5",
+        "org.testcontainers:testcontainers:1.14.1",
+        "org.testcontainers:kafka:1.14.1",
+        "org.testcontainers:postgresql:1.14.1",
         "commons-io:commons-io:2.6",
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
@@ -166,12 +177,17 @@ maven_install(
         "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
+        # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,
+        # "io.grpc:grpc-protobuf:%s" % GRPC_JAVA_VERSION,
+        # "io.grpc:grpc-stub:%s" % GRPC_JAVA_VERSION,
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
         "org.apache.flink:flink-connector-kafka-0.11_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
         "org.apache.flink:flink-cep_2.11:%s" % FLINK_VERSION,
-    ],
+    ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
+    generate_compat_repositories = True,
+    override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
     repositories = [
         "https://jcenter.bintray.com/",
         "https://maven.google.com",
@@ -180,6 +196,20 @@ maven_install(
         # https://maven-central-eu.storage-download.googleapis.com/repos/central/data/
     ],
 )
+
+load("@maven//:compat.bzl", "compat_repositories")
+
+compat_repositories()
+
+load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
+
+# Run grpc_java_repositories after compat_repositories to ensure the
+# maven_install-selected dependencies are used.
+grpc_java_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 http_archive(
     name = "bazel_gazelle",
@@ -761,13 +791,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_grpc_grpc_go",
-    importpath = "github.com/grpc/grpc-go",
-    sum = "h1:L3bSl2pSMfZbQcFd4Zy2+lD20lms8QNa5RkGHlXzIVQ=",
-    version = "v1.28.1",
-)
-
-go_repository(
     name = "com_github_konsorten_go_windows_terminal_sequences",
     importpath = "github.com/konsorten/go-windows-terminal-sequences",
     sum = "h1:DB17ag19krx9CFsz4o3enTrPXyIXCl+2iCXH/aMAp9s=",
@@ -777,8 +800,8 @@ go_repository(
 go_repository(
     name = "org_golang_google_grpc",
     importpath = "google.golang.org/grpc",
-    sum = "h1:bO/TA4OxCOummhSf10siHuG7vJOiwh7SpRpFZDkOgl4=",
-    version = "v1.28.0",
+    sum = "h1:EC2SB8S04d2r73uptxphDSUG+kTKVgjRPF+N3xpxRB4=",
+    version = "v1.29.1",
 )
 
 go_repository(
@@ -798,8 +821,8 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_flags4urfavecli",
     importpath = "github.com/romnnn/flags4urfavecli",
-    sum = "h1:1s6q1ZYyBLbh+1YrcXKaugZ6u5MSq9R763oVpkwNU2I=",
-    version = "v0.1.1",
+    sum = "h1:L7tJbR0E6zZAy+6x/PJTwJtDhkQ/338oi/E8q3Q/CE0=",
+    version = "v0.1.2",
 )
 
 go_repository(
@@ -812,8 +835,8 @@ go_repository(
 go_repository(
     name = "com_github_testcontainers_testcontainers_go",
     importpath = "github.com/testcontainers/testcontainers-go",
-    sum = "h1:KZkEKNfnlsipJblzGCz6fmzd+0DzJ3djulYrislG3Zw=",
-    version = "v0.3.1",
+    sum = "h1:VbMekzjv6e5KmhiwMm5B1kjrCigoKYVORUVVe+QbAQc=",
+    version = "v0.5.1",
 )
 
 go_repository(
@@ -1423,4 +1446,18 @@ go_repository(
     importpath = "gotest.tools",
     sum = "h1:zpdCK+REwbk+rqjJmHhiCN6iBIigrZ39glqSF0P3KF0=",
     version = "v0.0.0-20181223230014-1083505acf35",
+)
+
+go_repository(
+    name = "com_github_cenkalti_backoff_v4",
+    importpath = "github.com/cenkalti/backoff/v4",
+    sum = "h1:JIufpQLbh4DkbQoii76ItQIUFzevQSqOLZca4eamEDs=",
+    version = "v4.0.2",
+)
+
+go_repository(
+    name = "com_github_romnnn_testcontainers",
+    importpath = "github.com/romnnn/testcontainers",
+    sum = "h1:JJYqRY0lg2DYBtTg5YuQldCVDJ+L2LlsD8FbtdmVHeI=",
+    version = "v0.1.3",
 )

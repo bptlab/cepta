@@ -3,7 +3,7 @@ package org.bptlab.cepta.providers;
 import java.util.ArrayList;
 import com.google.protobuf.Timestamp;
 import static com.google.protobuf.util.Timestamps.*;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

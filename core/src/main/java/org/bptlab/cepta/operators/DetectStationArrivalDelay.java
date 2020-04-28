@@ -4,12 +4,9 @@ package org.bptlab.cepta.operators;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
-import org.bptlab.cepta.models.events.train.LiveTrainDataProtos.LiveTrainData;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataProtos.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationProtos.TrainDelayNotification;
-import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
-
-
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 
 public class DetectStationArrivalDelay extends
         ProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, TrainDelayNotification> {
