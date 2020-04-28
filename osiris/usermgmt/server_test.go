@@ -189,7 +189,7 @@ func TestRemoveUser(t *testing.T) {
 
 	// Add new user
 	newAdmin := &users.InternalUser{
-		User:     &users.User{Email: "my-email"},
+		User:     &users.User{Email: "my-email@web.de"},
 		Password: "hard-to-guess",
 	}
 	if _, err := test.userClient.AddUser(context.Background(), &pb.AddUserRequest{User: newAdmin}); err != nil {
