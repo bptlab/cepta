@@ -5,8 +5,11 @@ import (
 	"net"
 	"testing"
 	"time"
+	"reflect"
 
 	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/types/transports"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/grpc/grpc-go/test/bufconn"
 	"github.com/sirupsen/logrus"
@@ -254,7 +257,10 @@ func TestGetUser(t *testing.T) {
 
 	// Add a new user
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User:     &users.User{Email: "email@mail.de"},
+		User:     &users.User{
+		  Email: "email@mail.de",
+		  Transports:   []*transports.TransportID{&transports.TransportID{Id: "14"}},
+		  },
 		Password: "hard-to-guess",
 	}}
 	added, err := test.userClient.AddUser(context.Background(), newUserReq)
@@ -283,6 +289,11 @@ func TestGetUser(t *testing.T) {
 		UserId: added.Id,
 	})
 
+	// Assert user is found by trainId
+	assertCanFindUser(&pb.GetUserRequest{
+		TrainId: newUserReq.User.User.Transports[0],
+	})
+
 	// Assert user is found by ID and Email and ID takes precedence
 	assertCanFindUser(&pb.GetUserRequest{
 		UserId: added.Id,
@@ -294,4 +305,82 @@ func TestGetUser(t *testing.T) {
 		UserId: &users.UserID{Id: "dumb-id"},
 		Email:  newUserReq.User.User.Email,
 	})
+}
+
+func TestGetTrainListFromUser(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+  transportList := []*transports.TransportID{&transports.TransportID{Id: "13"}}
+
+	// Add a new user
+	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User:           &users.User{
+		  Email:        "example@gmail.com",
+		  Transports:   transportList,
+		},
+		Password:       "hard-to-guess",
+	}}
+	added, err := test.userClient.AddUser(context.Background(), newUserReq)
+	if err != nil {
+		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
+	}
+
+	assertCanFindUsersTransports := func(req *pb.TrainListRequest) {
+		found, err := test.userClient.GetTrainListFromUser(context.Background(), req)
+		if err != nil {
+			t.Fatalf("Failed to get user trains by querying for %v: %v", req, err)
+		}
+		if found == nil {
+			t.Fatalf("Failed to get user trains by querying for %v", req)
+		}
+    expected := &pb.TrainListResult{TransportId: transportList}
+		if reflect.DeepEqual(found.TransportId, expected.TransportId) {
+		  t.Fatalf("Failed to receive the correct trains, expected: %v and received: %v", expected, found)
+		}
+	}
+
+	// Assert users transports are found by ID
+	assertCanFindUsersTransports(&pb.TrainListRequest{
+		UserId: added.Id,
+	})
+
+}
+
+func TestGetAllUser(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Add a new user
+	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User:           &users.User{
+		  Email:        "example@gmail.com",
+		  Transports:   []*transports.TransportID{&transports.TransportID{Id: "13"}},
+		},
+		Password:       "hard-to-guess",
+	}}
+	_, err := test.userClient.AddUser(context.Background(), newUserReq)
+	if err != nil {
+		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
+	}
+
+	assertCanFindAllUsers := func(){
+		found, err := test.userClient.GetAllUser(context.Background(), &result.Empty{} )
+		if err != nil {
+			t.Fatalf("Failed to get user by querying: %v", err)
+		}
+		if found == nil {
+			t.Fatal("Failed to get user by querying")
+		}
+
+    t.Fatal(found)
+
+		// if found != newUserReq.User || found != newOtherUserReq.User {
+		//  t.Fatal("Failed to get the correct users")
+		//}
+	}
+
+	// Assert users transports are found by ID
+	assertCanFindAllUsers()
+
 }

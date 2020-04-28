@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/bptlab/cepta/models/types/users"
+	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
+	"github.com/bptlab/cepta/models/types/transports"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
@@ -64,9 +66,52 @@ func GetUserByEmail(db *mongo.Collection, email string) (*users.User, error) {
 	return getUser(db, &users.User{Email: email})
 }
 
-// GetUserByID queries the user database by email
+// GetUserByID queries the user database by id
 func GetUserByID(db *mongo.Collection, userID *users.UserID) (*users.User, error) {
 	return getUser(db, &users.User{Id: userID})
+}
+
+// GetUserByTrainId queries the user database by trainId
+func GetUserByTrainId(db *mongo.Collection, trainID *transports.TransportID) (*users.User, error) {
+	return getUser(db, &users.User{Transports: []*transports.TransportID{trainID}})
+}
+
+func GetAllUser(db *mongo.Collection, stream pb.UserManagement_GetAllUserServer) error {
+  cur, err := db.Find(context.Background(), &users.InternalUser{})
+	if err == nil {
+		defer cur.Close(context.Background())
+		for cur.Next(context.Background()) {
+			var result users.InternalUser
+			err := cur.Decode(&result)
+			if err != nil {
+			  log.Errorf("The result of the query has a wrong format: %v", err)
+				continue
+			}
+
+			if err := stream.Send(result.User); err != nil {
+			  return err
+			}
+		}
+		return nil
+	}
+	return err
+    /*
+    // log.Fatalf("result: %v", result["user"])
+    resultAll := result["user"]
+    resultEmail := resultAll["email"]
+    log.Fatalf("result: %v", resultEmail)
+    userResult = users.User{
+      Email: result["user"].(string),
+      Id: result["user"].(*users.UserID ),
+      Transports: result["user"].([]*transports.TransportID ),
+    }
+
+    log.Fatalf("result: %v", userResult)
+    userResults = append(userResults, &userResult)
+  }
+
+	return userResults, err
+	*/
 }
 
 func getUser(db *mongo.Collection, user *users.User) (*users.User, error) {

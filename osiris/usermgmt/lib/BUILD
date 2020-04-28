@@ -13,6 +13,7 @@ go_library(
     visibility = ["//osiris/usermgmt:__pkg__"],
     deps = [
         "//models/types:users_go_proto",
+        "//models/types:transports_go_proto",
         "//models/grpc:usermgmt_go_proto",
         "//models/grpc:auth_go_proto",
         "//osiris/lib/db:go_default_library",

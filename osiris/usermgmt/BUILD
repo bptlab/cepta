@@ -56,6 +56,7 @@ go_library(
         "//models/grpc:usermgmt_go_proto",
         "//models/types:result_go_proto",
         "//models/types:users_go_proto",
+        "//models/types:transports_go_proto",
         "//models/grpc:auth_go_proto",
         "//osiris/lib/db:go_default_library",
         "//osiris/auth:go_default_library",

@@ -85,6 +85,42 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 			return user, nil
 		}
 	}
+	// Try transportID
+	// TODO: this also has to work when not logged in.
+	if in.TrainId != nil && in.TrainId.Id != "" {
+		user, err = lib.GetUserByTrainId(s.DB.DB.Collection(s.UserCollection), in.TrainId)
+		if err == nil && user != nil {
+			return user, nil
+		}
+	}
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Failed to query the database")
+	}
+	return nil, status.Error(codes.NotFound, "No such user found")
+}
+
+// GetAllUserIDs ...
+func (s *UserMgmtServer) GetAllUser(empty *result.Empty, stream pb.UserManagement_GetAllUserServer) error {
+	var err error
+
+  err = lib.GetAllUser(s.DB.DB.Collection(s.UserCollection), stream)
+  if err != nil {
+		return status.Error(codes.Internal, "Failed to query the database")
+  }
+  return nil
+}
+
+// GetTrainList ...
+func (s *UserMgmtServer) GetTrainListFromUser(ctx context.Context, in *pb.TrainListRequest) (*pb.TrainListResult, error) {
+	var user *users.User
+	var err error
+
+	if in.UserId != nil && in.UserId.Id != "" {
+		user, err = lib.GetUserByID(s.DB.DB.Collection(s.UserCollection), in.UserId)
+		if err == nil && user.Transports != nil {
+			return &pb.TrainListResult{TransportId: user.Transports}, nil
+		}
+	}
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to query the database")
 	}
