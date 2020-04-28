@@ -13,11 +13,14 @@ service UserManagement {
   // rpc RemoveTrain(UserIdTrainIdInput) returns (Success) {}
   rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
   rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Result) {}
+  rpc GetTrainListFromUser (TrainListRequest) returns (TrainListResult) {}
+  rpc GetAllUser (models.types.result.Empty) returns (stream models.types.users.User) {}
 }
 
 message GetUserRequest {
   models.types.users.UserID user_id = 1;
   string email = 2;
+  models.types.transports.TransportID train_id = 3;
 }
 
 message UpdateUserRequest {
@@ -35,4 +38,12 @@ message AddUserRequest {
 
 message RemoveUserRequest {
   models.types.users.UserID user_id = 1;
+}
+
+message TrainListRequest {
+  models.types.users.UserID user_id = 1;
+}
+
+message TrainListResult {
+  repeated models.types.transports.TransportID transport_id = 1;
 }

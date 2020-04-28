@@ -66,6 +66,32 @@ nodejs_proto_compile(
     deps = [":auth_proto"],
 )
 
+# Notification
+
+proto_library(
+    name = "notification_proto",
+    srcs = ["notification.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "notification_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "github.com/bptlab/cepta/models/grpc/notification",
+    proto = ":notification_proto",
+    visibility = ["//visibility:public"],
+)
+
+commonjs_dts_grpc_compile(
+    name = "notification_commonjs_dts_grpc_proto",
+    deps = [":notification_proto"],
+)
+
+nodejs_proto_compile(
+    name = "notification_nodejs_proto",
+    deps = [":notification_proto"],
+)
+
 # Replayer
 proto_library(
     name = "replayer_proto",
@@ -104,6 +130,9 @@ filegroup(
         ":usermgmt_commonjs_dts_grpc_proto",
         ":usermgmt_nodejs_proto",
         ":usermgmt_go_proto",
+        ":notification_commonjs_dts_grpc_proto",
+        ":notification_nodejs_proto",
+        ":notification_go_proto",
     ],
     visibility = ["//visibility:public"],
 )
