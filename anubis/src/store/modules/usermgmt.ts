@@ -18,21 +18,36 @@ import {
 import { Empty } from "@/generated/protobuf/models/types/result_pb";
 import { User } from "@/generated/protobuf/models/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
+import { AuthModule } from "./auth";
 
 export interface UserManagementState {
   client: UserManagementClient;
+  currentUser?: User | null;
   delayThresholds: { hard: number; soft: number };
 }
 
 @Module({ dynamic: true, store, name: "user" })
 class UserManagement extends VuexModule implements UserManagementState {
-  public client = new UserManagementClient("/grpc/usermgmt", null, null);
+  public client = new UserManagementClient("/api/grpc/usermgmt", null, null);
+  public currentUser?: User | null = null;
   public delayThresholds = { hard: 30, soft: 5 }; // Accept up to 5 minutes of delay as acceptable, up to 30 minutes as manageable
+
+  @Mutation
+  public setCurrentUserEmail(email: string | null): void {
+    if (email && email != "") {
+      if (this.currentUser == undefined) {
+        this.currentUser = new User();
+      }
+      this.currentUser.setEmail(email);
+    } else {
+      this.currentUser = undefined;
+    }
+  }
 
   @Action({ rawError: true })
   public async addUser(request: AddUserRequest): Promise<Empty> {
     return new Promise<Empty>((resolve, reject) => {
-      this.client.addUser(request, undefined, (err, response) => {
+      this.client.addUser(request, AuthModule.authHeader, (err, response) => {
         if (err) {
           reject(err);
         } else {
@@ -45,20 +60,24 @@ class UserManagement extends VuexModule implements UserManagementState {
   @Action({ rawError: true })
   public async updateUser(request: UpdateUserRequest): Promise<Empty> {
     return new Promise<Empty>((resolve, reject) => {
-      this.client.updateUser(request, undefined, (err, response) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(response);
+      this.client.updateUser(
+        request,
+        AuthModule.authHeader,
+        (err, response) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(response);
+          }
         }
-      });
+      );
     });
   }
 
   @Action({ rawError: true })
   public async getUser(request: GetUserRequest): Promise<User> {
     return new Promise<User>((resolve, reject) => {
-      this.client.getUser(request, undefined, (err, response) => {
+      this.client.getUser(request, AuthModule.authHeader, (err, response) => {
         if (err) {
           reject(err);
         } else {
@@ -69,23 +88,36 @@ class UserManagement extends VuexModule implements UserManagementState {
   }
 
   @Action({ rawError: true })
+  public async loadCurrentUser(): Promise<User> {
+    return new Promise<User>((resolve, reject) => {
+      if (this.currentUser == undefined) {
+        reject({ code: StatusCode.UNAUTHENTICATED, message: "Not logged in" });
+      } else {
+        let req = new GetUserRequest();
+        req.setEmail(this.currentUser.getEmail());
+        this.getUser(req)
+          .then(user => resolve(user))
+          .catch(err => reject(err));
+      }
+    });
+  }
+
+  @Action({ rawError: true })
   public async removeUser(request: RemoveUserRequest): Promise<Empty> {
     return new Promise<Empty>((resolve, reject) => {
-      this.client.removeUser(request, undefined, (err, response) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(response);
+      this.client.removeUser(
+        request,
+        AuthModule.authHeader,
+        (err, response) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(response);
+          }
         }
-      });
+      );
     });
   }
 }
-
-/*
-Vue.cookies.set("user-token", token, {
-              expires: response.getExpiration()
-            });
- */
 
 export const UserManagementModule = getModule(UserManagement);
