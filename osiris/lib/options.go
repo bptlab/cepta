@@ -31,6 +31,15 @@ const (
 	MongoUser
 	MongoPassword
 
+	// RabbitMQ options
+	RabbitMQ
+	RabbitMQHost
+	RabbitMQPort
+	RabbitMQExchangeName
+	RabbitMQQueueName
+	RabbitMQExchangeRoutingKey
+	RabbitMQQueueLength
+
 	// Service options
 	ServicePort
 	ServiceLogLevel
@@ -107,6 +116,55 @@ func CommonCliOptions(options ...int) []cli.Flag {
 				EnvVars: []string{"TOPICS", "KAFKA_TOPICS"},
 				Usage:   "Kafka topics to be consumed, as a comma seperated list",
 			}}
+
+		case RabbitMQ:
+			newOptions = CommonCliOptions(RabbitMQHost)
+		case RabbitMQHost:
+			newOptions = []cli.Flag{&cli.StringFlag{
+				Name:    "rabbitmq-host",
+				Value:   "localhost",
+				EnvVars: []string{"RABBITMQ_HOST"},
+				Usage:   "RabbitMQ Host to connect to",
+			}}
+		case RabbitMQPort:
+			newOptions = []cli.Flag{&cli.StringFlag{
+				Name:    "rabbitmq-port",
+				Value:   "5672",
+				EnvVars: []string{"RABBITMQ_PORT"},
+				Usage:   "RabbitMQ Port to connect to",
+			}}
+    case RabbitMQExchangeName:
+      newOptions = []cli.Flag{&cli.StringFlag{
+        Name:    "rabbitmq-exchange-name",
+        Value:   "notification_exchange",
+        Aliases: []string{"exchange-name"},
+        EnvVars: []string{"RABBITMQ_EXCHANGE_NAME"},
+        Usage:   "RabbitMQ exchange name to connect to",
+      }}
+    case RabbitMQQueueName:
+      newOptions = []cli.Flag{&cli.StringFlag{
+        Name:    "rabbitmq-queue-name",
+        Value:   "user_notification",
+        Aliases: []string{"queue-name"},
+        EnvVars: []string{"RABBITMQ_QUEUE_NAME"},
+        Usage:   "RabbitMQ queue name to connect to",
+      }}
+    case RabbitMQExchangeRoutingKey:
+      newOptions = []cli.Flag{&cli.StringFlag{
+        Name:    "rabbitmq-exchange-routing-key",
+        Value:   "0",
+        Aliases: []string{"exchange-routing-key"},
+        EnvVars: []string{"RABBITMQ_ROUTING_KEY"},
+        Usage:   "RabbitMQ exchange routing key to connect to the queue belonging to the user",
+      }}
+    case RabbitMQQueueLength:
+      newOptions = []cli.Flag{&cli.IntFlag{
+        Name:    "rabbitmq-queue-length",
+        Value:   100,
+        Aliases: []string{"queue-length"},
+        EnvVars: []string{"RABBITMQ_QUEUE_LENGTH"},
+        Usage:   "RabbitMQ to set the correct queue length",
+      }}
 
 		case Postgres:
 			newOptions = CommonCliOptions(PostgresHost, PostgresPort, PostgresUser, PostgresDatabase, PostgresPassword, PostgresSSL)
