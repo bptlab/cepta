@@ -31,7 +31,7 @@ public class WeatherLiveTrainJoinFunction {
               LiveTrainData liveTrainData) throws Exception {
             return TrainDelayNotification.newBuilder()
                 .setDelay(delayFromWeather(weatherDataIntegerTuple2.f0))
-                .setTrainId(liveTrainData.getTrainId())
+                .setTrainId(liveTrainData.getTrainSectionId())
                 .setLocationId(liveTrainData.getStationId())
                 .build();
           }
