@@ -75,6 +75,7 @@ java_image(
         "@maven//:info_picocli_picocli",
         "@maven//:joda_time_joda_time_2_9_7",
         "@maven//:org_apache_commons_commons_lang3",
+        "@maven//:org_apache_flink_flink_cep_2_11",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",
