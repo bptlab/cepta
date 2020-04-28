@@ -75,7 +75,6 @@ go_library(
         "@com_github_jinzhu_gorm//:go_default_library",
         "@com_github_lib_pq//:go_default_library",
         "@com_github_selvatico_go_mocket//:go_default_library",
-        "@org_golang_google_grpc//test/bufconn:go_default_library",
         "@com_github_lestrrat_go_jwx//jwk:go_default_library",
     ],
 )
@@ -89,6 +88,7 @@ go_test(
         "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
         "//osiris/usermgmt:go_default_library",
+        "@org_golang_google_grpc//test/bufconn:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
     ]
 )

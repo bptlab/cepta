@@ -66,8 +66,8 @@ go_library(
         "//models/types:result_go_proto",
         "//models/types:transports_go_proto",
         "//osiris/lib/db:go_default_library",
-        "//osiris/lib/rabbitmq:consumer",
-        "//osiris/lib/rabbitmq:producer",
+        "//osiris/lib/rabbitmq/consumer:go_default_library",
+        "//osiris/lib/rabbitmq/producer:go_default_library",
         "@com_github_golang_protobuf//jsonpb:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_shopify_sarama//:go_default_library",
@@ -93,6 +93,8 @@ go_test(
         "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
         "//osiris/usermgmt:go_default_library",
+        "//osiris/lib/kafka:go_default_library",
+        "@org_golang_google_grpc//test/bufconn:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
     ]
 )
