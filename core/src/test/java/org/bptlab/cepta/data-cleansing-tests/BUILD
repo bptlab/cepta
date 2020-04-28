@@ -5,6 +5,7 @@ java_test(
     srcs = ["DataCleansingTests.java"],
     test_class = "org.bptlab.cepta.DataCleansingTests",
     size = "small",
+    flaky= True,
     tags = ["unit"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
