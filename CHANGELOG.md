@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 ### [0.4.0] - 2020-05-02
 ##### Added
 - WIP
+- [#259](https://github.com/bptlab/cepta/pull/259)
+    - Integration of the `usermgmt` service with the frontend via module
+    - Display information about the current user
+    - Edit and remove own user functionality
+    - New *AddUser* view
 - [#231](https://github.com/bptlab/cepta/pull/231)
-- Track the average speed of transports
-- t.b.a.
+    - Track the average speed of transports
 
 ##### Changed
 - WIP
