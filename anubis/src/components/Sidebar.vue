@@ -61,6 +61,13 @@
             <i class="sidebar-icon-map icon-map-alt"></i>
           </template>
         </sidebar-element>
+
+        <!-- Users -->
+        <sidebar-element title="Users" :route="{ name: 'users' }">
+          <template v-slot:icon>
+            <i class="sidebar-icon-users icon-user"></i>
+          </template>
+        </sidebar-element>
       </ul>
     </div>
   </div>
