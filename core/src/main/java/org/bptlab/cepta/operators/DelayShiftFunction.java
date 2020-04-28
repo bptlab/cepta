@@ -4,18 +4,12 @@ import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
 import com.github.jasync.sql.db.QueryResult;
 import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
-// import com.github.jasync.sql.db.postgresql.RowData;
 import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.sql.*;
-//import java.sql.Timestamp.*;
-import java.util.Collections;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
@@ -23,7 +17,6 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
-
 import com.google.protobuf.Timestamp;
 
 public class DelayShiftFunction extends
@@ -69,7 +62,7 @@ public class DelayShiftFunction extends
 
         /*
         asyncInvoke will be called for each incoming element
-        the resultFuture is where the outgoing element will be
+        the resultFuture is where the outgoing element(s) will be
         */
         java.sql.Timestamp liveEventTimeSql = prototimestampToSqlTimestamp(liveEvent.getEventTime());
         String query = String
@@ -112,8 +105,8 @@ public class DelayShiftFunction extends
                     }
                 }
                 for (PlannedTrainData planned : plannedTrainData){
+                    // only consider following stations
                     if (compareProtoTimestamps(planned.getPlannedEventTime(), referencePlannedData.getPlannedEventTime()) >= 0){
-                        // later rename trainId -> trainSectionId, locationId -> sectionId
                         delays.add(TrainDelayNotification.newBuilder()
                             .setLocationId(planned.getStationId())
                             .setTrainId(planned.getTrainSectionId())
@@ -133,9 +126,9 @@ public class DelayShiftFunction extends
     }
 
     private int compareProtoTimestamps(com.google.protobuf.Timestamp t1, com.google.protobuf.Timestamp t2){
-        // t1 > t2 : 1
-        // t1 < t2 : -1
-        // t1 = t2 : 0
+        //  1 ; t1 > t2 :t1 ist nach t2
+        // -1 ; t1 < t2 : t1 ist vor t2
+        //  0 ; t1 = t2 :t1 und t2 sind gleichzeitig
         int result;
         if (t1.getSeconds() > t2.getSeconds()){
             return 1;

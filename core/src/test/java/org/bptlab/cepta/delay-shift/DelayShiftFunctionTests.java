@@ -1,13 +1,9 @@
 package org.bptlab.cepta;
 
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
@@ -20,83 +16,27 @@ import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
-
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Timestamp;
-
 import sun.awt.image.SunWritableRaster.DataStealer;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import java.sql.*;
 
 public class DelayShiftFunctionTests {
-
-   public void initDatabase(PostgreSQLContainer container, ArrayList<String> insertQueries) {
-      // JDBC driver name and database URL
-      String db_url = container.getJdbcUrl();
-      String user = container.getUsername();
-      String password = container.getPassword();
-      
-      Connection conn = null;
-      Statement stmt = null;
-      try{
-         // Register JDBC driver
-         Class.forName("org.postgresql.Driver");
-
-         // Open a connection
-         System.out.println("Connecting to a database...");
-         conn = DriverManager.getConnection(db_url, user, password);
-         System.out.println("Connected database successfully...");
-         
-         stmt = conn.createStatement();
-         String sql;
-         // Create table for planned data
-         sql = createPlannedDatabaseQuery();
-         stmt.executeUpdate(sql);
-         
-         // Execute insert queries
-         System.out.println("Inserting records into the table...");
-         for (String query : insertQueries){
-            sql = query;
-            stmt.executeUpdate(sql);
-         }
-         System.out.println("Inserted records into the table...");
-
-      }catch(SQLException se){
-         //Handle errors for JDBC
-         se.printStackTrace();
-      }catch(Exception e){
-         //Handle errors for Class.forName
-         e.printStackTrace();
-      }finally{
-         //finally block used to close resources
-         try{
-            if(stmt!=null)
-               conn.close();
-         }catch(SQLException se){
-         }// do nothing
-         try{
-            if(conn!=null)
-               conn.close();
-         }catch(SQLException se){
-            se.printStackTrace();
-         }//end finally try
-      }//end try
-      System.out.println("Goodbye!");
-   }
 
    @Test
    public void testRightAmount() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
          postgres.start();
+
          ArrayList<String> insertQueries = new ArrayList<String>();
          insertQueries.add(insertTrainWithSectionIdQuery(42382923));
          insertQueries.add(insertTrainWithSectionIdQuery(42382923));
          insertQueries.add(insertTrainWithSectionIdQuery(42093766));
          insertQueries.add(insertTrainWithSectionIdQuery(333));
+         
          initDatabase(postgres, insertQueries);
          String address = postgres.getContainerIpAddress();
          Integer port = postgres.getFirstMappedPort();
@@ -121,10 +61,12 @@ public class DelayShiftFunctionTests {
    public void testDelayNotificationGeneration() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
          postgres.start();
+         
          ArrayList<String> insertQueries = new ArrayList<String>();
          insertQueries.add(insertTrainWithSectionIdStationIdQuery(42382923, 1));
          insertQueries.add(insertTrainWithSectionIdStationIdQuery(42382923, 2));
          insertQueries.add(insertTrainWithSectionIdStationIdQuery(42093766, 3));
+
          initDatabase(postgres, insertQueries);
          String address = postgres.getContainerIpAddress();
          Integer port = postgres.getFirstMappedPort();
@@ -154,19 +96,20 @@ public class DelayShiftFunctionTests {
    public void testDateConsideration() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
          postgres.start();
+
          ArrayList<String> insertQueries = new ArrayList<String>();
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 11111111, "2020-04-28 10:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 2, "2020-03-28 10:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 3, "2020-06-28 10:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 4, "2020-04-28 11:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 5, "2020-04-28 09:03:40.0"));
+
          initDatabase(postgres, insertQueries);
          String address = postgres.getContainerIpAddress();
          Integer port = postgres.getFirstMappedPort();
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         
          DataStream<TrainDelayNotification> delayStream = AsyncDataStream
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
@@ -183,6 +126,56 @@ public class DelayShiftFunctionTests {
          expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(4).setDelay(1).build());
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
+   }
+
+   public void initDatabase(PostgreSQLContainer container, ArrayList<String> insertQueries) {
+      // JDBC driver name and database URL
+      String db_url = container.getJdbcUrl();
+      String user = container.getUsername();
+      String password = container.getPassword();
+      
+      Connection conn = null;
+      Statement stmt = null;
+      try{
+         // Register JDBC driver
+         Class.forName("org.postgresql.Driver");
+
+         // Open a connection
+         // System.out.println("Connecting to a database...");
+         conn = DriverManager.getConnection(db_url, user, password);
+         // System.out.println("Connected database successfully...");
+         
+         stmt = conn.createStatement();
+         String sql;
+         // Create table for planned data
+         sql = createPlannedDatabaseQuery();
+         stmt.executeUpdate(sql);
+         
+         // Execute insert queries
+         // System.out.println("Inserting records into the table...");
+         for (String query : insertQueries){
+            sql = query;
+            stmt.executeUpdate(sql);
+         }
+         // System.out.println("Inserted records into the table...");
+
+      }catch(Exception e){
+         e.printStackTrace();
+      }finally{
+         //finally block used to close resources
+         try{
+            if(stmt!=null)
+               conn.close();
+         }catch(SQLException se){
+         }// do nothing
+         try{
+            if(conn!=null)
+               conn.close();
+         }catch(SQLException se){
+            se.printStackTrace();
+         }//end finally try
+      }//end try
+      System.out.println("Goodbye!");
    }
 
    private PostgreSQLContainer newPostgreSQLContainer(){
