@@ -20,22 +20,8 @@ func FindUser(db *mongo.Collection, email string) (*users.InternalUser, error) {
 		return nil, err
 	}
 
-	// TODO: REMove
-	cur, err := db.Find(context.Background(), &users.InternalUser{})
-	if err == nil {
-		defer cur.Close(context.Background())
-		for cur.Next(context.Background()) {
-			var result users.InternalUser
-			err := cur.Decode(&result)
-			if err != nil {
-				continue
-			}
-			log.Error(result)
-		}
-	}
 
 	// Check for the user in the database
-
 	flatUserBson, err := flatbson.Flattened(userBson, ".")
 	if err != nil {
 		return nil, err
