@@ -19,6 +19,7 @@ import {
 } from "../generated/protobuf/models/grpc/usermgmt_pb";
 import { User } from "../generated/protobuf/models/types/users_pb";
 import EditUserForm from "../components/EditUserForm.vue";
+import { AuthModule } from "../store/modules/auth";
 
 @Component({
   name: "UserProfileSettings",
@@ -28,9 +29,13 @@ export default class UserProfileSettings extends Vue {
   protected user: User | null = null;
 
   removeUser(req: RemoveUserRequest) {
-    UserManagementModule.removeUser(req).catch(err => {
-      alert(`Failed to remove account: ${err.message}`);
-    });
+    UserManagementModule.removeUser(req)
+      .then(() => {
+        AuthModule.authLogout();
+      })
+      .catch(err => {
+        alert(`Failed to remove account: ${err.message}`);
+      });
   }
 
   updateUser(req: UpdateUserRequest) {
@@ -46,6 +51,7 @@ export default class UserProfileSettings extends Vue {
       })
       .catch(err => {
         alert(err.message);
+        AuthModule.authLogout();
       });
   }
 }

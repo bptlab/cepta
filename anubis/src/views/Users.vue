@@ -49,10 +49,10 @@ export default class Users extends Vue {
   protected totalUsers = 0;
 
   createUser(req: AddUserRequest) {
-    debugger;
     UserManagementModule.addUser(req)
       .then(_ => {
         alert("Added new user!");
+        this.totalUsers++;
       })
       .catch(err => {
         alert(`Failed to create user profile: ${err.message}`);
@@ -60,7 +60,11 @@ export default class Users extends Vue {
   }
 
   mounted() {
-    // TODO: Load total numbers of users
+    UserManagementModule.getUserCount()
+      .then(count => {
+        this.totalUsers = count.getValue();
+      })
+      .catch(err => alert(err));
   }
 }
 </script>

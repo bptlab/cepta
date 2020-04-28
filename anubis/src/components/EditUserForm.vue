@@ -177,6 +177,7 @@ export default class EditUserForm extends Vue {
 
   getUser(): InternalUser {
     let updatedUser = new User();
+    updatedUser.setId(this.userId);
     updatedUser.setEmail(this.user.email);
     updatedUser.setFirstName(this.user.firstName);
     updatedUser.setLastName(this.user.lastName);
