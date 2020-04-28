@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.cep.CEP;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -35,8 +36,10 @@ import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
+import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.slf4j.Logger;
@@ -47,6 +50,7 @@ import picocli.CommandLine.Mixin;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 
 import java.io.FileInputStream;
@@ -105,6 +109,9 @@ public class Main implements Callable<Integer> {
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
     DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
+    DataStream<StaysInStationEvent> staysInStationEventDataStream =
+            CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
+            .process(StaysInStationPattern.staysInStationProcessFunction());
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
@@ -158,6 +165,16 @@ public class Main implements Callable<Integer> {
     // Print stream to console
     // liveTrainDataStream.print();
     trainDelayNotificationDataStream.print();
+
+    KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
+            .withKeySerializer(Optional.of(LongSerializer::new));
+
+    FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
+            Topic.STAYS_IN_STATION.getValueDescriptor().getName(),
+            new GenericBinaryProtoSerializer<StaysInStationEvent>(),
+            staysInStationKafkaConfig.getProperties());
+
+    staysInStationEventDataStream.addSink(staysInStationProducer);
 
     //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
     weatherDataStream.print();
