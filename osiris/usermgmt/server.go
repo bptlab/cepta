@@ -95,7 +95,7 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 	return nil, status.Error(codes.NotFound, "No such user found")
 }
 
-// GetAllUserIDs ...
+// GetAllUser ...
 func (s *UserMgmtServer) GetAllUser(empty *result.Empty, stream pb.UserManagement_GetAllUserServer) error {
 	var err error
 
@@ -104,24 +104,6 @@ func (s *UserMgmtServer) GetAllUser(empty *result.Empty, stream pb.UserManagemen
 		return status.Error(codes.Internal, "Failed to query the database")
   }
   return nil
-}
-
-// GetTrainList ...
-func (s *UserMgmtServer) GetTrainListFromUser(ctx context.Context, in *pb.TrainListRequest) (*pb.TrainListResult, error) {
-	var user *users.User
-	var err error
-
-	if in.UserId != nil && in.UserId.Id != "" {
-		user, err = lib.GetUserByID(s.DB.DB.Collection(s.UserCollection), in.UserId)
-		if err == nil && user.Transports != nil {
-			return &pb.TrainListResult{TransportId: user.Transports}, nil
-		}
-	}
-	if err != nil {
-		log.Error("Failed to get user: ", err)
-		return nil, status.Error(codes.Internal, "Failed to query the database")
-	}
-	return nil, status.Error(codes.NotFound, "No such user found")
 }
 
 // UpdateUser ...
