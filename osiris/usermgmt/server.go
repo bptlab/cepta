@@ -222,14 +222,14 @@ func main() {
 		},
 		&cli.StringFlag{
 			Name:    "default-email",
-			Value:   "admin@cepta.org",
+			Value:   "cepta@cepta.org",
 			Aliases: []string{"initial-email", "admin-email"},
 			EnvVars: []string{"DEFAULT_EMAIL", "INITIAL_EMAIL", "ADMIN_EMAIL"},
 			Usage:   "Inital admin email (created if user database is empty)",
 		},
 		&cli.StringFlag{
 			Name:    "default-password",
-			Value:   "admin",
+			Value:   "cepta",
 			Aliases: []string{"initial-password", "admin-password"},
 			EnvVars: []string{"DEFAULT_PASSWORD", "INITIAL_PASSWORD", "ADMIN_PASSWORD"},
 			Usage:   "Inital admin password (created if user database is empty)",
