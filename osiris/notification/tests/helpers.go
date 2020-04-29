@@ -6,7 +6,7 @@ import (
   "strings"
   "testing"
 
-	// clientWebsocket "github.com/bptlab/cepta/osiris/notification/websocket"
+	clientWebsocket "github.com/bptlab/cepta/osiris/notification/websocket"
 	"github.com/gorilla/websocket"
 	"context"
 	"fmt"
@@ -24,68 +24,54 @@ import (
 var numberUsers int = 5
 var upgrader = websocket.Upgrader{}
 
-func (test *Test) websocketHelper(t *testing.T) {
+func (test *Test) setupWebsocketConn(t *testing.T) (){
+  var err error
   // Create test server with the echo handler.
-  s := httptest.NewServer(http.HandlerFunc(echo))
-  defer s.Close()
+  test.websocketServer = httptest.NewServer(http.HandlerFunc(test.setClient))
 
   // Convert http://127.0.0.1 to ws://127.0.0.
-  u := "ws" + strings.TrimPrefix(s.URL, "http")
+  url := "ws" + strings.TrimPrefix(test.websocketServer.URL, "http")
 
   // Connect to the server
-  ws, _, err := websocket.DefaultDialer.Dial(u, nil)
+  test.websocketConnection, _, err = websocket.DefaultDialer.Dial(url, nil)
   if err != nil {
       t.Fatalf("%v", err)
   }
-  defer ws.Close()
 
-  // Send message to server, read response and check to see if it's what we expect.
-  for i := 0; i < 10; i++ {
-      if err := ws.WriteMessage(websocket.TextMessage, []byte("hello")); err != nil {
-          t.Fatalf("%v", err)
-      }
-      _, p, err := ws.ReadMessage()
-      if err != nil {
-          t.Fatalf("%v", err)
-      }
-      if string(p) != "hello" {
-          t.Fatalf("bad message")
-      }
-  }
-
-/*
-  test.NotificationServer.pool = clientWebsocket.NewPool()
+  // Create new client pool
+  test.notificationServer.pool = clientWebsocket.NewPool()
 	if err != nil {
 		log.Errorf("%+v\n", err)
 	}
-  userList := getmockUsers(numberUsers, test.NotificationServer.pool, c)
+  userList := getmockUsers(numberUsers, test.notificationServer.pool, test.websocketClient)
 
-  done := make(chan bool)
   go test.notificationServer.pool.Start()
 
   for _, client := range userList {
-    test.NotificationServer.pool.Register <- client
-	  client.Read()
+    test.notificationServer.pool.Register <- client
+	  go client.Read()
   }
 
-  go publishMessages(test.NotificationServer.pool, done)
-  */
+  test.websocketConnection
+  // go publishMessages(test.notificationServer.pool, done)
+
+  // test.writeToWebsocket(t)
 }
 
-/*
 //Generates <number> many UserIds
-func getmockUsers(number int, pool *clientWebsocket.Pool, conn *websocket.Conn) ([]*clientWebsocket.Client){
+func getmockUsers(number int, pool *clientWebsocket.Pool, clientConn *websocket.Conn) ([]*clientWebsocket.Client){
   var userList []*clientWebsocket.Client
 
   for i := 0; i < number; i++ {
     client := &clientWebsocket.Client{
-      Conn: conn,
+      Pool: pool,
+      Conn: clientConn,
     }
     userList = append(userList, client)
   }
   return userList
 }
-
+/*
 func publishMessages(pool *clientWebsocket.Pool, done chan bool) {
   ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -103,28 +89,43 @@ func publishMessages(pool *clientWebsocket.Pool, done chan bool) {
 }
 
 */
-
-func echo(w http.ResponseWriter, r *http.Request) {
-    c, err := upgrader.Upgrade(w, r, nil)
+func (test *Test) setClient(w http.ResponseWriter, r *http.Request) {
+    var err error
+    test.websocketClient, err = upgrader.Upgrade(w, r, nil)
     if err != nil {
         return
     }
 
-    // TODO bind Pool to client
-    // userList := getmockUsers(numberUsers, c)
-    // log.Fatal(userList)
+    // test.echoMessages()
+}
 
-    defer c.Close()
-    for {
-        mt, message, err := c.ReadMessage()
+func (test *Test) echoMessages() {
+  for {
+        mt, message, err := test.websocketClient.ReadMessage()
         if err != nil {
             break
         }
-        err = c.WriteMessage(mt, message)
+        err = test.websocketClient.WriteMessage(mt, message)
         if err != nil {
             break
         }
     }
+}
+
+func (test *Test) writeToWebsocket(t *testing.T) {
+ // Send message to server, read response and check to see if it's what we expect.
+  for i := 0; i < 10; i++ {
+      if err := test.websocketConnection.WriteMessage(websocket.TextMessage, []byte("hello")); err != nil {
+          t.Fatalf("%v", err)
+      }
+      _, p, err := test.websocketConnection.ReadMessage()
+      if err != nil {
+          t.Fatalf("%v", err)
+      }
+      if string(p) != "hello" {
+          t.Fatalf("bad message")
+      }
+  }
 }
 
 
