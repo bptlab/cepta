@@ -14,6 +14,7 @@ import (
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/kafka"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
+	rmq "github.com/bptlab/cepta/osiris/lib/rabbitmq"
 	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
 	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
@@ -25,23 +26,62 @@ import (
 )
 
 const (
-	logLevel       = log.ErrorLevel
+	logLevel       = log.InfoLevel
 	bufSize        = 1024 * 1024
 	userCollection = "mock-users"
-	parallel       = true
 )
 
-type DialerFunc = func(string, time.Duration) (net.Conn, error)
+type dialerFunc = func(string, time.Duration) (net.Conn, error)
 
-func dialerFor(listener *bufconn.Listener) DialerFunc {
+func dialerFor(listener *bufconn.Listener) dialerFunc {
 	return func(string, time.Duration) (net.Conn, error) {
 		return listener.Dial()
 	}
 }
 
-func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener *bufconn.Listener, kafkacConfig kafkaconsumer.Config, rmqcConfig rmqc.Config, rmqpConfig rmqp.Config) (*NotificationServer, error) {
+// Test ...
+type Test struct {
+	Net    testcontainers.Network
+	MongoC testcontainers.Container
+	KafkaC testcontainers.Container
+	ZkC    testcontainers.Container
+	RmqC   testcontainers.Container
+
+	KafkaConsumerConfig kafkaconsumer.Config
+	MongoConfig         libdb.MongoDBConfig
+	rmqcConfig          rmqc.Config
+	rmqpConfig          rmqp.Config
+
+	notificationEndpoint *grpc.ClientConn
+	notificationServer   *NotificationServer
+	notificationClient   pb.NotificationClient
+
+	usermgmtEndpoint *grpc.ClientConn
+	usermgmtServer   *usermgmt.UserMgmtServer
+	usermgmtClient   usermgmtpb.UserManagementClient
+}
+
+func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
+	server := usermgmt.NewUserMgmtServer(mongoConfig)
+	server.UserCollection = userCollection
+	server.DefaultUser = users.InternalUser{
+		User: &users.User{
+			Email: "default-user@web.de",
+		},
+		Password: "admins-have-the-best-passwords",
+	}
+	if err := server.Setup(); err != nil {
+		t.Fatalf("Failed to setup user management server: %v", err)
+	}
+	go func() {
+		server.Serve(listener)
+	}()
+	return &server, nil
+}
+
+func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener *bufconn.Listener, kafkacConfig kafkaconsumer.Config, usermgmtEndpoint *grpc.ClientConn, rmqcConfig rmqc.Config, rmqpConfig rmqp.Config) (*NotificationServer, error) {
 	server := NewNotificationServer(kafkacConfig, rmqcConfig, rmqpConfig)
-	if err := server.Setup(context.Background()); err != nil {
+	if err := server.Setup(context.Background(), usermgmtEndpoint); err != nil {
 		t.Fatalf("Failed to setup replayer server: %v", err)
 	}
 	go func() {
@@ -52,49 +92,11 @@ func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsLis
 	return &server, nil
 }
 
-func setUpUsermgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
-	server := usermgmt.NewUserMgmtServer(mongoConfig)
-	server.UserCollection = userCollection
-	server.DefaultUser = users.InternalUser{
-		User: &users.User{
-			Email: "default-user@web.de",
-		},
-		Password: "admins-have-the-best-passwords",
-	}
-	server.Setup()
-	go func() {
-		server.Serve(listener)
-	}()
-	return &server, nil
-}
-
 func teardownServer(server interface{ Shutdown() }) {
 	server.Shutdown()
 }
 
-type Test struct {
-	Net    testcontainers.Network
-	MongoC testcontainers.Container
-	KafkaC testcontainers.Container
-	ZkC    testcontainers.Container
-	RmqC   testcontainers.Container
-
-	KafkaConsumerConfig kafkaconsumer.Config
-	rmqcConfig          rmqc.Config
-	MongoConfig         libdb.MongoDBConfig
-	rmqpConfig          rmqp.Config
-
-	notificationEndpoint *grpc.ClientConn
-	notificationServer   *NotificationServer
-	notificationClient   pb.NotificationClient
-
-	usermgmtEndpoint *grpc.ClientConn
-	usermgmtServer   *usermgmtpb.UserManagementServer
-	usermgmtClient   usermgmtpb.UserManagementClient
-}
-
-// Setup ...
-func (test *Test) Setup(t *testing.T) *Test {
+func (test *Test) setup(t *testing.T) *Test {
 	var err error
 	log.SetLevel(logLevel)
 	if parallel {
@@ -152,10 +154,46 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
 	}
 
+	// Start rabbitmq container
+	var rmqConConfig tc.RabbitmqConfig
+	test.RmqC, rmqConConfig, err = tc.StartRabbitmqContainer(tc.RabbitmqContainerOptions{ContainerOptions: containerOptions})
+	if err != nil {
+		t.Fatalf("Failed to start the rabbitmq container: %v", err)
+		return test
+	}
+	rmqConfig := rmq.Config{
+		Host: rmqConConfig.Host,
+		Port: rmqConConfig.Port,
+	}
+	test.rmqcConfig = rmqc.Config{
+		Config: rmqConfig,
+	}
+	test.rmqpConfig = rmqp.Config{
+		Config: rmqConfig,
+	}
+
 	var grpcListener = bufconn.Listen(bufSize)
+	var usermgmtListener = bufconn.Listen(bufSize)
 	var websocketListener = bufconn.Listen(bufSize)
 
-	// Create endpoint
+	// User management service
+	test.usermgmtEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+		return usermgmtListener.Dial()
+	}), grpc.WithInsecure())
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+		return test
+	}
+
+	test.usermgmtServer, err = setUpUserMgmtServer(t, usermgmtListener, test.MongoConfig)
+	if err != nil {
+		t.Fatalf("Failed to setup the user management service: %v", err)
+		return test
+	}
+
+	test.usermgmtClient = usermgmtpb.NewUserManagementClient(test.usermgmtEndpoint)
+
+	// Notification service
 	test.notificationEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
 		return grpcListener.Dial()
 	}), grpc.WithInsecure())
@@ -163,22 +201,21 @@ func (test *Test) Setup(t *testing.T) *Test {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
 	}
-
-	// Start the GRPC server
-	test.notificationServer, err = setUpNotificationServer(t, grpcListener, websocketListener, test.KafkaConsumerConfig, test.rmqcConfig, test.rmqpConfig)
+	test.notificationServer, err = setUpNotificationServer(t, grpcListener, websocketListener, test.KafkaConsumerConfig, test.usermgmtEndpoint, test.rmqcConfig, test.rmqpConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the replayer service: %v", err)
 		return test
 	}
-
 	test.notificationClient = pb.NewNotificationClient(test.notificationEndpoint)
+
 	return test
 }
 
-// Teardown ...
-func (test *Test) Teardown() {
+func (test *Test) teardown() {
 	test.notificationServer.Shutdown()
 	test.notificationEndpoint.Close()
+	test.usermgmtServer.Shutdown()
+	test.usermgmtEndpoint.Close()
 	test.MongoC.Terminate(context.Background())
 	test.KafkaC.Terminate(context.Background())
 	test.ZkC.Terminate(context.Background())

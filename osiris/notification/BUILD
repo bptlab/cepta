@@ -85,7 +85,7 @@ go_library(
 
 go_test(
     name = "server-test",
-    srcs = ["server_test.go"],
+    srcs = ["tests/server_test.go", "tests/provider.go"],
     embed = [":go_default_library"],
     size = "medium",
     tags = ["integration", "docker"],
@@ -94,6 +94,7 @@ go_test(
         "//models/grpc:usermgmt_go_proto",
         "//osiris/usermgmt:go_default_library",
         "//osiris/lib/kafka:go_default_library",
+        "//osiris/lib/rabbitmq:go_default_library",
         "@org_golang_google_grpc//test/bufconn:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
     ]

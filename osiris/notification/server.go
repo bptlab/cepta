@@ -40,9 +40,6 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
-var server NotificationServer
-var grpcServer *grpc.Server
-
 const (
 	lruSize = 1000
 )
@@ -61,6 +58,7 @@ type NotificationServer struct {
 	pool           *websocket.Pool
 
 	usermgmtClient usermgmtpb.UserManagementClient
+	grpcServer     *grpc.Server
 
 	kafkacConfig kafkaconsumer.Config
 	rmqcConfig   rmqc.Config
@@ -82,14 +80,16 @@ func NewNotificationServer(kafkaConfig kafkaconsumer.Config, rmqConsumerConfig r
 func (s *NotificationServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	if s.grpcServer != nil {
+		s.grpcServer.Stop()
+	}
 }
 
 // FillUserCache ...
 func (s *NotificationServer) fillUserCache() {
 	stream, err := s.usermgmtClient.GetAllUser(context.Background(), &result.Empty{})
 	if err != nil {
-		log.Fatalf("Failed to receive stream from the UserManagement Service %v", err)
+		log.Fatalf("Failed to receive stream from usermgmt service %v", err)
 	}
 
 	for {
@@ -98,7 +98,7 @@ func (s *NotificationServer) fillUserCache() {
 			break
 		}
 		if err != nil {
-			log.Fatalf("Failed to receive user from our stream: %v", err)
+			log.Fatalf("Failed to receive user from stream: %v", err)
 		}
 		log.Debug(user)
 
@@ -136,7 +136,7 @@ func (s *NotificationServer) findUser(ctx context.Context, trainID int64) (*user
 func (s *NotificationServer) serveRabbitMQConsumer(options rmqc.Config) {
 	conn, ch := options.Setup()
 
-	//Consume Messages from the Queue
+	// Consume Messages from the Queue
 	options.Consume(ch, conn)
 }
 
@@ -214,40 +214,40 @@ func (s *NotificationServer) subscribeKafkaToPool(ctx context.Context, pool *web
 }
 
 // Setup ...
-func (s *NotificationServer) Setup(ctx context.Context) error {
-	// Initialize cache
+func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.ClientConn) error {
+	s.usermgmtClient = usermgmtpb.NewUserManagementClient(usermgmtConn)
+
+	// Fill the cache with recent transports
 	var err error
 	s.transportCache, err = lru.New(lruSize)
 	if err != nil {
 		log.Fatalf("Failed to initialize cache: %v", err)
 	}
 
-	s.pool = websocket.NewPool()
-
-	// Connect to the usermanagemt service
-	usermgmtConn, err := grpc.Dial(fmt.Sprintf("%s:%d", s.usermgmtEndpoint.Host, s.usermgmtEndpoint.Port))
-	if err != nil {
-		log.Fatalf("Failed to connect to the User-management service: %v", err)
-	}
-	server.usermgmtClient = usermgmtpb.NewUserManagementClient(usermgmtConn)
-
-	// Fill the cache with recent transports
+	log.Info("Filling cache")
 	go s.fillUserCache()
+	s.pool = websocket.NewPool()
 	go s.pool.Start()
 
 	// TODO: We need to serve more than just one user and therefore need more than one rabbitmqConsumer
 	go s.serveRabbitMQConsumer(s.rmqcConfig)
 	go s.subscribeKafkaToPool(ctx, s.pool)
+
+	return nil
+}
+
+// ConnectUsermgmt ...
+func (s *NotificationServer) ConnectUsermgmt(ctx context.Context, usermgmtConnectionURI string) error {
+	log.Info("Connecting to usermgmt service")
+	usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("Failed to connect to the usermgmt service: %v", err)
+	}
+	s.Setup(ctx, usermgmtConn)
 	return nil
 }
 
 func main() {
-	shutdown := make(chan os.Signal)
-	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-shutdown
-		server.Shutdown()
-	}()
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceLogLevel)...)
@@ -265,7 +265,7 @@ func main() {
 		// websocket endpoint
 		&cli.IntFlag{
 			Name:    "ws-port",
-			Value:   8888,
+			Value:   5555,
 			EnvVars: []string{"WS_PORT"},
 			Usage:   "webocket port",
 		},
@@ -278,7 +278,7 @@ func main() {
 		},
 		&cli.IntFlag{
 			Name:    "usermgmt-port",
-			Value:   5555,
+			Value:   5557,
 			EnvVars: []string{"USERMGMT_PORT"},
 			Usage:   "usermgmt microservice port",
 		},
@@ -304,6 +304,14 @@ func main() {
 				usermgmtEndpoint: Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")},
 			}
 
+			// Register shutdown routine
+			shutdown := make(chan os.Signal)
+			signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+			go func() {
+				<-shutdown
+				server.Shutdown()
+			}()
+
 			grpcListener, err := net.Listen("tcp", fmt.Sprintf(":%d", ctx.Int("grpc-port")))
 			if err != nil {
 				return fmt.Errorf("failed to listen: %v", err)
@@ -314,7 +322,7 @@ func main() {
 				return fmt.Errorf("failed to listen: %v", err)
 			}
 
-			if err := server.Setup(context.Background()); err != nil {
+			if err := server.ConnectUsermgmt(context.Background(), fmt.Sprintf("%s:%d", server.usermgmtEndpoint.Host, server.usermgmtEndpoint.Port)); err != nil {
 				return err
 			}
 
@@ -351,9 +359,9 @@ func (s *NotificationServer) Serve(grpcListener net.Listener, wsListener net.Lis
 
 	// Serve GRPC endpoint
 	go func() {
-		grpcServer = grpc.NewServer()
-		pb.RegisterNotificationServer(grpcServer, s)
-		if err := grpcServer.Serve(grpcListener); err != nil {
+		s.grpcServer = grpc.NewServer()
+		pb.RegisterNotificationServer(s.grpcServer, s)
+		if err := s.grpcServer.Serve(grpcListener); err != nil {
 			log.Error("Failed to serve: ", err)
 		}
 		grpcDone <- true
