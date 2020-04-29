@@ -37,18 +37,18 @@ public class SumOfDelayAtStationTests {
         // element 4 has stationId 2, trainId 1, delay 8
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
-        DataStream<Tuple2<Integer, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "LocationId");
-        ArrayList<Tuple2<Integer, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "StationId");
+        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
         while(iterator.hasNext()){
             Tuple2<Integer, Double> tuple = iterator.next();
-            locationAndDelayArray.add(tuple);
+            stationAndDelayArray.add(tuple);
         }
         // check if any tuple is present
-        if (locationAndDelayArray.size() == 0) {
+        if (stationAndDelayArray.size() == 0) {
             pass = false;
         }
-        for (Tuple2<Integer, Double> tuple : locationAndDelayArray) {
+        for (Tuple2<Integer, Double> tuple : stationAndDelayArray) {
             // check if first station matches expected delay
             if (tuple.f0.equals(expectedStation1)) {
                 if (!tuple.f1.equals(expectedDelayAtStation1)) {
@@ -76,19 +76,19 @@ public class SumOfDelayAtStationTests {
         SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction<LiveTrainData>();
         DataStream<LiveTrainData> delayNotificationStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();
 
-        DataStream<Tuple2<Integer, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 3, "StationId");
-        ArrayList<Tuple2<Integer, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 3, "StationId");
+        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
         while(iterator.hasNext()){
             Tuple2<Integer, Double> tuple = iterator.next();
-            locationAndDelayArray.add(tuple);
+            stationAndDelayArray.add(tuple);
         }
         // check if any tuple is present
-        if (locationAndDelayArray.size() == 0) {
+        if (stationAndDelayArray.size() == 0) {
             pass = false;
         }
         
-        for (Tuple2<Integer, Double> tuple : locationAndDelayArray) {
+        for (Tuple2<Integer, Double> tuple : stationAndDelayArray) {
             // check if first station matches expected delay
             if (tuple.f0.equals(expectedStation1)) {
                 if (!tuple.f1.equals(expectedDelayAtStation1)) {
@@ -111,9 +111,9 @@ public class SumOfDelayAtStationTests {
         // element 4 has stationId 2, trainId 1, delay 8
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
-        DataStream<Tuple2<Integer, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "LocationId");
+        DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "StationId");
         ArrayList<Tuple2<Integer, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
         while(iterator.hasNext()){
             Tuple2<Integer, Double> tuple = iterator.next();
             locationAndDelayArray.add(tuple);

@@ -85,9 +85,9 @@ public class DelayShiftFunctionTests {
          }
 
          ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(1).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(2).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42093766).setLocationId(3).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(1).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(2).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42093766).setStationId(3).setDelay(1).build());
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }
@@ -122,8 +122,8 @@ public class DelayShiftFunctionTests {
          }
 
          ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(11111111).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setLocationId(4).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(11111111).setDelay(1).build());
+         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(4).setDelay(1).build());
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }

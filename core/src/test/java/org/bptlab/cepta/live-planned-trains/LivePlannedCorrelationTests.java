@@ -1,7 +1,6 @@
 package org.bptlab.cepta;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +15,6 @@ import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.*;

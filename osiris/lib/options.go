@@ -170,7 +170,7 @@ func CommonCliOptions(options ...int) []cli.Flag {
 		case MongoPort:
 			newOptions = []cli.Flag{&cli.IntFlag{
 				Name:    "mongodb-port",
-				Value:   8000,
+				Value:   27017,
 				EnvVars: []string{"MONGODB_PORT", "MONGO_PORT"},
 				Usage:   "mongodb database port",
 			}}

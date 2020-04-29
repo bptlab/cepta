@@ -37,6 +37,7 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass;
+import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
@@ -142,35 +143,7 @@ public class Main implements Callable<Integer> {
                 100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
-        .flatMap(
-            new FlatMapFunction<Tuple2<LiveTrainData, PlannedTrainData>, TrainDelayNotification>() {
-              @Override
-              public void flatMap(
-                  Tuple2<LiveTrainData, PlannedTrainData> liveTrainDataPlannedTrainDataTuple2,
-                  Collector<TrainDelayNotification> collector) throws Exception {
-                LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
-                PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
-
-         /*
-          Delay is defined as the difference between the observed time of a train id at a location id.
-          delay > 0 is bad, the train might arrive later than planned
-          delay < 0 is good, the train might arrive earlier than planned
-         */
-                try {
-                  double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
-
-                  // Only send a delay notification if some threshold is exceeded
-                  if (Math.abs(delay) > 10) {
-                    collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                        .setTrainId(observed.getTrainSectionId()).setLocationId(observed.getStationId())
-                        .build());
-                  }
-                } catch ( NullPointerException e ) {
-                  // Do not send a delay event
-                }
-
-              }
-            });
+        .process(new DetectStationArrivalDelay()).name("train-delays");
 
     // Produce delay notifications into new queue
     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")

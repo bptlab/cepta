@@ -124,6 +124,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/sum-of-delay-at-station:sum-of-delay-at-station",
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
+    "//core/src/test/java/org/bptlab/cepta/detect-station-delay-tests:detect-station-arrival-delay",
 ]
 
 test_suite(

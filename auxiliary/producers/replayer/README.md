@@ -1,8 +1,13 @@
 #### Replayer
 
+For Help use
+```bash
+bazel run //auxiliary/producers/replayer -- --help
+```
+
 For debugging, use
 ```bash
-bazel run //auxiliary/producers/replayer -- --port 8080 --mode constant --log debug
+bazel run //auxiliary/producers/replayer -- --port 8080 --mode constant --replay-log debug
 ```
 
 For your local mongoDB without authentication, use:
@@ -12,10 +17,10 @@ bazel run //auxiliary/producers/replayer -- --mongodb-user="" --mongodb-password
 
 When you want to replay only selected sources, use:
 ```bash
-bazel run //auxiliary/producers/replayer -- --port 8080 --include-sources "livetraindata, plannedtraindata"
+bazel run //auxiliary/producers/replayer -- --port 8080 --include-sources LIVE_TRAIN_DATA
 ```
 
-When you want to replay immediately without waiting for GRPC Call, use:
+When you want to replay immediately instead of waiting for the GRPC Call, use:
 ```bash
-bazel run //auxiliary/producers/replayer -- --port 8080 --immediate
+bazel run //auxiliary/producers/replayer -- --port 8080 --immediate true --include-sources LIVE_TRAIN_DATA
 ```
