@@ -132,10 +132,12 @@ func (s *AuthenticationServer) signJwt(userID *users.UserID) (string, error) {
 func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginRequest) (*pb.AuthenticationToken, error) {
 	if s.DisableAuth {
 		if userID, err := uuid.NewRandom(); err == nil {
-			if token, err := s.signJwt(&users.UserID{Id: userID.String()}); err == nil {
+			id := &users.UserID{Id: userID.String()}
+			if token, err := s.signJwt(id); err == nil {
 				return &pb.AuthenticationToken{
 					Token:      token,
 					Email: 		in.GetEmail(),
+					UserId: 	id,
 					Expiration: s.ExpireSeconds,
 				}, nil
 			}
@@ -156,6 +158,7 @@ func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginReques
 		return &pb.AuthenticationToken{
 			Token:      token,
 			Email: 		user.GetUser().GetEmail(),
+			UserId: 	user.GetUser().GetId(),
 			Expiration: s.ExpireSeconds,
 		}, nil
 	}
