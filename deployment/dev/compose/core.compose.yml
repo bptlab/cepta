@@ -165,8 +165,8 @@ services:
       MONGODB_PORT: ${CEPTA_MONGODB_PORT}
       SIGNING_KEY: /etc/keys/sign.key
       JWKS_JSON: /etc/keys/jwks.json
-    depends_on:
-      - mongodb
+    # depends_on:
+      # - mongodb
 
   usermgmt:
     image: bazel/osiris/usermgmt:image
@@ -179,8 +179,8 @@ services:
       INITIAL_EMAIL: cepta@cepta.org
       INITIAL_PASSWORD: cepta
       CLEAR: "true"
-    depends_on:
-      - mongodb
+    # depends_on:
+      # - mongodb
 
   replayer:
     image: bazel/auxiliary/producers/replayer:image

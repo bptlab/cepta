@@ -52,6 +52,7 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.events.station.StationDataOuterClass.StationData;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -70,6 +71,7 @@ public class Main implements Callable<Integer> {
   private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
   private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
   private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+  private FlinkKafkaConsumer011<StationData> stationDataConsumer;
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
@@ -103,12 +105,16 @@ public class Main implements Callable<Integer> {
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.getConfig().registerTypeWithKryoSerializer(WeatherData.class, GenericBinaryProtoSerializer.class);
     this.setupConsumers();
 
-    // Add consumer as source for data stream
-    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
-    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
+     // Add consumer as source for data stream    
     DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
+    weatherDataStream.print();
+/*    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
+    
+    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
+    weatherDataStream.print();
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
@@ -128,11 +134,11 @@ public class Main implements Callable<Integer> {
                 LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
 
-         /*
-          Delay is defined as the difference between the observed time of a train id at a location id.
-          delay > 0 is bad, the train might arrive later than planned
-          delay < 0 is good, the train might arrive earlier than planned
-         */
+         
+         // Delay is defined as the difference between the observed time of a train id at a location id.
+         // delay > 0 is bad, the train might arrive later than planned
+         // delay < 0 is good, the train might arrive earlier than planned
+         
                 try {
                   double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
 
@@ -164,7 +170,7 @@ public class Main implements Callable<Integer> {
 
     // Print stream to console
     // liveTrainDataStream.print();
-    trainDelayNotificationDataStream.print();
+    //trainDelayNotificationDataStream.print();
 
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
@@ -174,11 +180,12 @@ public class Main implements Callable<Integer> {
             new GenericBinaryProtoSerializer<StaysInStationEvent>(),
             staysInStationKafkaConfig.getProperties());
 
+    //staysInStationEventDataStream.print();
     staysInStationEventDataStream.addSink(staysInStationProducer);
-
+ */
     //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
-    weatherDataStream.print();
-    plannedTrainDataStream.print();
+    //weatherDataStream.print();
+    //plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;
   }

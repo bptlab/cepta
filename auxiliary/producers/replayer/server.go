@@ -286,6 +286,7 @@ func (s *ReplayerServer) GetOptions(ctx context.Context, in *result.Empty) (*pb.
 func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServer) error {
 	log.Infof("Handling query for %d sources", len(in.Sources))
 
+	log.Debugf("In Query")
 	// Update to  new startOptions
 	var updateStartOptions pb.ReplayStartOptions
 	for _, source := range in.Sources {
@@ -554,8 +555,8 @@ func main() {
 			Usage:   "sources to be excluded from the replay (default: none)",
 		},
 		&cli.BoolFlag{
-			Name: "immediate",
-			Value: false,
+			Name:    "immediate",
+			Value:   false,
 			Aliases: []string{"no-wait", "instant"},
 			EnvVars: []string{"IMMEDIATE", "NO_WAIT", "INSTANT"},
 			Usage:   "do not wait for a start signal and start producing immediately",
