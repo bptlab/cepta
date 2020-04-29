@@ -14,12 +14,14 @@ import {
   AuthenticationToken,
   TokenValidationRequest
 } from "@/generated/protobuf/models/grpc/auth_pb";
+import { UserID } from "@/generated/protobuf/models/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { UserManagementModule } from "./usermgmt";
 
 export interface IAuthState {
   client: AuthenticationClient;
   authToken: string;
+  userID: UserID | null | undefined;
   authState: AuthenticationState | null;
   appAllowsRegister: boolean;
 }
@@ -35,6 +37,7 @@ class Auth extends VuexModule implements IAuthState {
   public client = new AuthenticationClient("/grpc/auth", null, null);
   public appAllowsRegister = false;
   public authToken = "";
+  public userID: UserID | null | undefined = null;
   public authState: AuthenticationState | null = null;
 
   get isAuthenticated(): boolean {
@@ -55,6 +58,11 @@ class Auth extends VuexModule implements IAuthState {
     this.authToken = token;
   }
 
+  @Mutation
+  public setUserID(userID: UserID | null | undefined): void {
+    this.userID = userID;
+  }
+
   @Action({ rawError: true })
   public async authRequest(
     request: UserLoginRequest
@@ -65,17 +73,23 @@ class Auth extends VuexModule implements IAuthState {
         if (err) {
           this.setAuthState(AuthenticationState.Failed);
           Vue.cookies.remove("user-token");
+          Vue.cookies.remove("user-id");
           Vue.cookies.remove("user-email");
           reject(err);
         } else {
           let token = response.getToken();
+          let userID = response.getUserId();
           this.setAuthToken(token);
+          this.setUserID(userID);
           this.setAuthState(AuthenticationState.Authenticated);
           if (request.getRemember() == true) {
             Vue.cookies.set("user-token", token, {
               expires: response.getExpiration()
             });
             Vue.cookies.set("user-email", response.getEmail(), {
+              expires: response.getExpiration()
+            });
+            Vue.cookies.set("user-id", userID, {
               expires: response.getExpiration()
             });
           }

@@ -9,6 +9,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.types.transports.Transports;
 
 public class WeatherLiveTrainJoinFunction {
   public static DataStream<TrainDelayNotification> delayFromWeather(DataStream<Tuple2<WeatherData, Integer>> weather, DataStream<LiveTrainData> train){
@@ -31,7 +32,7 @@ public class WeatherLiveTrainJoinFunction {
               LiveTrainData liveTrainData) throws Exception {
             return TrainDelayNotification.newBuilder()
                 .setDelay(delayFromWeather(weatherDataIntegerTuple2.f0))
-                .setTrainId(liveTrainData.getTrainId())
+                .setTransportId(Transports.TransportID.newBuilder().setId(String.valueOf(liveTrainData.getTrainId())))
                 .setLocationId(liveTrainData.getStationId())
                 .build();
           }

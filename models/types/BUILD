@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_proto_library")
 
 proto_library(
     name = "coordinate_proto",
@@ -38,6 +39,12 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/types/transports",
     proto = ":transports_proto",
     visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "transports_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":transports_proto"],
 )
 
 proto_library(

@@ -14,6 +14,7 @@ import (
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/kafka"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	rmq "github.com/bptlab/cepta/osiris/lib/rabbitmq"
 	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
 	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
@@ -26,7 +27,7 @@ import (
 )
 
 const (
-	logLevel       = log.InfoLevel
+	logLevel       = log.DebugLevel
 	bufSize        = 1024 * 1024
 	userCollection = "mock-users"
 )
@@ -47,10 +48,11 @@ type Test struct {
 	ZkC    testcontainers.Container
 	RmqC   testcontainers.Container
 
-	KafkaConsumerConfig kafkaconsumer.Config
-	MongoConfig         libdb.MongoDBConfig
-	rmqcConfig          rmqc.Config
-	rmqpConfig          rmqp.Config
+	kafkacConfig kafkaconsumer.Config
+	kafkapConfig kafkaproducer.Config
+	MongoConfig  libdb.MongoDBConfig
+	rmqcConfig   rmqc.Config
+	rmqpConfig   rmqp.Config
 
 	notificationEndpoint *grpc.ClientConn
 	notificationServer   *NotificationServer
@@ -145,13 +147,17 @@ func (test *Test) setup(t *testing.T) *Test {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
 	}
-	test.KafkaConsumerConfig = kafkaconsumer.Config{
-		Config: kafka.Config{
-			Brokers:             kafkaConfig.Brokers,
-			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
-		},
-		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
+	baseKafkaConfig := kafka.Config{
+		Brokers:             kafkaConfig.Brokers,
+		Version:             kafkaConfig.KafkaVersion,
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+	}
+	test.kafkacConfig = kafkaconsumer.Config{
+		Config: baseKafkaConfig,
+		Group:  fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
+	}
+	test.kafkapConfig = kafkaproducer.Config{
+		Config: baseKafkaConfig,
 	}
 
 	// Start rabbitmq container
@@ -162,8 +168,9 @@ func (test *Test) setup(t *testing.T) *Test {
 		return test
 	}
 	rmqConfig := rmq.Config{
-		Host: rmqConConfig.Host,
-		Port: rmqConConfig.Port,
+		Host:         rmqConConfig.Host,
+		Port:         rmqConConfig.Port,
+		ExchangeName: "TestExchangeName",
 	}
 	test.rmqcConfig = rmqc.Config{
 		Config: rmqConfig,
@@ -201,7 +208,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
 	}
-	test.notificationServer, err = setUpNotificationServer(t, grpcListener, websocketListener, test.KafkaConsumerConfig, test.usermgmtEndpoint, test.rmqcConfig, test.rmqpConfig)
+	test.notificationServer, err = setUpNotificationServer(t, grpcListener, websocketListener, test.kafkacConfig, test.usermgmtEndpoint, test.rmqcConfig, test.rmqpConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the replayer service: %v", err)
 		return test

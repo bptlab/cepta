@@ -14,6 +14,7 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "//models/events:train_delay_notification_java_proto",
         "//models/events:planned_train_data_java_proto",
+        "//models/types:transports_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:weather_data_java_proto",
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",

@@ -1,6 +1,7 @@
 syntax = "proto3";
 package models.types.transports;
 option go_package = "github.com/bptlab/cepta/models/types/transports";
+option java_package = "org.bptlab.cepta.models.types.transports";
 
 message TransportID {
     string id = 1;

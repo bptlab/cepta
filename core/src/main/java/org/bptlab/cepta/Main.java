@@ -48,6 +48,7 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainDat
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.types.transports.Transports;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -132,7 +133,8 @@ public class Main implements Callable<Integer> {
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {
                     collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                        .setTrainId(observed.getTrainSectionId()).setLocationId(observed.getStationId())
+                        .setTransportId(Transports.TransportID.newBuilder().setId(String.valueOf(observed.getTrainSectionId())))
+                        .setLocationId(observed.getStationId())
                         .build());
                   }
                 } catch ( NullPointerException e ) {
