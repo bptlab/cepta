@@ -52,6 +52,7 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,28 +68,28 @@ public class Main implements Callable<Integer> {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
-  private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
-  private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+  private FlinkKafkaConsumer011<Event> liveTrainDataConsumer;
+  private FlinkKafkaConsumer011<Event> plannedTrainDataConsumer;
+  private FlinkKafkaConsumer011<Event> weatherDataConsumer;
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<LiveTrainData>(
+        new FlinkKafkaConsumer011<>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
+          new GenericBinaryProtoDeserializer<Event>(Event.class),
           new KafkaConfig().withClientId("LiveTrainDataMainConsumer1")
                   .withGroupID("Groupy").getProperties());
 
     this.plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
+            new GenericBinaryProtoDeserializer<Event>(Event.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").withGroupID("Groupy").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
+            new GenericBinaryProtoDeserializer<Event>(Event.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties());
   }
 
@@ -108,9 +109,29 @@ public class Main implements Callable<Integer> {
     this.setupConsumers();
 
     // Add consumer as source for data stream
-    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
-    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
-    DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
+    DataStream<Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
+    DataStream<Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
+    DataStream<Event> weatherDataEvents = env.addSource(weatherDataConsumer);
+
+    DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<Event, PlannedTrainData>(){
+      @Override
+      public PlannedTrainData map(Event event) throws Exception{
+        return event.getPlannedTrain();
+      }
+    });
+    DataStream<LiveTrainData> liveTrainDataStream = liveTrainDataEvents.map(new MapFunction<Event, LiveTrainData>(){
+      @Override
+      public LiveTrainData map(Event event) throws Exception{
+        return event.getLiveTrain();
+      }
+    });
+    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<Event, WeatherData>(){
+      @Override
+      public WeatherData map(Event event) throws Exception{
+        return event.getWeather();
+      }
+    });
+
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
