@@ -76,19 +76,20 @@ public class Main implements Callable<Integer> {
         new FlinkKafkaConsumer011<LiveTrainData>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
           new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+          new KafkaConfig().withClientId("LiveTrainDataMainConsumer1")
+                  .withGroupID("Groupy").getProperties());
 
     this.plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").withGroupID("Groupy").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties());
   }
 
   @Mixin
@@ -103,6 +104,7 @@ public class Main implements Callable<Integer> {
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(1);
     this.setupConsumers();
 
     // Add consumer as source for data stream
