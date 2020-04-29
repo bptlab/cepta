@@ -3,9 +3,10 @@ package lib
 import (
 	"context"
 	"errors"
-	"github.com/bptlab/cepta/models/types/users"
+
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	"github.com/bptlab/cepta/models/types/transports"
+	"github.com/bptlab/cepta/models/types/users"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
@@ -70,29 +71,46 @@ func GetUserByID(db *mongo.Collection, userID *users.UserID) (*users.User, error
 	return getUser(db, &users.User{Id: userID})
 }
 
-// GetUserByTrainId queries the user database by trainId
-func GetUserByTrainId(db *mongo.Collection, trainID *transports.TransportID) (*users.User, error) {
-	return getUser(db, &users.User{Transports: []*transports.TransportID{trainID}})
+// StreamUsersByTransportID ...
+func StreamUsersByTransportID(db *mongo.Collection, transportID *transports.TransportID, stream pb.UserManagement_GetSubscribersForTransportServer) error {
+	cur, err := db.Find(context.Background(), bson.D{{"user.transports", bson.D{{"$elemMatch", bson.D{{"id", transportID.GetId()}}}}}})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var result users.InternalUser
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Warnf("Failed to decode user: %v", err)
+			continue
+		}
+		if err := stream.Send(result.User); err != nil {
+			log.Warn("Failed to send: %v", err)
+		}
+	}
+	return nil
 }
 
-func GetAllUser(db *mongo.Collection, stream pb.UserManagement_GetAllUserServer) error {
-  cur, err := db.Find(context.Background(), bson.D{})
-	if err == nil {
-		defer cur.Close(context.Background())
-		for cur.Next(context.Background()) {
-			var result users.InternalUser
-			err := cur.Decode(&result)
-			if err != nil {
-			  log.Errorf("The result of the query has a wrong format: %v", err)
-				continue
-			}
-			if err := stream.Send(result.User); err != nil {
-			  return err
-			}
-		}
-		return nil
+// StreamUsers ...
+func StreamUsers(db *mongo.Collection, stream pb.UserManagement_GetUsersServer) error {
+	cur, err := db.Find(context.Background(), bson.D{})
+	if err != nil {
+		return err
 	}
-	return err
+	defer cur.Close(context.Background())
+	for cur.Next(context.Background()) {
+		var result users.InternalUser
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Warnf("Failed to decode user: %v", err)
+			continue
+		}
+		if err := stream.Send(result.User); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getUser(db *mongo.Collection, user *users.User) (*users.User, error) {
@@ -176,6 +194,7 @@ func RemoveUser(db *mongo.Collection, userID *users.UserID) error {
 	return err
 }
 
+// CountUsers ...
 func CountUsers(db *mongo.Collection) (int64, error) {
 	var count int64
 	cur, err := db.Find(context.Background(), bson.D{})

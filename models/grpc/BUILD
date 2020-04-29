@@ -11,9 +11,9 @@ proto_library(
     srcs = ["usermgmt.proto"],
     visibility = ["//visibility:public"],
     deps = [
+        "//models/types:result_proto",
         "//models/types:transports_proto",
         "//models/types:users_proto",
-        "//models/types:result_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -25,9 +25,9 @@ go_proto_library(
     proto = ":usermgmt_proto",
     visibility = ["//visibility:public"],
     deps = [
+        "//models/types:result_go_proto",
         "//models/types:transports_go_proto",
         "//models/types:users_go_proto",
-        "//models/types:result_go_proto",
     ],
 )
 
@@ -47,7 +47,10 @@ proto_library(
     name = "auth_proto",
     srcs = ["auth.proto"],
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
+    deps = [
+        "//models/types:users_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 go_proto_library(
@@ -56,6 +59,9 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/grpc/auth",
     proto = ":auth_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/types:users_go_proto",
+    ],
 )
 
 commonjs_dts_grpc_compile(
@@ -74,6 +80,9 @@ proto_library(
     name = "notification_proto",
     srcs = ["notification.proto"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/types:users_proto",
+    ],
 )
 
 go_proto_library(
@@ -82,6 +91,9 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/grpc/notification",
     proto = ":notification_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/types:users_go_proto",
+    ],
 )
 
 commonjs_dts_grpc_compile(
@@ -150,19 +162,19 @@ nodejs_proto_compile(
 filegroup(
     name = "grpc",
     srcs = [
+        ":auth_commonjs_dts_grpc_proto",
+        ":auth_go_proto",
+        ":auth_nodejs_proto",
+        ":notification_commonjs_dts_grpc_proto",
+        ":notification_go_proto",
+        ":notification_nodejs_proto",
         ":replayer_commonjs_dts_grpc_proto",
-        ":replayer_nodejs_proto",
         ":replayer_go_grpc",
         ":replayer_java_proto",
-        ":auth_commonjs_dts_grpc_proto",
-        ":auth_nodejs_proto",
-        ":auth_go_proto",
+        ":replayer_nodejs_proto",
         ":usermgmt_commonjs_dts_grpc_proto",
-        ":usermgmt_nodejs_proto",
         ":usermgmt_go_proto",
-        ":notification_commonjs_dts_grpc_proto",
-        ":notification_nodejs_proto",
-        ":notification_go_proto",
+        ":usermgmt_nodejs_proto",
     ],
     visibility = ["//visibility:public"],
 )

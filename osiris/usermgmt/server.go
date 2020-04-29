@@ -13,6 +13,7 @@ import (
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/types/transports"
 	"github.com/bptlab/cepta/models/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -81,29 +82,40 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 			return user, nil
 		}
 	}
-	// Try transportID
-	// TODO: this also has to work when not logged in.
-	if in.TrainId != nil && in.TrainId.Id != "" {
-		user, err = lib.GetUserByTrainId(s.DB.DB.Collection(s.UserCollection), in.TrainId)
-		if err == nil && user != nil {
-			return user, nil
-		}
-	}
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to query the database")
 	}
 	return nil, status.Error(codes.NotFound, "No such user found")
 }
 
-// GetAllUser ...
-func (s *UserMgmtServer) GetAllUser(empty *result.Empty, stream pb.UserManagement_GetAllUserServer) error {
-	var err error
+// GetSubscribersForTransport ...
+func (s *UserMgmtServer) GetSubscribersForTransport(request *pb.GetSubscribersRequest, stream pb.UserManagement_GetSubscribersForTransportServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if request.GetTransportId() == nil || request.GetTransportId().GetId() == "" {
+		log.Errorf("Failed to get subscribers for transport: bad transport ID %v", request.GetTransportId())
+		return status.Error(codes.InvalidArgument, "Bad transport ID")
+	}
+	if err := lib.StreamUsersByTransportID(s.DB.DB.Collection(s.UserCollection), request.GetTransportId(), stream); err != nil {
+		log.Errorf("Failed to query the database for users by transport ID: %v", err)
+		return status.Error(codes.Internal, "Failed to query the database for users by transport ID")
+	}
+	return nil
+}
 
-  err = lib.GetAllUser(s.DB.DB.Collection(s.UserCollection), stream)
-  if err != nil {
+// GetUsers ...
+func (s *UserMgmtServer) GetUsers(empty *result.Empty, stream pb.UserManagement_GetUsersServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if err := lib.StreamUsers(s.DB.DB.Collection(s.UserCollection), stream); err != nil {
+		log.Errorf("Failed to query all users: %v", err)
 		return status.Error(codes.Internal, "Failed to query the database")
-  }
-  return nil
+	}
+	return nil
 }
 
 // UpdateUser ...
@@ -251,6 +263,9 @@ func main() {
 				DefaultUser: users.InternalUser{
 					User: &users.User{
 						Email: ctx.String("default-email"),
+						Transports: []*transports.TransportID{
+							{Id: "123"},
+						},
 					},
 					Password: ctx.String("default-password"),
 				},

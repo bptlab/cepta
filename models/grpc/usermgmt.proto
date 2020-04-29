@@ -14,7 +14,10 @@ service UserManagement {
   rpc GetUserCount(models.types.result.Empty) returns (UserCount) {}
   rpc AddUser(AddUserRequest) returns (models.types.users.User) {}
   rpc RemoveUser(RemoveUserRequest) returns (models.types.result.Empty) {}
-  rpc GetAllUser (models.types.result.Empty) returns (stream models.types.users.User) {}
+
+  // TODO: Private
+  rpc GetUsers (models.types.result.Empty) returns (stream models.types.users.User) {}
+  rpc GetSubscribersForTransport(GetSubscribersRequest) returns (stream models.types.users.User) {}
 }
 
 message UserCount {
@@ -24,7 +27,10 @@ message UserCount {
 message GetUserRequest {
   models.types.users.UserID user_id = 1;
   string email = 2;
-  models.types.transports.TransportID train_id = 3;
+}
+
+message GetSubscribersRequest {
+  models.types.transports.TransportID transport_id = 3;
 }
 
 message UpdateUserRequest {
