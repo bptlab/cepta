@@ -107,7 +107,10 @@ proto_library(
     name = "train_delay_notification_proto",
     srcs = ["TrainDelayNotification.proto"],
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
+    deps = [
+        "//models/types:transports_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 java_proto_library(
@@ -121,6 +124,9 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/events/traindelaynotificationevent",
     proto = ":train_delay_notification_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/types:transports_go_proto",
+    ],
 )
 
 ts_grpc_compile(
