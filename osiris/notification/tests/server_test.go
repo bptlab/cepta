@@ -2,19 +2,20 @@ package main
 
 import (
 	"testing"
-	"time"
+	//"time"
 
-	topics "github.com/bptlab/cepta/models/constants/topic"
-	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
-	"github.com/bptlab/cepta/models/internal/types/ids"
-	"github.com/bptlab/cepta/models/internal/delay"
-	"github.com/bptlab/cepta/models/internal/types/users"
-	"github.com/golang/protobuf/proto"
-	durationpb "github.com/golang/protobuf/ptypes/duration"
+	//topics "github.com/bptlab/cepta/models/constants/topic"
+	//notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
+	//"github.com/bptlab/cepta/models/internal/types/ids"
+	//"github.com/bptlab/cepta/models/internal/delay"
+	//"github.com/bptlab/cepta/models/internal/types/users"
+	//"github.com/golang/protobuf/proto"
+	//durationpb "github.com/golang/protobuf/ptypes/duration"
 )
 
 const parallel = true
 
+/*
 func TestFillsCache(t *testing.T) {
 	test := new(Test).setup(t)
 	defer test.teardown()
@@ -41,10 +42,14 @@ func newDelayNotification(secs int64) *notificationpb.Notification {
 				Delay: &delay.Delay{Delta: &durationpb.Duration{Seconds: secs}},
 			}}}
 }
+*/
 
-func TestWebsocket(t *testing.T) {
+func TestSendMessagesToUser(t *testing.T) {
     test := new(Test).setup(t)
     defer test.teardown()
 
-    test.websocketHelper(t)
+    test.setupWebsocketConn(t)
+
+   // test.registerUser(t)
+   // test.userReceiveMessages(t)
 }

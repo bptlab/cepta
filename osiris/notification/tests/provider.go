@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+  "net/http/httptest"
 	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
@@ -24,6 +25,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -61,6 +63,10 @@ type Test struct {
 	usermgmtEndpoint *grpc.ClientConn
 	usermgmtServer   *usermgmt.UserMgmtServer
 	usermgmtClient   usermgmtpb.UserManagementClient
+
+	websocketConnection   *websocket.Conn
+	websocketClient       *websocket.Conn
+	websocketServer       *httptest.Server
 }
 
 func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
@@ -227,4 +233,7 @@ func (test *Test) teardown() {
 	test.KafkaC.Terminate(context.Background())
 	test.ZkC.Terminate(context.Background())
 	test.Net.Remove(context.Background())
+	test.websocketConnection.Close()
+	test.websocketClient.Close()
+	test.websocketServer.Close()
 }
