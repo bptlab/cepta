@@ -28,6 +28,7 @@ java_binary(
         "//models/events:train_information_data_java_proto",
         "//models/events:weather_data_java_proto",
         "//models/events:station_data_java_proto",
+        "//models/events:event_java_proto",
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_google_protobuf_protobuf_java",

@@ -53,11 +53,13 @@ import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.Tra
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.events.station.StationDataOuterClass.StationData;
+import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.lang.reflect.*;
 
 @Command(
     name = "cepta core",
@@ -70,11 +72,11 @@ public class Main implements Callable<Integer> {
 
   private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
   private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+  private FlinkKafkaConsumer011<Event> weatherDataConsumer;
   private FlinkKafkaConsumer011<StationData> stationDataConsumer;
 
   private void setupConsumers() {
-    this.liveTrainDataConsumer =
+/*     this.liveTrainDataConsumer =
         new FlinkKafkaConsumer011<LiveTrainData>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
           new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
@@ -85,11 +87,11 @@ public class Main implements Callable<Integer> {
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
-
+ */
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
+            new GenericBinaryProtoDeserializer<Event>(Event.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
   }
 
@@ -105,12 +107,17 @@ public class Main implements Callable<Integer> {
 
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.getConfig().registerTypeWithKryoSerializer(WeatherData.class, GenericBinaryProtoSerializer.class);
     this.setupConsumers();
 
      // Add consumer as source for data stream    
-    DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
-    weatherDataStream.print();
+    DataStream<Event> weatherEventStream = env.addSource(weatherDataConsumer);
+    DataStream<WeatherData> weatherStream = weatherEventStream.map(new MapFunction<Event, WeatherData>(){
+      @Override
+      public WeatherData map(Event event) throws Exception{
+        return event.getWeather();
+      }
+    });
+    weatherStream.print();
 /*    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
