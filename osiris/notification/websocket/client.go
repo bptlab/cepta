@@ -37,6 +37,8 @@ func (c *Client) Read() {
 		if messageType == 1 {
 			c.ID, _ = strconv.Atoi(string(p))
 			log.Info("UserId: %+v\n", c.ID)
+		} else {
+		  log.Debugf("recv: %s", string(p))
 		}
 
 		/*
