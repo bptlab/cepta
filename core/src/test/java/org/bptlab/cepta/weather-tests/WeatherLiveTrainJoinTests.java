@@ -37,7 +37,7 @@ public class WeatherLiveTrainJoinTests {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(count, 1);
+    Assert.assertEquals(1, count);
   }
 
   @Test
@@ -55,7 +55,7 @@ public class WeatherLiveTrainJoinTests {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(count, 4);
+    Assert.assertEquals(4, count);
   }
 
   @Test
