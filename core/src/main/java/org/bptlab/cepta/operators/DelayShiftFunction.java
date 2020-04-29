@@ -108,7 +108,7 @@ public class DelayShiftFunction extends
                     // only consider following stations
                     if (compareProtoTimestamps(planned.getPlannedEventTime(), referencePlannedData.getPlannedEventTime()) >= 0){
                         delays.add(TrainDelayNotification.newBuilder()
-                            .setLocationId(planned.getStationId())
+                            .setStationId(planned.getStationId())
                             .setTrainId(planned.getTrainSectionId())
                             .setDelay(liveEvent.getDelay())
                             .build());

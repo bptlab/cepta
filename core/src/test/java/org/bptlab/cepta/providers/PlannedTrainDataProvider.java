@@ -59,23 +59,28 @@ public class PlannedTrainDataProvider {
     return plannedTrainsStream;
   }
 
-  private static PlannedTrainData trainEventWithLocationID(int locationId){
+  private static PlannedTrainData trainEventWithStationId(int stationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setStationId(locationId).build();
+        .setStationId(stationId).build();
   }
   private static PlannedTrainData trainEventWithTrainID(int trainId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
         .setTrainId(trainId).build();
   }
-  private static PlannedTrainData trainEventWithTrainIdLocationId(int trainId, int locationId){
+  public static PlannedTrainData trainEventWithPlannedEventTime(Timestamp timestamp) {
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setTrainId(trainId).setStationId(locationId).build();
+            .setPlannedEventTime(timestamp).build();
   }
 
-  private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithLocationIDClass(int locationId, String eventClass){
+  private static PlannedTrainData trainEventWithTrainIdStationId(int trainId, int stationId){
+    return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
+        .setTrainId(trainId).setStationId(stationId).build();
+  }
+
+  private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithStationIDClass(int stationId, String eventClass){
     WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
       .setEventClass(eventClass).build();
-    return new Tuple2<>(weather, locationId);
+    return new Tuple2<>(weather, stationId);
   }
 
 }

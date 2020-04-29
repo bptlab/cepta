@@ -26,7 +26,7 @@ public class SumOfDelayAtStationFunction<T extends Object> {
     The window is a fixed event number window.
     It will return a Stream of Tuple2 with the location Id and the sum of delay. 
     */
-    public DataStream<Tuple2<Integer, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String locationAttributName) {
+    public DataStream<Tuple2<Integer, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String stationAttributName) {
         DataStream<Tuple2<Integer, Double>> resultStream = inputStream
         .keyBy(
             new KeySelector<T, Integer>(){
@@ -41,36 +41,36 @@ public class SumOfDelayAtStationFunction<T extends Object> {
         .window(GlobalWindows.create()).trigger(
             CustomCountTrigger.of(windowSize)
         ).process(
-            sumOfDelayAtStationWindowProcessFunction(locationAttributName)
+            sumOfDelayAtStationWindowProcessFunction(stationAttributName)
         );
         return resultStream;
     };
 
-    public ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String locationAttributName) {
+    public ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String stationAttributName) {
         return new ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow>() {
             @Override
             public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Integer, Double>> out) throws Exception {
                 HashMap<Integer, Double> sums = new HashMap<Integer, Double>();
                 for (T in: input) {
                     Class c = in.getClass();
-                    String methodName = "get" + locationAttributName;
+                    String methodName = "get" + stationAttributName;
                     Method method = c.getDeclaredMethod(methodName);
-                    Integer locationId = Integer.valueOf(method.invoke(in).toString());
+                    Integer stationId = Integer.valueOf(method.invoke(in).toString());
                     method = c.getDeclaredMethod("getDelay");
                     Double delay = Double.valueOf(method.invoke(in).toString());
 
-                    if (!sums.containsKey(locationId)) {
-                        sums.put(locationId, delay);
+                    if (!sums.containsKey(stationId)) {
+                        sums.put(stationId, delay);
                     } else {
                         double tmp;
-                        tmp = sums.get(locationId);
-                        sums.replace(locationId, (tmp + delay));
+                        tmp = sums.get(stationId);
+                        sums.replace(stationId, (tmp + delay));
                     }
                 }
 
-                for (Integer location: sums.keySet()) {
-                    Double delay = sums.get(location);
-                    out.collect(new Tuple2<Integer, Double>(location, delay) );
+                for (Integer station: sums.keySet()) {
+                    Double delay = sums.get(station);
+                    out.collect(new Tuple2<Integer, Double>(station, delay) );
                 }
             }
         };

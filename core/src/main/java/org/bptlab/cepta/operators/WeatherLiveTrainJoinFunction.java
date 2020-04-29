@@ -32,7 +32,7 @@ public class WeatherLiveTrainJoinFunction {
             return TrainDelayNotification.newBuilder()
                 .setDelay(delayFromWeather(weatherDataIntegerTuple2.f0))
                 .setTrainId(liveTrainData.getTrainSectionId())
-                .setLocationId(liveTrainData.getStationId())
+                .setStationId(liveTrainData.getStationId())
                 .build();
           }
         });
