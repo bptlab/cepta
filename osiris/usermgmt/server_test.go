@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/bptlab/cepta/models/internal/types/result"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
+	"github.com/golang/protobuf/proto"
 	"net"
 	"testing"
 	"time"
@@ -271,7 +275,7 @@ func TestGetUser(t *testing.T) {
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
 		User: &users.User{
 			Email:      "email@mail.de",
-			Transports: []*transports.TransportID{&transports.TransportID{Id: "14"}},
+			Transports: []*ids.CeptaTransportID{{Id: "14"}},
 		},
 		Password: "hard-to-guess",
 	}}
@@ -305,11 +309,6 @@ func TestGetUser(t *testing.T) {
 		Email:  "not the real email",
 	})
 
-	// Assert user is found by trainId
-	assertCanFindUser(&pb.GetUserRequest{
-		TrainId: newUserReq.User.User.Transports[0],
-	})
-
 	// Assert user is found by email
 	assertCanFindUser(&pb.GetUserRequest{
 		Email: newUserReq.User.User.Email,
@@ -321,15 +320,9 @@ func TestGetUser(t *testing.T) {
 		UserId: &users.UserID{Id: "dumb-id"},
 		Email:  newUserReq.User.User.Email,
 	})
-
-	// Assert user is found by trainID when ID is not found
-	assertCanFindUser(&pb.GetUserRequest{
-	  UserId: &users.UserID{Id: "dumb-id"},
-		TrainId: newUserReq.User.User.Transports[0],
-	})
 }
 
-func TestGetAllUser(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	test := new(Test).setup(t)
 	defer test.teardown()
 
@@ -337,7 +330,7 @@ func TestGetAllUser(t *testing.T) {
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
 		User: &users.User{
 			Email:      "example@gmail.com",
-			Transports: []*transports.TransportID{&transports.TransportID{Id: "13"}},
+			Transports: []*ids.CeptaTransportID{{Id: "13"}},
 		},
 		Password: "hard-to-guess",
 	}}
@@ -352,7 +345,7 @@ func TestGetAllUser(t *testing.T) {
 	  var receivedUserCount int64 = 0
 	  var lastUser *users.User
 
-		stream, err := test.userClient.GetAllUser(context.Background(), &result.Empty{})
+		stream, err := test.userClient.GetUsers(context.Background(), &result.Empty{})
     if err != nil {
       t.Fatalf("Failed to receive stream from the usermgmt service %v", err)
     }
