@@ -1,17 +1,15 @@
 package producer
 
 import (
-	"encoding/json"
-	"log"
+	"fmt"
 
-	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	"github.com/bptlab/cepta/osiris/lib/rabbitmq"
 	"github.com/streadway/amqp"
 	"github.com/urfave/cli/v2"
 )
 
-// C
+// CliOptions ...
 var CliOptions = libcli.CommonCliOptions(libcli.RabbitMQ)
 
 // Config ...
@@ -19,29 +17,31 @@ type Config struct {
 	rabbitmq.Config
 }
 
+// ParseCli ...
 func (config Config) ParseCli(ctx *cli.Context) Config {
 	return Config{
 		Config: rabbitmq.Config{}.ParseCli(ctx),
 	}
 }
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
-
-func (config Config) Setup() (*amqp.Connection, *amqp.Channel) {
+// Setup ...
+func (config Config) Setup() (conn *amqp.Connection, ch *amqp.Channel, err error) {
 	// 1. Create the connection to RabbitMQ
-	conn, err := amqp.Dial(config.Config.ConnectionURI())
-	failOnError(err, "Failed to connect to RabbitMQ")
+	conn, err = amqp.Dial(config.Config.ConnectionURI())
+	if err != nil {
+		err = fmt.Errorf("Failed to connect to RabbitMQ: %v", err)
+		return
+	}
 
 	// Initialize a channel for the connection
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	ch, err = conn.Channel()
+	if err != nil {
+		err = fmt.Errorf("Failed to open a channel: %v", err)
+		return
+	}
 
 	// Configure the exchange for the channel
-	err = ch.ExchangeDeclare(
+	if err = ch.ExchangeDeclare(
 		config.ExchangeName, // name
 		"direct",            // type
 		true,                // durable
@@ -49,26 +49,22 @@ func (config Config) Setup() (*amqp.Connection, *amqp.Channel) {
 		false,               // internal
 		false,               // no-wait
 		nil,                 // arguments
-	)
-	failOnError(err, "Failed to declare an exchange")
-
-	return conn, ch
+	); err != nil {
+		err = fmt.Errorf("Failed to declare an exchange: %v", err)
+		return
+	}
+	return
 }
 
-func (config Config) Publish(delayEvent delay.TrainDelayNotification, ch *amqp.Channel) {
-	delayEventMarshal, _ := json.Marshal(delayEvent)
-	body := string(delayEventMarshal)
-
-	err := ch.Publish(
+// Publish ...
+func (config Config) Publish(message []byte, ch *amqp.Channel) error {
+	return ch.Publish(
 		config.ExchangeName,       // exchange
 		config.ExchangeRoutingKey, // routing key
 		false,                     // mandatory
 		false,                     // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
+			ContentType: "application/octet-stream",
+			Body:        message,
 		})
-	failOnError(err, "Failed to publish a message")
-
-	log.Printf("Sent %s", body)
 }

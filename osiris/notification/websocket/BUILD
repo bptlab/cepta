@@ -10,6 +10,9 @@ go_library(
     importpath = "github.com/bptlab/cepta/osiris/notification/websocket",
     visibility = ["//visibility:public"],
     deps = [
+        "//models/grpc:notification_go_proto",
+        "//models/types:users_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_gorilla_websocket//:go_default_library",
         "@com_github_sirupsen_logrus//:go_default_library",
     ],

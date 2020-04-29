@@ -58,6 +58,7 @@ go_library(
         "//osiris/notification/websocket:go_default_library",
         "//osiris/usermgmt:go_default_library",
         "//osiris/lib/kafka/consumer:go_default_library",
+        "//osiris/lib/kafka/producer:go_default_library",
         "//ci/versioning:go_default_library",
         "//osiris/lib:cli",
         "//models/grpc:notification_go_proto",
@@ -80,18 +81,21 @@ go_library(
         "@org_golang_google_grpc//:go_default_library",
         "@com_github_streadway_amqp//:go_default_library",
         "@com_github_hashicorp_golang_lru//:go_default_library",
+        "@com_github_romnnn_flags4urfavecli//values:go_default_library",
     ],
 )
 
 go_test(
     name = "server-test",
-    srcs = ["tests/server_test.go", "tests/provider.go"],
+    srcs = ["tests/server_test.go", "tests/provider.go", "tests/helpers.go"],
     embed = [":go_default_library"],
     size = "medium",
     tags = ["integration", "docker"],
     deps = [
+        "@com_github_shopify_sarama//:go_default_library",
         "@com_github_romnnn_testcontainers//:go_default_library",
         "//models/grpc:usermgmt_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
         "//osiris/usermgmt:go_default_library",
         "//osiris/lib/kafka:go_default_library",
         "//osiris/lib/rabbitmq:go_default_library",

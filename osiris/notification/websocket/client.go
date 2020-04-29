@@ -3,22 +3,22 @@
 package websocket
 
 import (
+	"sync"
+
+	pb "github.com/bptlab/cepta/models/grpc/notification"
+	"github.com/bptlab/cepta/models/types/users"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"strconv"
-	"sync"
 )
 
+// Client ...
 type Client struct {
-	ID   int
-	Conn *websocket.Conn
-	Pool *Pool
-	mu   sync.Mutex
-}
-
-type Message struct {
-	Type int    `json:"type"`
-	Body string `json:"body"`
+	Conn  *websocket.Conn
+	Pool  *Pool
+	ID    *users.UserID
+	Token string
+	mu    sync.Mutex
 }
 
 func (c *Client) Read() {
@@ -28,20 +28,31 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		messageType, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Error(err)
 			return
 		}
 
-		if messageType == 1 {
-			c.ID, _ = strconv.Atoi(string(p))
-			log.Info("UserId: %+v\n", c.ID)
+		switch messageType {
+		case int(pb.MessageType_USER_ANNOUNCEMENT):
+			// Attempt to decode UserAnnouncementMessage
+			var announcement pb.UserAnnouncementMessage
+			err = proto.Unmarshal(message, &announcement)
+			if err != nil {
+				log.Errorf("unmarshaling error: %v", err)
+			}
+			clientID := announcement.GetUserId()
+			if clientID == nil || clientID.GetId() == "" {
+				log.Warnf("Received invalid user announcement: %v", announcement)
+				break
+			}
+			log.Infof("User registered with ID %s", clientID)
+			c.ID = clientID
+			c.Pool.ClientMapping[c.ID] = c
+			break
+		default:
+			log.Warnf("Unkown message type: %v", messageType)
 		}
-
-		/*
-		message := Message{Type: messageType, Body: string(p)}
-		c.Pool.Broadcast <- message
-		*/
 	}
 }

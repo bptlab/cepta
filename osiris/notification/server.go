@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
+	"reflect"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/bptlab/cepta/ci/versioning"
-	"github.com/bptlab/cepta/models/constants/topic"
+	topics "github.com/bptlab/cepta/models/constants/topic"
 	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
 	pb "github.com/bptlab/cepta/models/grpc/notification"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
@@ -26,6 +26,8 @@ import (
 	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
 	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	"github.com/bptlab/cepta/osiris/notification/websocket"
+	clivalues "github.com/romnnn/flags4urfavecli/values"
+	"github.com/streadway/amqp"
 
 	"github.com/golang/protobuf/proto"
 	lru "github.com/hashicorp/golang-lru"
@@ -40,8 +42,10 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
-const (
-	lruSize = 1000
+var (
+	lruSize                  = 1000 // Cache up to 1000 transports
+	lruMaxEntryLength        = 1000 // Cache up to 1000 subscribers per transport
+	defaultNotificationTopic = topics.Topic_DELAY_NOTIFICATIONS.String()
 )
 
 // Endpoint ...
@@ -50,15 +54,23 @@ type Endpoint struct {
 	Port int
 }
 
+// TransportSubscribers ...
+type TransportSubscribers struct {
+	TransportID string
+	Subscribers *[]*users.UserID
+}
+
 // NotificationServer ...
 type NotificationServer struct {
 	pb.UnimplementedNotificationServer
 
 	transportCache *lru.Cache
-	pool           *websocket.Pool
 
+	pool           *websocket.Pool
 	usermgmtClient usermgmtpb.UserManagementClient
 	grpcServer     *grpc.Server
+	rmqChan        *amqp.Channel
+	rmqConn        *amqp.Connection
 
 	kafkacConfig kafkaconsumer.Config
 	rmqcConfig   rmqc.Config
@@ -79,58 +91,97 @@ func NewNotificationServer(kafkaConfig kafkaconsumer.Config, rmqConsumerConfig r
 // Shutdown ...
 func (s *NotificationServer) Shutdown() {
 	log.Info("Graceful shutdown")
+	log.Info("Closing rabbitMQ connection")
+	s.rmqConn.Close()
+	s.rmqChan.Close()
 	log.Info("Stopping GRPC server")
 	if s.grpcServer != nil {
-		s.grpcServer.Stop()
+		s.grpcServer.GracefulStop()
 	}
 }
 
 // FillUserCache ...
-func (s *NotificationServer) fillUserCache() {
-	stream, err := s.usermgmtClient.GetAllUser(context.Background(), &result.Empty{})
+func (s *NotificationServer) fillUserCache(ctx context.Context) {
+	stream, err := s.usermgmtClient.GetUsers(ctx, &result.Empty{})
 	if err != nil {
-		log.Fatalf("Failed to receive stream from usermgmt service %v", err)
+		log.Fatalf("Failed to receive users stream from usermgmt service: %v", err)
 	}
-
 	for {
 		user, err := stream.Recv()
-		if err == io.EOF || s.transportCache.Len() == lruSize {
+		if err == io.EOF || s.transportCache.Len() >= lruSize {
 			break
 		}
 		if err != nil {
-			log.Fatalf("Failed to receive user from stream: %v", err)
+			log.Warnf("Failed to receive user from stream: %v", err)
+			continue
 		}
 		log.Debug(user)
 
 		for _, train := range user.Transports {
 			log.Debug(train)
+			// TODO
 			evicted := s.transportCache.Add(train.Id, user.Id)
-			log.Debug(evicted)
+			log.Debugf("Evicted: %v", evicted)
 		}
 	}
-	return
 }
 
-func (s *NotificationServer) findUser(ctx context.Context, trainID int64) (*users.User, error) {
-	userExists := s.transportCache.Contains(trainID)
+// TODO: Notify here already (send into big buffered queue)
+// When numbers exceeds limit do not set the cache item so it must be streamed every time again which is ok
+// Change return type!
+func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *transports.TransportID, message proto.Message) error {
+	var subscribers TransportSubscribers
+	var count int
+	subscribers.Subscribers = new([]*users.UserID)
 
-	if userExists {
-		uid, _ := s.transportCache.Get(trainID)
-		return uid.(*users.User), nil
+	// CACHE HIT
+	if rawCachedSubscribers, ok := s.transportCache.Get(transportID); ok {
+		if cachedSubscribers, ok := rawCachedSubscribers.(TransportSubscribers); ok {
+			if cachedSubscribers.Subscribers != nil {
+				for _, user := range *cachedSubscribers.Subscribers {
+					s.notifyUser(user, message)
+				}
+			} else {
+				// TODO: Warn
+			}
+		} else {
+			log.Errorf("Cache returned invalid type %v", reflect.TypeOf(rawCachedSubscribers))
+		}
+
+		// CACHE MISS
 	} else {
-		userRequest := &usermgmtpb.GetUserRequest{
-			TrainId: &transports.TransportID{
-				Id: strconv.Itoa(int(trainID)),
-			},
-		}
-		usr, err := s.usermgmtClient.GetUser(ctx, userRequest)
+		// Must query the user management service
+		stream, err := s.usermgmtClient.GetSubscribersForTransport(ctx, &usermgmtpb.GetSubscribersRequest{
+			TransportId: transportID,
+		})
 		if err != nil {
-			return nil, fmt.Errorf("Failed to receive user to the trainID with error message: %v", err)
+			return fmt.Errorf("Failed to query subscribers for transport %s: %v", transportID, err)
 		}
-		evicted := s.transportCache.Add(trainID, usr.Id)
-		log.Debug(evicted)
-		return usr, nil
+		for {
+			user, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Warnf("Failed to receive user from stream: %v", err)
+				continue
+			}
+			log.Debug(user)
+			// Add to cache eventually
+			if count < lruMaxEntryLength {
+				*subscribers.Subscribers = append(*subscribers.Subscribers, user.GetId())
+			}
+
+			// Notify user
+			s.notifyUser(user.GetId(), message)
+			count++
+		}
+		if count < lruMaxEntryLength {
+			evicted := s.transportCache.Add(transportID, subscribers)
+			log.Debug("Evicted %v", evicted)
+		}
 	}
+	return nil
 }
 
 func (s *NotificationServer) serveRabbitMQConsumer(options rmqc.Config) {
@@ -156,26 +207,20 @@ func (s *NotificationServer) serveWebsocket(pool *websocket.Pool, w http.Respons
 	client.Read()
 }
 
-func (s *NotificationServer) subscribeKafkaToPool(ctx context.Context, pool *websocket.Pool) {
-	if !(len(s.kafkacConfig.Topics) == 1 && len(s.kafkacConfig.Topics[0]) > 0) {
-		s.kafkacConfig.Topics = []string{topic.Topic_DELAY_NOTIFICATIONS.String()}
+func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
+	if len(s.kafkacConfig.Topics) < 1 || s.kafkacConfig.Topics[0] == "" {
+		s.kafkacConfig.Topics = []string{defaultNotificationTopic}
 	}
 	if s.kafkacConfig.Group == "" {
 		s.kafkacConfig.Group = "DelayConsumerGroup"
 	}
 	log.Infof("Will consume topic %s from %s (group %s)", s.kafkacConfig.Topics, strings.Join(s.kafkacConfig.Brokers, ", "), s.kafkacConfig.Group)
-	// TODO: Implement wg
-	kafkaConsumer, _, err := kafkaconsumer.ConsumeGroup(ctx, s.kafkacConfig)
+	kafkaConsumer, wg, err := kafkaconsumer.ConsumeGroup(ctx, s.kafkacConfig)
 	if err != nil {
 		log.Warnf("Failed to connect to kafka broker (%s) (group %s) on topic %s",
 			strings.Join(s.kafkacConfig.Brokers, ", "), s.kafkacConfig.Group, s.kafkacConfig.Topics)
-		log.Fatal(err.Error())
+		log.Fatal(err)
 	}
-
-	// Connect to RabbitMQ and define channel
-	rabbitMqConnection, rabbitMqChannel := s.rmqpConfig.Setup()
-	defer rabbitMqConnection.Close()
-	defer rabbitMqChannel.Close()
 
 	noopTicker := time.NewTicker(time.Second * 10)
 	subscriberDone := make(chan bool, 1)
@@ -192,53 +237,72 @@ func (s *NotificationServer) subscribeKafkaToPool(ctx context.Context, pool *web
 				}
 				log.Info(delayEvent)
 
-				uid, err := s.findUser(ctx, delayEvent.TrainId)
-				if err != nil {
-					log.Fatal(err)
+				if err := s.notifySubscribersForTransport(ctx, delayEvent.GetTransportId(), &delayEvent); err != nil {
+					log.Errorf("Failed notify subsribers of transport %d: err", delayEvent.GetTransportId(), err)
 				}
-				s.rmqcConfig.ExchangeRoutingKey = uid.Id.Id
-				s.rmqpConfig.Publish(delayEvent, rabbitMqChannel)
-
-				s.pool.Broadcast <- msg.Value
 				break
 
 			case <-noopTicker.C:
-				// Noop
+				// Noop, may be used for periodic pings
 			case <-stopSubscriber:
 				return
 			}
 		}
 	}()
 	<-subscriberDone
+	wg.Wait()
 	noopTicker.Stop()
 }
 
+func (s *NotificationServer) notifyUser(userID *users.UserID, message proto.Message) {
+	// Marshal message
+	rawMessage, err := proto.Marshal(message)
+	if err != nil {
+		log.Error("Failed to marshal proto: ", err)
+		return
+	}
+	// Check for active connection
+	if _, ok := s.pool.ClientMapping[userID]; ok {
+		s.pool.NotifyUser <- websocket.UserNotification{ID: userID, Msg: rawMessage}
+	} else {
+		// Buffer in rabbit mq queue
+		s.rmqcConfig.ExchangeRoutingKey = userID.GetId()
+		s.rmqpConfig.Publish(rawMessage, s.rmqChan)
+	}
+}
+
 // Setup ...
-func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.ClientConn) error {
+func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.ClientConn) (err error) {
 	s.usermgmtClient = usermgmtpb.NewUserManagementClient(usermgmtConn)
 
 	// Fill the cache with recent transports
-	var err error
 	s.transportCache, err = lru.New(lruSize)
 	if err != nil {
-		log.Fatalf("Failed to initialize cache: %v", err)
+		err = fmt.Errorf("Failed to initialize cache: %v", err)
+		return
 	}
 
 	log.Info("Filling cache")
-	go s.fillUserCache()
+	go s.fillUserCache(ctx)
 	s.pool = websocket.NewPool()
 	go s.pool.Start()
 
+	// Connect to RabbitMQ
+	s.rmqConn, s.rmqChan, err = s.rmqpConfig.Setup()
+	if err != nil {
+		return
+	}
+
 	// TODO: We need to serve more than just one user and therefore need more than one rabbitmqConsumer
 	go s.serveRabbitMQConsumer(s.rmqcConfig)
-	go s.subscribeKafkaToPool(ctx, s.pool)
+	go s.handleKafkaMessages(ctx)
 
-	return nil
+	return
 }
 
 // ConnectUsermgmt ...
 func (s *NotificationServer) ConnectUsermgmt(ctx context.Context, usermgmtConnectionURI string) error {
-	log.Info("Connecting to usermgmt service")
+	log.Info("Connecting to usermgmt service...")
 	usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Failed to connect to the usermgmt service: %v", err)
@@ -248,6 +312,10 @@ func (s *NotificationServer) ConnectUsermgmt(ctx context.Context, usermgmtConnec
 }
 
 func main() {
+	var sources []string
+	for t := range topics.Topic_value {
+		sources = append(sources, t)
+	}
 
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceLogLevel)...)
@@ -282,6 +350,15 @@ func main() {
 			EnvVars: []string{"USERMGMT_PORT"},
 			Usage:   "usermgmt microservice port",
 		},
+		&cli.GenericFlag{
+			Name: "notifications-topic",
+			Value: &clivalues.EnumValue{
+				Enum:    sources,
+				Default: defaultNotificationTopic,
+			},
+			EnvVars: []string{"NOTIFICATIONS_TOPIC"},
+			Usage:   "topic to subscribe for notifications",
+		},
 	}...)
 
 	app := &cli.App{
@@ -305,10 +382,12 @@ func main() {
 			}
 
 			// Register shutdown routine
+			setupCtx, cancelSetup := context.WithCancel(context.Background())
 			shutdown := make(chan os.Signal)
 			signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 			go func() {
 				<-shutdown
+				cancelSetup()
 				server.Shutdown()
 			}()
 
@@ -322,7 +401,7 @@ func main() {
 				return fmt.Errorf("failed to listen: %v", err)
 			}
 
-			if err := server.ConnectUsermgmt(context.Background(), fmt.Sprintf("%s:%d", server.usermgmtEndpoint.Host, server.usermgmtEndpoint.Port)); err != nil {
+			if err := server.ConnectUsermgmt(setupCtx, fmt.Sprintf("%s:%d", server.usermgmtEndpoint.Host, server.usermgmtEndpoint.Port)); err != nil {
 				return err
 			}
 
