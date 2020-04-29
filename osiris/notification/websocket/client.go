@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"

@@ -14,7 +14,7 @@ import {
   AuthenticationToken,
   TokenValidationRequest
 } from "@/generated/protobuf/models/grpc/auth_pb";
-import { UserID } from "@/generated/protobuf/models/types/users_pb";
+import { UserID } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { UserManagementModule } from "./usermgmt";
 

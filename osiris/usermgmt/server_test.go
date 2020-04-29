@@ -8,10 +8,6 @@ import (
 	"time"
 	"io"
 
-	"github.com/bptlab/cepta/models/types/result"
-	"github.com/bptlab/cepta/models/types/transports"
-	"github.com/bptlab/cepta/models/types/users"
-	"github.com/golang/protobuf/proto"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/sirupsen/logrus"

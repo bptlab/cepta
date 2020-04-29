@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )

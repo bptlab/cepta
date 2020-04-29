@@ -16,8 +16,7 @@ import org.bptlab.cepta.operators.SumOfDelayAtStationFunction;
 import org.bptlab.cepta.providers.TrainDelayNotificationDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
-import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 
 public class SumOfDelayAtStationTests {
     @Test
@@ -35,21 +34,17 @@ public class SumOfDelayAtStationTests {
         // element 2 has stationId 2, trainId 2, delay 5
         // element 3 has stationId 1, trainId 2, delay 15
         // element 4 has stationId 2, trainId 1, delay 8
-        DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
+        DataStream<NotificationOuterClass.Notification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
-        DataStream<Tuple2<Integer, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "LocationId");
-        ArrayList<Tuple2<Integer, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        DataStream<Tuple2<String, Long>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4);
+        ArrayList<Tuple2<String, Long>> locationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<String, Long>> iterator = DataStreamUtils.collect(locationAndDelayStream);
         while(iterator.hasNext()){
-            Tuple2<Integer, Double> tuple = iterator.next();
+            Tuple2<String, Long> tuple = iterator.next();
             locationAndDelayArray.add(tuple);
         }
-        // check if any tuple is present
-        if (locationAndDelayArray.size() == 0) {
-            pass = false;
-        }
-        for (Tuple2<Integer, Double> tuple : locationAndDelayArray) {
-            // check if first station matches expected delay
+
+        for (Tuple2<String, Long> tuple : locationAndDelayArray) {
             if (tuple.f0.equals(expectedStation1)) {
                 if (!tuple.f1.equals(expectedDelayAtStation1)) {
                     pass = false;

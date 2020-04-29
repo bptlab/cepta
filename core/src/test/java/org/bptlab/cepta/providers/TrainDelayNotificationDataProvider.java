@@ -2,59 +2,83 @@ package org.bptlab.cepta.providers;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
+import com.google.protobuf.Duration;
 
 
 public class TrainDelayNotificationDataProvider {
 
-        public static TrainDelayNotification getDefaultLTrainDelayNotificationDataEvent() {
-        TrainDelayNotification.Builder builder = TrainDelayNotification.newBuilder();
-          builder.setTrainId(1);
-          builder.setLocationId(1);
-          builder.setDelay(1);
-          return builder.build();
+        public static NotificationOuterClass.Notification getDefaultLTrainDelayNotificationDataEvent() {
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
+                    .build()
+            ).build();
         }
 
       
-        public static DataStream<TrainDelayNotification> TrainDelayNotificationDataStream(){
+        public static DataStream<NotificationOuterClass.Notification> TrainDelayNotificationDataStream(){
           StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
           env.setParallelism(1);
+
+            NotificationOuterClass.Notification ele1 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","1",10L);
+            NotificationOuterClass.Notification ele2 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","2",5L);
+            NotificationOuterClass.Notification ele3 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","2",15L);
+            NotificationOuterClass.Notification ele4 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","1",8L);
       
-          TrainDelayNotification ele1 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay(1,1,Double.valueOf(10));
-          TrainDelayNotification ele2 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay(2,2,Double.valueOf(5));
-          TrainDelayNotification ele3 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay(1,2,Double.valueOf(15));
-          TrainDelayNotification ele4 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay(2,1,Double.valueOf(8));
-      
-          DataStream<TrainDelayNotification> trainDelayNotificationStream = env.fromElements(ele1, ele2, ele3, ele4);
+          DataStream<NotificationOuterClass.Notification> trainDelayNotificationStream = env.fromElements(ele1, ele2, ele3, ele4);
       
           return trainDelayNotificationStream;
         }
       
 
-        private static TrainDelayNotification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(int locationId, int trainId, Double delay){
-          return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).setTrainId(trainId).setDelay(delay).build();
+        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
+                    .build()
+            ).build();
         }
 
-        private static TrainDelayNotification trainDelayNotificationWithLocationIdWithTrainId(int locationId, int trainId){
-          return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).setTrainId(trainId).build();
+        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainId(String locationId, String trainId){
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
+                    .build()
+            ).build();
         }
 
-        private static TrainDelayNotification trainDelayNotificationWithLocationId(int locationId){
-          return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setLocationId(locationId).build();
+        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationId(String locationId){
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
+                    .build()
+            ).build();
         }
 
-        private static TrainDelayNotification trainDelayNotificationWithTrainId(int trainId){
-          return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setTrainId(trainId).build();
+        private static NotificationOuterClass.Notification trainDelayNotificationWithTrainId(String trainId){
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
+                    .build()
+            ).build();
         }
 
         
-        private static TrainDelayNotification trainDelayNotificationWithDelay(Double delay){
-          return TrainDelayNotificationDataProvider.getDefaultLTrainDelayNotificationDataEvent().toBuilder()
-              .setDelay(delay).build();
+        private static NotificationOuterClass.Notification trainDelayNotificationWithDelay(Long delay){
+            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
+                    .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
+                    .build()
+            ).build();
         }
 
 

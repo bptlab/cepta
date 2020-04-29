@@ -14,8 +14,8 @@ import (
 	"github.com/Shopify/sarama"
 	topics "github.com/bptlab/cepta/models/constants/topic"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/transports"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
@@ -145,7 +145,7 @@ func (test *Test) produceEventsToKafka(t *testing.T, topic topics.Topic, events 
 	}
 }
 
-func (test *Test) addUsersForTransport(t *testing.T, transportID *transports.TransportID, userIDs []*users.UserID) {
+func (test *Test) addUsersForTransport(t *testing.T, transportID *ids.CeptaTransportID, userIDs []*users.UserID) {
 	for _, userID := range userIDs {
 		newUserReq := &usermgmtpb.AddUserRequest{User: &users.InternalUser{
 			User:     &users.User{Email: fmt.Sprintf("%s@cepta.org", userID.GetId()), Id: userID},

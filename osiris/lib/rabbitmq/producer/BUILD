@@ -10,8 +10,7 @@ go_library(
     deps = [
         "//osiris/lib:cli",
         "//osiris/lib/rabbitmq:go_default_library",
-        "@com_github_urfave_cli_v2//:go_default_library",
         "@com_github_streadway_amqp//:go_default_library",
-        "//models/events:train_delay_notification_go_proto",
+        "@com_github_urfave_cli_v2//:go_default_library",
     ],
 )

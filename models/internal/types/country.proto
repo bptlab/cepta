@@ -1,0 +1,9 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/country";
+option java_package = "org.bptlab.cepta.models.internal.types.country";
+
+message Country {
+    string name = 1;
+    string code = 2;
+}

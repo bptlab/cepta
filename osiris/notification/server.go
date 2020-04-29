@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"github.com/bptlab/cepta/ci/versioning"
-	topics "github.com/bptlab/cepta/models/constants/topic"
-	delay "github.com/bptlab/cepta/models/events/traindelaynotificationevent"
 	pb "github.com/bptlab/cepta/models/grpc/notification"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/result"
-	"github.com/bptlab/cepta/models/types/transports"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/result"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
+	topics "github.com/bptlab/cepta/models/constants/topic"
+	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
@@ -129,7 +129,7 @@ func (s *NotificationServer) fillUserCache(ctx context.Context) {
 // TODO: Notify here already (send into big buffered queue)
 // When numbers exceeds limit do not set the cache item so it must be streamed every time again which is ok
 // Change return type!
-func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *transports.TransportID, message proto.Message) error {
+func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *ids.CeptaTransportID, message proto.Message) error {
 	var subscribers TransportSubscribers
 	var count int
 	subscribers.Subscribers = new([]*users.UserID)
@@ -230,18 +230,21 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 		for {
 			select {
 			case msg := <-kafkaConsumer.Messages:
-				delayEvent := delay.TrainDelayNotification{}
-				err = proto.Unmarshal(msg.Value, &delayEvent)
+				var notification notificationpb.Notification
+				err = proto.Unmarshal(msg.Value, &notification)
 				if err != nil {
 					log.Errorf("unmarshaling error: ", err)
 				}
-				log.Info(delayEvent)
+				log.Info(notification)
 
-				if err := s.notifySubscribersForTransport(ctx, delayEvent.GetTransportId(), &delayEvent); err != nil {
-					log.Errorf("Failed notify subsribers of transport %d: err", delayEvent.GetTransportId(), err)
+				switch notification.GetNotification().(type) {
+				case *notificationpb.Notification_Delay:
+					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetCeptaId(), notification.GetDelay().GetCeptaId()); err != nil {
+						log.Errorf("Failed notify subsribers of transport %d: err", notification.GetDelay().GetCeptaId(), err)
+					}
+					break
 				}
 				break
-
 			case <-noopTicker.C:
 				// Noop, may be used for periodic pings
 			case <-stopSubscriber:

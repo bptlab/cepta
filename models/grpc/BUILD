@@ -11,9 +11,10 @@ proto_library(
     srcs = ["usermgmt.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:result_proto",
-        "//models/types:transports_proto",
-        "//models/types:users_proto",
+        "//models/internal/types:ids_proto",
+        "//models/internal/types:result_proto",
+        "//models/internal/types:transport_proto",
+        "//models/internal/types:users_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -25,9 +26,10 @@ go_proto_library(
     proto = ":usermgmt_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:result_go_proto",
-        "//models/types:transports_go_proto",
-        "//models/types:users_go_proto",
+        "//models/internal/types:ids_go_proto",
+        "//models/internal/types:result_go_proto",
+        "//models/internal/types:transport_go_proto",
+        "//models/internal/types:users_go_proto",
     ],
 )
 
@@ -48,7 +50,7 @@ proto_library(
     srcs = ["auth.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:users_proto",
+        "//models/internal/types:users_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -60,7 +62,7 @@ go_proto_library(
     proto = ":auth_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:users_go_proto",
+        "//models/internal/types:users_go_proto",
     ],
 )
 
@@ -81,7 +83,7 @@ proto_library(
     srcs = ["notification.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:users_proto",
+        "//models/internal/types:users_proto",
     ],
 )
 
@@ -92,7 +94,7 @@ go_proto_library(
     proto = ":notification_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:users_go_proto",
+        "//models/internal/types:users_go_proto",
     ],
 )
 
@@ -115,7 +117,7 @@ proto_library(
     deps = [
         "//models/constants:topic_proto",
         "//models/events:event_proto",
-        "//models/types:result_proto",
+        "//models/internal/types:result_proto",
         "@com_google_protobuf//:timestamp_proto",
         "@com_google_protobuf//:wrappers_proto",
     ],
@@ -130,7 +132,7 @@ go_proto_library(
     deps = [
         "//models/constants:topic_go_proto",
         "//models/events:event_go_proto",
-        "//models/types:result_go_proto",
+        "//models/internal/types:result_go_proto",
     ],
 )
 

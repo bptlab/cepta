@@ -9,7 +9,7 @@ import (
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/kafka"

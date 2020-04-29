@@ -104,42 +104,6 @@ go_proto_library(
 )
 
 proto_library(
-    name = "train_delay_notification_proto",
-    srcs = ["TrainDelayNotification.proto"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//models/types:transports_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-java_proto_library(
-    name = "train_delay_notification_java_proto",
-    visibility = ["//visibility:public"],
-    deps = [":train_delay_notification_proto"],
-)
-
-go_proto_library(
-    name = "train_delay_notification_go_proto",
-    importpath = "github.com/bptlab/cepta/models/events/traindelaynotificationevent",
-    proto = ":train_delay_notification_proto",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//models/types:transports_go_proto",
-    ],
-)
-
-ts_grpc_compile(
-    name = "train_delay_notification_ts_proto",
-    deps = ["train_delay_notification_proto"],
-)
-
-nodejs_proto_compile(
-    name = "train_delay_notification_nodejs_proto",
-    deps = ["train_delay_notification_proto"],
-)
-
-proto_library(
     name = "train_information_data_proto",
     srcs = ["TrainInformationData.proto"],
     visibility = ["//visibility:public"],
@@ -479,7 +443,6 @@ proto_library(
         ":predicted_train_data_proto",
         ":railway_undertaking_data_proto",
         ":station_data_proto",
-        ":train_delay_notification_proto",
         ":train_information_data_proto",
         ":vehicle_data_proto",
         ":weather_data_proto",
@@ -508,7 +471,6 @@ go_proto_library(
         ":predicted_train_data_go_proto",
         ":railway_undertaking_data_go_proto",
         ":station_data_go_proto",
-        ":train_delay_notification_go_proto",
         ":train_information_data_go_proto",
         ":vehicle_data_go_proto",
         ":weather_data_go_proto",
@@ -547,6 +509,8 @@ filegroup(
         ":live_train_data_java_proto",
         ":location_data_go_proto",
         ":location_data_java_proto",
+        ":no_matching_planned_train_data_event_go_proto",
+        ":no_matching_planned_train_data_event_java_proto",
         ":planned_train_data_go_proto",
         ":planned_train_data_java_proto",
         ":predicted_train_data_go_proto",
@@ -555,22 +519,16 @@ filegroup(
         ":railway_undertaking_data_java_proto",
         ":station_data_go_proto",
         ":station_data_java_proto",
-        ":train_delay_notification_go_proto",
-        ":train_delay_notification_java_proto",
-        ":train_delay_notification_nodejs_proto",
-        ":train_delay_notification_ts_proto",
+        ":stays_in_station_event_go_proto",
+        ":stays_in_station_event_java_proto",
         ":train_information_data_go_proto",
         ":train_information_data_java_proto",
         ":vehicle_data_go_proto",
         ":vehicle_data_java_proto",
-        ":weather_data_go_proto",
-        ":weather_data_java_proto",
-        ":stays_in_station_event_go_proto",
-        ":stays_in_station_event_java_proto",
         ":wagon_train_run_data_go_proto",
         ":wagon_train_run_data_java_proto",
-        ":no_matching_planned_train_data_event_go_proto",
-        ":no_matching_planned_train_data_event_java_proto",
+        ":weather_data_go_proto",
+        ":weather_data_java_proto",
     ],
     visibility = ["//visibility:public"],
 )

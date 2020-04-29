@@ -7,7 +7,7 @@ import {
 } from "vuex-module-decorators";
 import store from "@/store";
 import { UserAnnouncementMessage } from "@/generated/protobuf/models/grpc/notification_pb";
-import { User } from "@/generated/protobuf/models/types/users_pb";
+import { User } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { AuthModule } from "./auth";
 import { TrainDelayNotification } from "../../generated/protobuf/models/events/TrainDelayNotification_pb";

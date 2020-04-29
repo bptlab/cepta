@@ -136,7 +136,7 @@ import {
   InternalUser,
   User,
   UserID
-} from "../generated/protobuf/models/types/users_pb";
+} from "../generated/protobuf/models/internal/types/users_pb";
 
 export interface UserProfile {
   picture?: string;

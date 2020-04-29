@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/transports"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
@@ -72,7 +72,7 @@ func GetUserByID(db *mongo.Collection, userID *users.UserID) (*users.User, error
 }
 
 // StreamUsersByTransportID ...
-func StreamUsersByTransportID(db *mongo.Collection, transportID *transports.TransportID, stream pb.UserManagement_GetSubscribersForTransportServer) error {
+func StreamUsersByTransportID(db *mongo.Collection, transportID *ids.CeptaTransportID, stream pb.UserManagement_GetSubscribersForTransportServer) error {
 	cur, err := db.Find(context.Background(), bson.D{{"user.transports", bson.D{{"$elemMatch", bson.D{{"id", transportID.GetId()}}}}}})
 	if err != nil {
 		return err

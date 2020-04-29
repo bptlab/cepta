@@ -46,9 +46,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
-import org.bptlab.cepta.models.types.transports.Transports;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -64,9 +63,14 @@ public class Main implements Callable<Integer> {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
+  // Consumers
   private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
   private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
   private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+
+  // Producer 
+  private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
+
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
@@ -88,6 +92,16 @@ public class Main implements Callable<Integer> {
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
   }
 
+  private void setupProducers() {
+    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+            .withKeySerializer(Optional.of(LongSerializer::new));
+      this.trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
+        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
+        new GenericBinaryProtoSerializer<>(),
+        delaySenderConfig.getProperties());
+      this.trainDelayNotificationProducer.setWriteTimestampToKafka(true);
+  }
+
   @Mixin
   KafkaConfig kafkaConfig = new KafkaConfig();
 
@@ -101,12 +115,16 @@ public class Main implements Callable<Integer> {
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     this.setupConsumers();
+    this.setupProducers();
 
     // Add consumer as source for data stream
     DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
     DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
     DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
 
+    // 1. Transform to one singular stream with hight level event
+
+    /*
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
@@ -122,11 +140,10 @@ public class Main implements Callable<Integer> {
                 LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
 
-         /*
-          Delay is defined as the difference between the observed time of a train id at a location id.
-          delay > 0 is bad, the train might arrive later than planned
-          delay < 0 is good, the train might arrive earlier than planned
-         */
+         
+          // Delay is defined as the difference between the observed time of a train id at a location id.
+          // delay > 0 is bad, the train might arrive later than planned
+          // delay < 0 is good, the train might arrive earlier than planned
                 try {
                   double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
 
@@ -143,28 +160,11 @@ public class Main implements Callable<Integer> {
 
               }
             });
+    */
 
-    // Produce delay notifications into new queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
-        .withKeySerializer(Optional.of(LongSerializer::new));
+    // trainDelayNotificationDataStream.addSink(this.trainDelayNotificationProducer);
 
-
-    FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
-        new GenericBinaryProtoSerializer<TrainDelayNotification>(),
-        delaySenderConfig.getProperties());
-
-    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
-    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-
-    // Print stream to console
-    // liveTrainDataStream.print();
-    trainDelayNotificationDataStream.print();
-
-    //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
-    weatherDataStream.print();
-    plannedTrainDataStream.print();
-    env.execute("Flink Streaming Java API Skeleton");
+    env.execute("CEPTA CORE");
     return 0;
   }
 

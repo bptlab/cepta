@@ -1,0 +1,65 @@
+syntax = "proto3";
+package models.internal;
+option go_package = "github.com/bptlab/cepta/models/internal/station";
+option java_package = "org.bptlab.cepta.models.internal.station";
+
+import "google/protobuf/timestamp.proto";
+
+import "models/internal/types/coordinate.proto";
+import "models/internal/types/transport.proto";
+import "models/internal/types/country.proto";
+import "models/internal/types/ids.proto";
+import "models/internal/delay.proto";
+
+import "models/internal/modalities/rail/rail.proto";
+import "models/internal/modalities/road/road.proto";
+import "models/internal/modalities/maritime/maritime.proto";
+import "models/internal/modalities/air/air.proto";
+
+// GENERIC SCHEMA FOR A CEPTA STATION
+message Station {
+    models.internal.types.CeptaStationID cepta_id = 1;
+    string name = 2;
+    string abbreviation = 3;
+    string description = 4;
+    models.internal.types.Country country = 5;
+    models.internal.types.Coordinate position = 6;
+    models.internal.types.TransportType type = 7;
+    InfrastructureProvider infrastructure_provider = 8;
+
+    google.protobuf.Timestamp planned_departure_time = 10;
+    google.protobuf.Timestamp actual_departure_time = 11;
+    google.protobuf.Timestamp planned_arrival_time = 12;
+    google.protobuf.Timestamp actual_arrival_time = 13;
+    google.protobuf.Timestamp predicted_arrival_time = 14;
+
+    bool crew_change = 20;
+    bool vehicle_change = 21;
+
+    models.internal.Delay delay = 30;
+
+    oneof station {
+        models.internal.modalities.rail.RailStation rail = 100;
+        models.internal.modalities.road.RoadStation road = 101;
+        models.internal.modalities.maritime.MaritimeStation maritime = 102;
+        models.internal.modalities.air.AirStation air = 103;
+    }
+
+    // TODO: Add generic payload
+
+    // Use case specific payload:
+    // train_section_id
+}
+
+message InfrastructureProvider {
+    string name = 1;
+    models.internal.types.Country country = 2;
+    ReverseType train_reverse = 3;
+}
+
+enum ReverseType {
+    NO_REVERSE = 0;
+    ARRIVAL = 1;
+    DEPARTURE = 2;
+    BETWEEN = 3;
+}
