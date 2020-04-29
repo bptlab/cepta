@@ -17,11 +17,12 @@ import {
 import { UserID } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { UserManagementModule } from "./usermgmt";
+import { NotificationsModule } from "./notifications";
 
 export interface IAuthState {
   client: AuthenticationClient;
   authToken: string;
-  userID: UserID | null | undefined;
+  userID: string;
   authState: AuthenticationState | null;
   appAllowsRegister: boolean;
 }
@@ -37,7 +38,7 @@ class Auth extends VuexModule implements IAuthState {
   public client = new AuthenticationClient("/grpc/auth", null, null);
   public appAllowsRegister = false;
   public authToken = "";
-  public userID: UserID | null | undefined = null;
+  public userID = "";
   public authState: AuthenticationState | null = null;
 
   get isAuthenticated(): boolean {
@@ -51,6 +52,9 @@ class Auth extends VuexModule implements IAuthState {
   @Mutation
   private setAuthState(status: AuthenticationState | null): void {
     this.authState = status;
+    if (status == AuthenticationState.Authenticated) {
+      NotificationsModule.announceUser();
+    }
   }
 
   @Mutation
@@ -59,7 +63,7 @@ class Auth extends VuexModule implements IAuthState {
   }
 
   @Mutation
-  public setUserID(userID: UserID | null | undefined): void {
+  public setUserID(userID: string): void {
     this.userID = userID;
   }
 
@@ -80,7 +84,7 @@ class Auth extends VuexModule implements IAuthState {
           let token = response.getToken();
           let userID = response.getUserId();
           this.setAuthToken(token);
-          this.setUserID(userID);
+          this.setUserID(userID?.getId() ?? "");
           this.setAuthState(AuthenticationState.Authenticated);
           if (request.getRemember() == true) {
             Vue.cookies.set("user-token", token, {
@@ -89,7 +93,7 @@ class Auth extends VuexModule implements IAuthState {
             Vue.cookies.set("user-email", response.getEmail(), {
               expires: response.getExpiration()
             });
-            Vue.cookies.set("user-id", userID, {
+            Vue.cookies.set("user-id", userID?.getId() ?? "", {
               expires: response.getExpiration()
             });
           }
@@ -130,8 +134,10 @@ class Auth extends VuexModule implements IAuthState {
   public authLogout() {
     Vue.cookies.remove("user-token");
     Vue.cookies.remove("user-email");
+    Vue.cookies.remove("user-id");
     delete Vue.axios.defaults.headers.common["Authorization"];
     this.setAuthToken("");
+    this.setUserID("");
     UserManagementModule.setCurrentUserEmail("");
     this.setAuthState(null);
     router.push({ name: "login" });

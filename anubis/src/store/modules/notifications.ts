@@ -6,11 +6,15 @@ import {
   getModule
 } from "vuex-module-decorators";
 import store from "@/store";
-import { UserAnnouncementMessage } from "@/generated/protobuf/models/grpc/notification_pb";
+import {
+  Announcement,
+  ClientMessage
+} from "@/generated/protobuf/models/grpc/notification_pb";
 import { User } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { AuthModule } from "./auth";
 import { TrainDelayNotification } from "../../generated/protobuf/models/events/TrainDelayNotification_pb";
+import { UserID } from "../../generated/protobuf/models/types/users_pb";
 
 export interface NotificationsState {
   socket: WebSocket;
@@ -23,13 +27,18 @@ class Notifications extends VuexModule implements NotificationsState {
   );
 
   @Mutation
-  public anncounceUser() {
+  public announceUser() {
     console.log("Successfully Connected");
-    if (AuthModule.userID != undefined) {
-      let annnouncement = new UserAnnouncementMessage();
-      annnouncement.setToken(AuthModule.authToken);
-      annnouncement.setUserId(AuthModule.userID);
-      this.socket.send(annnouncement.serializeBinary());
+    console.log(AuthModule.userID);
+    if (AuthModule.userID != "") {
+      let message = new ClientMessage();
+      let announcement = new Announcement();
+      let userID = new UserID();
+      userID.setId(AuthModule.userID);
+      announcement.setToken(AuthModule.authToken);
+      announcement.setUserId(userID);
+      message.setAnnouncement(announcement);
+      this.socket.send(message.serializeBinary());
     }
   }
 
@@ -58,7 +67,7 @@ class Notifications extends VuexModule implements NotificationsState {
       this.socket.binaryType = "arraybuffer";
       console.log("Attempting Connection...");
 
-      this.socket.onopen = this.anncounceUser;
+      this.socket.onopen = this.announceUser;
       this.socket.onmessage = this.handleMessage;
       this.socket.onclose = this.handleDisconnect;
 

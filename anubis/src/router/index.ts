@@ -13,7 +13,9 @@ let authenticationRequired: boolean = true;
 const checkAuthenticated = (): boolean => {
   let token = Vue.cookies?.get("user-token") as string;
   let email = Vue.cookies?.get("user-email") as string;
+  let userID = Vue.cookies?.get("user-id") as string;
   AuthModule.setAuthToken(token);
+  AuthModule.setUserID(userID);
   UserManagementModule.setCurrentUserEmail(email);
   return (
     (token != undefined && token != null && token.length > 0) ||

@@ -12,14 +12,15 @@ service Notification {
     // RemoveUser()
 }
 
-message UserAnnouncementMessage {
-    models.internal.types.UserID user_id = 1;
-    string token = 2;
+message ClientMessage {
+    oneof message {
+        Announcement announcement = 1;
+    }
 }
 
-enum MessageType {
-    DELAY_NOTIFICATION = 0;
-    USER_ANNOUNCEMENT = 1;
+message Announcement {
+    models.internal.types.UserID user_id = 1;
+    string token = 2;
 }
 
 
