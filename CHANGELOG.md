@@ -13,7 +13,10 @@ All notable changes to this project will be documented in this file.
     - Edit and remove own user functionality
     - New *AddUser* view
 - [#231](https://github.com/bptlab/cepta/pull/231)
-    - Track the average speed of transports
+  - Track the average speed of transports
+- [#246] (https://github.com/bptlab/cepta/pull/246)
+  - operator that gets delay from live train and shifts it by creating delay notifications for subsequent stations
+- t.b.a.
 
 ##### Changed
 - WIP
