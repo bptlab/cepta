@@ -31,7 +31,7 @@ public class StaysInStationPattern {
       .where(new IterativeCondition<LiveTrainData>(){
         @Override
         public boolean filter (LiveTrainData incoming, Context<LiveTrainData> context){
-          if (incoming.getStatus() != 4 && incoming.getStatus() != 2) {
+          if (incoming.getStatus() == 4 || incoming.getStatus() == 2) {
             //this is not a departure event
             return false;
           }
@@ -39,7 +39,7 @@ public class StaysInStationPattern {
           try {
             //as we only have exactly one previous event we only need to grab the first from the pattern so far
             LiveTrainData firstEvent = context.getEventsForPattern("arrivesInStation").iterator().next();
-            if (firstEvent.getStationId() == incoming.getStationId() && firstEvent.getTrainId() == incoming.getTrainId()) {
+            if (firstEvent.getStationId() == incoming.getStationId() && firstEvent.getTrainSectionId() == incoming.getTrainSectionId()) {
               return true;
             }
           } catch (Exception e) {

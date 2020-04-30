@@ -158,7 +158,6 @@ public class Main implements Callable<Integer> {
 
     staysInStationEventDataStream.print();
 
-            /*
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
@@ -168,9 +167,7 @@ public class Main implements Callable<Integer> {
             staysInStationKafkaConfig.getProperties());
 
 
-             */
-
-    // staysInStationEventDataStream.addSink(staysInStationProducer);
+    staysInStationEventDataStream.addSink(staysInStationProducer);
 
     // DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
     // plannedTrainDataStream.print();

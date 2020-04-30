@@ -100,7 +100,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	}
 
 	s.LiveTrainRplr = &Replayer{
-		SourceName: "livetraindata",
+		SourceName: "redbull_livetraindata_example",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
 		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
