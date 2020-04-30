@@ -163,7 +163,7 @@ public class Main implements Callable<Integer> {
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    // trainDelayNotificationDataStream.print();
+    trainDelayNotificationDataStream.print();
   /* 
     delayShiftNotifications.addSink(trainDelayNotificationProducer);
     delayShiftNotifications.print();
