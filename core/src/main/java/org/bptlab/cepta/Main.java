@@ -72,7 +72,7 @@ public class Main implements Callable<Integer> {
 
   private FlinkKafkaConsumer011<Event> liveTrainDataConsumer;
   private FlinkKafkaConsumer011<Event> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<Event> weatherDataConsumer;
+  // private FlinkKafkaConsumer011<Event> weatherDataConsumer;
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
@@ -87,12 +87,12 @@ public class Main implements Callable<Integer> {
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<Event>(Event.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").withGroupID("Groupy").getProperties());
-
+/* 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<Event>(Event.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties());
+            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties()); */
   }
 
   @Mixin
@@ -113,24 +113,19 @@ public class Main implements Callable<Integer> {
     // Add consumer as source for data stream
     DataStream<Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
     DataStream<Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
-    DataStream<Event> weatherDataEvents = env.addSource(weatherDataConsumer);
-
+    // DataStream<Event> weatherDataEvents = env.addSource(weatherDataConsumer);
+/* 
     DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<Event, PlannedTrainData>(){
       @Override
       public PlannedTrainData map(Event event) throws Exception{
         return event.getPlannedTrain();
       }
-    });
+    }); 
+*/
     DataStream<LiveTrainData> liveTrainDataStream = liveTrainDataEvents.map(new MapFunction<Event, LiveTrainData>(){
       @Override
       public LiveTrainData map(Event event) throws Exception{
         return event.getLiveTrain();
-      }
-    });
-    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<Event, WeatherData>(){
-      @Override
-      public WeatherData map(Event event) throws Exception{
-        return event.getWeather();
       }
     });
 
@@ -138,23 +133,14 @@ public class Main implements Callable<Integer> {
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
 
-   /*  
+  /*  
    DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
       .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
         100000, TimeUnit.MILLISECONDS, 1);
-  */
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-        AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 1);
-
-    DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
-        .process(new DetectStationArrivalDelay()).name("train-delays");
 
     // Produce delay notifications into new queue
     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
         .withKeySerializer(Optional.of(LongSerializer::new));
-
 
     FlinkKafkaProducer011<TrainDelayNotification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
         Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
@@ -163,11 +149,12 @@ public class Main implements Callable<Integer> {
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-  /* 
+    trainDelayNotificationDataStream.print(); 
+
     delayShiftNotifications.addSink(trainDelayNotificationProducer);
     delayShiftNotifications.print();
   */
+
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
@@ -178,9 +165,8 @@ public class Main implements Callable<Integer> {
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
 
-    //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
-    weatherDataStream.print();
-    plannedTrainDataStream.print();
+    // DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
+    // plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;
   }
