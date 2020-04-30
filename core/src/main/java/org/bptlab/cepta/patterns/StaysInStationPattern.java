@@ -24,14 +24,14 @@ public class StaysInStationPattern {
       .where(new SimpleCondition<LiveTrainData>(){
         @Override
         public boolean filter(LiveTrainData event) {
-          return event.getStatus() == 3;
+          return (event.getStatus() == 3 || event.getStatus() == 1);
         }
       })
       .followedBy("departuresFromStation")
       .where(new IterativeCondition<LiveTrainData>(){
         @Override
         public boolean filter (LiveTrainData incoming, Context<LiveTrainData> context){
-          if (incoming.getStatus() != 4) {
+          if (incoming.getStatus() != 4 && incoming.getStatus() != 2) {
             //this is not a departure event
             return false;
           }
