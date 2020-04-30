@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http/httptest"
 	"testing"
-  "net/http/httptest"
 	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
@@ -20,12 +20,12 @@ import (
 	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
 	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
+	"github.com/gorilla/websocket"
 	tc "github.com/romnnn/testcontainers"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
-	"github.com/gorilla/websocket"
 )
 
 const (
@@ -64,9 +64,12 @@ type Test struct {
 	usermgmtServer   *usermgmt.UserMgmtServer
 	usermgmtClient   usermgmtpb.UserManagementClient
 
-	websocketConnection   *websocket.Conn
-	websocketClient       *websocket.Conn
-	websocketServer       *httptest.Server
+	websocketListener net.Listener
+
+	// TODO: Remove
+	websocketConnection *websocket.Conn
+	websocketClient     *websocket.Conn
+	websocketServer     *httptest.Server
 }
 
 func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
@@ -87,8 +90,8 @@ func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 	return &server, nil
 }
 
-func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener *bufconn.Listener, kafkacConfig kafkaconsumer.Config, usermgmtEndpoint *grpc.ClientConn, rmqcConfig rmqc.Config, rmqpConfig rmqp.Config) (*NotificationServer, error) {
-	server := NewNotificationServer(kafkacConfig, rmqcConfig, rmqpConfig)
+func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener net.Listener, kafkacConfig kafkaconsumer.Config, usermgmtEndpoint *grpc.ClientConn, rmqpConfig rmqp.Config) (*NotificationServer, error) {
+	server := NewNotificationServer(kafkacConfig, rmqpConfig)
 	if err := server.Setup(context.Background(), usermgmtEndpoint); err != nil {
 		t.Fatalf("Failed to setup replayer server: %v", err)
 	}
@@ -165,6 +168,8 @@ func (test *Test) setup(t *testing.T) *Test {
 	test.kafkapConfig = kafkaproducer.Config{
 		Config: baseKafkaConfig,
 	}
+	log.Error(test.kafkacConfig)
+	log.Error(test.kafkapConfig)
 
 	// Start rabbitmq container
 	var rmqConConfig tc.RabbitmqConfig
@@ -187,7 +192,11 @@ func (test *Test) setup(t *testing.T) *Test {
 
 	var grpcListener = bufconn.Listen(bufSize)
 	var usermgmtListener = bufconn.Listen(bufSize)
-	var websocketListener = bufconn.Listen(bufSize)
+	// Choose a random free port for the websocket listener
+	test.websocketListener, err = net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to create listener for the websocket connection")
+	}
 
 	// User management service
 	test.usermgmtEndpoint, err = grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
@@ -214,7 +223,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
 	}
-	test.notificationServer, err = setUpNotificationServer(t, grpcListener, websocketListener, test.kafkacConfig, test.usermgmtEndpoint, test.rmqcConfig, test.rmqpConfig)
+	test.notificationServer, err = setUpNotificationServer(t, grpcListener, test.websocketListener, test.kafkacConfig, test.usermgmtEndpoint, test.rmqpConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the replayer service: %v", err)
 		return test
@@ -233,7 +242,7 @@ func (test *Test) teardown() {
 	test.KafkaC.Terminate(context.Background())
 	test.ZkC.Terminate(context.Background())
 	test.Net.Remove(context.Background())
-	test.websocketConnection.Close()
-	test.websocketClient.Close()
-	test.websocketServer.Close()
+	// test.websocketConnection.Close()
+	// test.websocketClient.Close()
+	// test.websocketServer.Close()
 }

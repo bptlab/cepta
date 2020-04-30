@@ -106,6 +106,7 @@ go_test(
         "//osiris/lib/kafka:go_default_library",
         "//osiris/lib/rabbitmq:go_default_library",
         "//osiris/usermgmt:go_default_library",
+        "//models/grpc:notification_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_gorilla_websocket//:go_default_library",
         "@com_github_romnnn_testcontainers//:go_default_library",

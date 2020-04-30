@@ -19,7 +19,7 @@ message Notification {
 }
 
 message DelayNotification {
-    models.internal.types.CeptaTransportID cepta_id = 1;
+    models.internal.types.CeptaTransportID transport_id = 1;
     models.internal.types.CeptaStationID station_id = 2;
     models.internal.Delay delay = 3;
 }

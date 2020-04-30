@@ -8,10 +8,9 @@ import (
 
 // Config ...
 type Config struct {
-	Host               string
-	Port               int64
-	ExchangeName       string
-	ExchangeRoutingKey string
+	Host         string
+	Port         int64
+	ExchangeName string
 }
 
 // ConnectionURI ...
@@ -22,9 +21,8 @@ func (config Config) ConnectionURI() string {
 // ParseCli ...
 func (config Config) ParseCli(ctx *cli.Context) Config {
 	return Config{
-		Host:               ctx.String("rabbitmq-host"),
-		Port:               ctx.Int64("rabbitmq-port"),
-		ExchangeName:       ctx.String("rabbitmq-exchange-name"),
-		ExchangeRoutingKey: ctx.String("rabbitmq-exchange-routing-key"),
+		Host:         ctx.String("rabbitmq-host"),
+		Port:         ctx.Int64("rabbitmq-port"),
+		ExchangeName: ctx.String("rabbitmq-exchange-name"),
 	}
 }

@@ -35,6 +35,7 @@ import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
@@ -124,19 +125,19 @@ public class Main implements Callable<Integer> {
 
     // 1. Transform to one singular stream with hight level event
 
-    /*
+    
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
-    DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .flatMap(
-            new FlatMapFunction<Tuple2<LiveTrainData, PlannedTrainData>, TrainDelayNotification>() {
+            new FlatMapFunction<Tuple2<LiveTrainData, PlannedTrainData>, NotificationOuterClass.Notification>() {
               @Override
               public void flatMap(
                   Tuple2<LiveTrainData, PlannedTrainData> liveTrainDataPlannedTrainDataTuple2,
-                  Collector<TrainDelayNotification> collector) throws Exception {
+                  Collector<NotificationOuterClass.Notification> collector) throws Exception {
                 LiveTrainData observed = liveTrainDataPlannedTrainDataTuple2.f0;
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
 
@@ -149,10 +150,11 @@ public class Main implements Callable<Integer> {
 
                   // Only send a delay notification if some threshold is exceeded
                   if (Math.abs(delay) > 10) {
-                    collector.collect(TrainDelayNotification.newBuilder().setDelay(delay)
-                        .setTransportId(Transports.TransportID.newBuilder().setId(String.valueOf(observed.getTrainSectionId())))
-                        .setLocationId(observed.getStationId())
-                        .build());
+                    NotificationOuterClass.DelayNotification delayNotification = NotificationOuterClass.DelayNotification.newBuilder()
+                            .setTransportId(Ids.CeptaTransportID.newBuilder().setId(String.valueOf(observed.getTrainSectionId())).build())
+                            .setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(observed.getStationId())).build())
+                            .build();
+                    collector.collect(NotificationOuterClass.Notification.newBuilder().setDelay(delayNotification).build());
                   }
                 } catch ( NullPointerException e ) {
                   // Do not send a delay event
@@ -160,9 +162,8 @@ public class Main implements Callable<Integer> {
 
               }
             });
-    */
 
-    // trainDelayNotificationDataStream.addSink(this.trainDelayNotificationProducer);
+    trainDelayNotificationDataStream.addSink(this.trainDelayNotificationProducer);
 
     env.execute("CEPTA CORE");
     return 0;

@@ -1,5 +1,3 @@
-// inspired by tutorialedge.net webmaster Elliot Frobes
-
 package websocket
 
 import (
@@ -10,15 +8,18 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 )
 
 // Client ...
 type Client struct {
-	Conn  *websocket.Conn
-	Pool  *Pool
-	ID    *users.UserID
-	Token string
-	mu    sync.Mutex
+	Conn             *websocket.Conn
+	Pool             *Pool
+	ID               *users.UserID
+	Token            string
+	notificationChan <-chan amqp.Delivery
+	done             chan bool
+	mu               sync.Mutex
 }
 
 func (c *Client) Read() {
@@ -34,25 +35,34 @@ func (c *Client) Read() {
 			return
 		}
 
-    switch messageType {
-		case int(pb.MessageType_USER_ANNOUNCEMENT):
-			// Attempt to decode UserAnnouncementMessage
-			var announcement pb.UserAnnouncementMessage
-			err = proto.Unmarshal(message, &announcement)
+		switch messageType {
+		case websocket.BinaryMessage:
+			// Attempt to decode ClientMessage
+			var clientMessage pb.ClientMessage
+			err = proto.Unmarshal(message, &clientMessage)
 			if err != nil {
 				log.Errorf("unmarshaling error: %v", err)
 			}
-			clientID := announcement.GetUserId()
-			if clientID == nil || clientID.GetId() == "" {
-				log.Warnf("Received invalid user announcement: %v", announcement)
+			switch clientMessage.GetMessage().(type) {
+			case *pb.ClientMessage_Announcement:
+				clientID := clientMessage.GetAnnouncement().GetUserId()
+				clientToken := clientMessage.GetAnnouncement().GetToken()
+				if clientID == nil || clientID.GetId() == "" || clientToken == "" {
+					log.Warnf("Received invalid user announcement: %v", clientMessage.GetAnnouncement())
+					break
+				}
+				// TODO: Check auth!
+				log.Infof("User registered with ID %s", clientID)
+				c.ID = clientID
+				c.Token = clientToken
+				c.Pool.Login <- c
 				break
+			default:
+				log.Warnf("Received client message of unknown type: %v", clientMessage)
 			}
-			log.Infof("User registered with ID %s", clientID)
-			c.ID = clientID
-			c.Pool.ClientMapping[c.ID] = c
 			break
 		default:
-			log.Warnf("Unkown message type: %v", messageType)
+			log.Warnf("Received non binary websocket message of type %v", messageType)
 		}
 	}
 }

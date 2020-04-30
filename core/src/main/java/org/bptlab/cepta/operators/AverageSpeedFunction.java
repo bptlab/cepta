@@ -45,7 +45,7 @@ public class AverageSpeedFunction {
             public void process(Integer key, Context context, Iterable<NotificationOuterClass.Notification> input, Collector<Tuple2<String, Long>> out) throws Exception {
                 HashMap<String, Long> sums = new HashMap<String, Long>();
                 for (NotificationOuterClass.Notification in: input) {
-                    String trainId = in.getDelay().getCeptaId().getId();
+                    String trainId = in.getDelay().getTransportId().getId();
                     String locationId = in.getDelay().getStationId().getId();
                     long delay = in.getDelay().getDelay().getDelta().getSeconds();
                     if (!sums.containsKey(locationId)) {
