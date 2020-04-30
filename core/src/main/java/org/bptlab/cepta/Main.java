@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
@@ -65,9 +66,9 @@ public class Main implements Callable<Integer> {
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
   // Consumers
-  private FlinkKafkaConsumer011<LiveTrainData> liveTrainDataConsumer;
-  private FlinkKafkaConsumer011<PlannedTrainData> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<WeatherData> weatherDataConsumer;
+  private FlinkKafkaConsumer011<EventOuterClass.Event> liveTrainDataConsumer;
+  private FlinkKafkaConsumer011<EventOuterClass.Event> plannedTrainDataConsumer;
+  private FlinkKafkaConsumer011<EventOuterClass.Event> weatherDataConsumer;
 
   // Producer 
   private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
@@ -75,21 +76,21 @@ public class Main implements Callable<Integer> {
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<LiveTrainData>(
+        new FlinkKafkaConsumer011<>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<LiveTrainData>(LiveTrainData.class),
+          new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
           new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
 
     this.plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<PlannedTrainData>(PlannedTrainData.class),
+            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<WeatherData>(WeatherData.class),
+            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
             new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
   }
 
