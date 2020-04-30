@@ -138,10 +138,11 @@ public class Main implements Callable<Integer> {
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
 
-    DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
+   /*  
+   DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
       .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
         100000, TimeUnit.MILLISECONDS, 1);
-
+  */
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
@@ -162,10 +163,11 @@ public class Main implements Callable<Integer> {
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-
+    // trainDelayNotificationDataStream.print();
+  /* 
     delayShiftNotifications.addSink(trainDelayNotificationProducer);
-
+    delayShiftNotifications.print();
+  */
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
