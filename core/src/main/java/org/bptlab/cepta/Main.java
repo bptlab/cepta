@@ -79,20 +79,22 @@ public class Main implements Callable<Integer> {
         new FlinkKafkaConsumer011<>(
           Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
           new GenericBinaryProtoDeserializer<Event>(Event.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer1")
-                  .withGroupID("Groupy").getProperties());
+          new KafkaConfig().withClientId("LiveTrainDataMainConsumer")
+                  .withGroupID("Group").getProperties());
 
     this.plannedTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<Event>(Event.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").withGroupID("Groupy").getProperties());
+            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").
+                    withGroupID("Group").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<Event>(Event.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties());
+            new KafkaConfig().withClientId("WeatherDataMainConsumer")
+                    .withGroupID("Group").getProperties());
   }
 
   @Mixin
