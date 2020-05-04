@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-public class Streams {
+public class StreamUtils {
 
     /**
      * This method creates a new ArrayList of Type T which contains all
