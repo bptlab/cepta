@@ -178,8 +178,7 @@ public class Main implements Callable<Integer> {
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
 
-    //DataStream<PlannedTrainData> plannedTrainDataStream = inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData"));
-    weatherDataStream.print();
+    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = plannedTrainDataStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData", postgresConfig));
     plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;

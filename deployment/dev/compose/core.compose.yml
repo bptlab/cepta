@@ -139,6 +139,7 @@ services:
       - flink-taskmanager
       - kafka
       - replayer
+      - postgres
 
   notification:
     image: bazel/osiris/notification:image
