@@ -1,5 +1,8 @@
 package org.bptlab.cepta.utils.functions;
 
+import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.PatternStream;
+import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 
@@ -54,5 +57,18 @@ public class StreamUtils {
      */
     public static <T> int countOfEventsInStream(DataStream<T> inputStream) throws IOException {
         return collectStreamToVector(inputStream).size();
+    }
+
+    /**
+     * This method will return the count of matched patterns on the inputStream processed with a processFunction
+     * @param inputStream the stream to be processed
+     * @param inputPattern the pattern to be applied
+     * @param <T>
+     * @return
+     */
+    public static <T> int countOfMatchesInStream(DataStream<T> inputStream, Pattern<T, ?> inputPattern) {
+        PatternStream<T> patternStream = CEP.pattern(inputStream, inputPattern);
+        //TODO: create an interface for ProcessFunctions so we can add them as a parameter
+        return 0;
     }
 }
