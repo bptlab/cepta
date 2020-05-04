@@ -4,5 +4,9 @@ java_library(
     name = "java_default_library",
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
-    deps = [],
+    deps = [
+        "@maven//:org_apache_flink_flink_cep_2_11",
+        "@maven//:org_apache_flink_flink_streaming_java_2_11",
+
+    ],
 )
