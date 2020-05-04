@@ -45,6 +45,14 @@ public class Streams {
         return outputCollection;
     }
 
-
-
+    /**
+     * This method will return the count of Objects in a stream.
+     * @param inputStream
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
+    public static <T> int countOfEventsInStream(DataStream<T> inputStream) throws IOException {
+        return collectStreamToVector(inputStream).size();
+    }
 }
