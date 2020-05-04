@@ -1,4 +1,4 @@
-package org.bptlab.cepta.utils;
+package org.bptlab.cepta.utils.functions;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
@@ -44,5 +44,7 @@ public class Streams {
         }
         return outputCollection;
     }
+
+
 
 }
