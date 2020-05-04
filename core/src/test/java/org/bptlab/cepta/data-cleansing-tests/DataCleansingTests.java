@@ -25,9 +25,7 @@ public class DataCleansingTests {
         // cleanse all Integer.MIN_VALUE elements from our Stream
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Integer>();        
         DataStream<Integer> cleansedStream = DataCleansingFunction.cleanseStream(integerStream, Integer.MIN_VALUE);
-        // add all remaining elements of the Stream in an ArrayList
         ArrayList<Integer> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
-        // check if remaining elements still have MIN.VALUE and fail if true
         Assert.assertFalse(
                 "cleansed Stream should not contain Integer.MIN_VALUE",
                 cleansedInteger.contains(Integer.MIN_VALUE));
