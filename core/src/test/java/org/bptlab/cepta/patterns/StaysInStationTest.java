@@ -3,7 +3,9 @@ package org.bptlab.cepta;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 
-import org.bptlab.cepta.operators.CountOfEventsInStreamFunction;
+import org.bptlab.cepta.utils.functions.*;
+
+// import org.bptlab.cepta.operators.CountOfEventsInStreamFunction;
 import org.bptlab.cepta.providers.StaysInStationPatternProvider;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.junit.Assert;
@@ -27,7 +29,7 @@ public class StaysInStationTest {
         DataStream<StaysInStationEvent> generatedEvents = 
             patternStream.process(StaysInStationPattern.staysInStationProcessFunction());
 
-        return CountOfEventsInStreamFunction.countOfEventsInStream(generatedEvents);
+        return org.bptlab.cepta.utils.functions.Streams.countOfEventsInStream(generatedEvents);
     }
 
     @Test
