@@ -41,20 +41,10 @@ public class DataCleansingTests {
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Integer>();        
         DataStream<Integer> cleansedStream = DataCleansingFunction.cleanseStream(integerStream, Integer.MIN_VALUE);
         // add all remaining elements of the Stream in an ArrayList
-        ArrayList<Integer> cleansedInteger = new ArrayList<>();
-        Iterator<Integer> iterator = DataStreamUtils.collect(cleansedStream);
-        while(iterator.hasNext()){
-            Integer integer = iterator.next();
-            cleansedInteger.add(integer);
-        }
-        // check if remaining elements still have 1 and fail if not
-        int len = cleansedInteger.size();
-        for (int i = 0; i < len; i++ ) {
-            if (cleansedInteger.get(i).equals(1)) {
-                pass = true; 
-            }
-        }
-        Assert.assertTrue(pass);
+        ArrayList<Integer> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
+        Assert.assertTrue(
+                "cleansed Stream should still contain uncleansed values",
+                cleansedInteger.contains(1));
     }
 
     @Test
