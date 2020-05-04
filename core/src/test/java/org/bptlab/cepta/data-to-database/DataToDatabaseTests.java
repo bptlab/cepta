@@ -58,41 +58,7 @@ public class DataToDatabaseTests {
          e.printStackTrace();
       }
       return conn;
-    } 
-
-    public void initDatabase(PostgreSQLContainer container) {
-        
-        Connection conn = createDatabaseConnection(container);
-        Statement stmt = null;
-        try{        
-           stmt = conn.createStatement();
-           String sql;
-           // Create table for planned data
-           sql = createPlannedDatabaseQuery();
-           stmt.executeUpdate(sql);
-     
-        }catch(SQLException se){
-           //Handle errors for JDBC
-           se.printStackTrace();
-        }catch(Exception e){
-           //Handle errors for Class.forName
-           e.printStackTrace();
-        }finally{
-           //finally block used to close resources
-           try{
-              if(stmt!=null)
-                 conn.close();
-           }catch(SQLException se){
-           }// do nothing
-           try{
-              if(conn!=null)
-                 conn.close();
-           }catch(SQLException se){
-              se.printStackTrace();
-           }//end finally try
-        }//end try
-        System.out.println("Goodbye!");
-   }
+    }
 
 public int checkDatabaseInput(PostgreSQLContainer container) {
     
@@ -139,14 +105,13 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
   public void testIdMatch() throws IOException {
     try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
       postgres.start();
-       initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
       PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
       
       DataStream<PlannedTrainData> inputStream = PlannedTrainDataProvider.plannedTrainDatas();
       
-      inputStream.map(new DataToDatabase<PlannedTrainData>("public.planned", postgresConfig));
+      inputStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData", postgresConfig));
       
       // We need a Iterator because otherwise the events aren't reachable in the Stream
       // Iterator needs to be after every funtion (in this case .map), because ther iterator consumes the events
@@ -164,26 +129,7 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
     return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
   }
 
-  private String createPlannedDatabaseQuery(){
-    return "CREATE TABLE public.planned ( " +
-        "id integer, " +
-        "train_section_id integer, " +
-        "station_id integer, " +
-        "planned_event_time timestamp, " +
-        "status integer, " +
-        "first_train_id integer, " +
-        "train_id integer, " +
-        "planned_departure_time_start_station timestamp, " +
-        "planned_arrival_time_end_station timestamp, " +
-        "ru_id integer, " +
-        "end_station_id integer, " +
-        "im_id integer, " +
-        "following_im_id integer, " +
-        "message_status integer, " +
-        "ingestion_time timestamp, " +
-        "original_train_id integer)";
-  }
   private String createSelectQuery(){
-      return "Select * from public.planned;";
+      return "Select * from public.plannedTrainData;";
   }
 }
