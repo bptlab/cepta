@@ -29,6 +29,7 @@ java_test(
     size = "small",
     tags = ["unit"],
     deps = [
+        "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
