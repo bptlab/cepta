@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"net"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/bptlab/cepta/ci/versioning"
 	topics "github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/notification"
@@ -22,9 +24,8 @@ import (
 	"github.com/bptlab/cepta/models/internal/types/result"
 	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	libredis "github.com/bptlab/cepta/osiris/lib/redis"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
-	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
-	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	"github.com/bptlab/cepta/osiris/notification/websocket"
 	clivalues "github.com/romnnn/flags4urfavecli/values"
 
@@ -73,27 +74,26 @@ type NotificationServer struct {
 	kafkacConfig kafkaconsumer.Config
 	kc           *kafkaconsumer.Consumer
 
-	producer   *rmqp.Producer
-	rmqpConfig rmqp.Config
+	redisConfig libredis.Config
+	rclient *redis.Client
 
 	usermgmtEndpoint Endpoint
 }
 
 // NewNotificationServer ...
-func NewNotificationServer(kafkaConfig kafkaconsumer.Config, rmqProducerConfig rmqp.Config) NotificationServer {
+func NewNotificationServer(kafkaConfig kafkaconsumer.Config, redisConfig libredis.Config) NotificationServer {
 	return NotificationServer{
 		kafkacConfig: kafkaConfig,
-		// rmqcConfig:   rmqConsumerConfig,
-		rmqpConfig: rmqProducerConfig,
+		redisConfig: redisConfig,
 	}
 }
 
 // Shutdown ...
 func (s *NotificationServer) Shutdown() {
 	log.Info("Graceful shutdown")
-	log.Info("Closing rabbitMQ connection")
-	if s.producer != nil {
-		s.producer.Close()
+	log.Info("Closing redis connection")
+	if s.rclient != nil {
+		s.rclient.Close()
 	}
 	log.Info("Stopping websocket server")
 	if s.wsServer != nil {
@@ -188,7 +188,6 @@ func (s *NotificationServer) notifyUser(userID *users.UserID, message proto.Mess
 	*/
 }
 
-// TODO: Notify here already (send into big buffered queue)
 // When numbers exceeds limit do not set the cache item so it must be streamed every time again which is ok
 // Change return type!
 func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *ids.CeptaTransportID, message proto.Message) error {
@@ -301,28 +300,35 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 		return
 	}
 
-	// Connect to RabbitMQ
-	producer, err := s.rmqpConfig.CreateProducer()
-	if err != nil {
+	// Connect to redis
+	log.Info("Connecting to redis...")
+	connected := make(chan error)
+	go func() {
+		s.rclient = redis.NewClient(&redis.Options{
+			Addr:     s.redisConfig.ConnectionURI(),
+			Password: s.redisConfig.Password,
+			DB:       s.redisConfig.Database,
+		})
+		_, err := s.rclient.Ping().Result()
+		connected <- err
+	}()
+
+	select {
+	case <-ctx.Done():
+		err = errors.New("Setup was cancelled")
 		return
+	case err := <-connected:
+		if err != nil {
+			return fmt.Errorf("Failed to connect to redis: %v", err)
+		}
+		break
 	}
-	s.producer = &producer
-	if err := s.producer.CreateQueue("test"); err != nil {
-		panic(err)
-	}
-	if err := s.producer.Publish([]byte("Test"), "test"); err != nil {
-		panic(err)
-	}
-	if _, err := s.producer.ConsumeQueue("test"); err != nil {
-		panic(err)
-	}
-	log.Debug("Connected to rabbitMQ")
 
 	log.Info("Filling cache")
 	s.fillUserCache(ctx)
 
 	s.pool = websocket.NewPool()
-	s.pool.Rmq = s.producer
+	s.pool.Rclient = s.rclient
 
 	// Connect to kafka
 	if len(s.kafkacConfig.Topics) < 1 || s.kafkacConfig.Topics[0] == "" {
@@ -346,13 +352,22 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 
 // ConnectUsermgmt ...
 func (s *NotificationServer) ConnectUsermgmt(ctx context.Context, usermgmtConnectionURI string) error {
-	log.Info("Connecting to usermgmt service...")
-	usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("Failed to connect to the usermgmt service: %v", err)
+	connected := make(chan error)
+	go func() {
+		log.Info("Connecting to usermgmt service...")
+		usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure(), grpc.WithBlock())
+		if err != nil {
+			connected <- fmt.Errorf("Failed to connect to the usermgmt service: %v", err)
+			return
+		}
+		connected <- s.Setup(ctx, usermgmtConn)
+	}()
+	select {
+	case <-ctx.Done():
+		return errors.New("Setup was cancelled")
+	case err := <-connected:
+		return err
 	}
-	s.Setup(ctx, usermgmtConn)
-	return nil
 }
 
 func main() {
@@ -364,8 +379,8 @@ func main() {
 	cliFlags := []cli.Flag{}
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceLogLevel)...)
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.Redis)...)
 	cliFlags = append(cliFlags, kafkaconsumer.CliOptions...)
-	cliFlags = append(cliFlags, rmqc.CliOptions...)
 	cliFlags = append(cliFlags, []cli.Flag{
 		// gRPC endpoint
 		&cli.IntFlag{
@@ -419,10 +434,9 @@ func main() {
 			log.SetLevel(level)
 
 			server := NotificationServer{
-				kafkacConfig: kafkaconsumer.Config{}.ParseCli(ctx),
-				// rmqcConfig:       rmqc.Config{}.ParseCli(ctx),
-				rmqpConfig:       rmqp.Config{}.ParseCli(ctx),
-				usermgmtEndpoint: Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")},
+				kafkacConfig: 		kafkaconsumer.Config{}.ParseCli(ctx),
+				redisConfig:      	libredis.Config{}.ParseCli(ctx),
+				usermgmtEndpoint: 	Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")},
 			}
 
 			// Register shutdown routine

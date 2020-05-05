@@ -1,4 +1,4 @@
-package rabbitmq
+package redis
 
 import (
 	"fmt"
@@ -10,22 +10,24 @@ import (
 // Config ...
 type Config struct {
 	Host         string
-	Port         int64
-	ExchangeName string
+	Port         int
+	Password 	 string
+	Database 	 int
 	ConnectionTolerance libcli.ConnectionTolerance
 }
 
 // ConnectionURI ...
 func (config Config) ConnectionURI() string {
-	return fmt.Sprintf("amqp://guest:guest@%s:%d", config.Host, config.Port)
+	return fmt.Sprintf("%s:%d", config.Host, config.Port)
 }
 
 // ParseCli ...
 func (config Config) ParseCli(ctx *cli.Context) Config {
 	return Config{
-		Host:         ctx.String("rabbitmq-host"),
-		Port:         ctx.Int64("rabbitmq-port"),
-		ExchangeName: ctx.String("rabbitmq-exchange-name"),
+		Host:         	ctx.String("redis-host"),
+		Port:         	ctx.Int("redis-port"),
+		Password:    	ctx.String("redis-password"),
+		Database:       ctx.Int("redis-database"),
 		ConnectionTolerance: libcli.ConnectionTolerance{}.ParseCli(ctx),
 	}
 }

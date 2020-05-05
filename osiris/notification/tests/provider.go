@@ -12,19 +12,17 @@ import (
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	libredis "github.com/bptlab/cepta/osiris/lib/redis"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/kafka"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
-	rmq "github.com/bptlab/cepta/osiris/lib/rabbitmq"
-	rmqc "github.com/bptlab/cepta/osiris/lib/rabbitmq/consumer"
-	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
 	"github.com/gorilla/websocket"
 	tc "github.com/romnnn/testcontainers"
 	tcmongo "github.com/romnnn/testcontainers/mongo"
 	tckafka "github.com/romnnn/testcontainers/kafka"
-	tcrabbitmq "github.com/romnnn/testcontainers/rabbitmq"
+	tcredis "github.com/romnnn/testcontainers/redis"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
@@ -51,13 +49,12 @@ type Test struct {
 	MongoC testcontainers.Container
 	KafkaC testcontainers.Container
 	ZkC    testcontainers.Container
-	RmqC   testcontainers.Container
+	RedisC   testcontainers.Container
 
 	kafkacConfig kafkaconsumer.Config
 	kafkapConfig kafkaproducer.Config
-	MongoConfig  libdb.MongoDBConfig
-	rmqcConfig   rmqc.Config
-	rmqpConfig   rmqp.Config
+	mongoConfig  libdb.MongoDBConfig
+	redisConfig  libredis.Config
 
 	notificationEndpoint *grpc.ClientConn
 	notificationServer   *NotificationServer
@@ -93,8 +90,8 @@ func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 	return &server, nil
 }
 
-func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener net.Listener, kafkacConfig kafkaconsumer.Config, usermgmtEndpoint *grpc.ClientConn, rmqpConfig rmqp.Config) (*NotificationServer, error) {
-	server := NewNotificationServer(kafkacConfig, rmqpConfig)
+func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsListener net.Listener, kafkacConfig kafkaconsumer.Config, usermgmtEndpoint *grpc.ClientConn, redisConfig libredis.Config) (*NotificationServer, error) {
+	server := NewNotificationServer(kafkacConfig, redisConfig)
 	if err := server.Setup(context.Background(), usermgmtEndpoint); err != nil {
 		t.Fatalf("Failed to setup replayer server: %v", err)
 	}
@@ -143,7 +140,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
 	}
-	test.MongoConfig = libdb.MongoDBConfig{
+	test.mongoConfig = libdb.MongoDBConfig{
 		Host:                mongoConfig.Host,
 		Port:                mongoConfig.Port,
 		User:                mongoConfig.User,
@@ -162,7 +159,7 @@ func (test *Test) setup(t *testing.T) *Test {
 	baseKafkaConfig := kafka.Config{
 		Brokers:             kafkaConfig.Brokers,
 		Version:             kafkaConfig.KafkaVersion,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{MaxRetries: 10, RetryIntervalSec: 5},
 	}
 	test.kafkacConfig = kafkaconsumer.Config{
 		Config: baseKafkaConfig,
@@ -174,23 +171,17 @@ func (test *Test) setup(t *testing.T) *Test {
 	log.Error(test.kafkacConfig)
 	log.Error(test.kafkapConfig)
 
-	// Start rabbitmq container
-	var rmqConConfig tcrabbitmq.Config
-	test.RmqC, rmqConConfig, err = tcrabbitmq.StartRabbitmqContainer(tcrabbitmq.ContainerOptions{ContainerOptions: containerOptions})
+	// Start redis container
+	var redisConConfig tcredis.Config
+	test.RedisC, redisConConfig, err = tcredis.StartRedisContainer(tcredis.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the rabbitmq container: %v", err)
 		return test
 	}
-	rmqConfig := rmq.Config{
-		Host:         rmqConConfig.Host,
-		Port:         rmqConConfig.Port,
-		ExchangeName: "TestExchangeName",
-	}
-	test.rmqcConfig = rmqc.Config{
-		Config: rmqConfig,
-	}
-	test.rmqpConfig = rmqp.Config{
-		Config: rmqConfig,
+	test.redisConfig = libredis.Config{
+		Host:     redisConConfig.Host,
+		Port:     int(redisConConfig.Port),
+		Password: redisConConfig.Password,
 	}
 
 	var grpcListener = bufconn.Listen(bufSize)
@@ -210,7 +201,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		return test
 	}
 
-	test.usermgmtServer, err = setUpUserMgmtServer(t, usermgmtListener, test.MongoConfig)
+	test.usermgmtServer, err = setUpUserMgmtServer(t, usermgmtListener, test.mongoConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the user management service: %v", err)
 		return test
@@ -226,7 +217,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 		return test
 	}
-	test.notificationServer, err = setUpNotificationServer(t, grpcListener, test.websocketListener, test.kafkacConfig, test.usermgmtEndpoint, test.rmqpConfig)
+	test.notificationServer, err = setUpNotificationServer(t, grpcListener, test.websocketListener, test.kafkacConfig, test.usermgmtEndpoint, test.redisConfig)
 	if err != nil {
 		t.Fatalf("Failed to setup the replayer service: %v", err)
 		return test

@@ -3,9 +3,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
-        "rabbitmq.go",
+        "redis.go",
     ],
-    importpath = "github.com/bptlab/cepta/osiris/lib/rabbitmq",
+    importpath = "github.com/bptlab/cepta/osiris/lib/redis",
     visibility = ["//visibility:public"],
     deps = [
         "//osiris/lib:cli",

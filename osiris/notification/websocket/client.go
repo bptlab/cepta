@@ -8,7 +8,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/streadway/amqp"
 )
 
 // Client ...
@@ -17,7 +16,6 @@ type Client struct {
 	Pool             *Pool
 	ID               *users.UserID
 	Token            string
-	notificationChan <-chan amqp.Delivery
 	done             chan bool
 	mu               sync.Mutex
 }

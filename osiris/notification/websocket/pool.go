@@ -1,8 +1,8 @@
 package websocket
 
 import (
+	"github.com/go-redis/redis"
 	"github.com/bptlab/cepta/models/internal/types/users"
-	rmqp "github.com/bptlab/cepta/osiris/lib/rabbitmq/producer"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )
@@ -22,7 +22,7 @@ type Pool struct {
 	Broadcast     chan []byte
 	Clients       map[*Client]bool
 	ClientMapping map[*users.UserID]*Client
-	Rmq           *rmqp.Producer
+	Rclient		*redis.Client
 }
 
 // NewPool ...
@@ -49,6 +49,7 @@ func (pool *Pool) Start() {
 			break
 		case client := <-pool.Login:
 			pool.ClientMapping[client.ID] = client
+			/*
 			if err := pool.Rmq.CreateQueue(client.ID.GetId()); err != nil {
 				log.Error("Failed to create queue for user")
 			}
@@ -67,6 +68,7 @@ func (pool *Pool) Start() {
 					break
 				}
 			}()
+			*/
 			break
 		case client := <-pool.Unregister:
 			client.done <- true

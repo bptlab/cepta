@@ -19,6 +19,6 @@ docker-compose --compatibility \
   -f envoy.compose.yml \
   -f mongo.compose.yml \
   -f anubis.compose.yml \
-  -f rabbitmq.compose.yml \
+  -f redis.compose.yml \
   -f monitoring.compose.yml \
   "$@"
