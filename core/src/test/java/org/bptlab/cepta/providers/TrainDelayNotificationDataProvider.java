@@ -12,7 +12,7 @@ public class TrainDelayNotificationDataProvider {
 
         public static NotificationOuterClass.Notification getDefaultLTrainDelayNotificationDataEvent() {
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId("1").build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
                     .build()
@@ -37,7 +37,7 @@ public class TrainDelayNotificationDataProvider {
 
         private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
                     .build()
@@ -46,7 +46,7 @@ public class TrainDelayNotificationDataProvider {
 
         private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainId(String locationId, String trainId){
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
                     .build()
@@ -55,7 +55,7 @@ public class TrainDelayNotificationDataProvider {
 
         private static NotificationOuterClass.Notification trainDelayNotificationWithLocationId(String locationId){
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId("1").build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
                     .build()
@@ -64,7 +64,7 @@ public class TrainDelayNotificationDataProvider {
 
         private static NotificationOuterClass.Notification trainDelayNotificationWithTrainId(String trainId){
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
                     .build()
@@ -74,7 +74,7 @@ public class TrainDelayNotificationDataProvider {
         
         private static NotificationOuterClass.Notification trainDelayNotificationWithDelay(Long delay){
             return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
-                    .setCeptaId(Ids.CeptaTransportID.newBuilder().setId("1").build())
+                    .setTransportId(Ids.CeptaTransportID.newBuilder().setId("1").build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
                     .build()

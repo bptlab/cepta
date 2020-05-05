@@ -91,6 +91,7 @@ go_test(
         "//models/grpc:usermgmt_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_romnnn_testcontainers//:go_default_library",
+        "@com_github_romnnn_testcontainers//mongo:go_default_library",
         "@com_github_testcontainers_testcontainers_go//:go_default_library",
         "@org_mongodb_go_mongo_driver//bson:go_default_library",
         "@org_mongodb_go_mongo_driver//bson/primitive:go_default_library",

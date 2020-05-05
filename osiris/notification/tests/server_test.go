@@ -20,9 +20,9 @@ func TestFillsCache(t *testing.T) {
 	defer test.teardown()
 
 	test.addUsersForTransport(t, map[*users.UserID][]*ids.CeptaTransportID{
-		&users.UserID{Id: "1"}: []*ids.CeptaTransportID{{Id: "1"}, {Id: "2"}},
-		&users.UserID{Id: "2"}: []*ids.CeptaTransportID{{Id: "2"}, {Id: "3"}},
-		&users.UserID{Id: "3"}: []*ids.CeptaTransportID{{Id: "1"}, {Id: "4"}},
+		&users.UserID{Id: "1"}: {{Id: "1"}, {Id: "2"}},
+		&users.UserID{Id: "2"}: {{Id: "2"}, {Id: "3"}},
+		&users.UserID{Id: "3"}: {{Id: "1"}, {Id: "4"}},
 	})
 
 	test.announceUsers(t, []*users.UserID{

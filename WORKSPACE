@@ -146,8 +146,8 @@ GRPC_JAVA_VERSION = "1.28.1"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
@@ -177,9 +177,6 @@ maven_install(
         "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
-        # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,
-        # "io.grpc:grpc-protobuf:%s" % GRPC_JAVA_VERSION,
-        # "io.grpc:grpc-stub:%s" % GRPC_JAVA_VERSION,
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
@@ -1465,8 +1462,8 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:C595VHP+kxtr8iIu9rawd+PnzdM4GlBFeTZwCDdYxwU=",
-    version = "v0.1.4",
+    sum = "h1:FV1AeK9zAyVlZyfqyPRj7VnL2RzJJYLVtOsLppBk6JU=",
+    version = "v0.1.5",
 )
 
 go_repository(

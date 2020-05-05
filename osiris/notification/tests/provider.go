@@ -22,6 +22,9 @@ import (
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
 	"github.com/gorilla/websocket"
 	tc "github.com/romnnn/testcontainers"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
+	tckafka "github.com/romnnn/testcontainers/kafka"
+	tcrabbitmq "github.com/romnnn/testcontainers/rabbitmq"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
@@ -134,8 +137,8 @@ func (test *Test) setup(t *testing.T) *Test {
 	}
 
 	// Start mongodb container
-	var mongoConfig tc.MongoDBConfig
-	test.MongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{ContainerOptions: containerOptions})
+	var mongoConfig tcmongo.DBConfig
+	test.MongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -150,8 +153,8 @@ func (test *Test) setup(t *testing.T) *Test {
 	}
 
 	// Start kafka container
-	var kafkaConfig *tc.KafkaContainerConnectionConfig
-	test.KafkaC, kafkaConfig, test.ZkC, _, err = tc.StartKafkaContainer(tc.KafkaContainerOptions{ContainerOptions: containerOptions})
+	var kafkaConfig *tckafka.ContainerConnectionConfig
+	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
@@ -172,8 +175,8 @@ func (test *Test) setup(t *testing.T) *Test {
 	log.Error(test.kafkapConfig)
 
 	// Start rabbitmq container
-	var rmqConConfig tc.RabbitmqConfig
-	test.RmqC, rmqConConfig, err = tc.StartRabbitmqContainer(tc.RabbitmqContainerOptions{ContainerOptions: containerOptions})
+	var rmqConConfig tcrabbitmq.Config
+	test.RmqC, rmqConConfig, err = tcrabbitmq.StartRabbitmqContainer(tcrabbitmq.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the rabbitmq container: %v", err)
 		return test

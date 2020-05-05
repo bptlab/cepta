@@ -120,9 +120,14 @@ public class Main implements Callable<Integer> {
     this.setupProducers();
 
     // Add consumer as source for data stream
-    DataStream<PlannedTrainData> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
-    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer);
-    DataStream<WeatherData> weatherDataStream = env.addSource(weatherDataConsumer);
+    DataStream<EventOuterClass.Event> plannedTrainDataStream = env.addSource(plannedTrainDataConsumer);
+    DataStream<LiveTrainData> liveTrainDataStream = env.addSource(liveTrainDataConsumer).map(new MapFunction<EventOuterClass.Event, LiveTrainData>() {
+      @Override
+      public LiveTrainData map(EventOuterClass.Event value) throws Exception {
+        return value.getLiveTrain();
+      }
+    });
+    DataStream<EventOuterClass.Event> weatherDataStream = env.addSource(weatherDataConsumer);
 
     // 1. Transform to one singular stream with hight level event
 
@@ -143,9 +148,9 @@ public class Main implements Callable<Integer> {
                 PlannedTrainData expected = liveTrainDataPlannedTrainDataTuple2.f1;
 
          
-          // Delay is defined as the difference between the observed time of a train id at a location id.
-          // delay > 0 is bad, the train might arrive later than planned
-          // delay < 0 is good, the train might arrive earlier than planned
+                // Delay is defined as the difference between the observed time of a train id at a location id.
+                // delay > 0 is bad, the train might arrive later than planned
+                // delay < 0 is good, the train might arrive earlier than planned
                 try {
                   double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
 

@@ -23,6 +23,7 @@ import (
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	tc "github.com/romnnn/testcontainers"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -71,7 +72,7 @@ type Test struct {
 
 func (test *Test) setup(t *testing.T) *Test {
 	var err error
-	var mongoConfig tc.MongoDBConfig
+	var mongoConfig tcmongo.DBConfig
 	log.SetLevel(logLevel)
 	if parallel {
 		t.Parallel()
@@ -79,7 +80,7 @@ func (test *Test) setup(t *testing.T) *Test {
 
 	// Start mongodb container
 
-	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
+	test.mongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
