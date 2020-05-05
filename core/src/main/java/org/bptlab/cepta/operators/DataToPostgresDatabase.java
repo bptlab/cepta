@@ -20,12 +20,12 @@ import org.bptlab.cepta.config.PostgresConfig;
 import com.google.protobuf.Message;
 import org.javatuples.Triplet;
 
-public class DataToDatabase<T extends Message> implements MapFunction<T, T> {
+public class DataToPostgresDatabase<T extends Message> implements MapFunction<T, T> {
 
   private String table_name;
   private PostgresConfig postgresConfig = new PostgresConfig();
 
-  public DataToDatabase(String table, PostgresConfig postgresConfig){
+  public DataToPostgresDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
     this.postgresConfig = postgresConfig;
   }
