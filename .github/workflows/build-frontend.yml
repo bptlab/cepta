@@ -1,18 +1,7 @@
 name: test
 
 # Build the frontend every time anubis or some models are changed
-on:
-  push:
-    paths:
-      - '*'
-      # - 'anubis/'
-      # - 'models/**/*.proto'
-  pull_request:
-    paths:
-      - '*'
-      # - 'anubis/'
-      # - 'models/**/*.proto'
-
+on: [ push, pull_request ]
 jobs:
   build-frontend:
     runs-on: ubuntu-latest # self-hosted
