@@ -40,6 +40,13 @@ const (
 	RabbitMQExchangeRoutingKey
 	RabbitMQQueueLength
 
+	// Redis options
+	Redis
+	RedisHost
+	RedisPort
+	RedisPassword
+	RedisDatabase
+
 	// Service options
 	ServicePort
 	ServiceLogLevel
@@ -118,53 +125,84 @@ func CommonCliOptions(options ...int) []cli.Flag {
 			}}
 
 		case RabbitMQ:
-			newOptions = CommonCliOptions(RabbitMQHost)
+			newOptions = CommonCliOptions(RabbitMQHost, RabbitMQPort, RabbitMQExchangeName, RabbitMQQueueName, RabbitMQExchangeRoutingKey, RabbitMQQueueLength)
 		case RabbitMQHost:
 			newOptions = []cli.Flag{&cli.StringFlag{
 				Name:    "rabbitmq-host",
 				Value:   "localhost",
 				EnvVars: []string{"RABBITMQ_HOST"},
-				Usage:   "RabbitMQ Host to connect to",
+				Usage:   "RabbitMQ host",
 			}}
 		case RabbitMQPort:
-			newOptions = []cli.Flag{&cli.StringFlag{
+			newOptions = []cli.Flag{&cli.IntFlag{
 				Name:    "rabbitmq-port",
-				Value:   "5672",
+				Value:   5672,
 				EnvVars: []string{"RABBITMQ_PORT"},
-				Usage:   "RabbitMQ Port to connect to",
+				Usage:   "RabbitMQ port",
 			}}
-    case RabbitMQExchangeName:
-      newOptions = []cli.Flag{&cli.StringFlag{
-        Name:    "rabbitmq-exchange-name",
-        Value:   "notification_exchange",
-        Aliases: []string{"exchange-name"},
-        EnvVars: []string{"RABBITMQ_EXCHANGE_NAME"},
-        Usage:   "RabbitMQ exchange name to connect to",
-      }}
-    case RabbitMQQueueName:
-      newOptions = []cli.Flag{&cli.StringFlag{
-        Name:    "rabbitmq-queue-name",
-        Value:   "user_notification",
-        Aliases: []string{"queue-name"},
-        EnvVars: []string{"RABBITMQ_QUEUE_NAME"},
-        Usage:   "RabbitMQ queue name to connect to",
-      }}
-    case RabbitMQExchangeRoutingKey:
-      newOptions = []cli.Flag{&cli.StringFlag{
-        Name:    "rabbitmq-exchange-routing-key",
-        Value:   "0",
-        Aliases: []string{"exchange-routing-key"},
-        EnvVars: []string{"RABBITMQ_ROUTING_KEY"},
-        Usage:   "RabbitMQ exchange routing key to connect to the queue belonging to the user",
-      }}
-    case RabbitMQQueueLength:
-      newOptions = []cli.Flag{&cli.IntFlag{
-        Name:    "rabbitmq-queue-length",
-        Value:   100,
-        Aliases: []string{"queue-length"},
-        EnvVars: []string{"RABBITMQ_QUEUE_LENGTH"},
-        Usage:   "RabbitMQ to set the correct queue length",
-      }}
+		case RabbitMQExchangeName:
+		  newOptions = []cli.Flag{&cli.StringFlag{
+			Name:    "rabbitmq-exchange-name",
+			Value:   "notification_exchange",
+			Aliases: []string{"exchange-name"},
+			EnvVars: []string{"RABBITMQ_EXCHANGE_NAME"},
+			Usage:   "RabbitMQ exchange name",
+		  }}
+		case RabbitMQQueueName:
+		  newOptions = []cli.Flag{&cli.StringFlag{
+			Name:    "rabbitmq-queue-name",
+			Value:   "user_notification",
+			Aliases: []string{"queue-name"},
+			EnvVars: []string{"RABBITMQ_QUEUE_NAME"},
+			Usage:   "RabbitMQ queue name",
+		  }}
+		case RabbitMQExchangeRoutingKey:
+		  newOptions = []cli.Flag{&cli.StringFlag{
+			Name:    "rabbitmq-exchange-routing-key",
+			Value:   "0",
+			Aliases: []string{"exchange-routing-key"},
+			EnvVars: []string{"RABBITMQ_ROUTING_KEY"},
+			Usage:   "RabbitMQ exchange routing key",
+		  }}
+		case RabbitMQQueueLength:
+		  newOptions = []cli.Flag{&cli.IntFlag{
+			Name:    "rabbitmq-queue-length",
+			Value:   100,
+			Aliases: []string{"queue-length"},
+			EnvVars: []string{"RABBITMQ_QUEUE_LENGTH"},
+			Usage:   "RabbitMQ max queue length",
+		  }}
+
+		case Redis:
+			newOptions = CommonCliOptions(RedisHost, RedisPort, RedisPassword, RedisDatabase)
+		case RedisHost:
+			newOptions = []cli.Flag{&cli.StringFlag{
+				Name:    "redis-host",
+				Value:   "localhost",
+				EnvVars: []string{"REDIS_HOST"},
+				Usage:   "redis host",
+			}}
+		case RedisPort:
+			newOptions = []cli.Flag{&cli.IntFlag{
+				Name:    "redis-port",
+				Value:   6379,
+				EnvVars: []string{"REDIS_PORT"},
+				Usage:   "redis port",
+			}}
+		case RedisPassword:
+			newOptions = []cli.Flag{&cli.StringFlag{
+				Name:    "redis-password",
+				Value: 	 "",
+				EnvVars: []string{"REDIS_PASSWORD"},
+				Usage:   "redis password",
+			}}
+		case RedisDatabase:
+			newOptions = []cli.Flag{&cli.IntFlag{
+				Name:    "redis-database",
+				Value:   0,
+				EnvVars: []string{"REDIS_DATABASE"},
+				Usage:   "redis database",
+			}}
 
 		case Postgres:
 			newOptions = CommonCliOptions(PostgresHost, PostgresPort, PostgresUser, PostgresDatabase, PostgresPassword, PostgresSSL)
