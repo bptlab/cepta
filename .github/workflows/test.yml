@@ -1,0 +1,34 @@
+name: test
+
+# Run tests all the time
+on:
+  push:
+    branches: *
+  pull_request:
+    branches: *
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install bazel
+        run: $GITHUB_WORKSPACE/ci/install-bazel.sh
+        env:
+          V: 3.0.0
+
+      - name: Unit tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: unit
+
+      # Runs a set of commands using the runners shell
+      - name: Integration tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: integration

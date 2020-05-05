@@ -1,0 +1,30 @@
+name: test
+
+# Build the frontend every time anubis or some models are changed
+on:
+  push:
+    paths:
+      - 'anubis/'
+      - 'models/**/*.proto'
+  pull_request:
+    paths:
+      - 'anubis/'
+      - 'models/**/*.proto'
+
+jobs:
+  build-frontend:
+    runs-on: self-hosted
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install node
+        run: |
+          curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+          sudo apt-get install -y nodejs build-essential
+
+      - name: Build frontend
+        run: |
+          cd anubis
+          npm run build
