@@ -14,7 +14,6 @@ import org.bptlab.cepta.providers.JavaDataProvider;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import sun.security.util.Length;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
-import java.lang.reflect.*;
 
 public class DataCleansingTests {
 
@@ -94,8 +93,6 @@ public class DataCleansingTests {
         // cleanse all Long.MAX_VALUE elements from our Stream
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Long>(); 
         DataStream<Long> cleansedStream = DataCleansingFunction.cleanseStream(longStream, Long.MAX_VALUE);
-        // add all remaining elements of the Stream in an ArrayList
-
         ArrayList<Long> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
         Assert.assertFalse(
                 "cleansed Stream should not contain Long.MAX_VALUE",
@@ -104,28 +101,16 @@ public class DataCleansingTests {
 
     @Test
     public void TestBooleanCleansing() throws IOException {
-        boolean pass = true;
-        // get Stream of Bools 
+        // get Stream of Bools
         DataStream<Boolean> booleanStream = JavaDataProvider.booleanDataStream();  
         // cleanse all false elements from our Stream
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Boolean>(); 
         DataStream<Boolean> cleansedStream = DataCleansingFunction.cleanseStream(booleanStream, false);
         // add all remaining elements of the Stream in an ArrayList
-        ArrayList<Boolean> cleansedBooleans = new ArrayList<>();
-        Iterator<Boolean> iterator = DataStreamUtils.collect(cleansedStream);
-        while(iterator.hasNext()){
-            Boolean booleanValue = iterator.next();
-            cleansedBooleans.add(booleanValue);
-        }
-        // check if remaining elements still have false and fail if true
-        int len = cleansedBooleans.size();
-        for (int i = 0; i < len; i++ ) {
-            if (cleansedBooleans.get(i).equals(false)) {
-                System.out.println("Failed cause false exists");
-                pass = false; 
-            }
-        }
-        Assert.assertTrue(pass);
+        ArrayList<Boolean> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
+        Assert.assertFalse(
+                "cleansed Stream should not contain 'false'",
+                cleansedInteger.contains(false));
     }
 
     @Test
