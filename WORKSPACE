@@ -175,6 +175,7 @@ maven_install(
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
         "org.postgresql:postgresql:42.2.5",
+        "org.mongodb:mongodb-driver-reactivestreams:4.1.0-beta1",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,
