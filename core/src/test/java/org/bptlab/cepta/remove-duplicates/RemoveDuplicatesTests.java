@@ -70,8 +70,4 @@ public class RemoveDuplicatesTests {
         Assert.assertEquals(2, len);
         Assert.assertTrue(pass);
     }
-
-
-    
-    
 }

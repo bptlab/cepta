@@ -3,6 +3,8 @@ package org.bptlab.cepta;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.IOException;
+
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -38,12 +40,9 @@ public class SumOfDelayAtStationTests {
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
         DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "StationId");
-        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
-        while(iterator.hasNext()){
-            Tuple2<Integer, Double> tuple = iterator.next();
-            stationAndDelayArray.add(tuple);
-        }
+
+        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = StreamUtils.collectStreamToArrayList(stationAndDelayStream);
+
         // check if any tuple is present
         if (stationAndDelayArray.size() == 0) {
             pass = false;
@@ -69,7 +68,6 @@ public class SumOfDelayAtStationTests {
     @Test
     public void TestSumOfDelaysAtStationWithLiveTrainData() throws IOException {
 
-        boolean pass = true;
         Integer expectedStation1 = 1;
         Double expectedDelayAtStation1 = 3.0;
 
@@ -77,17 +75,13 @@ public class SumOfDelayAtStationTests {
         DataStream<LiveTrainData> delayNotificationStream = LiveTrainDataProvider.liveTrainDatStreamWithDuplicates();
 
         DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 3, "StationId");
-        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
-        while(iterator.hasNext()){
-            Tuple2<Integer, Double> tuple = iterator.next();
-            stationAndDelayArray.add(tuple);
-        }
-        // check if any tuple is present
-        if (stationAndDelayArray.size() == 0) {
-            pass = false;
-        }
-        
+
+        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = StreamUtils.collectStreamToArrayList(stationAndDelayStream);
+
+        Assert.assertNotEquals("A delay should have been created",stationAndDelayArray.size(), 0);
+
+        boolean pass = true;
+
         for (Tuple2<Integer, Double> tuple : stationAndDelayArray) {
             // check if first station matches expected delay
             if (tuple.f0.equals(expectedStation1)) {
