@@ -146,8 +146,8 @@ GRPC_JAVA_VERSION = "1.28.1"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
@@ -175,7 +175,10 @@ maven_install(
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
         "org.postgresql:postgresql:42.2.5",
-        "org.mongodb:mongodb-driver-reactivestreams:4.1.0-beta1",
+        "org.mongodb:mongodb-driver-reactivestreams:4.0.2",
+        "org.mongodb:mongodb-driver-core:4.0.2",
+        "org.mongodb:bson:4.0.2",
+        "org.reactivestreams:reactive-streams:1.0.3",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,

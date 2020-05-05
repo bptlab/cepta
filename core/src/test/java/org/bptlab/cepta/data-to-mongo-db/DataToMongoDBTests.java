@@ -20,7 +20,6 @@ import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.bptlab.cepta.providers.WeatherDataProvider;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.google.protobuf.GeneratedMessage;
 

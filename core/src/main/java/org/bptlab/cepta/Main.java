@@ -34,6 +34,7 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
+import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass;
@@ -100,6 +101,9 @@ public class Main implements Callable<Integer> {
 
   @Mixin
   PostgresConfig postgresConfig = new PostgresConfig();
+
+  @Mixin
+  MongoConfig mongoConfig = new MongoConfig();
 
   @Override
   public Integer call() throws Exception {
@@ -178,8 +182,8 @@ public class Main implements Callable<Integer> {
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
 
-    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = plannedTrainDataStream.map(new DataToDatabase<PlannedTrainData>("plannedTrainData", postgresConfig));
-    plannedTrainDataStream.print();
+    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = plannedTrainDataStream.flatMap(new DataToMongoDB<PlannedTrainData>("plannedTrainData", mongoConfig));
+    //plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;
   }
