@@ -75,54 +75,31 @@ public class DataCleansingTests {
 
     @Test
     public void TestDoubleCleansing() throws IOException {
-        boolean pass = true;
         // get Stream of Doubles with an element with the value of Double.MAX_VALUE
         DataStream<Double> stringStream = JavaDataProvider.doubleDataStreamWithElement(Double.MAX_VALUE);  
         // cleanse all Double.MAX_VALUE elements from our Stream
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Double>(); 
         DataStream<Double> cleansedStream = DataCleansingFunction.cleanseStream(stringStream, Double.MAX_VALUE);
         // add all remaining elements of the Stream in an ArrayList
-        ArrayList<Double> cleansedDoubles = new ArrayList<>();
-        Iterator<Double> iterator = DataStreamUtils.collect(cleansedStream);
-        while(iterator.hasNext()){
-            Double doubleValue = iterator.next();
-            cleansedDoubles.add(doubleValue);
-        }
-        // check if remaining elements still have Double.MAX_VALUE and fail if true
-        int len = cleansedDoubles.size();
-        for (int i = 0; i < len; i++ ) {
-            if (cleansedDoubles.get(i).equals(Double.MAX_VALUE)) {
-                System.out.println("Failed cause MIN VALUE exists");
-                pass = false; 
-            }
-        }
-        Assert.assertTrue(pass);
+        ArrayList<Double> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
+        Assert.assertFalse(
+                "cleansed Stream should not contain Double.MAX_VALUE",
+                cleansedInteger.contains(Double.MAX_VALUE));
     }
 
     @Test
     public void TestLongCleansing() throws IOException {
-        boolean pass = true;
         // get Stream of Longs with an element with the value of Long.MAX_VALUE
         DataStream<Long> longStream = JavaDataProvider.longDataStreamWithElement(Long.MAX_VALUE);  
         // cleanse all Long.MAX_VALUE elements from our Stream
         DataCleansingFunction DataCleansingFunction = new DataCleansingFunction<Long>(); 
         DataStream<Long> cleansedStream = DataCleansingFunction.cleanseStream(longStream, Long.MAX_VALUE);
         // add all remaining elements of the Stream in an ArrayList
-        ArrayList<Long> cleansedLongs = new ArrayList<>();
-        Iterator<Long> iterator = DataStreamUtils.collect(cleansedStream);
-        while(iterator.hasNext()){
-            Long longValue = iterator.next();
-            cleansedLongs.add(longValue);
-        }
-        // check if remaining elements still have Long.MAX_VALUE and fail if true
-        int len = cleansedLongs.size();
-        for (int i = 0; i < len; i++ ) {
-            if (cleansedLongs.get(i).equals(Long.MAX_VALUE)) {
-                System.out.println("Failed cause MIN VALUE exists");
-                pass = false; 
-            }
-        }
-        Assert.assertTrue(pass);
+
+        ArrayList<Long> cleansedInteger = StreamUtils.collectStreamToArrayList(cleansedStream);
+        Assert.assertFalse(
+                "cleansed Stream should not contain Long.MAX_VALUE",
+                cleansedInteger.contains(Long.MAX_VALUE));
     }
 
     @Test
