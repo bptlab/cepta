@@ -4,25 +4,44 @@ name: test
 on:
   push:
     paths:
-      - 'anubis/'
-      - 'models/**/*.proto'
+      - '*'
+      # - 'anubis/'
+      # - 'models/**/*.proto'
   pull_request:
     paths:
-      - 'anubis/'
-      - 'models/**/*.proto'
+      - '*'
+      # - 'anubis/'
+      # - 'models/**/*.proto'
 
 jobs:
   build-frontend:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest # self-hosted
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Cache node modules
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
       - name: Install node
         run: |
           curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
           sudo apt-get install -y nodejs build-essential
+
+      - name: Install Dependencies
+        run: |
+          cd anubis
+          npm install
 
       - name: Build frontend
         run: |
