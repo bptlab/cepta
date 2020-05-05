@@ -1,14 +1,7 @@
 name: test
 
 # Run tests all the time
-on:
-  push:
-    paths:
-      - '*'
-  pull_request:
-    paths:
-      - '*'
-
+on: [ push, pull_request ]
 jobs:
   test:
     runs-on: self-hosted
