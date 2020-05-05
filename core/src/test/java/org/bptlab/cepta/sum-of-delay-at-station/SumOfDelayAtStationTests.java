@@ -78,7 +78,7 @@ public class SumOfDelayAtStationTests {
 
         ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = StreamUtils.collectStreamToArrayList(stationAndDelayStream);
 
-        Assert.assertNotEquals("A delay should have been created",stationAndDelayArray.size(), 0);
+        Assert.assertNotEquals("A delay should have been created",0,stationAndDelayArray.size());
 
         boolean pass = true;
 
@@ -96,7 +96,6 @@ public class SumOfDelayAtStationTests {
     @Test
     public void TestSumOfDelaysAtStationRightNumberOfTuples() throws IOException {
 
-        boolean pass = true;
         SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction<TrainDelayNotification>();
         // the provider provides four TrainDelayNotification elements
         // element 1 has stationId 1, trainId 1, delay 10
@@ -106,20 +105,9 @@ public class SumOfDelayAtStationTests {
         DataStream<TrainDelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
 
         DataStream<Tuple2<Integer, Double>> stationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4, "StationId");
-        ArrayList<Tuple2<Integer, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Integer, Double>> iterator = DataStreamUtils.collect(stationAndDelayStream);
-        while(iterator.hasNext()){
-            Tuple2<Integer, Double> tuple = iterator.next();
-            locationAndDelayArray.add(tuple);
-        }
-        // check if any tuple is present
-        if (locationAndDelayArray.size() == 0) {
-            pass = false;
-        }
-        // check if there are only 2 Tuples present
-        if (locationAndDelayArray.size() != 2) {
-            pass = false;
-        }
-        Assert.assertTrue(pass);
+
+        ArrayList<Tuple2<Integer, Double>> stationAndDelayArray = StreamUtils.collectStreamToArrayList(stationAndDelayStream);
+
+        Assert.assertEquals(2, stationAndDelayArray.size());
     }
 }
