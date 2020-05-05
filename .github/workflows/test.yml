@@ -20,15 +20,20 @@ jobs:
         env:
           V: 3.0.0
 
+      - name: Smoke tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: :smoke
+
       - name: Unit tests
         run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
         env:
           RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
-          TEST_TARGET: unit
+          TEST_TARGET: :unit
 
-      # Runs a set of commands using the runners shell
       - name: Integration tests
         run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
         env:
           RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
-          TEST_TARGET: integration
+          TEST_TARGET: :integration
