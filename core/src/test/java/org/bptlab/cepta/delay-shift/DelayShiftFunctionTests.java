@@ -15,6 +15,7 @@ import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.bptlab.cepta.providers.WeatherDataProvider;
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.Timestamp;
@@ -47,12 +48,7 @@ public class DelayShiftFunctionTests {
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(delayStream);
-         ArrayList<TrainDelayNotification> delayEvents = new ArrayList<>();
-         while(iterator.hasNext()){
-            TrainDelayNotification delay = iterator.next();
-            delayEvents.add(delay);
-         }
+         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
          Assert.assertEquals(3, delayEvents.size());
       }
    }
