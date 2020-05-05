@@ -5,7 +5,6 @@ import org.apache.flink.cep.CEP;
 
 import org.bptlab.cepta.utils.functions.StreamUtils;
 
-// import org.bptlab.cepta.operators.CountOfEventsInStreamFunction;
 import org.bptlab.cepta.providers.StaysInStationPatternProvider;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.junit.Assert;
