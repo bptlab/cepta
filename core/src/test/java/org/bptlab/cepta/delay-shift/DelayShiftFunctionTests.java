@@ -73,12 +73,7 @@ public class DelayShiftFunctionTests {
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(delayStream);
-         ArrayList<TrainDelayNotification> delayEvents = new ArrayList<>();
-         while(iterator.hasNext()){
-            TrainDelayNotification delay = iterator.next();
-            delayEvents.add(delay);
-         }
+         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
          ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
          expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(1).setDelay(1).build());
@@ -87,7 +82,7 @@ public class DelayShiftFunctionTests {
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }
- 
+
    @Test
    public void testDateConsideration() throws IOException {
       try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
@@ -109,13 +104,7 @@ public class DelayShiftFunctionTests {
          DataStream<TrainDelayNotification> delayStream = AsyncDataStream
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
-
-         Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(delayStream);
-         ArrayList<TrainDelayNotification> delayEvents = new ArrayList<>();
-         while(iterator.hasNext()){
-            TrainDelayNotification delay = iterator.next();
-            delayEvents.add(delay);
-         }
+         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
          ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
          expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(11111111).setDelay(1).build());
