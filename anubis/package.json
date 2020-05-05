@@ -89,6 +89,10 @@
       "@vue/prettier",
       "@vue/typescript"
     ],
+    "ignorePatterns": [
+      "node_modules/",
+      "src/generated"
+    ],
     "rules": {},
     "parserOptions": {
       "parser": "@typescript-eslint/parser"
