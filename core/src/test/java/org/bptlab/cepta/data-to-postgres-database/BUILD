@@ -1,9 +1,9 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "data-to-database",
-    srcs = ["DataToDatabaseTests.java"],
-    test_class = "org.bptlab.cepta.DataToDatabaseTests",
+    name = "data-to-postgres-database",
+    srcs = ["DataToPostgresDatabaseTests.java"],
+    test_class = "org.bptlab.cepta.DataToPostgresDatabaseTests",
     size = "medium",
     tags = ["integration", "docker"],
     deps = [
