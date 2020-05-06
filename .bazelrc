@@ -1,6 +1,7 @@
 # This is so we understand failures better
-build --verbose_failures
+build --verbose_failures --incompatible_strict_action_env
 test --test_strategy=standalone --test_output=streamed --cache_test_results=no
+run --incompatible_strict_action_env
 
 # Include git version info
 build --stamp --workspace_status_command ci/print-workspace-status.sh
