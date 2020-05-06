@@ -9,7 +9,6 @@ import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;

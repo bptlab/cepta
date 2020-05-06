@@ -6,7 +6,7 @@ import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
-import java.sql.*;
+
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -17,7 +17,6 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
-import com.google.protobuf.Timestamp;
 
 public class DelayShiftFunction extends
     RichAsyncFunction<LiveTrainData, TrainDelayNotification> {

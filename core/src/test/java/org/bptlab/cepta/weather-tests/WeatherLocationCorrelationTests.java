@@ -15,7 +15,6 @@ import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.testcontainers.containers.PostgreSQLContainer;
 import java.sql.*;
 import java.lang.*;
