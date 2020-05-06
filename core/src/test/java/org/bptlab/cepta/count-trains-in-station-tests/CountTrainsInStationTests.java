@@ -24,10 +24,10 @@ import java.util.Iterator;
 public class CountTrainsInStationTests {
 
     @Test
-    public void TestTriggersOncePerWindow() throws IOException, ParseException {
+    public void TestCorrectAmountOfTriggers() throws IOException, ParseException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        int commonStation = 2;
+        int commonStation = 1;
         LiveTrainDataOuterClass.LiveTrainData first =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
@@ -39,14 +39,7 @@ public class CountTrainsInStationTests {
                         .setTrainId(2)
                         .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build()
                 ;
-        LiveTrainDataOuterClass.LiveTrainData third =
-                LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-                        .setStationId(commonStation)
-                        .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("1975-01-01T10:00:22.022-05:00")).build()
-                ;
-
-        LiveTrainDataOuterClass.LiveTrainData furf =
+        LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
@@ -54,7 +47,7 @@ public class CountTrainsInStationTests {
                 ;
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
-                env.fromElements(first, second, third, furf)
+                env.fromElements(first, second, end)
                 .assignTimestampsAndWatermarks(
                 new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
                     @Override
@@ -65,28 +58,17 @@ public class CountTrainsInStationTests {
 
 
         DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
-
-      //  countOfStationStream.print();
-
         ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
 
-
-
-        Iterator<Tuple2<Long, Integer>> resultIterator = DataStreamUtils.collect(countOfStationStream);
-
-        for (Iterator<Tuple2<Long, Integer>> it = resultIterator; it.hasNext(); ) {
-            Tuple2<Long, Integer> e = it.next();
-            System.out.println(e);
-        }
-        Assert.assertEquals(1, resultCollection.size());
+        /*Expect 4 times cause the function provides a sliding window of one hour every 15 minutes*/
+        Assert.assertEquals(4, resultCollection.size());
     }
 
     @Test
-    public void TestCorrectCountPerStation{
+    public void TestCorrectCountAtStation() throws IOException, ParseException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        int commonStation = 2;
-
+        int commonStation = 1;
         LiveTrainDataOuterClass.LiveTrainData first =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
@@ -98,13 +80,31 @@ public class CountTrainsInStationTests {
                         .setTrainId(2)
                         .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build()
                 ;
-        LiveTrainDataOuterClass.LiveTrainData w =
+        LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
-                        .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build()
+                        .setTrainId(3)
+                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build()
                 ;
 
-    }
+        DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
+                env.fromElements(first, second, end)
+                .assignTimestampsAndWatermarks(
+                new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
+                    @Override
+                    public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
+                        return liveTrainData.getIngestionTime().getSeconds();
+                    }
+                });
 
+
+        DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
+        ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
+
+        for (Tuple2<Long,Integer> in : resultCollection) {
+                Assert.assertEquals(Long.valueOf(1L), in.f0);
+                Assert.assertEquals(Integer.valueOf(2), in.f1);
+        }
+
+    }
 }
