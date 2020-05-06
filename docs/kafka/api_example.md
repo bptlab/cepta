@@ -29,6 +29,52 @@ We used self-explanatory names in this example.
  }
 ```
 
+# Avro Schema and Code Generation
+**Deprecated - use protobuf instead**
+
+## Create Schema
+To create a schema for your data you build a .avsc file named like your data. There you specify the namespace, attributes and so on. You do that in JSON format.
+```
+{"namespace": "connectors.consumer_producer",
+ "type": "record",
+ "name": "WeatherData",
+ "fields": [
+    {"name": "City", "type": "string"},
+    {"name": "Temperature", "type": "int"}
+    ]
+}
+```
+Find out more about avro schemas [here](http://avro.apache.org/docs/1.8.1/spec.html#schema_record).
+## Generate Java-Class
+
+With the avro plugin you can generate a WeatherData.java (or other data class ;-) ) file from a WeatherData.avsc file.
+
+```
+<!-- for Avro code generation
+generate with mvn clean avro:schema
+generated stuff lands in cepta -> src -> target -> generated-sources -> avro -->
+<plugin>
+	<groupId>org.apache.avro</groupId>
+	<artifactId>avro-maven-plugin</artifactId>
+	<version>1.8.2</version>
+	<executions>
+		<execution>
+			<phase>generate-sources</phase>
+			<goals>
+				<goal>schema</goal>
+			</goals>
+			<configuration>
+				<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+				<outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+			</configuration>
+		</execution>
+	</executions>
+</plugin>
+```
+
+**Beware!!!**
+If you want to use your own consumer (as described further down): If you have attributes with the type String you have to replace "charsequence" in the data class (WeatherData.java) with "String". Don't do that if you want to continue with "Get Data from Kafka to Flink".
+
 # Producer
 In order to get data into kafka we need a producer(WeatherDataProducer.java). This is a generic one, that does the job by first creating a producer and then, surprise, running it.
 ```
@@ -169,6 +215,42 @@ public class ProducerRunner {
 
 We also need a serializer that converts our data to a byte array. Here we use generated Messages frm protobuf
 
+**Deprecated - use the next code snippet instead**
+```
+public class WeatherDataSerializer implements Serializer<WeatherData> {
+    // serializes WeatherData
+
+    @Override
+    public void configure(Map<String, ?> configs, boolean isKey) {
+    }
+
+    @Override
+    public byte[] serialize(String arg0, WeatherData data) {
+        try {
+            Schema schema = WeatherData.SCHEMA$;
+            DatumReader<Object> reader = new GenericDatumReader<>(schema);
+            GenericDatumWriter<Object> writer = new GenericDatumWriter<>(schema);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            Decoder decoder = DecoderFactory.get().jsonDecoder(schema, data.toString());
+            Encoder encoder = EncoderFactory.get().binaryEncoder(output, null);
+            Object datum = reader.read(null, decoder);
+            writer.write(datum, encoder);
+            encoder.flush();
+            return output.toByteArray();
+        } catch (IOException e) {
+        }
+        return null;
+    }
+
+    @Override
+    public void close() {
+    }
+
+
+}
+```
+
+
 ```
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import com.google.protobuf.GeneratedMessageV3;
@@ -253,6 +335,49 @@ public class ConsumerRunner {
 # Deserializer
 
 We have a serializer and therefore need a deserializer to convert the data back to WeatherData.
+
+**Deprecated - use the next code snippet instead**
+```
+public class WeatherDataDeserializer implements Deserializer<WeatherData> {
+
+    @Override
+    public void configure(Map<String, ?> configs, boolean isKey) {
+
+    }
+
+    @Override
+    public WeatherData deserialize(String topic, byte[] data) {
+        try {
+            boolean pretty = false;
+            Schema schema = WeatherData.SCHEMA$;
+            GenericDatumReader<Object> reader = new GenericDatumReader<>(schema);
+            DatumWriter<Object> writer = new GenericDatumWriter<>(schema);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            JsonEncoder encoder = EncoderFactory.get().jsonEncoder(schema, output, pretty);
+            Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
+            Object datum = reader.read(null, decoder);
+            writer.write(datum, encoder);
+            encoder.flush();
+            output.flush();
+            String stringData = new String(output.toByteArray(), StandardCharsets.UTF_8);
+            Gson gson = new Gson();
+            return gson.fromJson(stringData, WeatherData.class);
+        } catch (IOException e) {
+
+        }
+
+        return null;
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+
+}
+```
+
 
 ```
 import org.apache.flink.api.common.serialization.SerializationSchema;
