@@ -114,6 +114,7 @@ container_push(
 )
 
 sub_tests = [
+    "//core/src/test/java/org/bptlab/cepta/count-trains-in-station-tests:count-trains-in-station",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-live-train-join",
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
