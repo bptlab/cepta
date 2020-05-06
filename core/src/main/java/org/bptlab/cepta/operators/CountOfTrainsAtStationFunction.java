@@ -27,7 +27,7 @@ public class CountOfTrainsAtStationFunction {
                 }
             }
         )
-        .window(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
+        .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
         .process(
             CountOfTrainsAtStationProcessFunction()
         );
@@ -38,12 +38,15 @@ public class CountOfTrainsAtStationFunction {
         return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow>() {
             @Override
             public void process(Long key, Context context, Iterable<LiveTrainData> input, Collector<Tuple2<Long, Integer>> out) throws Exception {
+                System.out.println("NEUES WINDOW:");
                 System.out.println(context.currentProcessingTime() + " and the watermarc " + context.currentWatermark());
-                System.out.println("HAllO ! :D Ich bin gerade mit " + input.toString() + " beschäftigt.");
+
                 int counter = 0;
-                for (Object i : input) {
+                for (LiveTrainData i : input) {
+                    System.out.println(i.getTrainId());
                     counter++;
                 }
+                System.out.println("WINDOW ENDE");
                 out.collect(new Tuple2<Long, Integer>(key, counter) );
             }
         };
