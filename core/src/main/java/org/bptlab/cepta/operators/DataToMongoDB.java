@@ -10,8 +10,9 @@ import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.util.Collector;
 
 import org.bptlab.cepta.config.MongoConfig;
@@ -24,11 +25,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.Arrays;
+import java.util.Collections;
 import org.javatuples.Triplet;
 
 
-public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
-
+public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
+    private transient MongoClient mongoClient;
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
 
@@ -38,7 +40,19 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
     }
 
     @Override
-    public void flatMap(T dataset, Collector<T> collector) throws Exception {
+    public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
+        super.open(parameters);
+        this.mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
+    }
+
+    @Override
+    public void close(){
+        this.mongoClient.close();
+        // super.close();
+    }
+
+    @Override
+    public void asyncInvoke(T dataset, ResultFuture<T> resultFuture) throws Exception {
         //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
 //        MongoCredential credential = MongoCredential.createCredential(mongoConfig.getUser(), /*THE DB in which this user is defined*/"admin", mongoConfig.getPassword().toCharArray());
 //        MongoClientSettings settings = MongoClientSettings.builder()
@@ -50,7 +64,7 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
 //        MongoClient mongoClient = MongoClients.create(settings);
         //"mongodb://user1:pwd1@host1:port/?authSource=db1&ssl=true"
 //        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
-        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
+        // MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
@@ -77,15 +91,17 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
             @Override
             public void onError(Throwable throwable) {
                 System.out.println("Mongo Operation Failed");
+                System.out.println(throwable);
             }
 
             @Override
             public void onComplete() {
                 System.out.println("Mongo Operation Successful");
-                mongoClient.close();
+                //mongoClient.close();
             }
         };
         coll.insertOne(document).subscribe(subscriber);
+        resultFuture.complete(Collections.singleton(dataset));
     }
 
 }
