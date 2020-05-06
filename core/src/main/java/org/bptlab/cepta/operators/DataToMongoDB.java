@@ -43,7 +43,8 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
 //                        builder.hosts(Arrays.asList(new ServerAddress(mongoConfig.getHost(), mongoConfig.getPort()))))
 //                .build();
 //        MongoClient mongoClient = MongoClients.create(settings);
-        MongoClient mongoClient = MongoClients.create();
+        //"mongodb://user1:pwd1@host1:port/?authSource=db1&ssl=true"
+        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
