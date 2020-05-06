@@ -30,14 +30,15 @@ import org.javatuples.Triplet;
 
 
 public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
-    private transient MongoClient mongoClient;
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
+    private transient MongoClient mongoClient;
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
         this.mongoConfig = mongoConfig;
     }
+
 
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
