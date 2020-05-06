@@ -40,10 +40,16 @@ func dailerFor(listener *bufconn.Listener) DialerFunc {
 func setUpAuthServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*AuthenticationServer, error) {
 	server := NewAuthServer(mongoConfig)
 	server.UserCollection = userCollection
-	server.GenerateKeys()
-	server.Setup()
+	if err := server.GenerateKeys(); err != nil {
+		t.Fatalf("Failed to generate keys: %v", err)
+	}
+	if err := server.Setup(); err != nil {
+		t.Fatalf("Failed to setup auth server: %v", err)
+	}
 	go func() {
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			t.Fatalf("Failed to serve auth service: %v", err)
+		}
 	}()
 	return &server, nil
 }
@@ -135,11 +141,11 @@ func (test *Test) setup(t *testing.T) *Test {
 }
 
 func (test *Test) teardown() {
-	test.mongoC.Terminate(context.Background())
-	test.authEndpoint.Close()
-	test.userEndpoint.Close()
-	teardownServer(test.authServer)
-	teardownServer(test.userServer)
+	_ = test.mongoC.Terminate(context.Background())
+	_ = test.authEndpoint.Close()
+	_ = test.userEndpoint.Close()
+	test.authServer.Shutdown()
+	test.userServer.Shutdown()
 }
 
 func TestLogin(t *testing.T) {

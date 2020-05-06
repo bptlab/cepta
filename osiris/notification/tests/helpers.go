@@ -3,6 +3,7 @@ package main
 import (
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -58,6 +59,7 @@ func (test *Test) announceUsers(t *testing.T, userIDs []*users.UserID) *collecto
 		pool: test.notificationServer.Pool,
 		idleTime: &defaultIdleTime,
 	}
+	var mux sync.Mutex
 	for _, userID := range userIDs {
 		go func(uid *users.UserID) {
 			u := url.URL{Scheme: "ws", Host: test.websocketListener.Addr().String(), Path: "/ws/notifications"}
@@ -104,11 +106,13 @@ func (test *Test) announceUsers(t *testing.T, userIDs []*users.UserID) *collecto
 						if err := proto.Unmarshal(msg.p, &notification); err != nil {
 							t.Errorf("Failed to parse websocket message as generic notification: %v", err)
 						} else {
+							mux.Lock()
 							if _, ok := coll.responses[uid]; !ok {
 								coll.responses[uid] = &notificationpb.AccumulatedNotifications{}
 							}
 							coll.responses[uid].Notifications =  append(coll.responses[uid].Notifications, &notification)
 							coll.responses[uid].Total++
+							mux.Unlock()
 						}
 					}
 				}

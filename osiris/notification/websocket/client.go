@@ -23,7 +23,7 @@ type Client struct {
 func (c *Client) Read() {
 	defer func() {
 		c.Pool.Unregister <- c
-		c.Conn.Close()
+		_ = c.Conn.Close()
 	}()
 
 	for {
@@ -35,7 +35,7 @@ func (c *Client) Read() {
 
 		switch messageType {
 		case websocket.BinaryMessage:
-			// Attempt to decode ClientMessage
+			// Attempt to decode client message
 			var clientMessage pb.ClientMessage
 			err = proto.Unmarshal(message, &clientMessage)
 			if err != nil {

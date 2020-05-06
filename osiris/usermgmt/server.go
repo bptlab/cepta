@@ -34,11 +34,11 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var server UserMgmtServer
-var grpcServer *grpc.Server
 
 // UserMgmtServer  ...
 type UserMgmtServer struct {
 	pb.UnimplementedUserManagementServer
+	grpcServer 		*grpc.Server
 	MongoConfig    libdb.MongoDBConfig
 	DB             *libdb.MongoDB
 	UserCollection string
@@ -57,7 +57,7 @@ func NewUserMgmtServer(mongoConfig libdb.MongoDBConfig) UserMgmtServer {
 func (s *UserMgmtServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	s.grpcServer.Stop()
 }
 
 // GetUser ...
@@ -329,10 +329,10 @@ func (s *UserMgmtServer) Setup() error {
 // Serve starts the service
 func (s *UserMgmtServer) Serve(listener net.Listener) error {
 	log.Infof("User Management service ready at %s", listener.Addr())
-	grpcServer = grpc.NewServer()
-	pb.RegisterUserManagementServer(grpcServer, s)
+	s.grpcServer = grpc.NewServer()
+	pb.RegisterUserManagementServer(s.grpcServer, s)
 
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := s.grpcServer.Serve(listener); err != nil {
 		return err
 	}
 	log.Info("Closing socket")

@@ -44,10 +44,10 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var (
-	lruSize                  = 1000 // Cache up to 1000 transports
-	lruMaxEntryLength        = 1000 // Cache up to 1000 subscribers per transport
-	userNotificationsBufferSize        = int64(200) // Store the most recent 200 notifications for each user (not persistent)
-	defaultNotificationTopic = topics.Topic_DELAY_NOTIFICATIONS.String()
+	defaultLruSize                  = 1000 // Cache up to 1000 transports
+	defaultLruMaxEntryLength        = 1000 // Cache up to 1000 subscribers per transport
+	defaultUserNotificationsBufferSize        = int64(200) // Store the most recent 200 notifications for each user (not persistent)
+	defaultNotificationTopic = topics.Topic_DELAY_NOTIFICATIONS
 )
 
 // Endpoint ...
@@ -69,6 +69,7 @@ type NotificationServer struct {
 	transportCache *lru.Cache
 	Pool           *websocket.Pool
 
+	usermgmtConn *grpc.ClientConn
 	usermgmtClient usermgmtpb.UserManagementClient
 	grpcServer     *grpc.Server
 	wsServer       *http.Server
@@ -80,6 +81,11 @@ type NotificationServer struct {
 	rclient *redis.Client
 
 	usermgmtEndpoint Endpoint
+
+	LruSize int
+	LruMaxEntryLength int
+	UserNotificationsBufferSize int64
+	NotificationTopic topics.Topic
 }
 
 // NewNotificationServer ...
@@ -87,26 +93,37 @@ func NewNotificationServer(kafkaConfig kafkaconsumer.Config, redisConfig libredi
 	return NotificationServer{
 		kafkacConfig: kafkaConfig,
 		redisConfig: redisConfig,
+		// Use defaults
+		LruSize: defaultLruSize,
+		LruMaxEntryLength: defaultLruMaxEntryLength,
+		UserNotificationsBufferSize: defaultUserNotificationsBufferSize,
+		NotificationTopic: defaultNotificationTopic,
 	}
 }
 
 // Shutdown ...
 func (s *NotificationServer) Shutdown() {
 	log.Info("Graceful shutdown")
-	log.Info("Closing redis connection")
 	if s.rclient != nil {
+		log.Info("Closing redis connection")
 		if err := s.rclient.Close(); err != nil {
 			log.Warnf("Failed to close redis cleanly: %v", err)
 		}
 	}
-	log.Info("Stopping websocket server")
+	if s.usermgmtConn != nil {
+		log.Info("Closing user management client connection")
+		if err := s.usermgmtConn.Close(); err != nil {
+			log.Warnf("Failed to close user management client connection cleanly: %v", err)
+		}
+	}
 	if s.wsServer != nil {
-		if err := s.wsServer.Shutdown(context.TODO()); err != nil {
+		log.Info("Stopping websocket server")
+		if err := s.wsServer. Shutdown(context.TODO()); err != nil {
 			log.Warnf("Failed to close websocket server cleanly: %v", err)
 		}
 	}
-	log.Info("Stopping GRPC server")
 	if s.grpcServer != nil {
+		log.Info("Stopping GRPC server")
 		s.grpcServer.GracefulStop()
 	}
 }
@@ -119,7 +136,7 @@ func (s *NotificationServer) fillUserCache(ctx context.Context) {
 	}
 	for {
 		user, err := stream.Recv()
-		if err == io.EOF || s.transportCache.Len() >= lruSize {
+		if err == io.EOF || s.transportCache.Len() >= s.LruSize {
 			break
 		}
 		if err != nil {
@@ -230,7 +247,7 @@ func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, 
 			}
 			log.Debugf("Found subscriber: %v", user)
 			// Add to cache eventually
-			if count < lruMaxEntryLength {
+			if count < s.LruMaxEntryLength {
 				candidates = append(candidates, user.GetId())
 			}
 
@@ -238,7 +255,7 @@ func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, 
 			s.notifyUser(user.GetId(), message)
 			count++
 		}
-		if count < lruMaxEntryLength {
+		if count < s.LruMaxEntryLength {
 			s.addUsersToCache(candidates, transportID)
 		}
 	}
@@ -308,10 +325,11 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 
 // Setup ...
 func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.ClientConn) (err error) {
+	s.usermgmtConn = usermgmtConn
 	s.usermgmtClient = usermgmtpb.NewUserManagementClient(usermgmtConn)
 
 	// Fill the cache with recent transports
-	s.transportCache, err = lru.New(lruSize)
+	s.transportCache, err = lru.New(s.LruSize)
 	if err != nil {
 		err = fmt.Errorf("failed to initialize cache: %v", err)
 		return
@@ -344,12 +362,12 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 	log.Info("Filling cache")
 	s.fillUserCache(ctx)
 
-	s.Pool = websocket.NewPool(userNotificationsBufferSize)
+	s.Pool = websocket.NewPool(s.UserNotificationsBufferSize)
 	s.Pool.Rclient = s.rclient
 
 	// Connect to kafka
 	if len(s.kafkacConfig.Topics) < 1 || s.kafkacConfig.Topics[0] == "" {
-		s.kafkacConfig.Topics = []string{defaultNotificationTopic}
+		s.kafkacConfig.Topics = []string{s.NotificationTopic.String()}
 	}
 	if s.kafkacConfig.Group == "" {
 		s.kafkacConfig.Group = "DelayConsumerGroup"
@@ -372,7 +390,7 @@ func (s *NotificationServer) ConnectUsermgmt(ctx context.Context, usermgmtConnec
 	connected := make(chan error)
 	go func() {
 		log.Info("Connecting to usermgmt service...")
-		usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure(), grpc.WithBlock())
+		usermgmtConn, err := grpc.Dial(usermgmtConnectionURI, grpc.WithInsecure())
 		if err != nil {
 			connected <- fmt.Errorf("Failed to connect to the usermgmt service: %v", err)
 			return
@@ -430,7 +448,7 @@ func main() {
 			Name: "notifications-topic",
 			Value: &clivalues.EnumValue{
 				Enum:    sources,
-				Default: defaultNotificationTopic,
+				Default: defaultNotificationTopic.String(),
 			},
 			EnvVars: []string{"NOTIFICATIONS_TOPIC"},
 			Usage:   "topic to subscribe for notifications",
@@ -504,8 +522,9 @@ func (s *NotificationServer) Serve(grpcListener net.Listener, wsListener net.Lis
 
 	// Serve websocket endpoint
 	go func() {
-		s.wsServer = &http.Server{}
-		http.HandleFunc("/ws/notifications", func(w http.ResponseWriter, r *http.Request) {
+		mux := http.NewServeMux()
+		s.wsServer = &http.Server{Handler: mux}
+		mux.HandleFunc("/ws/notifications", func(w http.ResponseWriter, r *http.Request) {
 			s.serveWebsocket(s.Pool, w, r)
 		})
 
@@ -520,7 +539,7 @@ func (s *NotificationServer) Serve(grpcListener net.Listener, wsListener net.Lis
 		s.grpcServer = grpc.NewServer()
 		pb.RegisterNotificationServer(s.grpcServer, s)
 		if err := s.grpcServer.Serve(grpcListener); err != http.ErrServerClosed && err != nil {
-			log.Errorf("Failed to serve grpc server: %v", err)
+			log.Errorf("Failed to serve GRPC server: %v", err)
 		}
 		grpcDone <- true
 	}()

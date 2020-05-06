@@ -41,7 +41,6 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var server AuthenticationServer
-var grpcServer *grpc.Server
 
 // Claims ...
 type Claims struct {
@@ -52,6 +51,7 @@ type Claims struct {
 // AuthenticationServer ...
 type AuthenticationServer struct {
 	pb.UnimplementedAuthenticationServer
+	grpcServer 		*grpc.Server
 	MongoConfig    libdb.MongoDBConfig
 	DB             *libdb.MongoDB
 	SignKey        *rsa.PrivateKey
@@ -72,7 +72,7 @@ func NewAuthServer(mongoConfig libdb.MongoDBConfig) AuthenticationServer {
 func (s *AuthenticationServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	s.grpcServer.Stop()
 }
 
 func (s *AuthenticationServer) findUser(email string) (*users.InternalUser, error) {
@@ -355,9 +355,9 @@ func (s *AuthenticationServer) Setup() error {
 // Serve starts the service
 func (s *AuthenticationServer) Serve(listener net.Listener) error {
 	log.Infof("Authentication service ready at %s", listener.Addr())
-	grpcServer = grpc.NewServer()
-	pb.RegisterAuthenticationServer(grpcServer, s)
-	if err := grpcServer.Serve(listener); err != nil {
+	s.grpcServer = grpc.NewServer()
+	pb.RegisterAuthenticationServer(s.grpcServer, s)
+	if err := s.grpcServer.Serve(listener); err != nil {
 		return err
 	}
 	log.Info("Closing socket")

@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http/httptest"
 	"testing"
-	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
@@ -18,7 +16,6 @@ import (
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
-	"github.com/gorilla/websocket"
 	tc "github.com/romnnn/testcontainers"
 	tcmongo "github.com/romnnn/testcontainers/mongo"
 	tckafka "github.com/romnnn/testcontainers/kafka"
@@ -34,14 +31,6 @@ const (
 	bufSize        = 1024 * 1024
 	userCollection = "mock-users"
 )
-
-type dialerFunc = func(string, time.Duration) (net.Conn, error)
-
-func dialerFor(listener *bufconn.Listener) dialerFunc {
-	return func(string, time.Duration) (net.Conn, error) {
-		return listener.Dial()
-	}
-}
 
 // Test ...
 type Test struct {
@@ -65,11 +54,6 @@ type Test struct {
 	usermgmtClient   usermgmtpb.UserManagementClient
 
 	websocketListener net.Listener
-
-	// TODO: Remove
-	websocketConnection *websocket.Conn
-	websocketClient     *websocket.Conn
-	websocketServer     *httptest.Server
 }
 
 func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*usermgmt.UserMgmtServer, error) {
@@ -85,7 +69,9 @@ func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 		t.Fatalf("Failed to setup user management server: %v", err)
 	}
 	go func() {
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			t.Fatal("Failed to serve user management service")
+		}
 	}()
 	return &server, nil
 }
@@ -101,10 +87,6 @@ func setUpNotificationServer(t *testing.T, grpcListener *bufconn.Listener, wsLis
 		}
 	}()
 	return &server, nil
-}
-
-func teardownServer(server interface{ Shutdown() }) {
-	server.Shutdown()
 }
 
 func (test *Test) setup(t *testing.T) *Test {
@@ -227,14 +209,11 @@ func (test *Test) setup(t *testing.T) *Test {
 
 func (test *Test) teardown() {
 	test.notificationServer.Shutdown()
-	test.notificationEndpoint.Close()
 	test.usermgmtServer.Shutdown()
-	test.usermgmtEndpoint.Close()
-	test.MongoC.Terminate(context.Background())
-	test.KafkaC.Terminate(context.Background())
-	test.ZkC.Terminate(context.Background())
-	test.Net.Remove(context.Background())
-	// test.websocketConnection.Close()
-	// test.websocketClient.Close()
-	// test.websocketServer.Close()
+	_ = test.notificationEndpoint.Close()
+	_ = test.usermgmtEndpoint.Close()
+	_ = test.MongoC.Terminate(context.Background())
+	_ = test.KafkaC.Terminate(context.Background())
+	_ = test.ZkC.Terminate(context.Background())
+	_ = test.Net.Remove(context.Background())
 }

@@ -90,12 +90,14 @@ func (pool *Pool) bufPush(userID *users.UserID, n Notification) error {
 		return nil
 	}
 	// Warning: This is likely to be a performance killer :(
-	pipe := pool.Rclient.Pipeline()
 	// Count items
-	count, err := pipe.ZCount(fmt.Sprintf("%s-buffered", userID.GetId()), "-inf", "+inf").Result()
+	count, err := pool.Rclient.ZCount(fmt.Sprintf("%s-buffered", userID.GetId()), "-inf", "+inf").Result()
 	if err != nil {
 		return err
 	}
+	log.Debugf("redis buffer [user=%v count=%d buffer-size=%d]", userID, count, pool.BufferSize)
+
+	pipe := pool.Rclient.Pipeline()
 	if count >= pool.BufferSize {
 		// Pop oldest notification
 		if err := pipe.ZPopMin(fmt.Sprintf("%s-buffered", userID.GetId()), 1).Err(); err != nil {
@@ -115,6 +117,7 @@ func (pool *Pool) bufPush(userID *users.UserID, n Notification) error {
 }
 
 func (pool *Pool) bufUpdateScore(userID *users.UserID, acknowledged []byte) error {
+	// Update score to 0=acknowledged
 	return pool.Rclient.ZAddXX(fmt.Sprintf("%s-buffered", userID.GetId()), redis.Z{Score: 0, Member: acknowledged}).Err()
 }
 
@@ -123,11 +126,11 @@ func (pool *Pool) bufGet(userID *users.UserID) (*notificationpb.AccumulatedNotif
 }
 
 func (pool *Pool) bufGetUnacknowledged(userID *users.UserID) (*notificationpb.AccumulatedNotifications, error) {
-	return pool.bufGetMissedByScore(userID, "1", "+inf")
+	return pool.bufGetMissedByScore(userID, "(1", "+inf")
 }
 
 func (pool *Pool) bufGetUnacknowledgedRaw(userID *users.UserID) ([][]byte, error) {
-	return pool.bufGetMissedByScoreRaw(userID, "1", "+inf")
+	return pool.bufGetMissedByScoreRaw(userID, "(1", "+inf")
 }
 
 func (pool *Pool) bufGetMissedByScore(userID *users.UserID, min string, max string) (*notificationpb.AccumulatedNotifications, error) {
