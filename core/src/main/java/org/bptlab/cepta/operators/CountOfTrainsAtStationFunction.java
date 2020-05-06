@@ -18,7 +18,7 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 
 public class CountOfTrainsAtStationFunction {
 
-    public DataStream<Tuple2<Long, Integer>> CountOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
+    public static DataStream<Tuple2<Long, Integer>> countOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
         DataStream<Tuple2<Long, Integer>> resultStream = inputStream
         .keyBy(
             new KeySelector<LiveTrainData, Long>(){
@@ -27,17 +27,20 @@ public class CountOfTrainsAtStationFunction {
                 }
             }
         )
-        .window(SlidingEventTimeWindows.of(Time.hours(1), Time.seconds(900)))
+        //.window(SlidingEventTimeWindows.of(Time.hours(1), Time.seconds(900)))
+        .window(GlobalWindows.create()).trigger(
+                CustomCountTrigger.of(2))
         .process(
             CountOfTrainsAtStationProcessFunction()
         );
         return resultStream;
     };
 
-    public ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow> CountOfTrainsAtStationProcessFunction() {
-        return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow>() {
+    public static ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, GlobalWindow> CountOfTrainsAtStationProcessFunction() {
+        return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, GlobalWindow>() {
             @Override
             public void process(Long key, Context context, Iterable<LiveTrainData> input, Collector<Tuple2<Long, Integer>> out) throws Exception {
+                System.out.println("HAllO ! :D Ich bin gerade mit " + input.toString() + " beschäftigt.");
                 int counter = 0;
                 for (Object i : input) {
                     counter++;
