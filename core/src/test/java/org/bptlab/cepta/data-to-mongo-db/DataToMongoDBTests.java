@@ -34,7 +34,13 @@ import org.junit.Test;
 import java.sql.*;
 
 public class DataToMongoDBTests {
-    public GenericContainer nginx = new GenericContainer("mongo")
+    public GenericContainer mongo = new GenericContainer("mongo")
         .withExposedPorts(27017)
-        .withEnv()       
+        .withEnv("MONGO_INITDB_ROOT_USERNAME", "root")
+        .withEnv("MONGO_INITDB_ROOT_PASSWORD", "example");
+
+    @Test
+    public void inputAmount() throws IOException {
+         
+    }
 }
