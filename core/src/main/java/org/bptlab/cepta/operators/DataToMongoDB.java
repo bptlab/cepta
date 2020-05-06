@@ -83,13 +83,13 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         // MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> coll = database.getCollection(collection_name);
-
-        Document document = new Document();
+        MongoCollection<T> coll = database.getCollection(collection_name, dataset.getClass());
+/* 
+        //Document document = new Document();
         ProtoKeyValues protoInfo = Util.getKeyValuesOfProtoMessage(dataset);
         for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
             document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
-        }
+        } */
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
         Subscriber subscriber = new Subscriber() {
@@ -116,7 +116,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
                 //mongoClient.close();
             }
         };
-        coll.insertOne(document).subscribe(subscriber);
+        coll.insertOne(dataset).subscribe(subscriber);
         resultFuture.complete(Collections.singleton(dataset));
     }
 
