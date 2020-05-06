@@ -20,7 +20,7 @@ var upgrader = websocket.Upgrader{
 func Upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Failed to upgrade to websocket connection: %v", err)
 		return nil, err
 	}
 

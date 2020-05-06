@@ -8,6 +8,7 @@ proto_library(
     deps = [
         "//models/internal:delay_proto",
         "//models/internal/types:ids_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 

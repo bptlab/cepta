@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/pkg/errors"
 	"io"
 	"net"
@@ -45,6 +46,7 @@ var BuildTime string = ""
 var (
 	lruSize                  = 1000 // Cache up to 1000 transports
 	lruMaxEntryLength        = 1000 // Cache up to 1000 subscribers per transport
+	userNotificationsBufferSize        = int64(200) // Store the most recent 200 notifications for each user (not persistent)
 	defaultNotificationTopic = topics.Topic_DELAY_NOTIFICATIONS.String()
 )
 
@@ -65,8 +67,8 @@ type NotificationServer struct {
 	pb.UnimplementedNotificationServer
 
 	transportCache *lru.Cache
+	Pool           *websocket.Pool
 
-	pool           *websocket.Pool
 	usermgmtClient usermgmtpb.UserManagementClient
 	grpcServer     *grpc.Server
 	wsServer       *http.Server
@@ -93,11 +95,15 @@ func (s *NotificationServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Closing redis connection")
 	if s.rclient != nil {
-		s.rclient.Close()
+		if err := s.rclient.Close(); err != nil {
+			log.Warnf("Failed to close redis cleanly: %v", err)
+		}
 	}
 	log.Info("Stopping websocket server")
 	if s.wsServer != nil {
-		s.wsServer.Shutdown(context.TODO())
+		if err := s.wsServer.Shutdown(context.TODO()); err != nil {
+			log.Warnf("Failed to close websocket server cleanly: %v", err)
+		}
 	}
 	log.Info("Stopping GRPC server")
 	if s.grpcServer != nil {
@@ -124,16 +130,6 @@ func (s *NotificationServer) fillUserCache(ctx context.Context) {
 		for _, transportID := range user.GetTransports() {
 			log.Debugf("Adding transport %v to cache", transportID)
 			s.addUsersToCache([]*users.UserID{user.GetId()}, transportID)
-			/*
-				if rawCachedSubscribers, ok := s.transportCache.Get(transport.GetId()); ok {
-					if cachedSubscribers, ok := rawCachedSubscribers.(*TransportSubscribers); ok {
-						*cachedSubscribers.Subscribers = append(*cachedSubscribers.Subscribers, user.GetId())
-					}
-				} else {
-					subscriber := []*users.UserID{user.GetId()}
-					s.transportCache.Add(transport.GetId(), &TransportSubscribers{Subscribers: &subscriber})
-				}
-			*/
 		}
 	}
 }
@@ -173,43 +169,55 @@ func (s *NotificationServer) getSubscribersForTransport(key *ids.CeptaTransportI
 	return []*users.UserID{}, false
 }
 
-func (s *NotificationServer) notifyUser(userID *users.UserID, message proto.Message) {
-	rawMessage, err := proto.Marshal(message)
+func (s *NotificationServer) notifyUser(userID *users.UserID, notification *notificationpb.Notification) {
+	rawMessage, err := proto.Marshal(notification)
 	if err != nil {
 		log.Error("Failed to marshal proto: ", err)
 		return
 	}
-	log.Infof("Sending notification to user %v", userID)
-	s.pool.NotifyUser <- websocket.UserNotification{ID: userID, Msg: rawMessage}
-	/*
-		if err := s.producer.Publish(rawMessage, userID.GetId()); err != nil {
-			log.Errorf("Failed to publish notification for user into queue %s: %v", userID.GetId(), err)
-		}
-	*/
+	log.Debugf("Sending notification to user %v with score %v", userID, float64(getNotificationTime(notification).UnixNano()))
+	s.Pool.NotifyUser <- websocket.UserNotification{ID: userID, Msg: rawMessage, Score: float64(getNotificationTime(notification).UnixNano())}
+}
+
+func (s *NotificationServer) broadcast(notification *notificationpb.Notification) {
+	rawMessage, err := proto.Marshal(notification)
+	if err != nil {
+		log.Errorf("Failed to marshal notification: %v", err)
+		return
+	}
+	log.Info("Sending broadcast notification to all users")
+	s.Pool.Broadcast <- websocket.BroadcastNotification{Msg: rawMessage, Score: float64(getNotificationTime(notification).UnixNano())}
+}
+
+func getNotificationTime(notification *notificationpb.Notification) (occurred time.Time) {
+	if o, err := utils.FromProtoTime(notification.GetOccurred()); err == nil && !o.IsZero() {
+		occurred = o
+	} else {
+		occurred = time.Now()
+	}
+	return
 }
 
 // When numbers exceeds limit do not set the cache item so it must be streamed every time again which is ok
 // Change return type!
-func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *ids.CeptaTransportID, message proto.Message) error {
+func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, transportID *ids.CeptaTransportID, message *notificationpb.Notification) error {
 	var count int
 	var candidates []*users.UserID
 
-	// CACHE HIT
+	log.Debugf("Will notify users for transport %v (cached transports: %v)", transportID, s.transportCache.Keys())
 	if subscribers, ok := s.getSubscribersForTransport(transportID); ok {
-		// if rawCachedSubscribers, ok := s.transportCache.Get(*transportID); ok {
-		log.Debug("Cache HIT")
+		log.Debug("Cache HIT: subscribers=%v", subscribers)
 		for _, user := range subscribers {
 			s.notifyUser(user, message)
 		}
-		// CACHE MISS
 	} else {
-		log.Debug("Cache MISS")
+		log.Debugf("Cache MISS: subscribers=%v", subscribers)
 		// Must query the user management service
 		stream, err := s.usermgmtClient.GetSubscribersForTransport(ctx, &usermgmtpb.GetSubscribersRequest{
 			TransportId: transportID,
 		})
 		if err != nil {
-			return fmt.Errorf("Failed to query subscribers for transport %s: %v", transportID, err)
+			return fmt.Errorf("failed to query subscribers for transport %v: %v", transportID, err)
 		}
 		for {
 			user, err := stream.Recv()
@@ -238,10 +246,9 @@ func (s *NotificationServer) notifySubscribersForTransport(ctx context.Context, 
 }
 
 func (s *NotificationServer) serveWebsocket(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
-	log.Debug("WebSocket Endpoint Request")
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
-		log.Error(w, "%+v\n", err)
+		log.Errorf("Failed to upgrade to websocket connection in response handler %v: %v", w, err)
 	}
 
 	client := &websocket.Client{
@@ -265,15 +272,25 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 				var notification notificationpb.Notification
 				err := proto.Unmarshal(msg.Value, &notification)
 				if err != nil {
-					log.Errorf("unmarshaling error: ", err)
+					log.Errorf("unmarshal error: %v", err)
 				}
-				log.Debugf("Received notification: %v", notification)
+				log.Debugf("Received notification: %v (%v)", notification, msg.Timestamp)
+
+				// Set occurrence time as a best effort
+				if occurred := notification.GetOccurred(); occurred.GetSeconds() + int64(occurred.GetNanos()) < 1 && !msg.Timestamp.IsZero() {
+					if occurredProto, err := utils.ToProtoTime(msg.Timestamp); err != nil {
+						notification.Occurred = occurredProto
+					}
+				}
 
 				switch notification.GetNotification().(type) {
 				case *notificationpb.Notification_Delay:
-					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), notification.GetDelay().GetTransportId()); err != nil {
-						log.Errorf("Failed notify subsribers of transport %d: err", notification.GetDelay().GetTransportId(), err)
+					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
+						log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
 					}
+					break
+				case *notificationpb.Notification_System:
+					s.broadcast(&notification)
 					break
 				}
 				break
@@ -296,7 +313,7 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 	// Fill the cache with recent transports
 	s.transportCache, err = lru.New(lruSize)
 	if err != nil {
-		err = fmt.Errorf("Failed to initialize cache: %v", err)
+		err = fmt.Errorf("failed to initialize cache: %v", err)
 		return
 	}
 
@@ -319,7 +336,7 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 		return
 	case err := <-connected:
 		if err != nil {
-			return fmt.Errorf("Failed to connect to redis: %v", err)
+			return fmt.Errorf("failed to connect to redis: %v", err)
 		}
 		break
 	}
@@ -327,8 +344,8 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 	log.Info("Filling cache")
 	s.fillUserCache(ctx)
 
-	s.pool = websocket.NewPool()
-	s.pool.Rclient = s.rclient
+	s.Pool = websocket.NewPool(userNotificationsBufferSize)
+	s.Pool.Rclient = s.rclient
 
 	// Connect to kafka
 	if len(s.kafkacConfig.Topics) < 1 || s.kafkacConfig.Topics[0] == "" {
@@ -346,7 +363,7 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 	}
 
 	go s.handleKafkaMessages(ctx)
-	go s.pool.Start()
+	go s.Pool.Start()
 	return
 }
 
@@ -489,11 +506,11 @@ func (s *NotificationServer) Serve(grpcListener net.Listener, wsListener net.Lis
 	go func() {
 		s.wsServer = &http.Server{}
 		http.HandleFunc("/ws/notifications", func(w http.ResponseWriter, r *http.Request) {
-			s.serveWebsocket(s.pool, w, r)
+			s.serveWebsocket(s.Pool, w, r)
 		})
 
 		if err := s.wsServer.Serve(wsListener); err != http.ErrServerClosed && err != nil {
-			log.Error("Failed to serve websocket server: ", err)
+			log.Errorf("Failed to serve websocket server: %v", err)
 		}
 		wsDone <- true
 	}()
@@ -503,7 +520,7 @@ func (s *NotificationServer) Serve(grpcListener net.Listener, wsListener net.Lis
 		s.grpcServer = grpc.NewServer()
 		pb.RegisterNotificationServer(s.grpcServer, s)
 		if err := s.grpcServer.Serve(grpcListener); err != http.ErrServerClosed && err != nil {
-			log.Error("Failed to serve grpc server: ", err)
+			log.Errorf("Failed to serve grpc server: %v", err)
 		}
 		grpcDone <- true
 	}()

@@ -29,7 +29,7 @@ func (c *Client) Read() {
 	for {
 		messageType, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Error(err)
+			log.Errorf("Error reading message from websocket connection: %v", err)
 			return
 		}
 
@@ -39,7 +39,7 @@ func (c *Client) Read() {
 			var clientMessage pb.ClientMessage
 			err = proto.Unmarshal(message, &clientMessage)
 			if err != nil {
-				log.Errorf("unmarshaling error: %v", err)
+				log.Errorf("unmarshal error: %v", err)
 			}
 			switch clientMessage.GetMessage().(type) {
 			case *pb.ClientMessage_Announcement:

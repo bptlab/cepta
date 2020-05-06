@@ -5,59 +5,159 @@ import (
 	"time"
 
 	topics "github.com/bptlab/cepta/models/constants/topic"
-	"github.com/bptlab/cepta/models/internal/delay"
+	// "github.com/bptlab/cepta/models/internal/delay"
 	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
 	"github.com/bptlab/cepta/models/internal/types/ids"
 	"github.com/bptlab/cepta/models/internal/types/users"
 	"github.com/golang/protobuf/proto"
-	durationpb "github.com/golang/protobuf/ptypes/duration"
+	// durationpb "github.com/golang/protobuf/ptypes/duration"
+	// "github.com/romnnn/deepequal"
+	// "github.com/davecgh/go-spew/spew"
 )
 
 const parallel = true
 
-func TestFillsCache(t *testing.T) {
+// Test
+// - E2E users get the correct items
+// - User receives all missed messages when becoming online
+// 		- Also test with lower limit
+// - Test going online and offline
+// - Test ignores unknown users
+
+func TestBroadcast(t *testing.T) {
+	t.Skip()
 	test := new(Test).setup(t)
 	defer test.teardown()
 
-	test.addUsersForTransport(t, map[*users.UserID][]*ids.CeptaTransportID{
-		&users.UserID{Id: "1"}: {{Id: "1"}, {Id: "2"}},
-		&users.UserID{Id: "2"}: {{Id: "2"}, {Id: "3"}},
-		&users.UserID{Id: "3"}: {{Id: "1"}, {Id: "4"}},
+	// Add some users
+	addedUsersWithEmail := test.addUsersForTransport(t, map[*users.User][]*ids.CeptaTransportID{
+		&users.User{Email: "1@test.com"}: {{Id: "1"}, {Id: "2"}},
+		&users.User{Email: "2@test.com"}: {{Id: "2"}, {Id: "3"}},
+		&users.User{Email: "3@test.com"}: {{Id: "1"}, {Id: "4"}},
 	})
 
-	test.announceUsers(t, []*users.UserID{
-		{Id: "1"}, {Id: "2"}, {Id: "4"},
+	userWithEmail := func(email string) *users.UserID {
+		if user, ok := addedUsersWithEmail[email]; ok {
+			return user
+		}
+		// This can never exist and that is just what we want
+		return &users.UserID{Id: email}
+	}
+
+	// Simulate the users logging in via websocket connection
+	collector := test.announceUsers(t, []*users.UserID{
+		userWithEmail("1@test.com"), userWithEmail("2@test.com"), userWithEmail("4@test.com"),
 	})
 
-	test.produceEventsToKafka(t, topics.Topic_DELAY_NOTIFICATIONS, []proto.Message{
-		newDelayNotification("1", 1200),
-		newDelayNotification("1", 1200),
-		newDelayNotification("2", 1200),
-		newDelayNotification("3", 1200),
-		newDelayNotification("2", 1200),
-	})
-
-	time.Sleep(40 * time.Second)
-
-}
-
-func newDelayNotification(tid string, secs int64) *notificationpb.Notification {
-	return &notificationpb.Notification{
-		Notification: &notificationpb.Notification_Delay{
-			Delay: &notificationpb.DelayNotification{
-				TransportId: &ids.CeptaTransportID{Id: tid},
-				Delay:       &delay.Delay{Delta: &durationpb.Duration{Seconds: secs}},
+	systemNotification := &notificationpb.Notification{
+		Notification: &notificationpb.Notification_System{
+			System: &notificationpb.SystemNotification{
+				Message: "Going offline",
 			}}}
+	systemNotification2 := proto.Clone(systemNotification).(*notificationpb.Notification)
+	systemNotification2.GetSystem().Message = "Back online"
+
+	// Produce system notifications to kafka
+	test.produceEventsToKafka(t, topics.Topic_DELAY_NOTIFICATIONS, []proto.Message{
+		systemNotification, systemNotification2,
+	})
+
+	// Allow for all websocket clients to finish up reading
+	collector.AwaitIdleFor(5 * time.Second)
+
+	expected := map[string][]*notificationpb.Notification{
+		userWithEmail("1@test.com").GetId(): {systemNotification, systemNotification2},
+		userWithEmail("2@test.com").GetId(): {systemNotification, systemNotification2},
+		userWithEmail("4@test.com").GetId(): {systemNotification, systemNotification2},
+	}
+	compareNotifications(t, collector.responses, expected)
 }
 
-/*
-func TestSendMessagesToUser(t *testing.T) {
-    test := new(Test).setup(t)
-    defer test.teardown()
+func TestNotifyOnlineUsers(t *testing.T) {
+	t.Skip()
+	test := new(Test).setup(t)
+	defer test.teardown()
 
-    test.setupWebsocketConn(t)
+	// Add some users
+	addedUsersWithEmail := test.addUsersForTransport(t, map[*users.User][]*ids.CeptaTransportID{
+		&users.User{Email: "1@test.com"}: {{Id: "1"}, {Id: "2"}},
+		&users.User{Email: "2@test.com"}: {{Id: "2"}, {Id: "3"}},
+		&users.User{Email: "3@test.com"}: {{Id: "1"}, {Id: "4"}},
+	})
 
-   	// test.registerUser(t)
-   	// test.userReceiveMessages(t)
+	userWithEmail := func(email string) *users.UserID {
+		if user, ok := addedUsersWithEmail[email]; ok {
+			return user
+		}
+		// This can never exist and that is just what we want
+		return &users.UserID{Id: email}
+	}
+
+	// Simulate the users logging in via websocket connection
+	collector := test.announceUsers(t, []*users.UserID{
+		userWithEmail("1@test.com"), userWithEmail("2@test.com"), userWithEmail("4@test.com"),
+	})
+
+	dn2 := newDelayNotification("1", 2)
+	dn4 := newDelayNotification("1", 4)
+	dn6 := newDelayNotification("2", 6)
+	dn8 := newDelayNotification("3", 8)
+	dn10 := newDelayNotification("2", 10)
+	test.produceEventsToKafka(t, topics.Topic_DELAY_NOTIFICATIONS, []proto.Message{
+		dn2, dn4, dn6, dn8, dn10,
+	})
+
+	// Allow for all websocket clients to finish up reading
+	collector.AwaitIdleFor(5 * time.Second)
+	expected := map[string][]*notificationpb.Notification{
+		userWithEmail("1@test.com").GetId(): {dn2, dn4, dn6, dn10},
+		userWithEmail("2@test.com").GetId(): {dn6, dn8, dn10},
+	}
+	compareNotifications(t, collector.responses, expected)
 }
-*/
+
+func TestNotifyOfflineUsers(t *testing.T) {
+	// t.Skip()
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Add some users
+	addedUsersWithEmail := test.addUsersForTransport(t, map[*users.User][]*ids.CeptaTransportID{
+		&users.User{Email: "1@test.com"}: {{Id: "1"}, {Id: "2"}},
+		&users.User{Email: "2@test.com"}: {{Id: "2"}, {Id: "3"}},
+		&users.User{Email: "3@test.com"}: {{Id: "1"}, {Id: "4"}},
+	})
+
+	userWithEmail := func(email string) *users.UserID {
+		if user, ok := addedUsersWithEmail[email]; ok {
+			return user
+		}
+		// This can never exist and that is just what we want
+		return &users.UserID{Id: email}
+	}
+
+	dn2 := newDelayNotification("1", 2)
+	dn4 := newDelayNotification("1", 4)
+	dn6 := newDelayNotification("2", 6)
+	dn8 := newDelayNotification("3", 8)
+	dn10 := newDelayNotification("2", 10)
+
+	// Produce system notifications to kafka
+	test.produceEventsToKafka(t, topics.Topic_DELAY_NOTIFICATIONS, []proto.Message{
+		dn2, dn4, dn6, dn8, dn10,
+	})
+
+	// Simulate the users logging in via websocket connection
+	time.Sleep(2 * time.Second)
+	collector := test.announceUsers(t, []*users.UserID{
+		userWithEmail("1@test.com"), userWithEmail("2@test.com"), userWithEmail("4@test.com"),
+	})
+
+	// Allow for all websocket clients to finish up reading
+	collector.AwaitIdleFor(5 * time.Second)
+	expected := map[string][]*notificationpb.Notification{
+		userWithEmail("1@test.com").GetId(): {dn2, dn4, dn6, dn10},
+		userWithEmail("2@test.com").GetId(): {dn6, dn8, dn10},
+	}
+	compareNotifications(t, collector.responses, expected)
+}

@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	logLevel       = log.DebugLevel
+	logLevel       = log.WarnLevel
 	bufSize        = 1024 * 1024
 	userCollection = "mock-users"
 )
@@ -168,8 +168,6 @@ func (test *Test) setup(t *testing.T) *Test {
 	test.kafkapConfig = kafkaproducer.Config{
 		Config: baseKafkaConfig,
 	}
-	log.Error(test.kafkacConfig)
-	log.Error(test.kafkapConfig)
 
 	// Start redis container
 	var redisConConfig tcredis.Config

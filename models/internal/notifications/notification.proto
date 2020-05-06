@@ -5,11 +5,13 @@ option java_package = "org.bptlab.cepta.models.internal.notifications.notificati
 
 import "models/internal/types/ids.proto";
 import "models/internal/delay.proto";
+import "google/protobuf/timestamp.proto";
 
 // GENERIC NOTIFICATION
 message Notification {
     Type type = 1;
     Urgency urgency = 2;
+    google.protobuf.Timestamp occurred = 3;
 
     oneof notification {
         DelayNotification delay = 100;
@@ -29,7 +31,7 @@ message HazardNotification {
 }
 
 message SystemNotification {
-    // TODO
+    string message = 1;
 }
 
 message AccumulatedNotifications {
