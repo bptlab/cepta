@@ -11,9 +11,12 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import com.mongodb.ConnectionString;
 
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
-
+import org.bson.BsonReader;
+import org.bson.BsonWriter;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
@@ -35,6 +38,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.javatuples.Triplet;
 
+import static org.bson.codecs.configuration.CodecRegistries.*;
+
 
 public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
@@ -46,12 +51,44 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         this.mongoConfig = mongoConfig;
     }
 
+public class TimestampCodec implements Codec<com.google.protobuf.Timestamp> {
+    @Override
+    public void encode(final BsonWriter writer, final com.google.protobuf.Timestamp ts, final EncoderContext encoderContext) {
+        writer.writeStartDocument();
+            writer.writeName("seconds");
+            writer.writeInt64(ts.getSeconds());
+            writer.writeName("nanos");
+            writer.writeInt32(ts.getNanos());
+        writer.writeEndDocument();
+    }
+
+    @Override
+    public com.google.protobuf.Timestamp decode(final BsonReader reader, final DecoderContext decoderContext) {
+        return com.google.protobuf.Timestamp.newBuilder()
+                .setSeconds(reader.readInt64("seconds"))
+                .setNanos(reader.readInt32("nanos"))
+                .build();
+    }
+
+    @Override
+    public Class<com.google.protobuf.Timestamp> getEncoderClass() {
+        return com.google.protobuf.Timestamp.class;
+    }
+}
 
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
+
+
+
+        CodecProvider eventCodecProvider = PojoCodecProvider.builder().register("org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData").build();
+        CodecProvider protoTimestampCodecProvider = PojoCodecProvider.builder().register("com.google.protobuf.Timestamp").build();
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-                fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+//                fromProviders(PojoCodecProvider.builder().automatic(true).build()),
+                fromProviders(eventCodecProvider),
+                fromCodecs(new TimestampCodec()),
+                fromProviders(protoTimestampCodecProvider));
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
                 .applyConnectionString(new ConnectionString("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin"))
@@ -83,16 +120,18 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         // MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<T> coll = database.getCollection(collection_name, dataset.getClass());
-/* 
-        //Document document = new Document();
+        MongoCollection<Document> coll = database.getCollection(collection_name);
+
+        Document document = new Document();
+
         ProtoKeyValues protoInfo = Util.getKeyValuesOfProtoMessage(dataset);
+
         for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
             document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
-        } */
-        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
-        //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
-        Subscriber subscriber = new Subscriber() {
+        }
+                //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
+                //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
+                Subscriber subscriber = new Subscriber() {
             @Override
             public void onSubscribe(Subscription subscription) {
                 //Number of elements the subscriber want to get from the publisher
@@ -107,7 +146,6 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
             @Override
             public void onError(Throwable throwable) {
                 System.out.println("Mongo Operation Failed");
-                System.out.println(throwable);
             }
 
             @Override
@@ -116,7 +154,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
                 //mongoClient.close();
             }
         };
-        coll.insertOne(dataset).subscribe(subscriber);
+        coll.insertOne(document).subscribe(subscriber);
         resultFuture.complete(Collections.singleton(dataset));
     }
 
