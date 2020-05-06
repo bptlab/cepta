@@ -13,6 +13,16 @@ else
   bazel run //:build-images
 fi
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  export ENVOY_HOST=host.docker.internal
+else
+  # Assume we are running under linux
+  export ENVOY_HOST=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
+fi
+
+echo "Using docker host at ${ENVOY_HOST}"
+
 docker-compose --compatibility \
   -f core.compose.yml \
   -f cockpit.compose.yml \
