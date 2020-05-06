@@ -1,8 +1,10 @@
 package org.bptlab.cepta.operators;
 
 import com.google.protobuf.Message;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerAddress;
 import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.*;
+
 import com.mongodb.MongoCredential;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
@@ -33,14 +35,15 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
     @Override
     public void flatMap(T dataset, Collector<T> collector) throws Exception {
         //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
-        MongoCredential credential = MongoCredential.createCredential(mongoConfig.getUser(), /*THE DB in which this user is defined*/"admin", mongoConfig.getPassword().toCharArray());
-        MongoClientSettings settings = MongoClientSettings.builder()
-                .credential(credential)
-                .applyToSslSettings(builder -> builder.enabled(true))
-                .applyToClusterSettings(builder ->
-                        builder.hosts(Arrays.asList(new ServerAddress(mongoConfig.getHost(), mongoConfig.getPort()))))
-                .build();
-        MongoClient mongoClient = MongoClients.create(settings);
+//        MongoCredential credential = MongoCredential.createCredential(mongoConfig.getUser(), /*THE DB in which this user is defined*/"admin", mongoConfig.getPassword().toCharArray());
+//        MongoClientSettings settings = MongoClientSettings.builder()
+//                .credential(credential)
+//                .applyToSslSettings(builder -> builder.enabled(true))
+//                .applyToClusterSettings(builder ->
+//                        builder.hosts(Arrays.asList(new ServerAddress(mongoConfig.getHost(), mongoConfig.getPort()))))
+//                .build();
+//        MongoClient mongoClient = MongoClients.create(settings);
+        MongoClient mongoClient = MongoClients.create();
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
@@ -68,6 +71,7 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
             @Override
             public void onComplete() {
                 System.out.println("Mongo Operation Successful");
+                mongoClient.close();
             }
         };
         coll.insertOne(document).subscribe(subscriber);
