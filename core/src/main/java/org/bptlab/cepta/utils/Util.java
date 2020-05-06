@@ -11,9 +11,9 @@ import org.javatuples.Triplet;
 
 public class Util {
     
-  public static ProtoInfo getInfosOfProtoMessage(Message dataSet) throws NoSuchFieldException, IllegalAccessException {
+  public static ProtoInfoStrings getInfosOfProtoMessageAsStrings(Message dataSet) throws NoSuchFieldException, IllegalAccessException {
     ArrayList<String> columnNames = new ArrayList<String>();
-    ArrayList<String> values = new ArrayList<String>();
+    ArrayList<String> values = new ArrayList<>();
     ArrayList<String> types = new ArrayList<>();
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
       System.out.println(entry.getKey() + "/" + entry.getValue());
@@ -37,7 +37,19 @@ public class Util {
         }
       }
     }
-    ProtoInfo protoInfo = new ProtoInfo(columnNames,values,types);
+    ProtoInfoStrings protoInfo = new ProtoInfoStrings(columnNames, values, types);
+    return protoInfo;
+  }
+      
+  public static ProtoKeyValues getKeyValuesOfProtoMessage(Message dataSet) throws NoSuchFieldException, IllegalAccessException {
+    ArrayList<String> columnNames = new ArrayList<String>();
+    ArrayList<Object> values = new ArrayList<Object>();
+    for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
+      System.out.println(entry.getKey() + "/" + entry.getValue());
+      columnNames.add(entry.getKey().getName());
+      values.add(entry.getValue());
+    }
+    ProtoKeyValues protoInfo = new ProtoKeyValues(columnNames,values);
     return protoInfo;
   }
 
@@ -47,28 +59,48 @@ public class Util {
     return timestamp;
   }
 
-  public static class ProtoInfo{
-      ArrayList<String> columnNames;
-      ArrayList<String> values;
-      ArrayList<String> types;
+  public static class ProtoInfoStrings{
+    ArrayList<String> columnNames;
+    ArrayList<String> values;
+    ArrayList<String> types;
 
-      public ProtoInfo(){
-      }
+    public ProtoInfoStrings(){
+    }
 
-      public ProtoInfo(ArrayList<String> columnNames, ArrayList<String> values, ArrayList<String> types){
-          this.columnNames = columnNames;
-          this.values = values;
-          this.types = types;
-      }
+    public ProtoInfoStrings(ArrayList<String> columnNames, ArrayList<String> values, ArrayList<String> types){
+        this.columnNames = columnNames;
+        this.values = values;
+        this.types = types;
+    }
 
-      public ArrayList<String> getColumnNames(){
-        return this.columnNames;
-      }
-      public ArrayList<String> getValues(){
-        return this.values;
-      }
-      public ArrayList<String> getTypes(){
-        return this.types;
-      }
+    public ArrayList<String> getColumnNames(){
+      return this.columnNames;
+    }
+    public ArrayList<String> getValues(){
+      return this.values;
+    }
+    public ArrayList<String> getTypes(){
+      return this.types;
+    }
+  }
+
+  public static class ProtoKeyValues{
+    ArrayList<String> columnNames;
+    ArrayList<Object> values;
+
+    public ProtoKeyValues(){
+    }
+
+    public ProtoKeyValues(ArrayList<String> columnNames, ArrayList<Object> values){
+        this.columnNames = columnNames;
+        this.values = values;
+    }
+
+    public ArrayList<String> getColumnNames(){
+      return this.columnNames;
+    }
+    public ArrayList<Object> getValues(){
+      return this.values;
+    }
   }
 }

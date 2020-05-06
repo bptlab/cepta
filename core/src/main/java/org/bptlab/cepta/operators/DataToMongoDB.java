@@ -16,7 +16,7 @@ import org.apache.flink.util.Collector;
 
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.utils.Util;
-import org.bptlab.cepta.utils.Util.ProtoInfo;
+import org.bptlab.cepta.utils.Util.ProtoKeyValues;
 
 import org.bson.Document;
 
@@ -49,14 +49,14 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
 //                .build();
 //        MongoClient mongoClient = MongoClients.create(settings);
         //"mongodb://user1:pwd1@host1:port/?authSource=db1&ssl=true"
-        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
-//        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
+//        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
+        MongoClient mongoClient = MongoClients.create("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin");
 
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
 
         Document document = new Document();
-        ProtoInfo protoInfo = Util.getInfosOfProtoMessage(dataset);
+        ProtoKeyValues protoInfo = Util.getKeyValuesOfProtoMessage(dataset);
         for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
             document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
         }

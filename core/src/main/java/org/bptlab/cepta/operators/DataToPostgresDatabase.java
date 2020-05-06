@@ -20,7 +20,7 @@ import org.apache.flink.api.common.functions.MapFunction;
 
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.Util;
-import org.bptlab.cepta.utils.Util.ProtoInfo;
+import org.bptlab.cepta.utils.Util.ProtoInfoStrings;
 
 public class DataToPostgresDatabase<T extends Message> implements MapFunction<T, T> {
 
@@ -89,7 +89,7 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
 
     // store strings of values, columns and types for sql query
     // Triplet<>(columnNames,values,types)
-    ProtoInfo protoInfo = Util.getInfosOfProtoMessage(dataSet);
+    ProtoInfoStrings protoInfo = Util.getInfosOfProtoMessageAsStrings(dataSet);
     String columnsString = arrayToQueryString(protoInfo.getColumnNames());
     String insertionValues = arrayToQueryString(protoInfo.getValues());
 
