@@ -35,7 +35,7 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build()
+                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:20.022-05:00")).build()
                 ;
         LiveTrainDataOuterClass.LiveTrainData third =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
@@ -44,9 +44,9 @@ public class CountTrainsInStationTests {
                         .setIngestionTime(Timestamps.parse("1972-01-01T12:00:20.021-05:00")).build()
                 ;
 
-        DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream = env.fromElements(first, second, third);
-
-        liveTrainStream.assignTimestampsAndWatermarks(
+        DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
+                env.fromElements(first, second, third)
+                .assignTimestampsAndWatermarks(
                 new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
                     @Override
                     public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {

@@ -27,19 +27,18 @@ public class CountOfTrainsAtStationFunction {
                 }
             }
         )
-        //.window(SlidingEventTimeWindows.of(Time.hours(1), Time.seconds(900)))
-        .window(GlobalWindows.create()).trigger(
-                CustomCountTrigger.of(2))
+        .window(SlidingEventTimeWindows.of(Time.seconds(30), Time.seconds(5)))
         .process(
             CountOfTrainsAtStationProcessFunction()
         );
         return resultStream;
     };
 
-    public static ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, GlobalWindow> CountOfTrainsAtStationProcessFunction() {
-        return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, GlobalWindow>() {
+    public static ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow> CountOfTrainsAtStationProcessFunction() {
+        return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow>() {
             @Override
             public void process(Long key, Context context, Iterable<LiveTrainData> input, Collector<Tuple2<Long, Integer>> out) throws Exception {
+                System.out.println(context.currentProcessingTime() + " and the watermarc " + context.currentWatermark());
                 System.out.println("HAllO ! :D Ich bin gerade mit " + input.toString() + " beschäftigt.");
                 int counter = 0;
                 for (Object i : input) {
