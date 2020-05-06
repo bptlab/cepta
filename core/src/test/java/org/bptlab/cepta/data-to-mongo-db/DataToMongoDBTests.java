@@ -21,6 +21,8 @@ import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.bptlab.cepta.providers.WeatherDataProvider;
 
+import org.testcontainers.containers.GenericContainer;
+
 import com.google.protobuf.GeneratedMessage;
 
 import sun.awt.image.SunWritableRaster.DataStealer;
@@ -32,6 +34,7 @@ import org.junit.Test;
 import java.sql.*;
 
 public class DataToMongoDBTests {
-
- 
+    public GenericContainer nginx = new GenericContainer("mongo")
+        .withExposedPorts(27017)
+        .withEnv()       
 }
