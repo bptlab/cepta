@@ -15,10 +15,12 @@ import java.util.concurrent.ExecutionException;
 import java.sql.*;
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.bptlab.cepta.config.PostgresConfig;
 import com.google.protobuf.Message;
-import org.javatuples.Triplet;
+import org.apache.flink.api.common.functions.MapFunction;
+
+import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.utils.Util;
+import org.bptlab.cepta.utils.Util.ProtoInfo;
 
 public class DataToPostgresDatabase<T extends Message> implements MapFunction<T, T> {
 
@@ -87,9 +89,9 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
 
     // store strings of values, columns and types for sql query
     // Triplet<>(columnNames,values,types)
-    Triplet<ArrayList<String>,ArrayList<String>,ArrayList<String>> protoInfo = getInfosOfProtoMessage(dataSet);
-    String columnsString = arrayToQueryString(protoInfo.getValue0());
-    String insertionValues = arrayToQueryString(protoInfo.getValue1());
+    ProtoInfo protoInfo = Util.getInfosOfProtoMessage(dataSet);
+    String columnsString = arrayToQueryString(protoInfo.getColumnNames());
+    String insertionValues = arrayToQueryString(protoInfo.getValues());
 
     // Create query
     String insertion_query = "INSERT INTO " + table_name + columnsString
@@ -105,7 +107,7 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     }catch (InterruptedException | ExecutionException e){
       System.out.println("Could not get result, check for missing schema");
         // check if schema was missing -> create and retry
-      if(createSchema(connection,protoInfo.getValue0(), protoInfo.getValue2())){
+      if(createSchema(connection,protoInfo.getColumnNames(), protoInfo.getTypes())){
         future = connection.sendPreparedStatement(insertion_query);
         try {
           QueryResult result = future.get();
@@ -121,42 +123,6 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     }catch (ExecutionException | InterruptedException e){
       System.out.println("Could not disconnect");
     }
-  }
-
-  private Triplet<ArrayList<String>,ArrayList<String>,ArrayList<String>> getInfosOfProtoMessage(T dataSet) throws NoSuchFieldException, IllegalAccessException {
-    ArrayList<String> columnNames = new ArrayList<String>();
-    ArrayList<String> values = new ArrayList<String>();
-    ArrayList<String> types = new ArrayList<>();
-    for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
-      System.out.println(entry.getKey() + "/" + entry.getValue());
-
-      columnNames.add(entry.getKey().getName());
-
-      if(entry.getValue() instanceof com.google.protobuf.Timestamp){
-        values.add(String.format("'%s'", ProtoTimestampToSqlTimestamp((com.google.protobuf.Timestamp)entry.getValue()).toString()));
-        types.add("timestamp");
-      }
-      else if(entry.getValue() instanceof String){
-        // add ' ' around value if it's a string
-        values.add(String.format("'%s'", entry.getValue().toString()));
-        types.add("varchar");
-      }else{
-        values.add(entry.getValue().toString());
-        if (entry.getValue() instanceof Long){
-          types.add("bigint");
-        }else if(entry.getValue() instanceof Double){
-          types.add("float8");
-        }
-      }
-    }
-    Triplet<ArrayList<String>,ArrayList<String>,ArrayList<String>> protoInfo = new Triplet<>(columnNames,values,types);
-    return protoInfo;
-  }
-
-  private java.sql.Timestamp ProtoTimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
-    long seconds = protoTimestamp.getSeconds();
-    java.sql.Timestamp timestamp = new Timestamp(seconds*1000);
-    return timestamp;
   }
 
   private String arrayToQueryString(List<String> elements){
