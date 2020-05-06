@@ -2,6 +2,9 @@ package org.bptlab.cepta;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.stream.Stream;
+
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.javatuples.Pair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,12 +34,8 @@ public class WeatherLiveTrainJoinTests {
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
-    Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(trainDelayNotificationDataStream);
-    int count = 0;
-    while(iterator.hasNext()){
-      iterator.next();
-      count++;
-    }
+    int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
+
     Assert.assertEquals(1, count);
   }
 
@@ -49,12 +48,8 @@ public class WeatherLiveTrainJoinTests {
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
-    Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(trainDelayNotificationDataStream);
-    int count = 0;
-    while(iterator.hasNext()){
-      iterator.next();
-      count++;
-    }
+    int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
+
     Assert.assertEquals(4, count);
   }
 
@@ -67,12 +62,8 @@ public class WeatherLiveTrainJoinTests {
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
-    Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(trainDelayNotificationDataStream);
-    int count = 0;
-    while(iterator.hasNext()){
-      iterator.next();
-      count++;
-    }
+    int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
+
     Assert.assertEquals(count, 0);
   }
 }
