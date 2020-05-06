@@ -13,13 +13,18 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
+
 import org.bptlab.cepta.config.MongoConfig;
+import org.bptlab.cepta.utils.Util;
+import org.bptlab.cepta.utils.Util.ProtoInfo;
+
 import org.bson.Document;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.Arrays;
+import org.javatuples.Triplet;
 
 
 public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
@@ -48,7 +53,11 @@ public class DataToMongoDB<T extends Message> implements FlatMapFunction<T,T> {
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
 
-        Document document = new Document("name","Karl");
+        Document document = new Document();
+        ProtoInfo protoInfo = Util.getInfosOfProtoMessage(dataset);
+        for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
+            document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
+        }
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
         Subscriber subscriber = new Subscriber() {

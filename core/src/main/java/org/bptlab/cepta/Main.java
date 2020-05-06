@@ -42,6 +42,7 @@ import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.operators.DataCleansingFunction;
+import org.bptlab.cepta.operators.DataToMongoDB;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
