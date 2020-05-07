@@ -136,7 +136,8 @@ public class LivePlannedCorrelationTests {
   }
 
   private PostgreSQLContainer newPostgreSQLContainer(){
-    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
+    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("")
+            .withCreateContainerCmdModifier(cmd -> cmd.withMemory((long)100 * 1024 * 1024)); // 100MB
   }
 
   private String insertTrainWithTrainSectionIdStationIdQuery(long trainSectionId, long stationId){

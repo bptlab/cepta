@@ -7,7 +7,7 @@ public class KafkaContainer extends org.testcontainers.containers.KafkaContainer
 
   public KafkaContainer() {
     super();
-    this.withNetworkMode("host");
+    this.withNetworkMode("host").withCreateContainerCmdModifier(cmd -> cmd.withMemory((long)100 * 1024 * 1024)); // 100MB
   }
 
   public KafkaConfig getConfig() {

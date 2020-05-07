@@ -152,7 +152,8 @@ public class WeatherLocationCorrelationTests {
   }
 
   private PostgreSQLContainer newPostgreSQLContainer(){
-    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("example");
+    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("example")
+            .withCreateContainerCmdModifier(cmd -> cmd.withMemory((long)100 * 1024 * 1024)); // 100MB
   }
 
   private String insertLocationWithIdLatLonCodeQuery(long locationId, double lon, double lat, String code){
