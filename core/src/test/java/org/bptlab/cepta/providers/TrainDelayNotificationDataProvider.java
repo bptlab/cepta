@@ -20,65 +20,60 @@ public class TrainDelayNotificationDataProvider {
         }
 
       
-        public static DataStream<NotificationOuterClass.Notification> TrainDelayNotificationDataStream(){
+        public static DataStream<NotificationOuterClass.DelayNotification> TrainDelayNotificationDataStream(){
           StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
           env.setParallelism(1);
 
-            NotificationOuterClass.Notification ele1 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","1",10L);
-            NotificationOuterClass.Notification ele2 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","2",5L);
-            NotificationOuterClass.Notification ele3 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","2",15L);
-            NotificationOuterClass.Notification ele4 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","1",8L);
+            NotificationOuterClass.DelayNotification ele1 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","1",10L);
+            NotificationOuterClass.DelayNotification ele2 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","2",5L);
+            NotificationOuterClass.DelayNotification ele3 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("1","2",15L);
+            NotificationOuterClass.DelayNotification ele4 = trainDelayNotificationWithLocationIdWithTrainIdWithDelay("2","1",8L);
       
-          DataStream<NotificationOuterClass.Notification> trainDelayNotificationStream = env.fromElements(ele1, ele2, ele3, ele4);
+          DataStream<NotificationOuterClass.DelayNotification> trainDelayNotificationStream = env.fromElements(ele1, ele2, ele3, ele4);
       
           return trainDelayNotificationStream;
         }
       
 
-        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
-            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+        private static NotificationOuterClass.DelayNotification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
+            return NotificationOuterClass.DelayNotification.newBuilder()
                     .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
-                    .build()
-            ).build();
+                    .build();
         }
 
-        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationIdWithTrainId(String locationId, String trainId){
-            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+        private static NotificationOuterClass.DelayNotification trainDelayNotificationWithLocationIdWithTrainId(String locationId, String trainId){
+            return NotificationOuterClass.DelayNotification.newBuilder()
                     .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
-                    .build()
-            ).build();
+                    .build();
         }
 
-        private static NotificationOuterClass.Notification trainDelayNotificationWithLocationId(String locationId){
-            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+        private static NotificationOuterClass.DelayNotification trainDelayNotificationWithLocationId(String locationId){
+            return NotificationOuterClass.DelayNotification.newBuilder()
                     .setTransportId(Ids.CeptaTransportID.newBuilder().setId("1").build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId(locationId).build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
-                    .build()
-            ).build();
+                    .build();
         }
 
-        private static NotificationOuterClass.Notification trainDelayNotificationWithTrainId(String trainId){
-            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+        private static NotificationOuterClass.DelayNotification trainDelayNotificationWithTrainId(String trainId){
+            return NotificationOuterClass.DelayNotification.newBuilder()
                     .setTransportId(Ids.CeptaTransportID.newBuilder().setId(trainId).build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(1).build()).build())
-                    .build()
-            ).build();
+                    .build();
         }
 
         
-        private static NotificationOuterClass.Notification trainDelayNotificationWithDelay(Long delay){
-            return NotificationOuterClass.Notification.newBuilder().setDelay(NotificationOuterClass.DelayNotification.newBuilder()
+        private static NotificationOuterClass.DelayNotification trainDelayNotificationWithDelay(Long delay){
+            return NotificationOuterClass.DelayNotification.newBuilder()
                     .setTransportId(Ids.CeptaTransportID.newBuilder().setId("1").build())
                     .setStationId(Ids.CeptaStationID.newBuilder().setId("1").build())
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
-                    .build()
-            ).build();
+                    .build();
         }
 
 

@@ -10,6 +10,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 
 import org.apache.flink.util.Collector;
 
+import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.utils.triggers.CustomCountTrigger;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
@@ -24,8 +25,8 @@ public class SumOfDelayAtStationFunction<T extends Object> {
     The window is a fixed event number window.
     It will return a Stream of Tuple2 with the location Id and the sum of delay.
     */
-    public DataStream<Tuple2<Integer, Double>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String stationAttributName) {
-        DataStream<Tuple2<Integer, Double>> resultStream = inputStream
+    public DataStream<Tuple2<Integer, Long>> SumOfDelayAtStation(DataStream<T> inputStream, int windowSize, String stationAttributName) {
+        DataStream<Tuple2<Integer, Long>> resultStream = inputStream
                 .keyBy(
                         new KeySelector<T, Integer>(){
                             Integer key = Integer.valueOf(0);
@@ -44,31 +45,33 @@ public class SumOfDelayAtStationFunction<T extends Object> {
         return resultStream;
     };
 
-    public ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String stationAttributName) {
-        return new ProcessWindowFunction<T, Tuple2<Integer, Double>, Integer, GlobalWindow>() {
+    public ProcessWindowFunction<T, Tuple2<Integer, Long>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction(String stationAttributName) {
+        return new ProcessWindowFunction<T, Tuple2<Integer, Long>, Integer, GlobalWindow>() {
             @Override
-            public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Integer, Double>> out) throws Exception {
-                HashMap<Integer, Double> sums = new HashMap<Integer, Double>();
+            public void process(Integer key, Context context, Iterable<T> input, Collector<Tuple2<Integer, Long>> out) throws Exception {
+                HashMap<Integer, Long> sums = new HashMap<Integer, Long>();
                 for (T in: input) {
+                    // This code is very very very bad
+                    System.out.println(in);
                     Class c = in.getClass();
                     String methodName = "get" + stationAttributName;
                     Method method = c.getDeclaredMethod(methodName);
                     Integer stationId = Integer.valueOf(method.invoke(in).toString());
                     method = c.getDeclaredMethod("getDelay");
-                    Double delay = Double.valueOf(method.invoke(in).toString());
+                    DelayOuterClass.Delay delay = (DelayOuterClass.Delay) method.invoke(in);
 
                     if (!sums.containsKey(stationId)) {
-                        sums.put(stationId, delay);
+                        sums.put(stationId, delay.getDelta().getSeconds());
                     } else {
-                        double tmp;
+                        long tmp;
                         tmp = sums.get(stationId);
-                        sums.replace(stationId, (tmp + delay));
+                        sums.replace(stationId, (tmp + delay.getDelta().getSeconds()));
                     }
                 }
 
                 for (Integer station: sums.keySet()) {
-                    Double delay = sums.get(station);
-                    out.collect(new Tuple2<Integer, Double>(station, delay) );
+                    long delay = sums.get(station);
+                    out.collect(new Tuple2<Integer, Long>(station, delay) );
                 }
             }
         };
