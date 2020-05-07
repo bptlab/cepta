@@ -46,13 +46,7 @@ public class CountTrainsInStationTests {
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)
-                .assignTimestampsAndWatermarks(
-                new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
-                    @Override
-                    public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
-                        return liveTrainData.getIngestionTime().getSeconds();
-                    }
-                });
+                .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
         DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
         ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
