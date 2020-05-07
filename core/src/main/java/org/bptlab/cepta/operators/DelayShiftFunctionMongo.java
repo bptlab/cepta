@@ -78,11 +78,10 @@ public class DelayShiftFunctionMongo extends
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
         SubscriberHelpers.OperationSubscriber<Document> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-        plannedTrainDataCollection.find().first().subscribe(insertOneSubscriber);
+
+        plannedTrainDataCollection.find(eq("planned_event_time", dataset.getEventTime())).subscribe(insertOneSubscriber);
         List<Document> docs = insertOneSubscriber.get();
-        System.out.println(docs);
-        System.out.println(docs.get(0).get("planned_event_time"));
-        System.out.println(docs.get(0).get("planned_event_time") instanceof Timestamp);
+        System.out.println(docs.get(0));
         TrainDelayNotification delay = TrainDelayNotification.newBuilder().setDelay(666).build();
         resultFuture.complete(Collections.singleton(delay));        
     }
