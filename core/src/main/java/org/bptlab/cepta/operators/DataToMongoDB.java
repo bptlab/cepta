@@ -12,6 +12,7 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import com.mongodb.ConnectionString;
 
 import org.bson.BsonReader;
+import org.bson.BsonTimestamp;
 import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
@@ -34,6 +35,9 @@ import org.bson.Document;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import org.javatuples.Triplet;
@@ -54,19 +58,26 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
 public class TimestampCodec implements Codec<com.google.protobuf.Timestamp> {
     @Override
     public void encode(final BsonWriter writer, final com.google.protobuf.Timestamp ts, final EncoderContext encoderContext) {
-        writer.writeStartDocument();
-            writer.writeName("seconds");
-            writer.writeInt64(ts.getSeconds());
-            writer.writeName("nanos");
-            writer.writeInt32(ts.getNanos());
-        writer.writeEndDocument();
+        ZonedDateTime dateTime = Instant
+                .ofEpochSecond( ts.getSeconds() , ts.getNanos() )
+                .atZone( ZoneId.of( "Europe/Berlin" ) );
+//        writer.writeStartDocument();
+//            writer.writeName("seconds");
+//            writer.writeInt64(ts.getSeconds());
+//            writer.writeName("nanos");
+//            writer.writeInt32(ts.getNanos());
+//            writer.writeDateTime(ts.getSeconds()*1000 + (ts.getNanos() / 1000000) );
+            writer.writeDateTime(dateTime.toInstant().toEpochMilli() );
+//        writer.writeEndDocument();
     }
 
     @Override
     public com.google.protobuf.Timestamp decode(final BsonReader reader, final DecoderContext decoderContext) {
+        long milliseconds = reader.readDateTime();
+        Instant instant = Instant.ofEpochMilli(milliseconds);
         return com.google.protobuf.Timestamp.newBuilder()
-                .setSeconds(reader.readInt64("seconds"))
-                .setNanos(reader.readInt32("nanos"))
+                .setSeconds(instant.getEpochSecond())
+                .setNanos(instant.getNano())
                 .build();
     }
 
@@ -86,9 +97,10 @@ public class TimestampCodec implements Codec<com.google.protobuf.Timestamp> {
         CodecProvider protoTimestampCodecProvider = PojoCodecProvider.builder().register("com.google.protobuf.Timestamp").build();
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
 //                fromProviders(PojoCodecProvider.builder().automatic(true).build()),
-                fromProviders(eventCodecProvider),
-                fromCodecs(new TimestampCodec()),
-                fromProviders(protoTimestampCodecProvider));
+//                fromProviders(eventCodecProvider),
+//                fromProviders(protoTimestampCodecProvider),
+                fromCodecs(new TimestampCodec())
+        );
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
                 .applyConnectionString(new ConnectionString("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin"))
