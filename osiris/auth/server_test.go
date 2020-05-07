@@ -121,7 +121,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 	test.authServer, err = setUpAuthServer(t, authListener, mc)
 	if err != nil {

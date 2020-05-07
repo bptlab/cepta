@@ -71,7 +71,7 @@ func PostgresDatabase(config *PostgresDBConfig) (*PostgresDB, error) {
 		db, err := gorm.Open("postgres", connectionOptions.String())
 		if err != nil {
 			if attempt >= config.ConnectionTolerance.MaxRetries {
-				return nil, fmt.Errorf("Failed to connect to postgres: %s", err.Error())
+				return nil, fmt.Errorf("failed to connect to postgres: %s", err.Error())
 			}
 			attempt++
 			log.Infof("Failed to connect: %s. (Attempt %d of %d)", err.Error(), attempt, config.ConnectionTolerance.MaxRetries)

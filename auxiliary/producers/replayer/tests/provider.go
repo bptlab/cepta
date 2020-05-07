@@ -113,7 +113,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 
 	// Start kafka container
@@ -127,7 +127,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
 	}
@@ -135,7 +135,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 	}
 
