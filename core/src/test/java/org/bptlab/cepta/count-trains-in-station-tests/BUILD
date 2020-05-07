@@ -13,6 +13,7 @@ java_test(
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
+        "//models/events:count_of_trains_at_station_event_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",

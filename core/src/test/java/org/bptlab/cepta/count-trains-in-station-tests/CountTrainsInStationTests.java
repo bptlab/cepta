@@ -1,9 +1,9 @@
 package org.bptlab.cepta;
 
 import com.google.protobuf.util.Timestamps;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
@@ -42,8 +42,8 @@ public class CountTrainsInStationTests {
                 env.fromElements(first, second, end)
                 .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
-        DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
-        ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
+        DataStream<CountOfTrainsAtStationEvent> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
+        ArrayList<CountOfTrainsAtStationEvent> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
 
         /*Expect 4 times cause the function provides a sliding window of one hour every 15 minutes*/
         Assert.assertEquals(4, resultCollection.size());
@@ -75,12 +75,12 @@ public class CountTrainsInStationTests {
                 .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
 
-        DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
-        ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
+        DataStream<CountOfTrainsAtStationEvent> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
+        ArrayList<CountOfTrainsAtStationEvent> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
 
-        for (Tuple2<Long,Integer> in : resultCollection) {
-                Assert.assertEquals(Long.valueOf(1L), in.f0);
-                Assert.assertEquals(Integer.valueOf(2), in.f1);
+        for (CountOfTrainsAtStationEvent in : resultCollection) {
+                Assert.assertEquals(1, in.getStationId());
+                Assert.assertEquals(2, in.getCount());
         }
     }
 
@@ -109,16 +109,12 @@ public class CountTrainsInStationTests {
                 env.fromElements(first, second, end)
                         .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
-        DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
-        ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
+        DataStream<CountOfTrainsAtStationEvent> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
+        ArrayList<CountOfTrainsAtStationEvent> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
 
         boolean onlyOneTrainPerStation = true;
-        for (Tuple2<Long,Integer> in : resultCollection) {
-            /*
-            check that each window only had one train per station
-            with .f1 being the count of the window
-           */
-            if (in.f1 != 1) {
+        for (CountOfTrainsAtStationEvent in : resultCollection) {
+            if (in.getCount()!= 1) {
                 onlyOneTrainPerStation = false;
             }
         }

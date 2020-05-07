@@ -440,7 +440,7 @@ proto_library(
 java_proto_library(
     name = "count_of_trains_at_station_event_java_proto",
     visibility = ["//visibility:public"],
-    deps = [":count_at_station_event_proto"],
+    deps = [":count_of_trains_at_station_event_proto"],
 )
 
 proto_library(

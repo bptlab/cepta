@@ -3,6 +3,7 @@ package org.bptlab.cepta.operators;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -20,8 +21,8 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
  */
 public class CountOfTrainsAtStationFunction {
 
-    public static DataStream<Tuple2<Long, Integer>> countOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
-        DataStream<Tuple2<Long, Integer>> resultStream = inputStream
+    public static DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
+        DataStream<CountOfTrainsAtStationEvent> resultStream = inputStream
         .keyBy(
             new KeySelector<LiveTrainData, Long>(){
                 public Long getKey(LiveTrainData event){
@@ -36,17 +37,21 @@ public class CountOfTrainsAtStationFunction {
         return resultStream;
     };
 
-    public static ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow> CountOfTrainsAtStationProcessFunction() {
-        return new ProcessWindowFunction<LiveTrainData, Tuple2<Long, Integer>, Long, TimeWindow>() {
+    public static ProcessWindowFunction<LiveTrainData, CountOfTrainsAtStationEvent, Long, TimeWindow> CountOfTrainsAtStationProcessFunction() {
+        return new ProcessWindowFunction<LiveTrainData, CountOfTrainsAtStationEvent, Long, TimeWindow>() {
             @Override
-            public void process(Long key, Context context, Iterable<LiveTrainData> input, Collector<Tuple2<Long, Integer>> out) throws Exception {
+            public void process(Long key, Context context, Iterable<LiveTrainData> input, Collector<CountOfTrainsAtStationEvent> out) throws Exception {
                 int counter = 0;
                 for (LiveTrainData i : input) {
                     counter++;
                 }
-                out.collect(new Tuple2<Long, Integer>(key, counter) );
-            }
+                out.collect(
+                        CountOfTrainsAtStationEvent
+                                .newBuilder()
+                                .setCount(counter)
+                                .setStationId(key)
+                                .build());
+                }
         };
-    };
-
+    }
 }
