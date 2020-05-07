@@ -103,7 +103,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "livetraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
+		}, &livetrainpb.LiveTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_LIVE_TRAIN_DATA,
 	}
 
