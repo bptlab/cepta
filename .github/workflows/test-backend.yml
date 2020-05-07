@@ -3,7 +3,7 @@ name: Test Backend
 # Run tests all the time
 on: [ push, pull_request ]
 jobs:
-  test:
+  test-backend:
     runs-on: self-hosted
 
     steps:
