@@ -1,0 +1,12 @@
+syntax = "proto3";
+package models.events;
+option go_package = "github.com/bptlab/cepta/models/events/correlatedEvents";
+option java_package = "org.bptlab.cepta.models.events.correlatedEvents";
+
+import "google/protobuf/timestamp.proto";
+
+message CountOfTrainsAtStationEvent {
+    int64 station_id = 1;
+    google.protobuf.Timestamp event_time = 2;
+    int64 count = 3;
+}
