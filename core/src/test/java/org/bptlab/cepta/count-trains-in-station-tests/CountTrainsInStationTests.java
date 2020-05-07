@@ -69,14 +69,12 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build()
-                ;
+                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build()
-                ;
+                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)
@@ -106,19 +104,16 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation + 1)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build()
-                ;
+                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build()
-                ;
+                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)
                         .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
-
 
         DataStream<Tuple2<Long, Integer>> countOfStationStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainStream);
         ArrayList<Tuple2<Long,Integer>> resultCollection = StreamUtils.collectStreamToArrayList(countOfStationStream);
