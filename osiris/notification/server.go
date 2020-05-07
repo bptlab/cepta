@@ -468,11 +468,8 @@ func main() {
 			}
 			log.SetLevel(level)
 
-			server := NotificationServer{
-				kafkacConfig: 		kafkaconsumer.Config{}.ParseCli(ctx),
-				redisConfig:      	libredis.Config{}.ParseCli(ctx),
-				usermgmtEndpoint: 	Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")},
-			}
+			server := NewNotificationServer(kafkaconsumer.Config{}.ParseCli(ctx), libredis.Config{}.ParseCli(ctx))
+			server.usermgmtEndpoint = Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")}
 
 			// Register shutdown routine
 			setupCtx, cancelSetup := context.WithCancel(context.Background())
