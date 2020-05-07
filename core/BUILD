@@ -12,7 +12,7 @@ MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/utils/types:java_default_library",
     "//models/constants:topic_java_proto",
     "//models/events:live_train_data_java_proto",
-    "//models/events:count_of_trains_at_station",
+    "//models/events:count_of_trains_at_station_event_java_proto",
     "//models/events:planned_train_data_java_proto",
     "//models/events:predicted_train_data_java_proto",
     "//models/events:train_information_data_java_proto",
