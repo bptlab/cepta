@@ -6,7 +6,6 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
-        "//core/src/main/java/org/bptlab/cepta/utils:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/converters:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/database/mongohelper:java_default_library",

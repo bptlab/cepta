@@ -23,11 +23,11 @@ import java.time.ZonedDateTime;
 import static org.bson.codecs.configuration.CodecRegistries.fromCodecs;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-public class mongo {
+public class Mongo {
 
     public static MongoClient getMongoClient(MongoConfig mongoConfig) {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-                fromCodecs(new mongo.TimestampCodec())
+                fromCodecs(new Mongo.TimestampCodec())
         );
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
@@ -68,4 +68,21 @@ public class mongo {
     public static SubscriberHelpers.OperationSubscriber getSubscriber() {
         return new SubscriberHelpers.OperationSubscriber();
     }
+
+    public static Document protoToBson(Message dataset ) {
+        Util.ProtoKeyValues protoInfo = new Util.ProtoKeyValues();
+        try {
+            protoInfo = Util.getKeyValuesOfProtoMessage(dataset);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            System.out.println("Failed to convert Message to Bson: "+e.getLocalizedMessage());
+        }
+        Document document = new Document();
+        for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
+            document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
+        }
+        return document;
+    }
+
+
 }
+

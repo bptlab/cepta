@@ -1,51 +1,27 @@
 package org.bptlab.cepta.operators;
 
 import com.google.protobuf.Message;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.reactivestreams.client.MongoClient;
 
-import com.mongodb.MongoCredential;
-import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import com.mongodb.ConnectionString;
 
-import com.sun.swing.internal.plaf.synth.resources.synth_sv;
-import org.bptlab.cepta.utils.database.mongo;
+import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
-import org.bson.BsonReader;
-import org.bson.BsonTimestamp;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.util.Collector;
 
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.utils.Util;
-import org.bptlab.cepta.utils.Util.ProtoKeyValues;
+import org.bptlab.cepta.utils.database.Util;
+import org.bptlab.cepta.utils.database.Util.ProtoKeyValues;
 
 import org.bson.Document;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 
-import static org.bson.codecs.configuration.CodecRegistries.*;
+import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
 
 public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
@@ -61,7 +37,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
-        this.mongoClient = mongo.getMongoClient(mongoConfig);
+        this.mongoClient = Mongo.getMongoClient(mongoConfig);
     }
 
     @Override
@@ -78,19 +54,12 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
 
-        Document document = new Document();
+        Document document = protoToBson(dataset);
 
-        ProtoKeyValues protoInfo = Util.getKeyValuesOfProtoMessage(dataset);
-
-        for (int i = 0; i < protoInfo.getColumnNames().size(); i++){
-            document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
-        }
-//
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         coll.insertOne(document).subscribe(insertOneSubscriber);
         //start the subscriber -> start querying timeout defaults to 60seconds
         insertOneSubscriber.await();
-        //System.out.println(insertOneSubscriber.get());
         resultFuture.complete(Collections.singleton(dataset));
     }
 

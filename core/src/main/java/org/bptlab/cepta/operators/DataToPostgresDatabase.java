@@ -8,19 +8,16 @@ import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.sql.*;
 
-import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import org.apache.flink.api.common.functions.MapFunction;
 
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.utils.Util;
-import org.bptlab.cepta.utils.Util.ProtoInfoStrings;
+import org.bptlab.cepta.utils.database.Util;
+import org.bptlab.cepta.utils.database.Util.ProtoInfoStrings;
 
 public class DataToPostgresDatabase<T extends Message> implements MapFunction<T, T> {
 

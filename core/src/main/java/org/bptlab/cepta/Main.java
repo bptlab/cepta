@@ -122,8 +122,8 @@ public class Main implements Callable<Integer> {
     
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
-        100000, TimeUnit.MILLISECONDS, 1); */
-
+        100000, TimeUnit.MILLISECONDS, 1);
+  /*
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());

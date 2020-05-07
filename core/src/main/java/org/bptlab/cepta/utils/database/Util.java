@@ -1,4 +1,4 @@
-package org.bptlab.cepta.utils;
+package org.bptlab.cepta.utils.database;
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
