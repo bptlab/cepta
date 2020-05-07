@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
@@ -37,14 +37,14 @@ public class DetectStationArrivalDelayTest {
         return matchedStream;
     }
 
-    public boolean checkForDelay(DataStream<TrainDelayNotification> trainDelayStream, int delay) throws IOException {
+    public boolean checkForDelay(DataStream<NotificationOuterClass.Notification> trainDelayStream, int delay) throws IOException {
         // We need Atomic here to be able to change the boolean within the for each line 55
         AtomicBoolean pass = new AtomicBoolean(true);
 
-        Iterator<TrainDelayNotification> iterator = DataStreamUtils.collect(trainDelayStream);
-        ArrayList<TrainDelayNotification> delayNotification = new ArrayList<>();
+        Iterator<NotificationOuterClass.Notification> iterator = DataStreamUtils.collect(trainDelayStream);
+        ArrayList<NotificationOuterClass.Notification> delayNotification = new ArrayList<>();
         while (iterator.hasNext()){
-            TrainDelayNotification notification = iterator.next();
+            NotificationOuterClass.Notification notification = iterator.next();
             delayNotification.add(notification);
         }
 
@@ -57,7 +57,7 @@ public class DetectStationArrivalDelayTest {
         }
 
         delayNotification.forEach( (trainDelayNotification) -> {
-            if ( trainDelayNotification.getDelay() != delay ) {
+            if ( trainDelayNotification.getDelay().getDelay().getDelta().getSeconds() != delay ) {
                 pass.set(false);
             }
         });
@@ -71,7 +71,7 @@ public class DetectStationArrivalDelayTest {
         //in seconds
         int delay = 3600;
 
-        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+        DataStream<NotificationOuterClass.Notification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
 
         pass = checkForDelay(trainDelayStream, delay);
 
@@ -84,7 +84,7 @@ public class DetectStationArrivalDelayTest {
         //in seconds
         int delay = -3600;
 
-        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+        DataStream<NotificationOuterClass.Notification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
 
         pass = checkForDelay(trainDelayStream, delay);
 
@@ -97,7 +97,7 @@ public class DetectStationArrivalDelayTest {
         //in seconds
         int delay = 0;
 
-        DataStream<TrainDelayNotification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
+        DataStream<NotificationOuterClass.Notification> trainDelayStream = initStream(delay).process(new DetectStationArrivalDelay()).name("train-delays");
 
         pass = checkForDelay(trainDelayStream, delay);
 

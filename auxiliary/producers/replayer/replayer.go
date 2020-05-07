@@ -45,7 +45,7 @@ var (
 
 func (r *Replayer) queryAndSend(ctx context.Context, query *pb.SourceQuery, handlerFunc func(re *pb.ReplayedEvent)) error {
 	if r.Extractor == nil {
-		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+		return fmt.Errorf("missing extractor for the %s replayer", r.SourceName)
 	}
 	if err := r.Extractor.StartQuery(context.Background(), r.SourceName, r.Options); err != nil {
 		return err

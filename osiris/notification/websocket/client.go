@@ -1,47 +1,66 @@
-// inspired by tutorialedge.net webmaster Elliot Frobes
-
 package websocket
 
 import (
+	"sync"
+
+	pb "github.com/bptlab/cepta/models/grpc/notification"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"strconv"
-	"sync"
 )
 
+// Client ...
 type Client struct {
-	ID   int
-	Conn *websocket.Conn
-	Pool *Pool
-	mu   sync.Mutex
-}
-
-type Message struct {
-	Type int    `json:"type"`
-	Body string `json:"body"`
+	Conn             *websocket.Conn
+	Pool             *Pool
+	ID               *users.UserID
+	Token            string
+	done             chan bool
+	mu               sync.Mutex
 }
 
 func (c *Client) Read() {
 	defer func() {
 		c.Pool.Unregister <- c
-		c.Conn.Close()
+		_ = c.Conn.Close()
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		messageType, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Error(err)
+			log.Errorf("Error reading message from websocket connection: %v", err)
 			return
 		}
 
-		if messageType == 1 {
-			c.ID, _ = strconv.Atoi(string(p))
-			log.Info("UserId: %+v\n", c.ID)
+		switch messageType {
+		case websocket.BinaryMessage:
+			// Attempt to decode client message
+			var clientMessage pb.ClientMessage
+			err = proto.Unmarshal(message, &clientMessage)
+			if err != nil {
+				log.Errorf("unmarshal error: %v", err)
+			}
+			switch clientMessage.GetMessage().(type) {
+			case *pb.ClientMessage_Announcement:
+				clientID := clientMessage.GetAnnouncement().GetUserId()
+				clientToken := clientMessage.GetAnnouncement().GetToken()
+				if clientID == nil || clientID.GetId() == "" || clientToken == "" {
+					log.Warnf("Received invalid user announcement: %v", clientMessage.GetAnnouncement())
+					break
+				}
+				// TODO: Check auth!
+				log.Infof("User registered with ID %s", clientID)
+				c.ID = clientID
+				c.Token = clientToken
+				c.Pool.Login <- c
+				break
+			default:
+				log.Warnf("Received client message of unknown type: %v", clientMessage)
+			}
+			break
+		default:
+			log.Warnf("Received non binary websocket message of type %v", messageType)
 		}
-
-		/*
-		message := Message{Type: messageType, Body: string(p)}
-		c.Pool.Broadcast <- message
-		*/
 	}
 }

@@ -16,8 +16,8 @@ import {
   RemoveUserRequest,
   UserCount
 } from "@/generated/protobuf/models/grpc/usermgmt_pb";
-import { Empty } from "@/generated/protobuf/models/types/result_pb";
-import { User } from "@/generated/protobuf/models/types/users_pb";
+import { Empty } from "@/generated/protobuf/models/internal/types/result_pb";
+import { User } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { AuthModule } from "./auth";
 

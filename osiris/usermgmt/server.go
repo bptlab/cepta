@@ -12,8 +12,9 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/result"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/result"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/utils"
@@ -33,11 +34,11 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var server UserMgmtServer
-var grpcServer *grpc.Server
 
 // UserMgmtServer  ...
 type UserMgmtServer struct {
 	pb.UnimplementedUserManagementServer
+	grpcServer 		*grpc.Server
 	MongoConfig    libdb.MongoDBConfig
 	DB             *libdb.MongoDB
 	UserCollection string
@@ -56,7 +57,7 @@ func NewUserMgmtServer(mongoConfig libdb.MongoDBConfig) UserMgmtServer {
 func (s *UserMgmtServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	s.grpcServer.Stop()
 }
 
 // GetUser ...
@@ -82,10 +83,39 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 		}
 	}
 	if err != nil {
-		log.Error("Failed to get user: ", err)
 		return nil, status.Error(codes.Internal, "Failed to query the database")
 	}
 	return nil, status.Error(codes.NotFound, "No such user found")
+}
+
+// GetSubscribersForTransport ...
+func (s *UserMgmtServer) GetSubscribersForTransport(request *pb.GetSubscribersRequest, stream pb.UserManagement_GetSubscribersForTransportServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if request.GetTransportId() == nil || request.GetTransportId().GetId() == "" {
+		log.Errorf("Failed to get subscribers for transport: bad transport ID %v", request.GetTransportId())
+		return status.Error(codes.InvalidArgument, "Bad transport ID")
+	}
+	if err := lib.StreamUsersByTransportID(s.DB.DB.Collection(s.UserCollection), request.GetTransportId(), stream); err != nil {
+		log.Errorf("Failed to query the database for users by transport ID: %v", err)
+		return status.Error(codes.Internal, "Failed to query the database for users by transport ID")
+	}
+	return nil
+}
+
+// GetUsers ...
+func (s *UserMgmtServer) GetUsers(empty *result.Empty, stream pb.UserManagement_GetUsersServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if err := lib.StreamUsers(s.DB.DB.Collection(s.UserCollection), stream); err != nil {
+		log.Errorf("Failed to query all users: %v", err)
+		return status.Error(codes.Internal, "Failed to query the database")
+	}
+	return nil
 }
 
 // UpdateUser ...
@@ -192,14 +222,14 @@ func main() {
 		},
 		&cli.StringFlag{
 			Name:    "default-email",
-			Value:   "admin@cepta.org",
+			Value:   "cepta@cepta.org",
 			Aliases: []string{"initial-email", "admin-email"},
 			EnvVars: []string{"DEFAULT_EMAIL", "INITIAL_EMAIL", "ADMIN_EMAIL"},
 			Usage:   "Inital admin email (created if user database is empty)",
 		},
 		&cli.StringFlag{
 			Name:    "default-password",
-			Value:   "admin",
+			Value:   "cepta",
 			Aliases: []string{"initial-password", "admin-password"},
 			EnvVars: []string{"DEFAULT_PASSWORD", "INITIAL_PASSWORD", "ADMIN_PASSWORD"},
 			Usage:   "Inital admin password (created if user database is empty)",
@@ -233,6 +263,9 @@ func main() {
 				DefaultUser: users.InternalUser{
 					User: &users.User{
 						Email: ctx.String("default-email"),
+						Transports: []*ids.CeptaTransportID {
+							{Id: "123"},
+						},
 					},
 					Password: ctx.String("default-password"),
 				},
@@ -296,10 +329,10 @@ func (s *UserMgmtServer) Setup() error {
 // Serve starts the service
 func (s *UserMgmtServer) Serve(listener net.Listener) error {
 	log.Infof("User Management service ready at %s", listener.Addr())
-	grpcServer = grpc.NewServer()
-	pb.RegisterUserManagementServer(grpcServer, s)
+	s.grpcServer = grpc.NewServer()
+	pb.RegisterUserManagementServer(s.grpcServer, s)
 
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := s.grpcServer.Serve(listener); err != nil {
 		return err
 	}
 	log.Info("Closing socket")

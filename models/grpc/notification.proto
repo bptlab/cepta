@@ -1,0 +1,26 @@
+syntax = "proto3";
+package models.grpc;
+option go_package = "github.com/bptlab/cepta/models/grpc/notification";
+
+import "models/internal/types/users.proto";
+
+service Notification {
+    // TODO
+    // UserSubscribedTransport()
+    // UserUnsubscribedTransport()
+    // TransportCompleted()
+    // RemoveUser()
+}
+
+message ClientMessage {
+    oneof message {
+        Announcement announcement = 1;
+    }
+}
+
+message Announcement {
+    models.internal.types.UserID user_id = 1;
+    string token = 2;
+}
+
+

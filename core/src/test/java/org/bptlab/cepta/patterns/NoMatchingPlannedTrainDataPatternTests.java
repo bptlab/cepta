@@ -4,7 +4,7 @@ import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.Pattern;
 
-import org.bptlab.cepta.operators.CountOfEventsInStreamFunction;
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.bptlab.cepta.providers.CorrelatedLivePlannedDataProvider;
 import org.bptlab.cepta.patterns.NoMatchingPlannedTrainDataPattern;
 import org.junit.Assert;
@@ -65,7 +65,7 @@ public class NoMatchingPlannedTrainDataPatternTests {
 
         DataStream<NoMatchingPlannedTrainDataEvent> generatedEvents = 
             patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc());
-        
-        return CountOfEventsInStreamFunction.countOfEventsInStream(generatedEvents);
+
+        return StreamUtils.countOfEventsInStream(generatedEvents);
     }
 }

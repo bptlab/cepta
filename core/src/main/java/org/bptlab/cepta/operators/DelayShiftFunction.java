@@ -11,17 +11,21 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+
+import com.google.protobuf.Duration;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 import com.google.protobuf.Timestamp;
 
 public class DelayShiftFunction extends
-    RichAsyncFunction<LiveTrainData, TrainDelayNotification> {
+    RichAsyncFunction<LiveTrainData, NotificationOuterClass.DelayNotification> {
     /**
      * This function can be applied to a stream of LiveTrainData.
      * For every event it creates TrainDelayNotifications shifting its delay to the following stations
@@ -64,7 +68,7 @@ public class DelayShiftFunction extends
 
     @Override
     public void asyncInvoke(LiveTrainData liveEvent,
-        final ResultFuture<TrainDelayNotification> resultFuture) throws Exception {
+        final ResultFuture<NotificationOuterClass.DelayNotification> resultFuture) throws Exception {
 
         /*
         asyncInvoke will be called for each incoming live train element
@@ -103,7 +107,7 @@ public class DelayShiftFunction extends
                 We use the supplied PlannedTrainDatas to build corresponding TrainDelayNotifications.
                 */
                 PlannedTrainData referencePlannedData = PlannedTrainData.newBuilder().build();
-                ArrayList<TrainDelayNotification> delays = new ArrayList<TrainDelayNotification>();
+                ArrayList<NotificationOuterClass.DelayNotification> delays = new ArrayList<NotificationOuterClass.DelayNotification>();
                 for (PlannedTrainData planned : plannedTrainData){
                     // find matching planned data
                     if (planned.getStationId() == liveEvent.getStationId()){
@@ -114,11 +118,11 @@ public class DelayShiftFunction extends
                 for (PlannedTrainData planned : plannedTrainData){
                     // only consider the following stations
                     if (compareProtoTimestamps(planned.getPlannedEventTime(), referencePlannedData.getPlannedEventTime()) >= 0){
-                        delays.add(TrainDelayNotification.newBuilder()
-                            .setStationId(planned.getStationId())
-                            .setTrainId(planned.getTrainSectionId())
-                            .setDelay(liveEvent.getDelay())
-                            .build());
+                        NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();
+                        delayBuilder.setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(liveEvent.getDelay()).build()).build());
+                        delayBuilder.setTransportId(Ids.CeptaTransportID.newBuilder().setId(String.valueOf(planned.getTrainSectionId())));
+                        delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(planned.getStationId())).build());
+                        delays.add(delayBuilder.build());
                     }
                 }
                 resultFuture.complete(delays);
