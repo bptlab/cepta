@@ -49,8 +49,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.CountOfTrainsAtStationOuterClass.CountOfTrainsAtStation;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
@@ -151,6 +153,9 @@ public class Main implements Callable<Integer> {
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
 
+    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream);
+
+    countOfTrainsAtStationDataStream.print();
        /*
        DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
           .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
