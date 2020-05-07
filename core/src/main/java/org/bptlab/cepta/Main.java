@@ -21,7 +21,7 @@ package org.bptlab.cepta;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.common.functions.FlatMapFunction;
+
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
@@ -30,19 +30,12 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
-import org.apache.flink.util.Collector;
-import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass;
-import org.bptlab.cepta.operators.DetectStationArrivalDelay;
-import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.operators.DelayShiftFunctionMongo;
-import org.bptlab.cepta.operators.DataCleansingFunction;
-import org.bptlab.cepta.operators.DataToMongoDB;
+import org.bptlab.cepta.operators.*;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
@@ -55,13 +48,7 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainDat
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
-import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 @Command(
     name = "cepta core",
@@ -74,7 +61,7 @@ public class Main implements Callable<Integer> {
 
   private FlinkKafkaConsumer011<Event> liveTrainDataConsumer;
   private FlinkKafkaConsumer011<Event> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<Event> weatherDataConsumer;
+
 
   private void setupConsumers() {
     this.liveTrainDataConsumer =
@@ -89,12 +76,6 @@ public class Main implements Callable<Integer> {
           Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<Event>(Event.class),
             new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").withGroupID("Groupy").getProperties());
-
-    this.weatherDataConsumer =
-        new FlinkKafkaConsumer011<>(
-            Topic.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<Event>(Event.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Groupy").getProperties());
   }
 
   @Mixin
@@ -118,7 +99,7 @@ public class Main implements Callable<Integer> {
     // Add consumer as source for data stream
     DataStream<Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
     DataStream<Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
-    DataStream<Event> weatherDataEvents = env.addSource(weatherDataConsumer);
+
 
     DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<Event, PlannedTrainData>(){
       @Override
@@ -130,12 +111,6 @@ public class Main implements Callable<Integer> {
       @Override
       public LiveTrainData map(Event event) throws Exception{
         return event.getLiveTrain();
-      }
-    });
-    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<Event, WeatherData>(){
-      @Override
-      public WeatherData map(Event event) throws Exception{
-        return event.getWeather();
       }
     });
 

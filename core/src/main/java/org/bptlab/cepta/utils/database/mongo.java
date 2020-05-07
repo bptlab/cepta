@@ -61,36 +61,11 @@ public class mongo {
             return com.google.protobuf.Timestamp.class;
         }
     }
-
-
-//    public abstract static class Subscriber
+    
     //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
     //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
     //https://github.com/mongodb/mongo-java-driver/blob/master/driver-reactive-streams/src/examples/reactivestreams/documentation/DocumentationSamples.java
     public static SubscriberHelpers.OperationSubscriber getSubscriber() {
         return new SubscriberHelpers.OperationSubscriber();
-//        return new Subscriber() {
-//            @Override
-//            public void onSubscribe(Subscription subscription) {
-//                //Number of elements the subscriber want to get from the publisher
-//                subscription.request(Integer.MAX_VALUE);
-//            }
-//
-//            @Override
-//            public void onNext(Object o) {
-//                System.out.println(o.toString());
-//            }
-//
-//            @Override
-//            public void onError(Throwable throwable) {
-//                System.out.println("Mongo Operation Failed");
-//            }
-//
-//            @Override
-//            public void onComplete() {
-//                System.out.println("Mongo Operation Successful");
-//                //mongoClient.close();
-//            }
-//        };
     }
 }
