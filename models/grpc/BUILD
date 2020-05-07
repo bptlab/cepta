@@ -11,9 +11,10 @@ proto_library(
     srcs = ["usermgmt.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:transports_proto",
-        "//models/types:users_proto",
-        "//models/types:result_proto",
+        "//models/internal/types:ids_proto",
+        "//models/internal/types:result_proto",
+        "//models/internal/types:transport_proto",
+        "//models/internal/types:users_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -25,9 +26,10 @@ go_proto_library(
     proto = ":usermgmt_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:transports_go_proto",
-        "//models/types:users_go_proto",
-        "//models/types:result_go_proto",
+        "//models/internal/types:ids_go_proto",
+        "//models/internal/types:result_go_proto",
+        "//models/internal/types:transport_go_proto",
+        "//models/internal/types:users_go_proto",
     ],
 )
 
@@ -47,7 +49,10 @@ proto_library(
     name = "auth_proto",
     srcs = ["auth.proto"],
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
+    deps = [
+        "//models/internal/types:users_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
 )
 
 go_proto_library(
@@ -56,6 +61,9 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/grpc/auth",
     proto = ":auth_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal/types:users_go_proto",
+    ],
 )
 
 commonjs_dts_grpc_compile(
@@ -68,6 +76,38 @@ nodejs_proto_compile(
     deps = [":auth_proto"],
 )
 
+# Notification
+
+proto_library(
+    name = "notification_proto",
+    srcs = ["notification.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal/types:users_proto",
+    ],
+)
+
+go_proto_library(
+    name = "notification_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "github.com/bptlab/cepta/models/grpc/notification",
+    proto = ":notification_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal/types:users_go_proto",
+    ],
+)
+
+commonjs_dts_grpc_compile(
+    name = "notification_commonjs_dts_grpc_proto",
+    deps = [":notification_proto"],
+)
+
+nodejs_proto_compile(
+    name = "notification_nodejs_proto",
+    deps = [":notification_proto"],
+)
+
 # Replayer
 
 proto_library(
@@ -77,7 +117,7 @@ proto_library(
     deps = [
         "//models/constants:topic_proto",
         "//models/events:event_proto",
-        "//models/types:result_proto",
+        "//models/internal/types:result_proto",
         "@com_google_protobuf//:timestamp_proto",
         "@com_google_protobuf//:wrappers_proto",
     ],
@@ -92,7 +132,7 @@ go_proto_library(
     deps = [
         "//models/constants:topic_go_proto",
         "//models/events:event_go_proto",
-        "//models/types:result_go_proto",
+        "//models/internal/types:result_go_proto",
     ],
 )
 
@@ -124,16 +164,19 @@ nodejs_proto_compile(
 filegroup(
     name = "grpc",
     srcs = [
+        ":auth_commonjs_dts_grpc_proto",
+        ":auth_go_proto",
+        ":auth_nodejs_proto",
+        ":notification_commonjs_dts_grpc_proto",
+        ":notification_go_proto",
+        ":notification_nodejs_proto",
         ":replayer_commonjs_dts_grpc_proto",
-        ":replayer_nodejs_proto",
         ":replayer_go_grpc",
         ":replayer_java_proto",
-        ":auth_commonjs_dts_grpc_proto",
-        ":auth_nodejs_proto",
-        ":auth_go_proto",
+        ":replayer_nodejs_proto",
         ":usermgmt_commonjs_dts_grpc_proto",
-        ":usermgmt_nodejs_proto",
         ":usermgmt_go_proto",
+        ":usermgmt_nodejs_proto",
     ],
     visibility = ["//visibility:public"],
 )

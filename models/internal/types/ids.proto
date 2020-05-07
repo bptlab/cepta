@@ -1,0 +1,24 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/ids";
+option java_package = "org.bptlab.cepta.models.internal.types.ids";
+
+message CeptaTransportID {
+    string id = 1;
+}
+
+message CeptaStationID {
+    string id = 1;
+}
+
+message CeptaCarrierID {
+    string id = 1;
+}
+
+message CeptaVehicleID {
+    string id = 1;
+}
+
+message CeptaCargoID {
+    string id = 1;
+}

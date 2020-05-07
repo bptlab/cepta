@@ -4,13 +4,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+
+import com.google.protobuf.Duration;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
@@ -44,11 +48,11 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<TrainDelayNotification> delayStream = AsyncDataStream
+         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
          Assert.assertEquals(3, delayEvents.size());
       }
    }
@@ -69,18 +73,26 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<TrainDelayNotification> delayStream = AsyncDataStream
+         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
-         ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(1).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(2).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42093766).setStationId(3).setDelay(1).build());
+         ArrayList<NotificationOuterClass.DelayNotification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.DelayNotification>();
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 1, 1));
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 2, 1));
+         expectedDelayNotifications.add(makeDelayNotification(42093766, 3, 1));
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
+   }
+
+   private NotificationOuterClass.DelayNotification makeDelayNotification(int trainID, int stationID, int delay) {
+      return NotificationOuterClass.DelayNotification.newBuilder()
+              .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()))
+              .setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(stationID)).build())
+              .setTransportId(Ids.CeptaTransportID.newBuilder().setId(String.valueOf(trainID)).build())
+              .build();
    }
 
    @Test
@@ -101,14 +113,14 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<TrainDelayNotification> delayStream = AsyncDataStream
+         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
             .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
                100000, TimeUnit.MILLISECONDS, 1);
-         ArrayList<TrainDelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
-         ArrayList<TrainDelayNotification> expectedDelayNotifications = new ArrayList<TrainDelayNotification>();
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(11111111).setDelay(1).build());
-         expectedDelayNotifications.add(TrainDelayNotification.newBuilder().setTrainId(42382923).setStationId(4).setDelay(1).build());
+         ArrayList<NotificationOuterClass.DelayNotification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.DelayNotification>();
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 11111111, 1));
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 4, 1));
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }

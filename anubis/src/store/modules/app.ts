@@ -7,7 +7,7 @@ import {
 } from "vuex-module-decorators";
 import store from "@/store";
 import Vue from "vue";
-import { TrainDelayNotification } from "@/generated/protobuf/models/events/TrainDelayNotification_pb";
+import { Notification } from "../../generated/protobuf/models/internal/notifications/notification_pb";
 import { COOKIE_THEME } from "../../constants";
 
 const getThemeClass = (availableThemes: string[], theme: number): string => {
@@ -18,7 +18,7 @@ export interface IAppState {
   appName: string;
   isCollapsed: boolean;
   isLoading: boolean;
-  delays: TrainDelayNotification[];
+  notifications: Notification[];
   availableThemes: string[];
   theme: number;
   themeClass: string;
@@ -39,7 +39,7 @@ class App extends VuexModule implements IAppState {
   public appName = "CEPTA";
   public isCollapsed = false;
   public isLoading: boolean = false;
-  public delays: TrainDelayNotification[] = [];
+  public notifications: Notification[] = [];
   public availableThemes: string[] = ["light", "dark"];
   public theme: number = 0;
   public themeClass: string = getThemeClass(this.availableThemes, this.theme);
@@ -55,8 +55,8 @@ class App extends VuexModule implements IAppState {
   }
 
   @Mutation
-  public addDelay(event: TrainDelayNotification) {
-    this.delays.push(event);
+  public addNotification(notification: Notification) {
+    this.notifications.push(notification);
   }
 
   @Mutation

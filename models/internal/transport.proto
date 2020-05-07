@@ -1,0 +1,64 @@
+syntax = "proto3";
+package models.internal;
+option go_package = "github.com/bptlab/cepta/models/internal/transport";
+option java_package = "org.bptlab.cepta.models.internal.transport";
+
+import "google/protobuf/timestamp.proto";
+
+import "models/internal/cargo.proto";
+import "models/internal/station.proto";
+import "models/internal/delay.proto";
+import "models/internal/types/ids.proto";
+import "models/internal/types/carrier.proto";
+import "models/internal/types/transport.proto";
+
+import "models/internal/modalities/rail/rail.proto";
+import "models/internal/modalities/road/road.proto";
+import "models/internal/modalities/maritime/maritime.proto";
+import "models/internal/modalities/air/air.proto";
+
+// GENERIC SCHEMA FOR A CEPTA TRANSPORT
+message Transport {
+
+    // Transport information
+    models.internal.types.CeptaTransportID cepta_id = 1;
+    repeated models.internal.Station stations = 2;
+    repeated models.internal.Cargo cargo = 3;
+    models.internal.types.TransportType type = 4;
+    models.internal.types.Carrier carrier = 5;
+
+    google.protobuf.Timestamp planned_start_time = 10;
+    google.protobuf.Timestamp planned_end_time = 11;
+    google.protobuf.Timestamp dispatch_date = 12;
+
+    // Transport state
+    Trend trend = 20;
+    Delay total_delay = 21;
+    int32 speed = 22;
+    models.internal.Station current_station = 23;
+
+    oneof transport {
+        models.internal.modalities.rail.RailTransport rail = 100;
+        models.internal.modalities.road.RoadTransport road = 101;
+        models.internal.modalities.maritime.MaritimeTransport maritime = 102;
+        models.internal.modalities.air.AirTransport air = 103;
+    }
+}
+
+message Trend {
+    float change_rate = 1;
+    ChangeMetric metric = 2;
+}
+
+enum ChangeMetric {
+    NONE = 0;
+    SPEED = 1;
+}
+
+// Frontend only (computed)
+    // float completed_percent (fe)
+    // plannedDuration: number;
+    // actualDuration: number;
+
+//
+// Notification microservice

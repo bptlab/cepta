@@ -8,15 +8,20 @@ All notable changes to this project will be documented in this file.
 - [#248](https://github.com/bptlab/cepta/pull/248)
   - Refactors Delay detection based on Live and Planned Station arrival Data including tests
 - [#259](https://github.com/bptlab/cepta/pull/259)
-    - Integration of the `usermgmt` service with the frontend via module
-    - Display information about the current user
-    - Edit and remove own user functionality
-    - New *AddUser* view
-- [#231](https://github.com/bptlab/cepta/pull/231)
-  - Track the average speed of transports
+  - Integration of the `usermgmt` service with the frontend via module
+  - Display information about the current user
+  - Edit and remove own user functionality
+  - New *AddUser* view
 - [#246] (https://github.com/bptlab/cepta/pull/246)
   - operator that gets delay from live train and shifts it by creating delay notifications for subsequent stations
-- t.b.a.
+- [#240](https://github.com/bptlab/cepta/pull/240)
+  - Subscription to correct Kafka queue
+  - Connection to UserDB
+  - Add rabbitMQ
+  - Save User Notifications in rabbitMQ when logged out
+  - Send Notification to the users frontend over websocket when logged in
+- [#231](https://github.com/bptlab/cepta/pull/231)
+  - Track the average speed of transports
 
 ##### Changed
 - WIP

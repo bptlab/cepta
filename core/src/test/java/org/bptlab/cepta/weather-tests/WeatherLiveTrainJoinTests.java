@@ -17,7 +17,7 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.WeatherLiveTrainJoinFunction;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
 
@@ -31,7 +31,7 @@ public class WeatherLiveTrainJoinTests {
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
 
-    DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
     int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
@@ -45,7 +45,7 @@ public class WeatherLiveTrainJoinTests {
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
 
-    DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
     int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
@@ -59,11 +59,10 @@ public class WeatherLiveTrainJoinTests {
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
     DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
 
-    DataStream<TrainDelayNotification> trainDelayNotificationDataStream =
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
 
     int count = StreamUtils.countOfEventsInStream(trainDelayNotificationDataStream);
-
     Assert.assertEquals(count, 0);
   }
 }
