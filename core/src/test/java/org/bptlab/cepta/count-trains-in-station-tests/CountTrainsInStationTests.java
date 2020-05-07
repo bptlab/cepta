@@ -26,17 +26,17 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(1)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData second =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
+                        .setEventTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)
@@ -58,17 +58,17 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(1)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData second =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-02T10:00:21.022-05:00")).build();
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)
@@ -93,17 +93,17 @@ public class CountTrainsInStationTests {
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(1)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:20.021-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData second =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation + 1)
                         .setTrainId(2)
-                        .setIngestionTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
+                        .setEventTime(Timestamps.parse("1972-01-01T10:00:21.022-05:00")).build();
         LiveTrainDataOuterClass.LiveTrainData end =
                 LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
                         .setStationId(commonStation)
                         .setTrainId(3)
-                        .setIngestionTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
+                        .setEventTime(Timestamps.parse("2042-01-01T10:00:31.023-05:00")).build();
 
         DataStream<LiveTrainDataOuterClass.LiveTrainData> liveTrainStream =
                 env.fromElements(first, second, end)

@@ -21,29 +21,26 @@ package org.bptlab.cepta;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
-import org.apache.flink.util.Collector;
-import org.apache.flink.streaming.api.datastream.IterativeStream;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.operators.DelayShiftFunction;
-import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -52,17 +49,12 @@ import picocli.CommandLine.Mixin;
 import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
-import org.bptlab.cepta.models.events.train.CountOfTrainsAtStationOuterClass.CountOfTrainsAtStation;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 @Command(
     name = "cepta core",
@@ -123,6 +115,7 @@ public class Main implements Callable<Integer> {
     // Setup the streaming execution environment
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
     this.setupConsumers();
     this.setupProducers();
 
@@ -142,6 +135,10 @@ public class Main implements Callable<Integer> {
         return event.getLiveTrain();
       }
     });
+
+    DataStream<LiveTrainData> liveTrainDataStream2 = liveTrainDataStream.assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
+    // liveTrainDataStream.print();
+
     DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
       @Override
       public WeatherData map(Event event) throws Exception{
@@ -149,25 +146,32 @@ public class Main implements Callable<Integer> {
       }
     });
 
+
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
 
-    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream);
+    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream2);
 
     countOfTrainsAtStationDataStream.print();
-       /*
+
        DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
           .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
-      */
+
+       /*
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
+        */
+
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
+
+
+
 
     // Produce delay notifications into new queue
     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
@@ -181,11 +185,9 @@ public class Main implements Callable<Integer> {
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-  /* 
-    delayShiftNotifications.addSink(trainDelayNotificationProducer);
-    delayShiftNotifications.print();
-  */
+    // trainDelayNotificationDataStream.print();
+   // delayShiftNotifications.addSink(trainDelayNotificationProducer);
+   //  delayShiftNotifications.print();
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
@@ -194,7 +196,7 @@ public class Main implements Callable<Integer> {
             new GenericBinaryProtoSerializer<>(),
             staysInStationKafkaConfig.getProperties());
 
-    staysInStationEventDataStream.addSink(staysInStationProducer);
+   // staysInStationEventDataStream.addSink(staysInStationProducer);
 
     env.execute("CEPTA CORE");
     return 0;
