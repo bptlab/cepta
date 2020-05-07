@@ -82,6 +82,7 @@ public class DelayShiftFunctionMongo extends
         plannedTrainDataCollection.find(eq("planned_event_time", dataset.getEventTime())).subscribe(insertOneSubscriber);
         List<Document> docs = insertOneSubscriber.get();
         System.out.println(docs.get(0));
+        System.out.println(docs.get(0).get("planned_event_time"));
         TrainDelayNotification delay = TrainDelayNotification.newBuilder().setDelay(666).build();
         resultFuture.complete(Collections.singleton(delay));        
     }

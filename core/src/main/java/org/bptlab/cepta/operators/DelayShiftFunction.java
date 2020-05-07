@@ -6,7 +6,8 @@ import com.github.jasync.sql.db.pool.ConnectionPool;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
-
+import java.lang.Long;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -20,6 +21,11 @@ import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 
 public class DelayShiftFunction extends
     RichAsyncFunction<LiveTrainData, TrainDelayNotification> {
+    /**
+     * This function can be applied to a stream of LiveTrainData.
+     * For every event it creates TrainDelayNotifications shifting its delay to the following stations
+     * by executing queries to a database with PlannedTrainData
+     */
 
     private PostgresConfig postgresConfig = new PostgresConfig();
     private transient ConnectionPool<PostgreSQLConnection> connection;
@@ -60,10 +66,10 @@ public class DelayShiftFunction extends
         final ResultFuture<TrainDelayNotification> resultFuture) throws Exception {
 
         /*
-        asyncInvoke will be called for each incoming element
-        the resultFuture is where the outgoing element(s) will be
+        asyncInvoke will be called for each incoming live train element
+        the resultFuture is where the outgoing delay notification elements are collected to
         */
-        java.sql.Timestamp liveEventTimeSql = prototimestampToSqlTimestamp(liveEvent.getEventTime());
+        java.sql.Timestamp liveEventTimeSql = protoTimestampToSqlTimestamp(liveEvent.getEventTime());
         String query = String
             .format("select * from public.planned where train_section_id = %d"
                 + " and date(planned_event_time) = date('%s')",
@@ -71,10 +77,11 @@ public class DelayShiftFunction extends
         final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
         
         /*
-        We create a new CompletableFuture which will be automatically and asynchronously done with the value
-        from the given supplier.
+        We create a new CompletableFuture which will be automatically and asynchronously computed with the value
+        from the supplier.
         */
         CompletableFuture.supplyAsync(new Supplier<ArrayList<PlannedTrainData>>() {
+            // this gets the matching PlannedTrainDatas and supplies them for the CompletableFuture
             @Override
             public ArrayList<PlannedTrainData> get() {
                 ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
@@ -92,7 +99,7 @@ public class DelayShiftFunction extends
             }).thenAccept((ArrayList<PlannedTrainData> plannedTrainData) -> {
                 /*
                 After the CompletableFuture is completed, the .thenAccept call will be made with the value from the CompletableFuture.
-                We can use this value to set our return value into the function return (returnFuture).
+                We use the supplied PlannedTrainDatas to build corresponding TrainDelayNotifications.
                 */
                 PlannedTrainData referencePlannedData = PlannedTrainData.newBuilder().build();
                 ArrayList<TrainDelayNotification> delays = new ArrayList<TrainDelayNotification>();
@@ -104,7 +111,7 @@ public class DelayShiftFunction extends
                     }
                 }
                 for (PlannedTrainData planned : plannedTrainData){
-                    // only consider following stations
+                    // only consider the following stations
                     if (compareProtoTimestamps(planned.getPlannedEventTime(), referencePlannedData.getPlannedEventTime()) >= 0){
                         delays.add(TrainDelayNotification.newBuilder()
                             .setStationId(planned.getStationId())
@@ -118,22 +125,18 @@ public class DelayShiftFunction extends
         
     }
 
-    private java.sql.Timestamp prototimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
+    private java.sql.Timestamp protoTimestampToSqlTimestamp(com.google.protobuf.Timestamp protoTimestamp){
         long seconds = protoTimestamp.getSeconds();
+        // convert to milliseconds for the sql timestamp's construction
         java.sql.Timestamp timestamp = new java.sql.Timestamp(seconds*1000);
         return timestamp;
     }
 
     private int compareProtoTimestamps(com.google.protobuf.Timestamp t1, com.google.protobuf.Timestamp t2){
-        //  1 ; t1 > t2 :t1 ist nach t2
-        // -1 ; t1 < t2 : t1 ist vor t2
-        //  0 ; t1 = t2 :t1 und t2 sind gleichzeitig
-        int result;
-        if (t1.getSeconds() > t2.getSeconds()){
-            return 1;
-        }else if (t1.getSeconds() == t2.getSeconds()) {
-            return 0;
-        }
-        return -1;
+        //  1 ; t1 > t2 : t1 is after t2
+        // -1 ; t1 < t2 : t1 is before t2
+        //  0 ; t1 = t2 : t1 and t2 are at the same time
+        Long l = t1.getSeconds();
+        return l.compareTo(t2.getSeconds());
     }
 }
