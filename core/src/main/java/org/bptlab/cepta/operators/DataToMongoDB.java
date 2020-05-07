@@ -36,7 +36,6 @@ import org.reactivestreams.Subscription;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.javatuples.Triplet;
 
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
