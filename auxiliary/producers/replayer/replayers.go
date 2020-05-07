@@ -203,7 +203,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	log.Info("Connecting to MongoDB...")
 	mongo, err := libdb.MongoDatabase(&s.MongoConfig)
 	if err != nil {
-		return fmt.Errorf("Failed to initialize mongo database: %v", err)
+		return fmt.Errorf("failed to initialize mongo database: %v", err)
 	}
 	*s.mongo = *mongo
 
@@ -211,7 +211,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	log.Info("Connecting to Kafka...")
 	s.producer, err = kafkaproducer.Create(ctx, s.KafkaConfig)
 	if err != nil {
-		return fmt.Errorf("Cannot produce events: %v", err)
+		return fmt.Errorf("cannot produce events: %v", err)
 	}
 
 	return nil

@@ -87,7 +87,7 @@ func TestReplayRepeatAndReset(t *testing.T) {
 	}
 
 	expected := []int64{1, 2, 3, 4, 1, 2, 3, 4}
-	observed := []int64{}
+	var observed []int64
 	firstEvents{len(expected), kafkaConsumer}.do(func(index int, event eventpb.Event, raw *sarama.ConsumerMessage, err error) {
 		if err != nil {
 			t.Error(err)
@@ -252,7 +252,7 @@ func TestConfigMerge(t *testing.T) {
 		Repeat: &wrappers.BoolValue{Value: false},
 		Speed:  &pb.Speed{Speed: 100},
 	}, startOptions.Options); err != nil {
-		t.Error("Merging replay options failed: %v", err)
+		t.Errorf("Merging replay options failed: %v", err)
 	}
 	if r := startOptions.GetOptions().GetRepeat().Value; r {
 		t.Errorf("Expected repeat=%v but got repeat=%v", false, r)

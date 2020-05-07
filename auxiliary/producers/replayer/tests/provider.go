@@ -164,10 +164,10 @@ func (test *Test) Setup(t *testing.T) *Test {
 // Teardown ...
 func (test *Test) Teardown() {
 	test.ReplayerServer.Shutdown()
-	test.ReplayerEndpoint.Close()
-	test.MongoC.Terminate(context.Background())
-	test.KafkaC.Terminate(context.Background())
-	test.ZkC.Terminate(context.Background())
+	_ = test.ReplayerEndpoint.Close()
+	_ = test.MongoC.Terminate(context.Background())
+	_ = test.KafkaC.Terminate(context.Background())
+	_ = test.ZkC.Terminate(context.Background())
 	test.Net.Remove(context.Background())
 }
 
