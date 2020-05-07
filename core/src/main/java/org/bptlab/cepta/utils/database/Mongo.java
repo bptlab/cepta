@@ -12,11 +12,9 @@ import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.BsonWriter;
 import org.bson.Document;
-import org.bson.codecs.BsonTypeClassMap;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
+import org.bson.codecs.*;
 import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.time.Instant;
@@ -25,14 +23,18 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.bson.codecs.configuration.CodecRegistries.fromCodecs;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class Mongo {
 
     public static MongoClient getMongoClient(MongoConfig mongoConfig) {
+        Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
+        replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
+        BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
+
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-                fromCodecs(new Mongo.TimestampCodec())
+//                fromCodecs(new Mongo.TimestampCodec())
+                fromProviders((new TimestampCodecProvider(bsonTypeClassMap)).get( ,new Mongo.TimestampCodec()))
         );
 
         MongoClientSettings settings = MongoClientSettings.builder()
@@ -52,13 +54,13 @@ public class Mongo {
         }
 
         @Override
-        public <T> Codec<T> get(Class<T> aClass, CodecRegistry codecRegistry) {
+        public <T> Codec<T> get(final Class<T> aClass, final CodecRegistry codecRegistry) {
             if (aClass == Document.class) {
-                Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
-                replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
-                BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
-                CodecRegistry timestampCodecRegistry = fromCodecs(new Mongo.TimestampCodec());
-                return (Codec<T>) new TimestampCodec(timestampCodecRegistry, bsonTypeClassMap);
+//                Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
+//                replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
+//                BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
+//                CodecRegistry timestampCodecRegistry = CodecRegistries.fromCodecs(new Mongo.TimestampCodec());
+                return (Codec<T>) new DocumentCodec(codecRegistry,bsonTypeClassMap);
             }
 
             return null;
