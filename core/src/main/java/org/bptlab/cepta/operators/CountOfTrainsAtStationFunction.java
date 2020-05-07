@@ -10,6 +10,14 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 
+/**
+ * This class implements a function that takes in an LiveTrainStream and return a stream of Tuple2<Long, Integer>
+ * where each tuple describes a station and the count of trains inside that station in an one hour
+ * window.
+ *
+ * This Window slides every 15 minutes. So each train will potentially be counted multiple times
+ * in different windows.
+ */
 public class CountOfTrainsAtStationFunction {
 
     public static DataStream<Tuple2<Long, Integer>> countOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
