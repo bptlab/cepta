@@ -17,7 +17,7 @@ import {
   RemoveUserRequest,
   UpdateUserRequest
 } from "../generated/protobuf/models/grpc/usermgmt_pb";
-import { User } from "../generated/protobuf/models/types/users_pb";
+import { User } from "../generated/protobuf/models/internal/types/users_pb";
 import EditUserForm from "../components/EditUserForm.vue";
 import { AuthModule } from "../store/modules/auth";
 

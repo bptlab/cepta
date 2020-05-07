@@ -9,9 +9,9 @@ services:
       # RABBITMQ_DEFAULT_PASS: "rabbitmq"
       # RABBITMQ_DEFAULT_VHOST: "/"
     expose:
-      - 61613
+      - 5672
     ports:
-      - ${CEPTA_RABBITMQ_PORT}:61613
+      - ${CEPTA_RABBITMQ_PORT}:5672
     volumes:
       - ../../common/rabbitmq/rmq_enabled_plugins.txt:/etc/rabbitmq/enabled_plugins
       # - ./rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro

@@ -18,7 +18,6 @@ import "models/events/PlannedTrainData.proto";
 import "models/events/PredictedTrainData.proto";
 import "models/events/RailwayUndertakingData.proto";
 import "models/events/StationData.proto";
-import "models/events/TrainDelayNotification.proto";
 import "models/events/TrainInformationData.proto";
 import "models/events/VehicleData.proto";
 import "models/events/WeatherData.proto";
@@ -40,9 +39,8 @@ message Event {
         models.events.PredictedTrainData predicted_train = 14;
         models.events.RailwayUndertakingData railway_undertaking = 15;
         models.events.StationData station = 16;
-        models.events.TrainDelayNotification train_delay_notification = 17;
-        models.events.TrainInformationData train_information = 18;
-        models.events.VehicleData vehicle = 19;
-        models.events.WeatherData weather = 20;
+        models.events.TrainInformationData train_information = 17;
+        models.events.VehicleData vehicle = 20;
+        models.events.WeatherData weather = 21;
     }
 }

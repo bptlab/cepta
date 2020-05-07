@@ -1,4 +1,6 @@
 /* Base */
+@font-face { font-family: Nasa21; src: url('../Nasa21.ttf'); }
+
 body {
   line-height: 1.7;
   color: gray;
@@ -200,6 +202,18 @@ h1, h2, h3, h4, h5, h6 {
 
 .site-navbar-top {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+
+.site-logo{
+  font-family: Nasa21;
+  position: relative;
+}
+
+#logo{
+  height: 150px;
+  margin-top: -90px;}
+  @media (max-width: 768px) {
+    #logo {
+      height: 100px; } }
 
 .site-navbar {
   margin-bottom: 0px;
@@ -746,6 +760,10 @@ h1, h2, h3, h4, h5, h6 {
     right: 20px;
     bottom: 20px;
     border: 7px solid #ff5733; }
+
+.screenshot{
+  box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+}
 
 .sub-title {
   display: block;

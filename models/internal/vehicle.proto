@@ -1,0 +1,26 @@
+syntax = "proto3";
+package models.internal;
+option go_package = "github.com/bptlab/cepta/models/internal/cargo";
+option java_package = "org.bptlab.cepta.models.internal.cargo";
+
+import "google/protobuf/timestamp.proto";
+
+import "models/internal/station.proto";
+import "models/internal/types/ids.proto";
+import "models/internal/types/carrier.proto";
+
+// GENERIC SCHEMA FOR A CEPTA VEHICLE
+message Vehicle {
+    models.internal.types.CeptaVehicleID cepta_id = 1;
+    google.protobuf.Timestamp dispatch_date = 2;
+    google.protobuf.Timestamp planned_departure_time = 3;
+    google.protobuf.Timestamp actual_departure_time = 4;
+    google.protobuf.Timestamp planned_arrival_time = 5;
+    google.protobuf.Timestamp actual_arrival_time = 6;
+    models.internal.Station origin = 7;
+    models.internal.Station destination = 8;
+    models.internal.types.Carrier carrier = 9;
+    int64 max_speed = 10;
+
+    // TODO: Add generic payload
+}

@@ -2,6 +2,8 @@ syntax = "proto3";
 package models.grpc.auth;
 option go_package = "github.com/bptlab/cepta/models/grpc/auth";
 
+import "models/internal/types/users.proto";
+
 service Authentication {
   rpc Login(UserLoginRequest) returns (AuthenticationToken) {}
   rpc Validate(TokenValidationRequest) returns (TokenValidationResult) {}
@@ -24,6 +26,7 @@ message  TokenValidationResult {
 
 message AuthenticationToken {
   string token = 1;
-  string email = 2;
-  int64 expiration = 3;
+  models.internal.types.UserID user_id = 2;
+  string email = 3;
+  int64 expiration = 4;
 }

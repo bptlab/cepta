@@ -1,0 +1,9 @@
+syntax = "proto3";
+package models.internal.modalities.road;
+option go_package = "github.com/bptlab/cepta/models/internal/modalities/road";
+option java_package = "org.bptlab.cepta.models.internal.modalities.road";
+
+message RoadCargo {}
+message RoadVehicle {}
+message RoadTransport {}
+message RoadStation {}

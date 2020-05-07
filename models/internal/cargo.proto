@@ -1,0 +1,19 @@
+syntax = "proto3";
+package models.internal;
+option go_package = "github.com/bptlab/cepta/models/internal/cargo";
+option java_package = "org.bptlab.cepta.models.internal.cargo";
+
+import "models/internal/station.proto";
+import "models/internal/delay.proto";
+import "models/internal/types/ids.proto";
+
+// GENERIC SCHEMA FOR A CEPTA CARGO
+message Cargo {
+    models.internal.types.CeptaCargoID cepta_id = 1;
+    models.internal.Station origin = 2;
+    models.internal.Station destination = 3;
+    models.internal.Delay delay= 4;
+    int64 weight = 5;
+
+    // TODO: Add generic payload
+}

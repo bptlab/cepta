@@ -1,0 +1,26 @@
+syntax = "proto3";
+package models.internal.modalities.rail;
+option go_package = "github.com/bptlab/cepta/models/internal/modalities/rail";
+option java_package = "org.bptlab.cepta.models.internal.modalities.rail";
+
+
+message RailCargo {
+    int64 wagon_id = 1;
+    string wagon_type = 2;
+}
+
+message RailVehicle {
+    string train_type = 1;
+}
+
+message RailTransport {
+    string euro_rail_run_id = 1;
+}
+
+message RailStation {
+    bool remove_wagon = 21;
+    bool add_wagon = 22;
+    bool switch_wagon = 23;
+    bool check_wagon_at_depature = 24;
+    bool check_wagon_at_arrival = 25;
+}

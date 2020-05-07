@@ -42,7 +42,7 @@ static_resources:
                         - match: { prefix: "/api" }
                           route:
                             cluster: osiris_service
-                        - match: { prefix: "/ws/userdata" }
+                        - match: { prefix: "/ws/notifications" }
                           route:
                             upgrade_configs:
                               - upgrade_type: websocket

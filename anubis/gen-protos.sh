@@ -11,8 +11,8 @@ cmd="$@"
 if [ -z "$SKIPPROTOCOMPILATION" ]
 then
     # Build all models
-    echo "Compiling protos"
-    bazel build //models
+    echo "Compiling protos";
+    bazel build //models:models;
 
     # Now copy all generated typescript files
     # find ../bazel-bin/models/ -type f -path '**/models/**/*.js'
