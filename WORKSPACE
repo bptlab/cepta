@@ -146,8 +146,8 @@ GRPC_JAVA_VERSION = "1.28.1"
 
 http_archive(
     name = "rules_jvm_external",
-    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     sha256 = RULES_JVM_EXTERNAL_SHA,
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
 )
 
@@ -177,9 +177,6 @@ maven_install(
         "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
-        # "io.grpc:grpc-netty-shaded:%s" % GRPC_JAVA_VERSION,
-        # "io.grpc:grpc-protobuf:%s" % GRPC_JAVA_VERSION,
-        # "io.grpc:grpc-stub:%s" % GRPC_JAVA_VERSION,
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
         "org.apache.flink:flink-streaming-java_%s:%s" % (SCALA_VERSION, FLINK_VERSION),
@@ -826,6 +823,13 @@ go_repository(
 )
 
 go_repository(
+    name = "com_github_streadway_amqp",
+    importpath = "github.com/streadway/amqp",
+    sum = "h1:2MR0pKUzlP3SGgj5NYJe/zRYDwOu9ku6YHy+Iw7l5DM=",
+    version = "v0.0.0-20200108173154-1c71cc93ed71",
+)
+
+go_repository(
     name = "com_github_google_uuid",
     importpath = "github.com/google/uuid",
     sum = "h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=",
@@ -1458,6 +1462,13 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:JJYqRY0lg2DYBtTg5YuQldCVDJ+L2LlsD8FbtdmVHeI=",
-    version = "v0.1.3",
+    sum = "h1:FV1AeK9zAyVlZyfqyPRj7VnL2RzJJYLVtOsLppBk6JU=",
+    version = "v0.1.5",
+)
+
+go_repository(
+    name = "com_github_hashicorp_golang_lru",
+    importpath = "github.com/hashicorp/golang-lru",
+    sum = "h1:YDjusn29QI/Das2iO9M0BHnIbxPeyuCHsjMW+lJfyTc=",
+    version = "v0.5.4",
 )

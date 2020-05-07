@@ -20,7 +20,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/auth"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	lib "github.com/bptlab/cepta/osiris/auth/lib"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
@@ -41,7 +41,6 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var server AuthenticationServer
-var grpcServer *grpc.Server
 
 // Claims ...
 type Claims struct {
@@ -52,6 +51,7 @@ type Claims struct {
 // AuthenticationServer ...
 type AuthenticationServer struct {
 	pb.UnimplementedAuthenticationServer
+	grpcServer 		*grpc.Server
 	MongoConfig    libdb.MongoDBConfig
 	DB             *libdb.MongoDB
 	SignKey        *rsa.PrivateKey
@@ -72,7 +72,7 @@ func NewAuthServer(mongoConfig libdb.MongoDBConfig) AuthenticationServer {
 func (s *AuthenticationServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	s.grpcServer.Stop()
 }
 
 func (s *AuthenticationServer) findUser(email string) (*users.InternalUser, error) {
@@ -132,9 +132,12 @@ func (s *AuthenticationServer) signJwt(userID *users.UserID) (string, error) {
 func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginRequest) (*pb.AuthenticationToken, error) {
 	if s.DisableAuth {
 		if userID, err := uuid.NewRandom(); err == nil {
-			if token, err := s.signJwt(&users.UserID{Id: userID.String()}); err == nil {
+			id := &users.UserID{Id: userID.String()}
+			if token, err := s.signJwt(id); err == nil {
 				return &pb.AuthenticationToken{
 					Token:      token,
+					Email: 		in.GetEmail(),
+					UserId: 	id,
 					Expiration: s.ExpireSeconds,
 				}, nil
 			}
@@ -154,6 +157,8 @@ func (s *AuthenticationServer) Login(ctx context.Context, in *pb.UserLoginReques
 	if token, err := s.signJwt(user.User.Id); err == nil {
 		return &pb.AuthenticationToken{
 			Token:      token,
+			Email: 		user.GetUser().GetEmail(),
+			UserId: 	user.GetUser().GetId(),
 			Expiration: s.ExpireSeconds,
 		}, nil
 	}
@@ -350,9 +355,9 @@ func (s *AuthenticationServer) Setup() error {
 // Serve starts the service
 func (s *AuthenticationServer) Serve(listener net.Listener) error {
 	log.Infof("Authentication service ready at %s", listener.Addr())
-	grpcServer = grpc.NewServer()
-	pb.RegisterAuthenticationServer(grpcServer, s)
-	if err := grpcServer.Serve(listener); err != nil {
+	s.grpcServer = grpc.NewServer()
+	pb.RegisterAuthenticationServer(s.grpcServer, s)
+	if err := s.grpcServer.Serve(listener); err != nil {
 		return err
 	}
 	log.Info("Closing socket")

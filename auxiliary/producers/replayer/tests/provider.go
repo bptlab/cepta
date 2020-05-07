@@ -25,6 +25,8 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/romnnn/bsonpb"
 	tc "github.com/romnnn/testcontainers"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
+	tckafka "github.com/romnnn/testcontainers/kafka"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
@@ -50,7 +52,7 @@ func setUpReplayerServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 		t.Fatalf("Failed to setup replayer server: %v", err)
 	}
 	go func() {
-		if err := r.Serve(listener, []string{}, []string{}); err != nil {
+		if err := r.Serve(listener); err != nil {
 			t.Fatalf("Failed to serve the replayer: %v", err)
 		}
 	}()
@@ -99,8 +101,8 @@ func (test *Test) Setup(t *testing.T) *Test {
 	}
 
 	// Start mongodb container
-	var mongoConfig tc.MongoDBConfig
-	test.MongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{ContainerOptions: containerOptions})
+	var mongoConfig tcmongo.DBConfig
+	test.MongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -111,12 +113,12 @@ func (test *Test) Setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 
 	// Start kafka container
-	var kafkaConfig *tc.KafkaContainerConnectionConfig
-	test.KafkaC, kafkaConfig, test.ZkC, _, err = tc.StartKafkaContainer(tc.KafkaContainerOptions{ContainerOptions: containerOptions})
+	var kafkaConfig *tckafka.ContainerConnectionConfig
+	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: containerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
@@ -125,7 +127,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
 	}
@@ -133,7 +135,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 	}
 
@@ -162,10 +164,10 @@ func (test *Test) Setup(t *testing.T) *Test {
 // Teardown ...
 func (test *Test) Teardown() {
 	test.ReplayerServer.Shutdown()
-	test.ReplayerEndpoint.Close()
-	test.MongoC.Terminate(context.Background())
-	test.KafkaC.Terminate(context.Background())
-	test.ZkC.Terminate(context.Background())
+	_ = test.ReplayerEndpoint.Close()
+	_ = test.MongoC.Terminate(context.Background())
+	_ = test.KafkaC.Terminate(context.Background())
+	_ = test.ZkC.Terminate(context.Background())
 	test.Net.Remove(context.Background())
 }
 

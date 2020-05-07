@@ -5,8 +5,10 @@ java_test(
     srcs = ["DataCleansingTests.java"],
     test_class = "org.bptlab.cepta.DataCleansingTests",
     size = "small",
+    flaky= True,
     tags = ["unit"],
     deps = [
+        "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",

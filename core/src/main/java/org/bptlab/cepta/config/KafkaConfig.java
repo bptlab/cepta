@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import picocli.CommandLine.Option;
@@ -107,6 +108,7 @@ public class KafkaConfig implements Serializable, Cloneable {
     Properties props = new Properties();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getBroker());
     props.put(ProducerConfig.CLIENT_ID_CONFIG, getClientId());
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, getGroupID());
     getKeySerializer().map(s -> props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
     getValueSerializer().map(s -> props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, s.get().getClass().getName()));
     return props;

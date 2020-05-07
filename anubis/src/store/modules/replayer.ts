@@ -15,7 +15,7 @@ import {
   ReplaySetOptionsRequest,
   ActiveReplayOptions
 } from "@/generated/protobuf/models/grpc/replayer_pb";
-import { Empty } from "@/generated/protobuf/models/types/result_pb";
+import { Empty } from "@/generated/protobuf/models/internal/types/result_pb";
 
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import { AuthModule } from "./auth";

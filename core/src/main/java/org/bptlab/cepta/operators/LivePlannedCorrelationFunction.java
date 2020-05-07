@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
+import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.config.PostgresConfig;
@@ -66,7 +67,7 @@ public class LivePlannedCorrelationFunction extends
        the resultFuture is where the outgoing element will be
     */
     String query = String
-        .format("select * from public.planned where train_id = %d and location_id = %d;",
+        .format("select * from public.planned where train_section_id = %d and station_id = %d;",
             liveEvent.getTrainSectionId(), liveEvent.getStationId());
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 

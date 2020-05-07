@@ -1,0 +1,15 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/coordinate";
+option java_package = "org.bptlab.cepta.models.internal.types.coordinate";
+
+message Coordinate {
+    double latitude = 1;
+    double longitude = 2;
+    double altitude = 3;
+}
+
+message AccumulatedCoordinates {
+    repeated Coordinate coordinates = 1;
+    int32 total = 2;
+}

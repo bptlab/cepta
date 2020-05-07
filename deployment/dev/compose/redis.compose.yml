@@ -1,0 +1,10 @@
+version: "3.6"
+
+services:
+  redis:
+    image: redis
+    expose:
+      - 5672
+    ports:
+      - ${CEPTA_REDIS_PORT}:6379
+

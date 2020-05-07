@@ -7,12 +7,14 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/result"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/result"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/bptlab/cepta/osiris/lib/utils"
@@ -32,16 +34,11 @@ var Version string = "Unknown"
 var BuildTime string = ""
 
 var server UserMgmtServer
-var grpcServer *grpc.Server
-
-var (
-	success = result.Result{Success: true}
-	failure = result.Result{Success: false}
-)
 
 // UserMgmtServer  ...
 type UserMgmtServer struct {
 	pb.UnimplementedUserManagementServer
+	grpcServer 		*grpc.Server
 	MongoConfig    libdb.MongoDBConfig
 	DB             *libdb.MongoDB
 	UserCollection string
@@ -60,7 +57,7 @@ func NewUserMgmtServer(mongoConfig libdb.MongoDBConfig) UserMgmtServer {
 func (s *UserMgmtServer) Shutdown() {
 	log.Info("Graceful shutdown")
 	log.Info("Stopping GRPC server")
-	grpcServer.Stop()
+	s.grpcServer.Stop()
 }
 
 // GetUser ...
@@ -91,30 +88,73 @@ func (s *UserMgmtServer) GetUser(ctx context.Context, in *pb.GetUserRequest) (*u
 	return nil, status.Error(codes.NotFound, "No such user found")
 }
 
+// GetSubscribersForTransport ...
+func (s *UserMgmtServer) GetSubscribersForTransport(request *pb.GetSubscribersRequest, stream pb.UserManagement_GetSubscribersForTransportServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if request.GetTransportId() == nil || request.GetTransportId().GetId() == "" {
+		log.Errorf("Failed to get subscribers for transport: bad transport ID %v", request.GetTransportId())
+		return status.Error(codes.InvalidArgument, "Bad transport ID")
+	}
+	if err := lib.StreamUsersByTransportID(s.DB.DB.Collection(s.UserCollection), request.GetTransportId(), stream); err != nil {
+		log.Errorf("Failed to query the database for users by transport ID: %v", err)
+		return status.Error(codes.Internal, "Failed to query the database for users by transport ID")
+	}
+	return nil
+}
+
+// GetUsers ...
+func (s *UserMgmtServer) GetUsers(empty *result.Empty, stream pb.UserManagement_GetUsersServer) error {
+	token := utils.GetUserToken(stream.Context())
+	if token == "" {
+		// return &result.Empty{}, nil
+	}
+	if err := lib.StreamUsers(s.DB.DB.Collection(s.UserCollection), stream); err != nil {
+		log.Errorf("Failed to query all users: %v", err)
+		return status.Error(codes.Internal, "Failed to query the database")
+	}
+	return nil
+}
+
 // UpdateUser ...
-func (s *UserMgmtServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (*result.Result, error) {
+func (s *UserMgmtServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (*result.Empty, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
 	}
 	if err := lib.UpdateUser(s.DB.DB.Collection(s.UserCollection), in.User.User.Id, in.User); err != nil {
-		return &failure, err
+		log.Error("Failed to update the user: ", err)
+		return &result.Empty{}, status.Error(codes.Internal, "Failed to update the user")
 	}
-	return &success, nil
+	return &result.Empty{}, nil
 }
 
 // AddUser ...
 func (s *UserMgmtServer) AddUser(ctx context.Context, in *pb.AddUserRequest) (*users.User, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
+	}
+
+	in.GetUser().Password = strings.TrimSpace(in.GetUser().Password)
+	in.GetUser().GetUser().Email = strings.TrimSpace(in.GetUser().GetUser().Email)
+
+	// Check email and password are valid
+	if in.GetUser().GetPassword() == "" {
+		return nil, status.Error(codes.InvalidArgument, "Password must not be empty")
+	}
+	if in.GetUser().GetUser().GetEmail() == "" || !utils.IsValidEmail(in.GetUser().GetUser().GetEmail()) {
+		return nil, status.Error(codes.InvalidArgument, "Email must be a valid email")
 	}
 
 	// Check if user with same mail already exists
 	email := in.User.User.Email
 	found, err := lib.GetUserByEmail(s.DB.DB.Collection(s.UserCollection), email)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		log.Error("Failed to lookup user: ", err)
+		return nil, status.Error(codes.Internal, "Failed to lookup user")
 	}
 	if found != nil {
 		return nil, status.Errorf(codes.AlreadyExists, "User with email %s already exists", email)
@@ -122,29 +162,42 @@ func (s *UserMgmtServer) AddUser(ctx context.Context, in *pb.AddUserRequest) (*u
 
 	user, err := lib.AddUser(s.DB.DB.Collection(s.UserCollection), in.User)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		log.Error("Failed to add the user: ", err)
+		return nil, status.Error(codes.Internal, "Failed to add the user")
 	}
 	return user, nil
 }
 
 // RemoveUser ...
-func (s *UserMgmtServer) RemoveUser(ctx context.Context, in *pb.RemoveUserRequest) (*result.Result, error) {
+func (s *UserMgmtServer) RemoveUser(ctx context.Context, in *pb.RemoveUserRequest) (*result.Empty, error) {
 	token := utils.GetUserToken(ctx)
 	if token == "" {
-		// return &failure, nil
+		// return &result.Empty{}, nil
 	}
 	// Check for at least one other admin user
 	ok, err := lib.HasAdminUser(s.DB.DB.Collection(s.UserCollection), []*users.UserID{in.UserId})
 	if err != nil {
-		return &failure, status.Error(codes.Internal, "Failed to check admin users")
+		log.Error("Failed to check for admin users: ", err)
+		return &result.Empty{}, status.Error(codes.Internal, "Failed to check admin users")
 	}
 	if !ok {
-		return &failure, status.Error(codes.PermissionDenied, "Require at least one admin user")
+		return &result.Empty{}, status.Error(codes.PermissionDenied, "Require at least one admin user")
 	}
 	if err := lib.RemoveUser(s.DB.DB.Collection(s.UserCollection), in.UserId); err != nil {
-		return &failure, err
+		log.Error("Failed to remove the user: ", err)
+		return &result.Empty{}, status.Error(codes.Internal, "Failed to remove the user")
 	}
-	return &success, nil
+	return &result.Empty{}, nil
+}
+
+// GetUserCount ...
+func (s *UserMgmtServer) GetUserCount(ctx context.Context, in *result.Empty) (*pb.UserCount, error) {
+	count, err := lib.CountUsers(s.DB.DB.Collection(s.UserCollection))
+	if err != nil {
+		log.Error("Error counting users: ", err)
+		return nil, status.Error(codes.Internal, "Error counting users")
+	}
+	return &pb.UserCount{Value: count}, nil
 }
 
 func main() {
@@ -169,14 +222,14 @@ func main() {
 		},
 		&cli.StringFlag{
 			Name:    "default-email",
-			Value:   "admin@cepta.org",
+			Value:   "cepta@cepta.org",
 			Aliases: []string{"initial-email", "admin-email"},
 			EnvVars: []string{"DEFAULT_EMAIL", "INITIAL_EMAIL", "ADMIN_EMAIL"},
 			Usage:   "Inital admin email (created if user database is empty)",
 		},
 		&cli.StringFlag{
 			Name:    "default-password",
-			Value:   "admin",
+			Value:   "cepta",
 			Aliases: []string{"initial-password", "admin-password"},
 			EnvVars: []string{"DEFAULT_PASSWORD", "INITIAL_PASSWORD", "ADMIN_PASSWORD"},
 			Usage:   "Inital admin password (created if user database is empty)",
@@ -210,6 +263,9 @@ func main() {
 				DefaultUser: users.InternalUser{
 					User: &users.User{
 						Email: ctx.String("default-email"),
+						Transports: []*ids.CeptaTransportID {
+							{Id: "123"},
+						},
 					},
 					Password: ctx.String("default-password"),
 				},
@@ -241,7 +297,7 @@ func (s *UserMgmtServer) Setup() error {
 	s.DB = mongo
 
 	if s.UserCollection == "" {
-		return errors.New("Need to specify a valid collection name")
+		return errors.New("need to specify a valid collection name")
 	}
 
 	// Eventually clear the user database
@@ -254,17 +310,17 @@ func (s *UserMgmtServer) Setup() error {
 
 	hasAdmin, err := lib.HasAdminUser(s.DB.DB.Collection(s.UserCollection), []*users.UserID{})
 	if err != nil {
-		return fmt.Errorf("Failed to check for admin users: %v", err)
+		return fmt.Errorf("failed to check for admin users: %v", err)
 	}
 	if !hasAdmin {
 		if s.DefaultUser.User != nil && s.DefaultUser.User.Email != "" && s.DefaultUser.Password != "" {
 			defaultUser, err := lib.AddUser(s.DB.DB.Collection(s.UserCollection), &s.DefaultUser)
 			if err != nil {
-				return fmt.Errorf("Failed to add default admin user: %v", err)
+				return fmt.Errorf("failed to add default admin user: %v", err)
 			}
 			log.Infof("Added default user: %s", defaultUser)
 		} else {
-			return errors.New("Empty user database and no default admin user specified")
+			return errors.New("empty user database and no default admin user specified")
 		}
 	}
 	return nil
@@ -273,10 +329,10 @@ func (s *UserMgmtServer) Setup() error {
 // Serve starts the service
 func (s *UserMgmtServer) Serve(listener net.Listener) error {
 	log.Infof("User Management service ready at %s", listener.Addr())
-	grpcServer = grpc.NewServer()
-	pb.RegisterUserManagementServer(grpcServer, s)
+	s.grpcServer = grpc.NewServer()
+	pb.RegisterUserManagementServer(s.grpcServer, s)
 
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := s.grpcServer.Serve(listener); err != nil {
 		return err
 	}
 	log.Info("Closing socket")

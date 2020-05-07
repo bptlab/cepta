@@ -27,6 +27,7 @@ assignees: ''
 
 
 ## Acceptance Criteria
+- [ ] Changelog adjusted
 - [ ] Documented
 - [ ] Merged in dev
 - [ ] Linter is okay

@@ -45,7 +45,7 @@ var (
 
 func (r *Replayer) queryAndSend(ctx context.Context, query *pb.SourceQuery, handlerFunc func(re *pb.ReplayedEvent)) error {
 	if r.Extractor == nil {
-		return fmt.Errorf("Missing extractor for the %s replayer", r.SourceName)
+		return fmt.Errorf("missing extractor for the %s replayer", r.SourceName)
 	}
 	if err := r.Extractor.StartQuery(context.Background(), r.SourceName, r.Options); err != nil {
 		return err
@@ -152,7 +152,7 @@ func (r *Replayer) produce() error {
 
 	startQuery()
 	if ready {
-		r.log.Info("Ready")
+		r.log.Info("Started")
 	}
 
 	recentTime := time.Time{}
@@ -237,7 +237,7 @@ func (r *Replayer) awaitShutdown() {
 // Start ...
 func (r *Replayer) Start(log *logrus.Logger) {
 	r.log = log.WithField("source", r.SourceName)
-	r.log.Info("Starting")
+	r.log.Info("Waiting")
 	if r.Extractor == nil {
 		r.log.Errorf("Missing extractor. Waiting for shutdown.", r.SourceName)
 		r.awaitShutdown()

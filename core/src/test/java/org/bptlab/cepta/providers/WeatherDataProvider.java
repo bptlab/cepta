@@ -9,9 +9,11 @@ import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 public class WeatherDataProvider {
 
   public static WeatherData getDefaultWeatherEvent() {
-    long millis = System.currentTimeMillis();
-    Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-         .setNanos((int) ((millis % 1000) * 1000000)).build();
+    // this represents the timestamp 2020-04-28 10:03:40.0
+    // equals the proto timestamp {seconds: 1588068220, nanos: 471000000}
+    long millis = 1588068220471l;
+    Timestamp timestamp = Timestamp.newBuilder().setSeconds((int)(millis / 1000))
+      .setNanos((int) ((millis % 1000) * 1000000)).build();
     WeatherData.Builder builder = WeatherData.newBuilder();
     builder.setEventClass("");
     builder.setLatitude(49.577);

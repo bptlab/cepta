@@ -22,7 +22,7 @@ proto_library(
     srcs = ["PositionUpdate.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:coordinate_proto",
+        "//models/internal/types:coordinate_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -33,15 +33,15 @@ go_proto_library(
     proto = ":position_update_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/types:coordinate_go_proto",
+        "//models/internal/types:coordinate_go_proto",
     ],
 )
 
 filegroup(
     name = "updates",
     srcs = [
-        ":update_go_proto",
         ":position_update_go_proto",
+        ":update_go_proto",
     ],
     visibility = ["//visibility:public"],
 )

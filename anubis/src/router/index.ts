@@ -4,6 +4,7 @@ import Main from "@/views/Main.vue";
 import Error from "@/views/Error.vue";
 import Landing from "@/views/Landing.vue";
 import { AuthModule } from "@/store/modules/auth";
+import { UserManagementModule } from "../store/modules/usermgmt";
 
 Vue.use(Router);
 
@@ -11,7 +12,11 @@ let authenticationRequired: boolean = true;
 
 const checkAuthenticated = (): boolean => {
   let token = Vue.cookies?.get("user-token") as string;
+  let email = Vue.cookies?.get("user-email") as string;
+  let userID = Vue.cookies?.get("user-id") as string;
   AuthModule.setAuthToken(token);
+  AuthModule.setUserID(userID);
+  UserManagementModule.setCurrentUserEmail(email);
   return (
     (token != undefined && token != null && token.length > 0) ||
     !authenticationRequired
@@ -109,6 +114,12 @@ export const routes: RouteConfig[] = [
         name: "home",
         component: () =>
           import(/* webpackChunkName: "dashboard" */ "@/views/Dashboard.vue")
+      },
+      {
+        path: "users",
+        name: "users",
+        component: () =>
+          import(/* webpackChunkName: "users" */ "@/views/Users.vue")
       },
       {
         path: "feed",
