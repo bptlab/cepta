@@ -10,15 +10,16 @@ message TrainInformationData {
     int64 train_id = 2;
     google.protobuf.Timestamp planned_departure_time_start_station = 3;
     google.protobuf.Timestamp planned_arrival_time_end_station = 4;
-    int64 start_station_id = 5;
-    google.protobuf.Timestamp planned_departure_time = 6;
-    int64 departure_delay = 7;
-    int64 end_station_id = 8;
-    google.protobuf.Timestamp planned_arrival_time = 9;
-    int64 arrival_delay = 10;
-    int64 euro_rail_run_id = 11;
-    google.protobuf.Timestamp prod_date = 12;
-    int64 first_train_id = 13;
-    int64 original_train_id = 14;
-    int64 im_id = 15;
+    int64 time_table_id = 5;
+    int64 start_station_id = 6;
+    google.protobuf.Timestamp planned_departure_time = 7;
+    int64 departure_delay = 8;
+    int64 end_station_id = 9;
+    google.protobuf.Timestamp planned_arrival_time = 10;
+    int64 arrival_delay = 11;
+    int64 euro_rail_run_id = 12;
+    google.protobuf.Timestamp prod_date = 13;
+    int64 first_train_id = 14;
+    int64 original_train_id = 15;
+    int64 im_id = 16;
 }

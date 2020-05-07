@@ -7,6 +7,7 @@ MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/consumers:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+    "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/serialization:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/utils/types:java_default_library",
     "//models/constants:topic_java_proto",
@@ -15,6 +16,7 @@ MAIN_DEPS = [
     "//models/events:predicted_train_data_java_proto",
     "//models/events:train_information_data_java_proto",
     "//models/events:weather_data_java_proto",
+    "//models/events:stays_in_station_event_java_proto",
     "//models/events:event_java_proto",
     "//models/internal/types:transport_java_proto",
     "//models/internal/types:ids_java_proto",
@@ -92,9 +94,11 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
     "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
+    "//core/src/test/java/org/bptlab/cepta/delay-shift:delay-shift",
     "//core/src/test/java/org/bptlab/cepta/sum-of-delay-at-station:sum-of-delay-at-station",
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
+    "//core/src/test/java/org/bptlab/cepta/detect-station-delay-tests:detect-station-arrival-delay",
 ]
 
 test_suite(

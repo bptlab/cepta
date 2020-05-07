@@ -3,6 +3,8 @@ package org.bptlab.cepta;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.IOException;
+
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Ignore;
@@ -22,14 +24,10 @@ public class RemoveDuplicatesTests {
         boolean pass = true;
         DataStream<Integer> integerStream = JavaDataProvider.integerDataStreamWithElement(1);
         RemoveDuplicatesFunction removeDuplicatesFunction = new RemoveDuplicatesFunction<Integer>();
-        DataStream<Integer> eliminationStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);  
-       
-        ArrayList<Integer> removedInteger = new ArrayList<>();
-        Iterator<Integer> iterator = DataStreamUtils.collect(eliminationStream);
-        while(iterator.hasNext()){
-            Integer integer = iterator.next();
-            removedInteger.add(integer);
-        }
+        DataStream<Integer> eliminationStream = removeDuplicatesFunction.removeDuplicates(integerStream,4);
+
+        ArrayList<Integer> removedInteger = StreamUtils.collectStreamToArrayList(eliminationStream);
+
         // check if remaining elements still have MIN.VALUE and fail if true
         int len = removedInteger.size();
         boolean flag = false;
@@ -55,20 +53,16 @@ public class RemoveDuplicatesTests {
     
         DataStream<LiveTrainData> duplicateFreeStream = removeDuplicatesFunction.removeDuplicates(liveTrainDataStream, 3);
 
-        ArrayList<LiveTrainData> duplicateFreeData = new ArrayList<>();
-        Iterator<LiveTrainData> iterator = DataStreamUtils.collect(duplicateFreeStream);
-        while(iterator.hasNext()){
-            LiveTrainData liveTrainDataValue = iterator.next();
-            duplicateFreeData.add(liveTrainDataValue);
-        }
+        ArrayList<LiveTrainData> duplicateFreeData = StreamUtils.collectStreamToArrayList(duplicateFreeStream);
+
         // check if duplicates were removed
         int len = duplicateFreeData.size();
         boolean flag = false;
        
         for (int i = 0; i < len; i++ ) {
-            if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && !flag) {
+            if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainSectionId(2)) && !flag) {
                 flag = true; 
-            } else if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainID(2)) && flag) {
+            } else if (duplicateFreeData.get(i).equals(LiveTrainDataProvider.trainEventWithTrainSectionId(2)) && flag) {
                 pass = false;
             }
         }
@@ -76,8 +70,4 @@ public class RemoveDuplicatesTests {
         Assert.assertEquals(2, len);
         Assert.assertTrue(pass);
     }
-
-
-    
-    
 }

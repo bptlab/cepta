@@ -18,7 +18,6 @@ public class TrainDelayNotificationDataProvider {
                     .build()
             ).build();
         }
-
       
         public static DataStream<NotificationOuterClass.DelayNotification> TrainDelayNotificationDataStream(){
           StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -33,7 +32,6 @@ public class TrainDelayNotificationDataProvider {
       
           return trainDelayNotificationStream;
         }
-      
 
         private static NotificationOuterClass.DelayNotification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
             return NotificationOuterClass.DelayNotification.newBuilder()
@@ -75,6 +73,4 @@ public class TrainDelayNotificationDataProvider {
                     .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).build())
                     .build();
         }
-
-
 }
