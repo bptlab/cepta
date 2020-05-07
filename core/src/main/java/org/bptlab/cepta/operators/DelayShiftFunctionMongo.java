@@ -1,6 +1,7 @@
 package org.bptlab.cepta.operators;
 
 import com.google.protobuf.Message;
+import com.google.protobuf.Timestamp;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -33,11 +34,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Collections;
 
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.utils.Util;
-import org.bptlab.cepta.utils.Util.ProtoKeyValues;
+import org.bptlab.cepta.utils.database.Mongo;
+import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
@@ -55,18 +57,7 @@ public class DelayShiftFunctionMongo extends
 
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
-        CodecProvider eventCodecProvider = PojoCodecProvider.builder().register("org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData").build();
-        CodecProvider protoTimestampCodecProvider = PojoCodecProvider.builder().register("com.google.protobuf.Timestamp").build();
-        CodecRegistry pojoCodecRegistry = fromRegistries(
-            MongoClientSettings.getDefaultCodecRegistry(),
-            fromProviders(eventCodecProvider),
-            fromCodecs(new TimestampCodec()),
-            fromProviders(protoTimestampCodecProvider));
-        MongoClientSettings settings = MongoClientSettings.builder()
-            .codecRegistry(pojoCodecRegistry)
-            .applyConnectionString(new ConnectionString("mongodb://"+mongoConfig.getUser()+":"+mongoConfig.getPassword()+"@"+mongoConfig.getHost()+":"+mongoConfig.getPort()+"/?authSource=admin"))
-            .build();
-        this.mongoClient = MongoClients.create(settings);
+        this.mongoClient = Mongo.getMongoClient(mongoConfig);
     }
 
     @Override
@@ -86,32 +77,12 @@ public class DelayShiftFunctionMongo extends
 
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
-        Subscriber subscriber = new Subscriber() {
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                //Number of elements the subscriber want to get from the publisher
-                //System.out.println("Mongo Operation Subscribed");
-                subscription.request(Integer.MAX_VALUE);
-            }
-
-            @Override
-            public void onNext(Object o) {
-                System.out.println(o.toString());
-                System.out.println("Mongo Operation Next");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                System.out.println("Mongo Operation Failed");
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("Mongo Operation Successful");
-                //mongoClient.close();
-            }
-        };
-        plannedTrainDataCollection.find(eq("trainSectionId", 41534705)).first().subscribe(subscriber);
+        SubscriberHelpers.OperationSubscriber<Document> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
+        plannedTrainDataCollection.find().first().subscribe(insertOneSubscriber);
+        List<Document> docs = insertOneSubscriber.get();
+        System.out.println(docs);
+        System.out.println(docs.get(0).get("planned_event_time"));
+        System.out.println(docs.get(0).get("planned_event_time") instanceof Timestamp);
         TrainDelayNotification delay = TrainDelayNotification.newBuilder().setDelay(666).build();
         resultFuture.complete(Collections.singleton(delay));        
     }

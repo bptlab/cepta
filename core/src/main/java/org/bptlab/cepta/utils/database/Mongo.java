@@ -48,7 +48,7 @@ public class Mongo {
         return MongoClients.create(settings);
     }
 
-    //http://mongodb.github.io/mongo-java-driver/4.0/bson/codecs/
+    // http://mongodb.github.io/mongo-java-driver/4.0/bson/codecs/
     public static class TimestampCodecProvider implements CodecProvider {
         private final BsonTypeClassMap bsonTypeClassMap;
 
