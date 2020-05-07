@@ -40,7 +40,7 @@ import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.operators.DelayShiftFunction;
+import org.bptlab.cepta.operators.DelayShiftFunctionMongo;
 import org.bptlab.cepta.operators.DataCleansingFunction;
 import org.bptlab.cepta.operators.DataToMongoDB;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
@@ -139,19 +139,25 @@ public class Main implements Callable<Integer> {
       }
     });
 
+/* 
+    DataStream<TrainDelayNotification> delayShiftMongo = AsyncDataStream
+    .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
+      100000, TimeUnit.MILLISECONDS, 1);
+*/
+    
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
-        100000, TimeUnit.MILLISECONDS, 1);
+        100000, TimeUnit.MILLISECONDS, 1); */
 
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
-
+ */
    /*  
    DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
       .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
         100000, TimeUnit.MILLISECONDS, 1);
-  */
+  *//* 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
@@ -159,9 +165,9 @@ public class Main implements Callable<Integer> {
 
     DataStream<TrainDelayNotification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
-
+ */
     // Produce delay notifications into new queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+/*     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
         .withKeySerializer(Optional.of(LongSerializer::new));
 
 
@@ -172,11 +178,11 @@ public class Main implements Callable<Integer> {
 
     trainDelayNotificationProducer.setWriteTimestampToKafka(true);
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
+    trainDelayNotificationDataStream.print(); */
   /* 
     delayShiftNotifications.addSink(trainDelayNotificationProducer);
     delayShiftNotifications.print();
-  */
+  *//* 
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
@@ -186,7 +192,7 @@ public class Main implements Callable<Integer> {
             staysInStationKafkaConfig.getProperties());
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
-
+ */
     //plannedTrainDataStream.print();
     env.execute("Flink Streaming Java API Skeleton");
     return 0;

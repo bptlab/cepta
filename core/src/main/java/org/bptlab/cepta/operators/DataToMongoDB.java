@@ -44,7 +44,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import org.javatuples.Triplet;
 
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
