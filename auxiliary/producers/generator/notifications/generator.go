@@ -1,139 +1,181 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
+	"fmt"
+	"github.com/Shopify/sarama"
+	"github.com/golang/protobuf/proto"
+	"math/rand"
+	"os"
+	"os/signal"
+	"strings"
+	"sync"
+	"syscall"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/bptlab/cepta/ci/versioning"
+	"github.com/bptlab/cepta/models/internal/delay"
+	libcli "github.com/bptlab/cepta/osiris/lib/cli"
+	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
+	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
+	durationpb "github.com/golang/protobuf/ptypes/duration"
+	"github.com/bptlab/cepta/models/internal/types/ids"
+
+	topics "github.com/bptlab/cepta/models/constants/topic"
+
 	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
-type Message struct {
-	Name string
-	Age  int32
+// Version will be injected at build time
+var Version string = "Unknown"
+
+// BuildTime will be injected at build time
+var BuildTime string = ""
+
+const (
+	defaultNotificationsTopic = topics.Topic_DELAY_NOTIFICATIONS
+)
+
+type Generator struct {
+	ProducerConfig 	kafkaproducer.Config
+	NotificationsTopic topics.Topic
+	Pause time.Duration
+	JitterSecs int
+	TransportIDs []string
+
+	producer 		*kafkaproducer.Producer
+	done              chan bool
+	cancelSetup       context.Context
 }
 
-func (m *Message) Length() int {
-	encoded, _ := m.Encode()
-	return len(encoded)
-}
-
-func (m *Message) Encode() ([]byte, error) {
-	encoded, err := json.Marshal(m)
-	return encoded, err
-}
-
-type Server struct {
-	DataCollector     sarama.SyncProducer
-	AccessLogProducer sarama.AsyncProducer
-}
-
-func newDataCollector(brokerList []string) sarama.SyncProducer {
-
-	// For the data collector, we are looking for strong consistency semantics.
-	// Because we don't change the flush settings, sarama will try to produce messages
-	// as fast as possible to keep latency low.
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForAll // Wait for all in-sync replicas to ack the message
-	config.Producer.Retry.Max = 10                   // Retry up to 10 times to produce the message
-	config.Producer.Return.Successes = true
-	/*
-		tlsConfig := createTlsConfiguration()
-		if tlsConfig != nil {
-			config.Net.TLS.Config = tlsConfig
-			config.Net.TLS.Enable = true
-		}
-	*/
-
-	// On the broker side, you may want to change the following settings to get
-	// stronger consistency guarantees:
-	// - For your broker, set `unclean.leader.election.enable` to false
-	// - For the topic, you could increase `min.insync.replicas`.
-
-	producer, err := sarama.NewSyncProducer(brokerList, config)
+func (g *Generator) Serve(ctx context.Context) (err error) {
+	log.Info("Connecting to Kafka...")
+	g.producer, err = kafkaproducer.Create(ctx, g.ProducerConfig)
 	if err != nil {
-		log.Fatalln("Failed to start Sarama producer:", err)
+		return fmt.Errorf("failed to create kafka producer: %v", err)
+	}
+	log.Info("Connected")
+
+	var wg sync.WaitGroup
+	for _, tid := range g.TransportIDs {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				pause := g.Pause
+				if g.JitterSecs > 0 {
+					pause = pause + (time.Duration(rand.Intn(g.JitterSecs)) * time.Second)
+				}
+				select {
+				case <- time.After(pause):
+					notification := &notificationpb.Notification{
+						Notification: &notificationpb.Notification_Delay{
+							Delay: &notificationpb.DelayNotification{
+								TransportId: &ids.CeptaTransportID{Id: tid}, // strconv.Itoa(rand.Intn(10000))
+								Delay:       &delay.Delay{Delta: &durationpb.Duration{Seconds: int64(rand.Intn(60 * 60 * 60))}},
+							}}}
+					eventBytes, err := proto.Marshal(notification)
+					if err != nil {
+						log.Error("Failed to marshal notification: %v", err)
+						break
+					}
+					g.producer.Send(g.NotificationsTopic.String(), g.NotificationsTopic.String(), sarama.ByteEncoder(eventBytes))
+					log.Debugf("Sent notification with delay=%d to kafka tropic=%s", notification.GetDelay().GetDelay().GetDelta().GetSeconds(), g.NotificationsTopic)
+				case <- g.done:
+					return
+				}
+			}
+		}()
 	}
 
-	return producer
-}
-
-func newAccessLogProducer(brokerList []string) sarama.AsyncProducer {
-
-	// For the access log, we are looking for AP semantics, with high throughput.
-	// By creating batches of compressed messages, we reduce network I/O at a cost of more latency.
-	config := sarama.NewConfig()
-	/*
-		tlsConfig := createTlsConfiguration()
-		if tlsConfig != nil {
-			config.Net.TLS.Enable = true
-			config.Net.TLS.Config = tlsConfig
-		}
-	*/
-	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
-	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
-	config.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
-
-	producer, err := sarama.NewAsyncProducer(brokerList, config)
-	if err != nil {
-		log.Fatalln("Failed to start Sarama producer:", err)
-	}
-
-	// We will just log to STDOUT if we're not able to produce messages.
-	// Note: messages will only be returned here after all retry attempts are exhausted.
-	go func() {
-		for err := range producer.Errors() {
-			log.Println("Failed to write access log entry:", err)
-		}
-	}()
-
-	return producer
-}
-
-func (s *Server) Close() error {
-	if err := s.DataCollector.Close(); err != nil {
-		log.Println("Failed to shut down data collector cleanly", err)
-	}
-
-	if err := s.AccessLogProducer.Close(); err != nil {
-		log.Println("Failed to shut down access log producer cleanly", err)
-	}
-
+	wg.Wait()
 	return nil
 }
 
-func (s *Server) Produce() error {
-	log.Info("Producing")
-	for {
-		entry := &Message{
-			Name: "Romanski",
-			Age:  20,
-		}
-
-		// We will use the client's IP address as key. This will cause
-		// all the access log entries of the same IP address to end up
-		// on the same partition.
-		s.AccessLogProducer.Input() <- &sarama.ProducerMessage{
-			Topic: "news_for_leo",
-			Key:   sarama.StringEncoder("leo"),
-			Value: entry,
-		}
-		log.Info("Produced a message and will sleep for 2 seconds")
-		time.Sleep(2 * time.Second)
+// Shutdown ...
+func (g *Generator) Shutdown() {
+	log.Info("Graceful shutdown")
+	for _ = range g.TransportIDs {
+		g.done <- true
 	}
-	return nil
+	if g.producer != nil {
+		_ = g.producer.Close()
+	}
 }
 
 func main() {
-	brokerList := []string{"localhost:29092"}
-	server := &Server{
-		DataCollector:     newDataCollector(brokerList),
-		AccessLogProducer: newAccessLogProducer(brokerList),
+	var cliFlags []cli.Flag
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceLogLevel)...)
+	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
+	cliFlags = append(cliFlags, kafkaproducer.CliOptions...)
+	cliFlags = append(cliFlags, []cli.Flag{
+		&cli.IntFlag{
+			Name: "per-minute",
+			Value: 60, // 1 per second
+			Aliases: []string{"frequency", "notifications-per-minute"},
+			EnvVars: []string{"PER_MINUTE", "FREQUENCY", "NOTIFICATIONS_PER_MINUTE"},
+			Usage:   "number of notifications per minute",
+		},
+		&cli.IntFlag{
+			Name:    "jitter",
+			Value:   0, // No jitter
+			Aliases: []string{"variance", "jitter-seconds",},
+			EnvVars: []string{"JITTER", "VARIANCE"},
+			Usage:   "range of random value to be added to the pause value in seconds",
+		},
+		&cli.StringFlag{
+			Name:    "transport-ids",
+			EnvVars: []string{"TRANSPORT_IDS"},
+			Usage:   "comma-separated list of transport ids to generate notifications for",
+		},
+	}...)
+
+	app := &cli.App{
+		Name:    "CEPTA mock notification generator",
+		Version: versioning.BinaryVersion(Version, BuildTime),
+		Usage:   "Generates fake notifications for testing purposes only",
+		Flags:   cliFlags,
+		Action: func(ctx *cli.Context) error {
+			if logLevel, err := log.ParseLevel(ctx.String("log")); err == nil {
+				log.SetLevel(logLevel)
+			}
+			gen := Generator{
+				ProducerConfig: kafkaproducer.Config{}.ParseCli(ctx),
+				NotificationsTopic: defaultNotificationsTopic,
+				Pause: time.Duration(60 / ctx.Int("per-minute")) * time.Second,
+				JitterSecs: ctx.Int("jitter"),
+				done: make(chan bool),
+			}
+			log.Infof("pause=%v: jitter=%vs", gen.Pause, gen.JitterSecs)
+
+			for _, tid := range strings.Split(ctx.String("transport-ids"), ",") {
+				if trimmed := strings.TrimSpace(tid); trimmed != "" {
+					gen.TransportIDs = append(gen.TransportIDs, trimmed)
+				}
+			}
+
+			if len(gen.TransportIDs) < 1 {
+				return fmt.Errorf("must specify transport ids with --transport-ids")
+			}
+
+			log.Infof("transports=%v", gen.TransportIDs)
+
+			// Register shutdown routine
+			setupCtx, cancelSetup := context.WithCancel(context.Background())
+			shutdown := make(chan os.Signal)
+			signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+			go func() {
+				<-shutdown
+				cancelSetup()
+				gen.Shutdown()
+			}()
+
+			return gen.Serve(setupCtx)
+		},
 	}
-	defer func() {
-		if err := server.Close(); err != nil {
-			log.Println("Failed to close server", err)
-		}
-	}()
-	log.Fatal(server.Produce())
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
