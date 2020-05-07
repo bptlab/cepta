@@ -13,6 +13,8 @@ go_image(
     name = "image",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
+    goarch = "amd64",
+    goos = "linux",
 )
 
 command(
