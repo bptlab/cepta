@@ -54,3 +54,22 @@ Summary: To run the latest version, run
 ```bash
 CEPTA_VERSION="v0.3.1" docker-compose -f deployment/prod/docker-compose.yml up
 ```
+
+To run specific containers (single or multiple) run:
+```bash
+./deployment/dev/devenv.sh up args...
+```
+
+The containers that can be used as args can be found in /deployment/dev/compose for example: envoy
+
+Have you never build the docker images before than run following instead:
+```
+BUILD=1 ./deployment/dev/devenv.sh up args...
+```
+
+#### Deployment on Mac
+MacOs needs a slight configuration to the build stage. The docker images that are build with bazel have to be build for linux to run in the docker environment. Therefore you have to build the images like this: 
+
+```
+bazel run //osiris/usermgmt:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+```
