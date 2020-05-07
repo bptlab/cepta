@@ -78,7 +78,8 @@ public class StreamUtils {
         return new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
             @Override
             public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
-                return liveTrainData.getIngestionTime().getSeconds();
+                // flink timestamps are specified as millisecons since java epoch on 1970-01-01T00:00:00Z.
+                return liveTrainData.getEventTime().getSeconds() * 1000;
             }
         };
     }
