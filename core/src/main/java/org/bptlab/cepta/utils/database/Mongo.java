@@ -32,10 +32,13 @@ public class Mongo {
         replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
         BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
 
-        CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
-//                fromCodecs(new Mongo.TimestampCodec())
-                fromProviders((new TimestampCodecProvider(bsonTypeClassMap)).get( ,new Mongo.TimestampCodec()))
-        );
+        CodecRegistry defaultCodecRegistry = MongoClientSettings.getDefaultCodecRegistry();
+        TimestampCodecProvider timestampCodecProvider = new TimestampCodecProvider(bsonTypeClassMap);
+        Codec<Timestamp> timestampCodec = new TimestampCodec();
+
+        CodecRegistry pojoCodecRegistry = fromRegistries(fromCodecs(timestampCodec),
+            fromProviders(timestampCodecProvider),
+            defaultCodecRegistry);
 
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
