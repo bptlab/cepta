@@ -1,10 +1,10 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
 
-### [0.4.0] - 2020-05-02
+### [0.4.0] - 2020-05-07
 ##### Added
-- WIP
-
+- [#274](https://github.com/bptlab/cepta/pull/274)
+    - New CI building and testing infrastructure on faster, highly parallel executors
 - [#248](https://github.com/bptlab/cepta/pull/248)
   - Refactors Delay detection based on Live and Planned Station arrival Data including tests
 - [#259](https://github.com/bptlab/cepta/pull/259)
@@ -14,12 +14,11 @@ All notable changes to this project will be documented in this file.
     - New *AddUser* view
 - [#231](https://github.com/bptlab/cepta/pull/231)
   - Track the average speed of transports
-- [#246] (https://github.com/bptlab/cepta/pull/246)
+- [#246](https://github.com/bptlab/cepta/pull/246)
   - operator that gets delay from live train and shifts it by creating delay notifications for subsequent stations
 - t.b.a.
 
 ##### Changed
-- WIP
 - [#248](https://github.com/bptlab/cepta/pull/248)
   - changes TrainDelayNotification location_id to station_id to match conventions of other events
 - [#220](https://github.com/bptlab/cepta/pull/220)
@@ -27,9 +26,6 @@ All notable changes to this project will be documented in this file.
 - [#213](https://github.com/bptlab/cepta/pull/213)
   - Single install helm chart for deploying to kubernetes clusters
   - Automatic packaging and distribution via GitHub Pages
-
-##### Removed
-- WIP
 
 ### [0.3.0] - 2020-04-27
 ##### Added
