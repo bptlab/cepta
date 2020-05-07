@@ -138,6 +138,7 @@ filegroup(
         ":event_go_proto",
         ":station_go_proto",
         ":transport_go_proto",
+        "//models/internal/notifications",
         "//models/internal/types",
         "//models/internal/updates",
     ],

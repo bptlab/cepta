@@ -13,8 +13,8 @@ import {
 import { User } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { AuthModule } from "./auth";
-import { TrainDelayNotification } from "../../generated/protobuf/models/events/TrainDelayNotification_pb";
-import { UserID } from "../../generated/protobuf/models/types/users_pb";
+import { Notification } from "../../generated/protobuf/models/internal/notifications/notification_pb";
+import { UserID } from "../../generated/protobuf/models/internal/types/users_pb";
 
 export interface NotificationsState {
   socket: WebSocket;
@@ -44,7 +44,7 @@ class Notifications extends VuexModule implements NotificationsState {
 
   @Mutation
   public handleMessage(event: any) {
-    let deserializedEvent = TrainDelayNotification.deserializeBinary(
+    let deserializedEvent = Notification.deserializeBinary(
       new Uint8Array(event.data)
     );
     console.log(deserializedEvent);

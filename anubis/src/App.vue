@@ -12,7 +12,7 @@ import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import { AuthModule } from "./store/modules/auth";
 import { AppModule } from "./store/modules/app";
-import { TrainDelayNotification } from "./generated/protobuf/models/events/TrainDelayNotification_pb";
+import { Notification } from "./generated/protobuf/models/internal/notifications/notification_pb";
 import { COOKIE_THEME } from "./constants";
 import { NotificationsModule } from "./store/modules/notifications";
 
