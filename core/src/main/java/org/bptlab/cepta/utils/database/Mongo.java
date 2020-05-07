@@ -9,16 +9,21 @@ import com.mongodb.reactivestreams.client.MongoClients;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bson.BsonReader;
+import org.bson.BsonType;
 import org.bson.BsonWriter;
 import org.bson.Document;
+import org.bson.codecs.BsonTypeClassMap;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromCodecs;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -29,12 +34,35 @@ public class Mongo {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
                 fromCodecs(new Mongo.TimestampCodec())
         );
+
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(pojoCodecRegistry)
                 .applyConnectionString(new ConnectionString("mongodb://" + mongoConfig.getUser() + ":" + mongoConfig.getPassword() + "@" + mongoConfig.getHost() + ":" + mongoConfig.getPort() + "/?authSource=admin"))
                 .build();
 
         return MongoClients.create(settings);
+    }
+
+    //http://mongodb.github.io/mongo-java-driver/4.0/bson/codecs/
+    public static class TimestampCodecProvider implements CodecProvider {
+        private final BsonTypeClassMap bsonTypeClassMap;
+
+        public TimestampCodecProvider(final BsonTypeClassMap bsonTypeClassMap) {
+            this.bsonTypeClassMap = bsonTypeClassMap;
+        }
+
+        @Override
+        public <T> Codec<T> get(Class<T> aClass, CodecRegistry codecRegistry) {
+            if (aClass == Document.class) {
+                Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
+                replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
+                BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
+                CodecRegistry timestampCodecRegistry = fromCodecs(new Mongo.TimestampCodec());
+                return (Codec<T>) new TimestampCodec(timestampCodecRegistry, bsonTypeClassMap);
+            }
+
+            return null;
+        }
     }
 
     public static class TimestampCodec implements Codec<Timestamp> {
