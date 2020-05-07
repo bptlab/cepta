@@ -1,14 +1,9 @@
 package org.bptlab.cepta;
 
-import com.google.protobuf.Timestamp;
-import static com.google.protobuf.util.Timestamps.*;
-
 import com.google.protobuf.util.Timestamps;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
@@ -19,7 +14,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class CountTrainsInStationTests {
 
