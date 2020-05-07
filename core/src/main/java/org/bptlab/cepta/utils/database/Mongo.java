@@ -6,15 +6,12 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
-import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.BsonWriter;
 import org.bson.Document;
 import org.bson.codecs.*;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.time.Instant;
@@ -28,46 +25,26 @@ import static org.bson.codecs.configuration.CodecRegistries.*;
 public class Mongo {
 
     public static MongoClient getMongoClient(MongoConfig mongoConfig) {
-        Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
-        replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
-        BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
-
-        CodecRegistry defaultCodecRegistry = MongoClientSettings.getDefaultCodecRegistry();
-        TimestampCodecProvider timestampCodecProvider = new TimestampCodecProvider(bsonTypeClassMap);
-        Codec<Timestamp> timestampCodec = new TimestampCodec();
-
-        CodecRegistry pojoCodecRegistry = fromRegistries(fromCodecs(timestampCodec),
-            fromProviders(timestampCodecProvider),
-            defaultCodecRegistry);
-
         MongoClientSettings settings = MongoClientSettings.builder()
-                .codecRegistry(pojoCodecRegistry)
+                .codecRegistry(getCustomCodecRegistry())
                 .applyConnectionString(new ConnectionString("mongodb://" + mongoConfig.getUser() + ":" + mongoConfig.getPassword() + "@" + mongoConfig.getHost() + ":" + mongoConfig.getPort() + "/?authSource=admin"))
                 .build();
 
         return MongoClients.create(settings);
     }
 
-    // http://mongodb.github.io/mongo-java-driver/4.0/bson/codecs/
-    public static class TimestampCodecProvider implements CodecProvider {
-        private final BsonTypeClassMap bsonTypeClassMap;
+    private static CodecRegistry getCustomCodecRegistry() {
+        Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
+        replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
+        BsonTypeClassMap protoTimestampBsonTypeClassMap = new BsonTypeClassMap(replacements);
 
-        public TimestampCodecProvider(final BsonTypeClassMap bsonTypeClassMap) {
-            this.bsonTypeClassMap = bsonTypeClassMap;
-        }
+        CodecRegistry defaultCodecRegistry = MongoClientSettings.getDefaultCodecRegistry();
+        DocumentCodecProvider protoTimeCodecProvider = new DocumentCodecProvider(protoTimestampBsonTypeClassMap);
 
-        @Override
-        public <T> Codec<T> get(final Class<T> aClass, final CodecRegistry codecRegistry) {
-            if (aClass == Document.class) {
-//                Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
-//                replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
-//                BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
-//                CodecRegistry timestampCodecRegistry = CodecRegistries.fromCodecs(new Mongo.TimestampCodec());
-                return (Codec<T>) new DocumentCodec(codecRegistry,bsonTypeClassMap);
-            }
-
-            return null;
-        }
+        CodecRegistry pojoCodecRegistry = fromRegistries(fromCodecs(new TimestampCodec()),
+                fromProviders(protoTimeCodecProvider),
+                defaultCodecRegistry);
+        return pojoCodecRegistry;
     }
 
     public static class TimestampCodec implements Codec<Timestamp> {
@@ -94,13 +71,6 @@ public class Mongo {
             return com.google.protobuf.Timestamp.class;
         }
     }
-    
-    //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
-    //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
-    //https://github.com/mongodb/mongo-java-driver/blob/master/driver-reactive-streams/src/examples/reactivestreams/documentation/DocumentationSamples.java
-    public static SubscriberHelpers.OperationSubscriber getSubscriber() {
-        return new SubscriberHelpers.OperationSubscriber();
-    }
 
     public static Document protoToBson(Message dataset ) {
         Util.ProtoKeyValues protoInfo = new Util.ProtoKeyValues();
@@ -115,7 +85,5 @@ public class Mongo {
         }
         return document;
     }
-
-
 }
 

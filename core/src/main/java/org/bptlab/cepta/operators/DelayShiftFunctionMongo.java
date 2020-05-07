@@ -13,6 +13,7 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
+import static com.mongodb.client.model.Sorts.*;
 
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
@@ -73,16 +74,28 @@ public class DelayShiftFunctionMongo extends
         the resultFuture is where the outgoing element(s) will be
         */
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
+        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedtraindata");
 
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
         SubscriberHelpers.OperationSubscriber<Document> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-
-        plannedTrainDataCollection.find(eq("planned_event_time", dataset.getEventTime())).subscribe(insertOneSubscriber);
+        plannedTrainDataCollection.find(
+                and(
+                        eq("trainSectionId",dataset.getTrainSectionId()),
+                        eq("endStationId",dataset.getEndStationId()),
+                        eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
+                )
+        ).sort(ascending("plannedEventTime")).first().subscribe(insertOneSubscriber);
         List<Document> docs = insertOneSubscriber.get();
-        System.out.println(docs.get(0));
-        System.out.println(docs.get(0).get("planned_event_time"));
+        try {
+            System.out.println(docs);
+            System.out.println(docs.get(0).get("planned_event_time"));
+            System.out.println(docs.get(0).get("planned_event_time") instanceof Timestamp);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Empty result");
+        }
+//      TODO the actual work
+//
         TrainDelayNotification delay = TrainDelayNotification.newBuilder().setDelay(666).build();
         resultFuture.complete(Collections.singleton(delay));        
     }

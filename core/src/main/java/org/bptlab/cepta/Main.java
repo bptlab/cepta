@@ -119,11 +119,11 @@ public class Main implements Callable<Integer> {
     .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
       100000, TimeUnit.MILLISECONDS, 1);
 
-/*     
-    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
-      .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
-        100000, TimeUnit.MILLISECONDS, 1);
- */
+
+//    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
+//      .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+//        100000, TimeUnit.MILLISECONDS, 1);
+
   /*
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
