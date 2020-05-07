@@ -11,29 +11,27 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install bazel
-        run: |
-          apt install -y wget unzip openjdk-11-jdk
-          $GITHUB_WORKSPACE/ci/install-bazel.sh
+        run: $GITHUB_WORKSPACE/ci/install-bazel.sh
         env:
           V: 3.0.0
 
       - name: Build
-        run: /root/bin/bazel build --noshow_progress --noshow_loading_progress --logging=0 :cepta
+        run: bazel build --noshow_progress --noshow_loading_progress --logging=0 :cepta
 
       - name: Smoke tests
-        run: /root/bin/bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
         env:
           RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
           TEST_TARGET: :smoke
 
       - name: Unit tests
-        run: /root/bin/bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
         env:
           RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
           TEST_TARGET: :unit
 
       - name: Integration tests
-        run: /root/bin/bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
         env:
           RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
           TEST_TARGET: :integration
