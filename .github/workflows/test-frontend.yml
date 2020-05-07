@@ -12,7 +12,7 @@ jobs:
 
       - name: Install bazel
         run: |
-          apt install -y wget
+          apt install -y wget unzip
           $GITHUB_WORKSPACE/ci/install-bazel.sh
         env:
           V: 3.0.0
