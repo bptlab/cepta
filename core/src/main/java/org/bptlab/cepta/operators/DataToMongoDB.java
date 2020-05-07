@@ -50,10 +50,10 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     public void asyncInvoke(T dataset, ResultFuture<T> resultFuture) throws Exception {
         //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
-
+        
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
-
+        System.out.println("INVOKE");
         Document document = protoToBson(dataset);
 
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();

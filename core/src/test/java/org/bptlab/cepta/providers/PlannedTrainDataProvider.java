@@ -42,10 +42,11 @@ public class PlannedTrainDataProvider {
   public static DataStream<PlannedTrainData> plannedTrainDatas(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
-    ArrayList<PlannedTrainData> plannedTrains = new ArrayList<>();
 
+    ArrayList<PlannedTrainData> plannedTrains = new ArrayList<>();
     plannedTrains.add(getDefaultPlannedTrainDataEvent());
     plannedTrains.add(getDefaultPlannedTrainDataEvent());
+    
     DataStream<PlannedTrainData> plannedTrainsStream = env.fromCollection(plannedTrains)
         .assignTimestampsAndWatermarks(
             new AscendingTimestampExtractor<PlannedTrainData>() {
