@@ -6,9 +6,11 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
-        "//core/src/main/java/org/bptlab/cepta/utils/converters:java_default_library",
-        "//core/src/main/java/org/bptlab/cepta/utils/triggers:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/converters:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/database/mongohelper:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/triggers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:train_delay_notification_java_proto",
