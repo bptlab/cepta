@@ -1,6 +1,17 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
 
+### [0.5.0] - 2020-05-10
+##### Added
+- [#213](https://github.com/bptlab/cepta/pull/213)
+  - Single install helm chart for deploying to kubernetes clusters
+  - Automatic packaging and distribution via GitHub Pages
+- [#231](https://github.com/bptlab/cepta/pull/231)
+  - Track the average speed of transports
+  
+##### Changed
+- WIP
+
 ### [0.4.0] - 2020-05-07
 ##### Added
 - [#274](https://github.com/bptlab/cepta/pull/274)
@@ -20,17 +31,12 @@ All notable changes to this project will be documented in this file.
   - Add rabbitMQ
   - Save User Notifications in rabbitMQ when logged out
   - Send Notification to the users frontend over websocket when logged in
-- [#231](https://github.com/bptlab/cepta/pull/231)
-  - Track the average speed of transports
 
 ##### Changed
 - [#248](https://github.com/bptlab/cepta/pull/248)
   - changes TrainDelayNotification location_id to station_id to match conventions of other events
 - [#220](https://github.com/bptlab/cepta/pull/220)
   - generic internal high level models to be used in ESP pipelines
-- [#213](https://github.com/bptlab/cepta/pull/213)
-  - Single install helm chart for deploying to kubernetes clusters
-  - Automatic packaging and distribution via GitHub Pages
 
 ### [0.3.0] - 2020-04-27
 ##### Added
@@ -101,6 +107,7 @@ All notable changes to this project will be documented in this file.
 ##### Added
 - Initial versioned release
 
+[0.5.0]: https://github.com/bptlab/cepta/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/bptlab/cepta/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bptlab/cepta/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/bptlab/cepta/compare/v0.1.0...v0.2.0
