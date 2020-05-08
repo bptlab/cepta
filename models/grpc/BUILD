@@ -11,9 +11,9 @@ proto_library(
     srcs = ["usermgmt.proto"],
     visibility = ["//visibility:public"],
     deps = [
+        "//models/internal:transport_proto",
         "//models/internal/types:ids_proto",
         "//models/internal/types:result_proto",
-        "//models/internal/types:transport_proto",
         "//models/internal/types:users_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -26,9 +26,9 @@ go_proto_library(
     proto = ":usermgmt_proto",
     visibility = ["//visibility:public"],
     deps = [
+        "//models/internal:transport_go_proto",
         "//models/internal/types:ids_go_proto",
         "//models/internal/types:result_go_proto",
-        "//models/internal/types:transport_go_proto",
         "//models/internal/types:users_go_proto",
     ],
 )
@@ -159,6 +159,92 @@ commonjs_dts_grpc_compile(
 nodejs_proto_compile(
     name = "replayer_nodejs_proto",
     deps = [":replayer_proto"],
+)
+
+# Bookkeeper
+
+proto_library(
+    name = "bookkeeper_proto",
+    srcs = ["bookkeeper.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal:transport_proto",
+        "//models/internal/types:ids_proto",
+        "//models/internal/types:result_proto",
+        "//models/internal/types:users_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "bookkeeper_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "github.com/bptlab/cepta/models/grpc/bookkeeper",
+    proto = ":bookkeeper_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal/types:ids_go_proto",
+        "//models/internal/types:result_go_proto",
+        "//models/internal/types:transport_go_proto",
+        "//models/internal/types:users_go_proto",
+    ],
+)
+
+java_proto_library(
+    name = "bookkeeper_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":bookkeeper_proto"],
+)
+
+java_grpc_library(
+    name = "bookkeeper_java_grpc",
+    srcs = [":bookkeeper_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bookkeeper_java_proto",
+    ],
+)
+
+# Query
+
+proto_library(
+    name = "query_proto",
+    srcs = ["query.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/constants:topic_proto",
+        "//models/events:event_proto",
+        "//models/internal:transport_proto",
+        "//models/internal/types:ids_proto",
+        "//models/internal/types:result_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+go_proto_library(
+    name = "query_go_grpc",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "github.com/bptlab/cepta/models/grpc/query",
+    proto = ":query_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/constants:topic_go_proto",
+        "//models/events:event_go_proto",
+        "//models/internal:transport_go_proto",
+        "//models/internal/types:ids_go_proto",
+        "//models/internal/types:result_go_proto",
+    ],
+)
+
+commonjs_dts_grpc_compile(
+    name = "query_commonjs_dts_grpc_proto",
+    deps = [":query_proto"],
+)
+
+nodejs_proto_compile(
+    name = "query_nodejs_proto",
+    deps = [":query_proto"],
 )
 
 filegroup(

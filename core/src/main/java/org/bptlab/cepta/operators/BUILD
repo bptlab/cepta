@@ -15,7 +15,6 @@ java_library(
         "//models/internal:delay_java_proto",
         "//models/internal/notifications:notification_java_proto",
         "//models/internal/types:ids_java_proto",
-        "//models/internal/types:transport_java_proto",
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_google_protobuf_protobuf_java",

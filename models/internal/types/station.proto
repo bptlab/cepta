@@ -1,0 +1,19 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/station";
+option java_package = "org.bptlab.cepta.models.internal.types.station";
+
+import "models/internal/types/country.proto";
+
+message InfrastructureProvider {
+    string name = 1;
+    models.internal.types.Country country = 2;
+    ReverseType train_reverse = 3;
+}
+
+enum ReverseType {
+    NO_REVERSE = 0;
+    ARRIVAL = 1;
+    DEPARTURE = 2;
+    BETWEEN = 3;
+}

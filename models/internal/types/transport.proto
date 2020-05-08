@@ -1,0 +1,23 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/transport";
+option java_package = "org.bptlab.cepta.models.internal.types.transport";
+
+message Trend {
+    float change_rate = 1;
+    ChangeMetric metric = 2;
+}
+
+enum ChangeMetric {
+    NONE = 0;
+    SPEED = 1;
+}
+
+enum TransportType {
+    UNSPECIFIED = 0;
+    RAIL = 1;
+    ROAD = 2;
+    MARINE = 3;
+    AIR = 4;
+    INTERMODAL = 5;
+}

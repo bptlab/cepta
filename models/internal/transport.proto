@@ -32,7 +32,7 @@ message Transport {
     google.protobuf.Timestamp dispatch_date = 12;
 
     // Transport state
-    Trend trend = 20;
+    models.internal.types.Trend trend = 20;
     Delay total_delay = 21;
     int32 speed = 22;
     models.internal.Station current_station = 23;
@@ -43,16 +43,6 @@ message Transport {
         models.internal.modalities.maritime.MaritimeTransport maritime = 102;
         models.internal.modalities.air.AirTransport air = 103;
     }
-}
-
-message Trend {
-    float change_rate = 1;
-    ChangeMetric metric = 2;
-}
-
-enum ChangeMetric {
-    NONE = 0;
-    SPEED = 1;
 }
 
 // Frontend only (computed)

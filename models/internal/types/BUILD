@@ -91,7 +91,7 @@ proto_library(
 
 go_proto_library(
     name = "country_go_proto",
-    importpath = "github.com/bptlab/cepta/models/internal/types/result",
+    importpath = "github.com/bptlab/cepta/models/internal/types/country",
     proto = ":country_proto",
     visibility = ["//visibility:public"],
 )
@@ -103,35 +103,11 @@ java_proto_library(
 )
 
 proto_library(
-    name = "transport_proto",
-    srcs = ["transport.proto"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":ids_proto",
-    ],
-)
-
-go_proto_library(
-    name = "transport_go_proto",
-    importpath = "github.com/bptlab/cepta/models/internal/types/transport",
-    proto = ":transport_proto",
-    visibility = ["//visibility:public"],
-    deps = [":ids_go_proto"],
-)
-
-java_proto_library(
-    name = "transport_java_proto",
-    visibility = ["//visibility:public"],
-    deps = [":transport_proto"],
-)
-
-proto_library(
     name = "users_proto",
     srcs = ["users.proto"],
     visibility = ["//visibility:public"],
     deps = [
         ":ids_proto",
-        ":transport_proto",
     ],
 )
 
@@ -142,7 +118,6 @@ go_proto_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ids_go_proto",
-        ":transport_go_proto",
     ],
 )
 
@@ -150,6 +125,42 @@ java_proto_library(
     name = "users_java_proto",
     visibility = ["//visibility:public"],
     deps = [":users_proto"],
+)
+
+proto_library(
+    name = "transport_proto",
+    srcs = ["transport.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+    ],
+)
+
+go_proto_library(
+    name = "transport_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/transport",
+    proto = ":transport_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+    ],
+)
+
+proto_library(
+    name = "station_proto",
+    srcs = ["station.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":country_proto",
+    ],
+)
+
+go_proto_library(
+    name = "station_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/types/station",
+    proto = ":station_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":country_go_proto",
+    ],
 )
 
 filegroup(
@@ -170,8 +181,9 @@ filegroup(
         ":result_go_proto",
         ":result_java_proto",
         ":result_proto",
+        ":station_go_proto",
+        ":station_proto",
         ":transport_go_proto",
-        ":transport_java_proto",
         ":transport_proto",
         ":users_go_proto",
         ":users_java_proto",

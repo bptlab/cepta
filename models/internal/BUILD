@@ -84,6 +84,7 @@ proto_library(
         "//models/internal/types:country_proto",
         "//models/internal/types:ids_proto",
         "//models/internal/types:transport_proto",
+        "//models/internal/types:station_proto",
         "@com_google_protobuf//:timestamp_proto",
     ] + MODALITY_PROTOS,
 )
@@ -99,6 +100,7 @@ go_proto_library(
         "//models/internal/types:country_go_proto",
         "//models/internal/types:ids_go_proto",
         "//models/internal/types:transport_go_proto",
+        "//models/internal/types:station_go_proto",
     ] + MODALITY_GO_PROTOS,
 )
 
@@ -114,6 +116,7 @@ proto_library(
         "//models/internal/types:ids_proto",
         "//models/internal/types:carrier_proto",
         "//models/internal/types:transport_proto",
+        "//models/internal/types:station_proto",
     ] + MODALITY_PROTOS,
 )
 
@@ -129,6 +132,7 @@ go_proto_library(
         "//models/internal/types:ids_go_proto",
         "//models/internal/types:carrier_go_proto",
         "//models/internal/types:transport_go_proto",
+        "//models/internal/types:station_go_proto",
     ] + MODALITY_GO_PROTOS,
 )
 

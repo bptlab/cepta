@@ -15,7 +15,6 @@ go_library(
         "//models/grpc:auth_go_proto",
         "//models/grpc:usermgmt_go_proto",
         "//models/internal/types:ids_go_proto",
-        "//models/internal/types:transport_go_proto",
         "//models/internal/types:users_go_proto",
         "//osiris/auth:go_default_library",
         "//osiris/lib:cli",

@@ -61,7 +61,6 @@ go_library(
         "//models/internal/notifications:notification_go_proto",
         "//models/internal/types:ids_go_proto",
         "//models/internal/types:result_go_proto",
-        "//models/internal/types:transport_go_proto",
         "//models/internal/types:users_go_proto",
         "//osiris/lib:cli",
         "//osiris/lib/db:go_default_library",

@@ -18,7 +18,6 @@ MAIN_DEPS = [
     "//models/events:weather_data_java_proto",
     "//models/events:stays_in_station_event_java_proto",
     "//models/events:event_java_proto",
-    "//models/internal/types:transport_java_proto",
     "//models/internal/types:ids_java_proto",
     "//models/internal/notifications:notification_java_proto",
     "@maven//:com_github_jasync_sql_jasync_common",
