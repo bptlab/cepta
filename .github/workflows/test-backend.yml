@@ -10,6 +10,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Info
+        run: ./ci/print-workspace-status.sh
+
       - name: Build
         run: bazel build --noshow_progress --noshow_loading_progress --logging=0 :cepta
 
