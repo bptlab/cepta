@@ -1,0 +1,27 @@
+syntax = "proto3";
+package models.grpc.query;
+option go_package = "github.com/bptlab/cepta/models/grpc/query";
+
+import "models/internal/transport.proto";
+import "models/internal/types/ids.proto";
+
+service Query {
+    rpc GetTransport(SingleTransportRequest) returns (models.internal.Transport) {}
+    rpc QueryTransports(QueryTransportsRequest) returns (stream models.internal.Transport) {}
+    // TODO: Other historical data
+    // Stations
+    // Countries
+    // Providers
+    // ...
+}
+
+message SingleTransportRequest {
+    models.internal.types.CeptaTransportID transport_id = 1;
+}
+
+message QueryTransportsRequest {
+    repeated models.internal.types.CeptaTransportID transport_ids = 1;
+    // Time
+    // Producer
+    // Locations
+}
