@@ -10,8 +10,10 @@ MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/serialization:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/utils/types:java_default_library",
+    "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
     "//models/constants:topic_java_proto",
     "//models/events:live_train_data_java_proto",
+    "//models/events:count_of_trains_at_station_event_java_proto",
     "//models/events:planned_train_data_java_proto",
     "//models/events:predicted_train_data_java_proto",
     "//models/events:train_information_data_java_proto",
@@ -88,6 +90,7 @@ container_push(
 )
 
 sub_tests = [
+    "//core/src/test/java/org/bptlab/cepta/count-trains-in-station-tests:count-trains-in-station",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-live-train-join",
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
