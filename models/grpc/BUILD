@@ -168,10 +168,9 @@ proto_library(
     srcs = ["bookkeeper.proto"],
     visibility = ["//visibility:public"],
     deps = [
+        "//models/internal:station_proto",
         "//models/internal:transport_proto",
-        "//models/internal/types:ids_proto",
         "//models/internal/types:result_proto",
-        "//models/internal/types:users_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -183,10 +182,9 @@ go_proto_library(
     proto = ":bookkeeper_proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//models/internal/types:ids_go_proto",
+        "//models/internal:station_go_proto",
+        "//models/internal:transport_go_proto",
         "//models/internal/types:result_go_proto",
-        "//models/internal/types:transport_go_proto",
-        "//models/internal/types:users_go_proto",
     ],
 )
 
@@ -253,9 +251,13 @@ filegroup(
         ":auth_commonjs_dts_grpc_proto",
         ":auth_go_proto",
         ":auth_nodejs_proto",
+        ":bookkeeper_go_proto",
         ":notification_commonjs_dts_grpc_proto",
         ":notification_go_proto",
         ":notification_nodejs_proto",
+        ":query_commonjs_dts_grpc_proto",
+        ":query_go_grpc",
+        ":query_nodejs_proto",
         ":replayer_commonjs_dts_grpc_proto",
         ":replayer_go_grpc",
         ":replayer_java_proto",
