@@ -54,7 +54,9 @@ func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 		t.Fatalf("Failed to setup user management server: %v", err)
 	}
 	go func() {
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			t.Fatalf("User management server failed to serve: %v", err)
+		}
 	}()
 	return &server, nil
 }

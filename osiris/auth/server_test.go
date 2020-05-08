@@ -63,9 +63,13 @@ func setUpUserMgmtServer(t *testing.T, listener *bufconn.Listener, mongoConfig l
 		},
 		Password: "admins-have-the-best-passwords",
 	}
-	server.Setup()
+	if err := server.Setup(); err != nil {
+		t.Fatalf("User management server failed during setup: %v", err)
+	}
 	go func() {
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			t.Fatalf("User management server failed to serve: %v", err)
+		}
 	}()
 	return &server, nil
 }
