@@ -1,202 +1,99 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.bptlab.cepta;
 
-import java.util.Optional;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.cep.CEP;
-import org.apache.flink.streaming.api.datastream.AsyncDataStream;
-import org.apache.flink.streaming.api.datastream.DataStream;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
-import org.apache.flink.util.Collector;
-import org.apache.flink.streaming.api.datastream.IterativeStream;
-import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
-import org.bptlab.cepta.operators.DetectStationArrivalDelay;
-import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.operators.DelayShiftFunction;
-import org.bptlab.cepta.operators.DataCleansingFunction;
-import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
-import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
-import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
-import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 @Command(
-    name = "cepta core",
-    mixinStandardHelpOptions = true,
-    version = "0.4.0",
-    description = "Captures the train events coming from the Kafka queue.")
+        name = "CEPTA Core",
+        mixinStandardHelpOptions = true,
+        version = "0.4.0",
+        description = "Processes source event streams")
 public class Main implements Callable<Integer> {
 
-  private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
-  // Consumers
-  private FlinkKafkaConsumer011<EventOuterClass.Event> liveTrainDataConsumer;
-  private FlinkKafkaConsumer011<EventOuterClass.Event> plannedTrainDataConsumer;
-  private FlinkKafkaConsumer011<EventOuterClass.Event> weatherDataConsumer;
+    // Consumers
+    private FlinkKafkaConsumer011<EventOuterClass.Event> liveTrainDataConsumer;
+    private FlinkKafkaConsumer011<EventOuterClass.Event> plannedTrainDataConsumer;
+    private FlinkKafkaConsumer011<EventOuterClass.Event> weatherDataConsumer;
 
-  // Producer 
-  private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
+    private void setupConsumers() {
+        this.liveTrainDataConsumer =
+                new FlinkKafkaConsumer011<>(
+                        Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+                        new GenericBinaryProtoDeserializer<>(EventOuterClass.Event.class),
+                        new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+        this.plannedTrainDataConsumer =
+                new FlinkKafkaConsumer011<>(
+                        Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+                        new GenericBinaryProtoDeserializer<>(EventOuterClass.Event.class),
+                        new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
-  private void setupConsumers() {
-    this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
-    this.plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+        this.weatherDataConsumer =
+                new FlinkKafkaConsumer011<>(
+                        Topic.WEATHER_DATA.getValueDescriptor().getName(),
+                        new GenericBinaryProtoDeserializer<>(EventOuterClass.Event.class),
+                        new KafkaConfig().withClientId("WeatherDataMainConsumer").withGroupID("Group").getProperties());
+    }
 
-    this.weatherDataConsumer =
-        new FlinkKafkaConsumer011<>(
-            Topic.WEATHER_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer").withGroupID("Group").getProperties());
-  }
+    @Mixin
+    KafkaConfig kafkaConfig = new KafkaConfig();
 
-  private void setupProducers() {
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
-            .withKeySerializer(Optional.of(LongSerializer::new));
-      this.trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
-        new GenericBinaryProtoSerializer<>(),
-        delaySenderConfig.getProperties());
-      this.trainDelayNotificationProducer.setWriteTimestampToKafka(true);
-  }
+    @Mixin
+    PostgresConfig postgresConfig = new PostgresConfig();
 
-  @Mixin
-  KafkaConfig kafkaConfig = new KafkaConfig();
+    @Option(names = {"-i", "--implementation"}, description = "A, B, ...")
+    private String implementation = "A";
 
-  @Mixin
-  PostgresConfig postgresConfig = new PostgresConfig();
+    // Set the builder here explicitly if you do not want to use command line arguments
+    Cepta.Builder builder;
 
-  @Override
-  public Integer call() throws Exception {
-    logger.info("Starting CEPTA core...");
+    @Override
+    public Integer call() throws Exception {
+        logger.info("Starting CEPTA core...");
 
-    // Setup the streaming execution environment
-    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.setParallelism(1);
-    this.setupConsumers();
-    this.setupProducers();
+        // Setup the streaming execution environment
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+        this.setupConsumers();
 
-    DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
-    DataStream<EventOuterClass.Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
-    DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
+        // Collect input sources
+        HashMap<Topic, FlinkKafkaConsumer011<Event>> sources = new HashMap<>();
+        sources.put(Topic.PLANNED_TRAIN_DATA, plannedTrainDataConsumer);
+        sources.put(Topic.LIVE_TRAIN_DATA, liveTrainDataConsumer);
+        sources.put(Topic.WEATHER_DATA, weatherDataConsumer);
 
-    DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
-      @Override
-      public PlannedTrainData map(Event event) throws Exception{
-        return event.getPlannedTrain();
-      }
-    });
-    DataStream<LiveTrainData> liveTrainDataStream = liveTrainDataEvents.map(new MapFunction<EventOuterClass.Event, LiveTrainData>(){
-      @Override
-      public LiveTrainData map(Event event) throws Exception{
-        return event.getLiveTrain();
-      }
-    });
-    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
-      @Override
-      public WeatherData map(Event event) throws Exception{
-        return event.getWeather();
-      }
-    });
+        // Start
+        if (builder == null) {
+            switch (this.implementation.toLowerCase().trim()) {
+                case "b":
+                    builder = new CeptaB.Builder();
+                    break;
+                default:
+                    builder = new CeptaA.Builder();
+            }
+        }
+        builder.setEnv(env).setSources(sources).setKafkaConfig(kafkaConfig).setPostgresConfig(postgresConfig).build().start();
+        return 0;
+    }
 
-    DataStream<StaysInStationEvent> staysInStationEventDataStream =
-            CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
-            .process(StaysInStationPattern.staysInStationProcessFunction());
-
-       /*
-       DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
-          .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
-            100000, TimeUnit.MILLISECONDS, 1);
-      */
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-        AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 1);
-
-    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
-        .process(new DetectStationArrivalDelay()).name("train-delays");
-
-    // Produce delay notifications into new queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
-        .withKeySerializer(Optional.of(LongSerializer::new));
-
-
-    FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
-        new GenericBinaryProtoSerializer<NotificationOuterClass.Notification>(),
-        delaySenderConfig.getProperties());
-
-    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
-    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-  /* 
-    delayShiftNotifications.addSink(trainDelayNotificationProducer);
-    delayShiftNotifications.print();
-  */
-    KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
-            .withKeySerializer(Optional.of(LongSerializer::new));
-
-    FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
-            Topic.STAYS_IN_STATION.getValueDescriptor().getName(),
-            new GenericBinaryProtoSerializer<>(),
-            staysInStationKafkaConfig.getProperties());
-
-    staysInStationEventDataStream.addSink(staysInStationProducer);
-
-    env.execute("CEPTA CORE");
-    return 0;
-  }
-
-  public static void main(String... args) {
-    int exitCode = new CommandLine(new Main()).execute(args);
-    System.exit(exitCode);
-  }
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new Main()).execute(args);
+        System.exit(exitCode);
+    }
 }
