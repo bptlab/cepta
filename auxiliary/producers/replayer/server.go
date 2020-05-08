@@ -452,6 +452,7 @@ func (s *ReplayerServer) Serve(listener net.Listener) error {
 
 	log.Infof("Serving at %s", listener.Addr())
 	s.grpcServer = grpc.NewServer(
+		grpc.ConnectionTimeout(300 * time.Second),
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
 				MaxConnectionIdle:     10 * time.Minute,

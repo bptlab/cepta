@@ -97,6 +97,10 @@ func (test *Test) Setup(t *testing.T) *Test {
 	containerOptions := tc.ContainerOptions{
 		ContainerRequest: testcontainers.ContainerRequest{
 			Networks: []string{networkName},
+			Resources: &testcontainers.ContainerResourcers{
+				Memory:     500 * 1024 * 1024, // max. 200MB
+				MemorySwap: -1,               // Unlimited swap
+			},
 		},
 	}
 
