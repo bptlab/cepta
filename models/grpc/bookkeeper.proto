@@ -1,0 +1,12 @@
+syntax = "proto3";
+package models.grpc.bookkeeper;
+option go_package = "github.com/bptlab/cepta/models/grpc/bookkeeper";
+
+import "models/internal/types/result.proto";
+import "models/internal/transport.proto";
+import "models/internal/station.proto";
+
+service Bookkeeper {
+    rpc AddTransport(models.internal.Transport) returns (models.internal.types.Empty) {}
+    rpc AddStation(models.internal.Station) returns (stream models.internal.types.Empty) {}
+}
