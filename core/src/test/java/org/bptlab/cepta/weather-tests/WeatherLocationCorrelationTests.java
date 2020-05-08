@@ -10,6 +10,7 @@ import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.containers.PostgresContainer;
 import org.bptlab.cepta.operators.WeatherLocationCorrelationFunction;
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
@@ -26,7 +27,7 @@ public class WeatherLocationCorrelationTests {
   @Test
   public void testDirectLocationMatch() throws IOException {
       System.out.println("Start testDirectLocationMatch");
-    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+    try(PostgresContainer postgres = new PostgresContainer<>()) {
       postgres.start();
       initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
@@ -51,7 +52,7 @@ public class WeatherLocationCorrelationTests {
   @Test
   public void testInsideBoxMatch() throws IOException {
     System.out.println("Start testInsideBoxMatch");
-    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+    try(PostgresContainer postgres = new PostgresContainer()) {
       postgres.start();
       initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
@@ -76,7 +77,7 @@ public class WeatherLocationCorrelationTests {
   @Test
   public void testOutsideBoxMatch() throws IOException {
     System.out.println("Start testOutsideBoxMatch");
-    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+    try(PostgresContainer postgres = new PostgresContainer()) {
       postgres.start();
       initDatabase(postgres);
       String address = postgres.getContainerIpAddress();
@@ -96,7 +97,7 @@ public class WeatherLocationCorrelationTests {
     }    
   }
 
-  public void initDatabase(PostgreSQLContainer container) {
+  public void initDatabase(PostgresContainer container) {
 
     // JDBC driver name and database URL
     String db_url = container.getJdbcUrl();
@@ -149,11 +150,6 @@ public class WeatherLocationCorrelationTests {
       }//end finally try
     }//end try
     System.out.println("Goodbye!");
-  }
-
-  private PostgreSQLContainer newPostgreSQLContainer(){
-    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("example")
-            .withCreateContainerCmdModifier(cmd -> cmd.withMemory((long)100 * 1024 * 1024)); // 100MB
   }
 
   private String insertLocationWithIdLatLonCodeQuery(long locationId, double lon, double lat, String code){

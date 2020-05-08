@@ -10,6 +10,7 @@ java_test(
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
+        "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:weather_data_java_proto",
@@ -36,6 +37,7 @@ java_test(
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+        "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:weather_data_java_proto",

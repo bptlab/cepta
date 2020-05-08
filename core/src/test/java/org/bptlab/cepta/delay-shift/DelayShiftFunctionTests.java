@@ -9,6 +9,7 @@ import com.google.protobuf.Duration;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
+import org.bptlab.cepta.containers.PostgresContainer;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
@@ -33,7 +34,7 @@ public class DelayShiftFunctionTests {
 
    @Test
    public void testRightAmount() throws IOException {
-      try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+      try(PostgresContainer postgres = new PostgresContainer()) {
          postgres.start();
 
          ArrayList<String> insertQueries = new ArrayList<String>();
@@ -59,7 +60,7 @@ public class DelayShiftFunctionTests {
 
    @Test
    public void testDelayNotificationGeneration() throws IOException {
-      try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+      try(PostgresContainer postgres = new PostgresContainer()) {
          postgres.start();
          
          ArrayList<String> insertQueries = new ArrayList<String>();
@@ -97,7 +98,7 @@ public class DelayShiftFunctionTests {
 
    @Test
    public void testDateConsideration() throws IOException {
-      try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+      try(PostgresContainer postgres = new PostgresContainer()) {
          postgres.start();
 
          ArrayList<String> insertQueries = new ArrayList<String>();
@@ -125,7 +126,7 @@ public class DelayShiftFunctionTests {
       }
    }
 
-   public void initDatabase(PostgreSQLContainer container, ArrayList<String> insertQueries) {
+   public void initDatabase(PostgresContainer container, ArrayList<String> insertQueries) {
       // JDBC driver name and database URL
       String db_url = container.getJdbcUrl();
       String user = container.getUsername();
@@ -173,10 +174,6 @@ public class DelayShiftFunctionTests {
          }//end finally try
       }//end try
       System.out.println("Goodbye!");
-   }
-
-   private PostgreSQLContainer newPostgreSQLContainer(){
-      return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
    }
 
    private String insertTrainWithSectionIdQuery(long sectionId){
