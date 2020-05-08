@@ -21,7 +21,7 @@ import (
 	tckafka "github.com/romnnn/testcontainers/kafka"
 	tcredis "github.com/romnnn/testcontainers/redis"
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
