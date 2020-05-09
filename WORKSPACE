@@ -208,7 +208,7 @@ maven_install(
     artifacts = [
         maven.artifact(
             group = "org.apache.flink",
-            artifact = "flink-runtime_2.11",
+            artifact = "flink-runtime_%s" % SCALA_VERSION,
             version = FLINK_VERSION,
             classifier = "tests",
             packaging = "test-jar",
@@ -216,7 +216,7 @@ maven_install(
         ),
         maven.artifact(
             group = "org.apache.flink",
-            artifact = "flink-streaming-java_2.11",
+            artifact = "flink-streaming-java_%s" % SCALA_VERSION,
             version = FLINK_VERSION,
             classifier = "tests",
             packaging = "test-jar",
@@ -228,8 +228,12 @@ maven_install(
             version = FLINK_VERSION,
             testonly = True,
         ),
-        #"org.apache.flink:flink-tests:%s" % FLINK_VERSION,
-        #"org.apache.flink:flink-test-utils-junit:1.10.0",
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
     ],
     repositories = [
         "https://jcenter.bintray.com/",

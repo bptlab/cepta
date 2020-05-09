@@ -36,9 +36,8 @@ java_test(
         "@maven//:org_apache_flink_flink_runtime_2_11",
         "@testing//:org_apache_flink_flink_runtime_2_11_tests",
         "@testing//:org_apache_flink_flink_streaming_java_2_11_tests",
-        #"@testing//:org_apache_flink_flink_test_utils_2_11",
+        "@testing//:org_apache_flink_flink_test_utils_2_11",
         "@testing//:org_apache_flink_flink_test_utils_junit",
-        #"@testing//:org_apache_flink_flink_tests",
     ],
 )
 
