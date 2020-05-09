@@ -152,6 +152,8 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("@rules_jvm_external//:specs.bzl", "maven")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
 
@@ -192,6 +194,43 @@ maven_install(
     ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
     generate_compat_repositories = True,
     override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
+    repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+        # https://repo.maven.apache.org/maven2
+        # https://maven-central-eu.storage-download.googleapis.com/repos/central/data/
+    ],
+)
+
+maven_install(
+    name = "testing",
+    artifacts = [
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-runtime_2.11",
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-streaming-java_2.11",
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils-junit",
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
+        #"org.apache.flink:flink-tests:%s" % FLINK_VERSION,
+        #"org.apache.flink:flink-test-utils-junit:1.10.0",
+    ],
     repositories = [
         "https://jcenter.bintray.com/",
         "https://maven.google.com",
