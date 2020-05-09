@@ -234,6 +234,14 @@ maven_install(
             version = FLINK_VERSION,
             testonly = True,
         ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-tests",
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
     ],
     repositories = [
         "https://jcenter.bintray.com/",
