@@ -54,6 +54,7 @@ go_library(
     },
     deps = [
         "//ci/versioning:go_default_library",
+        "//models/constants:topic_go_proto",
         "//models/grpc:auth_go_proto",
         "//models/grpc:query_go_grpc",
         "//models/internal:transport_go_proto",
