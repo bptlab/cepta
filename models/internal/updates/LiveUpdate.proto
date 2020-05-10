@@ -1,0 +1,13 @@
+syntax = "proto3";
+package models.internal.updates;
+option go_package = "github.com/bptlab/cepta/models/internal/updates/live";
+option java_package = "org.bptlab.cepta.models.internal.updates.live";
+
+import "models/internal/types/ids.proto";
+import "models/internal/types/transport.proto";
+import "models/internal/types/station.proto";
+import "google/protobuf/timestamp.proto";
+
+message LiveUpdate {
+    models.internal.types.CeptaTransportID transport_cepta_id = 1; // Transport for which the live event has occurred, TODO: There are also global live events!
+}

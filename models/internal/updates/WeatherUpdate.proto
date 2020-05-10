@@ -1,0 +1,32 @@
+syntax = "proto3";
+package models.internal.updates;
+option go_package = "github.com/bptlab/cepta/models/internal/updates/weather";
+option java_package = "org.bptlab.cepta.models.internal.updates.weather";
+
+import "google/protobuf/timestamp.proto";
+import "models/internal/types/coordinate.proto";
+
+message WeatherUpdate {
+    models.internal.types.Coordinate position = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+    google.protobuf.Timestamp detection_time = 4;
+    string title = 5;
+    string description = 6;
+    double temperature = 7;
+    double rain = 8;
+    double wind_speed = 9;
+    double cloud_percentage = 10;
+    string city_name = 11;
+    string identifier = 12;
+    double pressure = 13;
+    double ozone = 14;
+    double humidity = 15;
+    int64 wind_bearing = 16;
+    double precip_propability = 17;
+    string precip_type = 28;
+    double dew_point = 19;
+    int64 nearest_storm_bearing = 20;
+    int64 nearest_storm_distance = 21;
+    double visibility = 22;
+}

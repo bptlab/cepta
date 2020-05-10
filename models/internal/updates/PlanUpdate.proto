@@ -1,0 +1,35 @@
+syntax = "proto3";
+package models.internal.updates;
+option go_package = "github.com/bptlab/cepta/models/internal/updates/plan";
+option java_package = "org.bptlab.cepta.models.internal.updates.plan";
+
+import "models/internal/types/ids.proto";
+import "models/internal/types/transport.proto";
+import "models/internal/types/station.proto";
+import "google/protobuf/timestamp.proto";
+
+message PlanUpdate {
+    models.internal.types.CeptaTransportID transport_cepta_id = 1; // Transport whose plan is being updated or received
+    repeated PlanSectionUpdate section_updates = 2; // Sections that will be updated
+    oneof update {
+        FullPlanUpdate full = 10;  // The entire plan is provided and there is some more information related to that
+        PartialPlanUpdate partial = 11;  // This plan update only applies to some sections of a plan and can provide more information to that
+    }
+}
+
+message FullPlanUpdate {
+    models.internal.types.TransportType type = 1; // Full plans can know about the type of the entire transport
+}
+
+message PartialPlanUpdate {}
+
+message PlanSectionUpdate {
+    int32 plan_station_index = 1; // Section of the plan that is updated
+
+    models.internal.types.CeptaStationID section_start_station_cepta_id = 10; // ID of the start station of the section
+    models.internal.types.CeptaStationID section_end_station_cepta_id = 11; // ID of the end station of the section
+
+    google.protobuf.Timestamp planned_departure_time_start_station = 20; // Planned departure time for this section's start station
+    google.protobuf.Timestamp planned_arrival_time_end_station = 21; // Planned arrival time for this section's end station
+    models.internal.types.InfrastructureProvider infrastructure_provider = 22;
+}
