@@ -176,7 +176,7 @@ proto_library(
 )
 
 go_proto_library(
-    name = "bookkeeper_go_proto",
+    name = "bookkeeper_go_grpc",
     compilers = ["@io_bazel_rules_go//proto:go_grpc"],
     importpath = "github.com/bptlab/cepta/models/grpc/bookkeeper",
     proto = ":bookkeeper_proto",

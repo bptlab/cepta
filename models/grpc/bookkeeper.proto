@@ -8,5 +8,5 @@ import "models/internal/station.proto";
 
 service Bookkeeper {
     rpc AddTransport(models.internal.Transport) returns (models.internal.types.Empty) {}
-    rpc AddStation(models.internal.Station) returns (stream models.internal.types.Empty) {}
+    rpc AddStation(models.internal.Station) returns (models.internal.types.Empty) {}
 }
