@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_java//java:defs.bzl", "java_proto_library")
 
 MODALITY_PROTOS = [
     "//models/internal/modalities/air:air_proto",
@@ -19,6 +20,12 @@ proto_library(
     name = "event_proto",
     srcs = ["event.proto"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal:station_proto",
+        "//models/internal/updates:live_update_proto",
+        "//models/internal/updates:plan_update_proto",
+        "//models/internal/updates:position_update_proto",
+    ],
 )
 
 go_proto_library(
@@ -26,6 +33,18 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/internal/event",
     proto = ":event_proto",
     visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal:station_go_proto",
+        "//models/internal/updates:live_update_go_proto",
+        "//models/internal/updates:plan_update_go_proto",
+        "//models/internal/updates:position_update_go_proto",
+    ],
+)
+
+java_proto_library(
+    name = "event_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":event_proto"],
 )
 
 proto_library(
@@ -74,6 +93,12 @@ go_proto_library(
     ],
 )
 
+java_proto_library(
+    name = "cargo_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":cargo_proto"],
+)
+
 proto_library(
     name = "station_proto",
     srcs = ["station.proto"],
@@ -102,6 +127,12 @@ go_proto_library(
         "//models/internal/types:transport_go_proto",
         "//models/internal/types:station_go_proto",
     ] + MODALITY_GO_PROTOS,
+)
+
+java_proto_library(
+    name = "station_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":station_proto"],
 )
 
 proto_library(
@@ -136,12 +167,21 @@ go_proto_library(
     ] + MODALITY_GO_PROTOS,
 )
 
+java_proto_library(
+    name = "transport_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":transport_proto"],
+)
+
 filegroup(
     name = "internal",
     srcs = [
         ":event_go_proto",
+        ":event_java_proto",
         ":station_go_proto",
+        ":station_java_proto",
         ":transport_go_proto",
+        ":transport_java_proto",
         "//models/internal/notifications",
         "//models/internal/types",
         "//models/internal/updates",

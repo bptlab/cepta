@@ -3,8 +3,17 @@ package models.internal;
 option go_package = "github.com/bptlab/cepta/models/internal/event";
 option java_package = "org.bptlab.cepta.models.internal.event";
 
+import "models/internal/updates/LiveUpdate.proto"; // TODO: Rename
+import "models/internal/updates/PlanUpdate.proto"; // TODO: Rename
+import "models/internal/updates/PositionUpdate.proto"; // TODO: Rename
+import "models/internal/station.proto";
 
-// GENERIC SCHEMA FOR A CEPTA EVENT
-message Event {
-    int64 cepta_id = 1;
+// GENERIC SCHEMA FOR A NORMALIZED CEPTA EVENT
+message NormalizedEvent {
+    oneof event {
+        models.internal.Station station = 1;
+        models.internal.updates.LiveUpdate live_update = 2;
+        models.internal.updates.PlanUpdate plan_update = 3;
+        models.internal.updates.PositionUpdate position_update = 4;
+    }
 }

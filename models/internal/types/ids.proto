@@ -11,6 +11,10 @@ message CeptaStationID {
     string id = 1;
 }
 
+message CeptaCountryID {
+    string id = 1;
+}
+
 message CeptaCarrierID {
     string id = 1;
 }

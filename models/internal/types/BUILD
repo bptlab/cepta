@@ -87,6 +87,7 @@ proto_library(
     name = "country_proto",
     srcs = ["country.proto"],
     visibility = ["//visibility:public"],
+    deps = [":ids_proto"],
 )
 
 go_proto_library(
@@ -94,6 +95,7 @@ go_proto_library(
     importpath = "github.com/bptlab/cepta/models/internal/types/country",
     proto = ":country_proto",
     visibility = ["//visibility:public"],
+    deps = [":ids_go_proto"],
 )
 
 java_proto_library(
@@ -144,6 +146,12 @@ go_proto_library(
     ],
 )
 
+java_proto_library(
+    name = "transport_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":transport_proto"],
+)
+
 proto_library(
     name = "station_proto",
     srcs = ["station.proto"],
@@ -161,6 +169,12 @@ go_proto_library(
     deps = [
         ":country_go_proto",
     ],
+)
+
+java_proto_library(
+    name = "station_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":station_proto"],
 )
 
 filegroup(
@@ -182,6 +196,7 @@ filegroup(
         ":result_java_proto",
         ":result_proto",
         ":station_go_proto",
+        ":station_java_proto",
         ":station_proto",
         ":transport_go_proto",
         ":transport_proto",

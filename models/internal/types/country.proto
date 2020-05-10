@@ -3,7 +3,10 @@ package models.internal.types;
 option go_package = "github.com/bptlab/cepta/models/internal/types/country";
 option java_package = "org.bptlab.cepta.models.internal.types.country";
 
+import "models/internal/types/ids.proto";
+
 message Country {
-    string name = 1;
-    string code = 2;
+    models.internal.types.CeptaCountryID cepta_id = 1;
+    string name = 2;
+    string code = 3;
 }

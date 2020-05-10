@@ -21,6 +21,7 @@ message RailStation {
     bool remove_wagon = 21;
     bool add_wagon = 22;
     bool switch_wagon = 23;
-    bool check_wagon_at_depature = 24;
+    bool check_wagon_at_departure = 24;
     bool check_wagon_at_arrival = 25;
+    // TODO: station_type ? might be an enum
 }
