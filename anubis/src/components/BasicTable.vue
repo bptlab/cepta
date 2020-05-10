@@ -175,7 +175,7 @@ export default class BasicTable extends Vue {
       td.selectable
         +theme(color, c-accent-text)
     td
-      padding: 20px
+      padding: 10px 20px
       &.selectable
         cursor: pointer
       &.selectable:hover:not(.selected)

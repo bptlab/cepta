@@ -167,8 +167,6 @@ export default class TransportManager extends Vue {
     .transport-list
       height: 500px
       overflow-y: scroll
-      tr
-        cursor: pointer
 
   .transport-details
     width: 70%
