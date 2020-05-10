@@ -68,7 +68,6 @@ public class CeptaA extends Cepta {
         logger.info("Starting CEPTA core... [A]");
 
         // Setup the streaming execution environment
-        env.setParallelism(1);
         this.setupProducers();
 
         DataStream<Event> plannedTrainDataEvents = env.addSource(this.sources.get(Topic.PLANNED_TRAIN_DATA));

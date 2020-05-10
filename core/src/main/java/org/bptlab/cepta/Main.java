@@ -7,6 +7,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
+import org.bptlab.cepta.config.QueryServiceConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class Main implements Callable<Integer> {
     private FlinkKafkaConsumer011<EventOuterClass.Event> liveTrainDataConsumer;
     private FlinkKafkaConsumer011<EventOuterClass.Event> plannedTrainDataConsumer;
     private FlinkKafkaConsumer011<EventOuterClass.Event> weatherDataConsumer;
+    private FlinkKafkaConsumer011<EventOuterClass.Event> stationDataConsumer;
 
     private void setupConsumers() {
         this.liveTrainDataConsumer =
@@ -48,7 +50,12 @@ public class Main implements Callable<Integer> {
                 new FlinkKafkaConsumer011<>(
                         Topic.WEATHER_DATA.getValueDescriptor().getName(),
                         new GenericBinaryProtoDeserializer<>(EventOuterClass.Event.class),
-                        new KafkaConfig().withClientId("WeatherDataMainConsumer").withGroupID("Group").getProperties());
+                        new KafkaConfig().withClientId("WeatherDataMainConsumer").getProperties());
+        this.stationDataConsumer =
+                new FlinkKafkaConsumer011<>(
+                        Topic.STATION_DATA.getValueDescriptor().getName(),
+                        new GenericBinaryProtoDeserializer<>(EventOuterClass.Event.class),
+                        new KafkaConfig().withClientId("StationDataMainConsumer").getProperties());
     }
 
     @Mixin
@@ -56,6 +63,9 @@ public class Main implements Callable<Integer> {
 
     @Mixin
     PostgresConfig postgresConfig = new PostgresConfig();
+
+    @Mixin
+    QueryServiceConfig queryServiceConfig = new QueryServiceConfig();
 
     @Option(names = {"-i", "--implementation"}, description = "A, B, ...")
     private String implementation = "A";
@@ -65,8 +75,6 @@ public class Main implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        logger.info("Starting CEPTA core...");
-
         // Setup the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
@@ -77,6 +85,7 @@ public class Main implements Callable<Integer> {
         sources.put(Topic.PLANNED_TRAIN_DATA, plannedTrainDataConsumer);
         sources.put(Topic.LIVE_TRAIN_DATA, liveTrainDataConsumer);
         sources.put(Topic.WEATHER_DATA, weatherDataConsumer);
+        sources.put(Topic.STATION_DATA, stationDataConsumer);
 
         // Start
         if (builder == null) {
