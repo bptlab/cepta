@@ -134,7 +134,7 @@ http_archive(
     urls = ["https://github.com/romnnn/go-proto-gql/archive/v0.7.4.tar.gz"],
 )
 
-FLINK_VERSION = "1.9.0"
+FLINK_VERSION = "1.10.0"
 
 SCALA_VERSION = "2.11"
 
@@ -152,12 +152,15 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("@rules_jvm_external//:specs.bzl", "maven")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
 
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
+        "commons-codec:commons-codec:1.14",
         "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
         "org.testcontainers:testcontainers:1.14.1",
@@ -167,8 +170,10 @@ maven_install(
         "com.google.code.findbugs:jsr305:1.3.9",
         "com.google.errorprone:error_prone_annotations:2.0.18",
         "com.google.j2objc:j2objc-annotations:1.1",
-        "com.google.protobuf:protobuf-java:3.11.1",
-        "com.google.protobuf:protobuf-java-util:3.6.1",
+        # "com.google.protobuf:protobuf-java:3.11.4",
+        # "com.google.protobuf:protobuf-java-util:3.11.4",
+        "com.google.protobuf:protobuf-java:2.5.0",
+        # "com.google.protobuf:protobuf-java-util:2.5.0",
         "info.picocli:picocli:4.1.0",
         "org.slf4j:slf4j-log4j12:1.7.5",
         "org.slf4j:slf4j-api:1.7.28",
@@ -176,6 +181,11 @@ maven_install(
         "com.github.jasync-sql:jasync-common:1.0.11",
         "org.postgresql:postgresql:42.2.5",
         "joda-time:joda-time:2.9.7",
+        "com.google.guava:guava:29.0-jre",
+        # "com.esotericsoftware.kryo:kryo:4.0.2",  #
+        "com.esotericsoftware.kryo:kryo:2.24.0",  # .
+        # "com.esotericsoftware:kryo:4.0.2",  # 2.24.0
+        "de.javakaffee:kryo-serializers:0.45",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
         "org.apache.flink:flink-java:%s" % FLINK_VERSION,
@@ -185,6 +195,63 @@ maven_install(
     ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
     generate_compat_repositories = True,
     override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
+    repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+        # https://repo.maven.apache.org/maven2
+        # https://maven-central-eu.storage-download.googleapis.com/repos/central/data/
+    ],
+)
+
+maven_install(
+    name = "testing",
+    artifacts = [
+        maven.artifact(
+            group = "com.twitter",
+            artifact = "chill-protobuf",
+            version = "0.9.5",
+            # classifier = "tests",
+            # packaging = "test-jar",
+            exclusions = ["com.esotericsoftware.kryo:kryo"],
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-runtime_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-streaming-java_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils-junit",
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-tests",
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+    ],
     repositories = [
         "https://jcenter.bintray.com/",
         "https://maven.google.com",
