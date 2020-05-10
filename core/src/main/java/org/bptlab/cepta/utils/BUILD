@@ -8,5 +8,6 @@ java_library(
         "//core/src/main/java/org/bptlab/cepta/utils/converters:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/triggers:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/types:java_default_library",
+        "@maven//:commons_codec_commons_codec",
     ],
 )

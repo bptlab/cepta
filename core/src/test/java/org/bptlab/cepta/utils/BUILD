@@ -8,6 +8,7 @@ java_test(
     test_class = "org.bptlab.cepta.test.utils.IDGeneratorTest",
     deps = [
         "//core/src/main/java/org/bptlab/cepta/utils:java_default_library",
+        "@maven//:org_javatuples_javatuples",
     ],
 )
 
