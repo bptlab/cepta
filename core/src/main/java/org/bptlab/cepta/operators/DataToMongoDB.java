@@ -20,6 +20,11 @@ import org.bptlab.cepta.utils.database.Util.ProtoKeyValues;
 import org.bson.Document;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
@@ -59,8 +64,24 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         coll.insertOne(document).subscribe(insertOneSubscriber);
         //start the subscriber -> start querying timeout defaults to 60seconds
-        insertOneSubscriber.await();
-        resultFuture.complete(Collections.singleton(dataset));
+
+        CompletableFuture<Boolean> queryFuture = CompletableFuture.supplyAsync(new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                List<InsertOneResult> result = insertOneSubscriber.get();
+                Boolean acknowledged = result.get(0).wasAcknowledged();
+                return acknowledged;
+            }
+        });
+        CompletableFuture<Boolean> ackFuture = queryFuture.thenApply(acknowledged ->{
+            resultFuture.complete(Collections.singleton(dataset));
+            return acknowledged;
+        });
+        if (ackFuture.get()){
+            System.out.println("Success");
+        } else {
+            System.out.println("Failed");
+        }
     }
 
 }
