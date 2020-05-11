@@ -24,7 +24,7 @@ import (
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	tc "github.com/romnnn/testcontainers"
 	tcmongo "github.com/romnnn/testcontainers/mongo"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 )
 
 const parallel = true
@@ -101,7 +101,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	})
 	if err != nil {
 		t.Fatalf("Failed to setup the user management service: %v", err)

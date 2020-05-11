@@ -837,10 +837,10 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_testcontainers_testcontainers_go",
-    importpath = "github.com/testcontainers/testcontainers-go",
-    sum = "h1:VbMekzjv6e5KmhiwMm5B1kjrCigoKYVORUVVe+QbAQc=",
-    version = "v0.5.1",
+    name = "com_github_romnnn_testcontainers_go",
+    importpath = "github.com/romnnn/testcontainers-go",
+    sum = "h1:4c5PwNaUp5mSY1tU7u2y7eluYBqekheHOKm7OdBsU0Q=",
+    version = "v0.5.2",
 )
 
 go_repository(
@@ -1462,8 +1462,8 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:FV1AeK9zAyVlZyfqyPRj7VnL2RzJJYLVtOsLppBk6JU=",
-    version = "v0.1.5",
+    sum = "h1:ZEKymBVEsceaXVQk8SfxGHFj+o6uMgDFrmaH4zZgLx8=",
+    version = "v0.1.8",
 )
 
 go_repository(

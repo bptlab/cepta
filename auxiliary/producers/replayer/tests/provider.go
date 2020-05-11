@@ -29,7 +29,7 @@ import (
 	tckafka "github.com/romnnn/testcontainers/kafka"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -100,6 +100,12 @@ func (test *Test) Setup(t *testing.T) *Test {
 		},
 	}
 
+	kafkaContainerOptions := containerOptions
+	kafkaContainerOptions.ContainerRequest.Resources = &testcontainers.ContainerResourcers{
+		Memory:     1000 * 1024 * 1024, // max. 1GB
+		MemorySwap: -1,               // Unlimited swap
+	}
+
 	// Start mongodb container
 	var mongoConfig tcmongo.DBConfig
 	test.MongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{ContainerOptions: containerOptions})
@@ -113,12 +119,12 @@ func (test *Test) Setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 
 	// Start kafka container
 	var kafkaConfig *tckafka.ContainerConnectionConfig
-	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: containerOptions})
+	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: kafkaContainerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test
@@ -127,7 +133,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 		Group: fmt.Sprintf("TestConsumerGroup-%s", tc.UniqueID()),
 	}
@@ -135,7 +141,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 		Config: kafka.Config{
 			Brokers:             kafkaConfig.Brokers,
 			Version:             kafkaConfig.KafkaVersion,
-			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+			ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 		},
 	}
 

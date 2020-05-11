@@ -21,7 +21,7 @@ import (
 	tckafka "github.com/romnnn/testcontainers/kafka"
 	tcredis "github.com/romnnn/testcontainers/redis"
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
@@ -128,7 +128,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 
 	// Start kafka container
@@ -141,7 +141,7 @@ func (test *Test) setup(t *testing.T) *Test {
 	baseKafkaConfig := kafka.Config{
 		Brokers:             kafkaConfig.Brokers,
 		Version:             kafkaConfig.KafkaVersion,
-		ConnectionTolerance: libcli.ConnectionTolerance{MaxRetries: 10, RetryIntervalSec: 5},
+		ConnectionTolerance: libcli.ConnectionTolerance{MaxRetries: 20, RetryIntervalSec: 5},
 	}
 	test.kafkacConfig = kafkaconsumer.Config{
 		Config: baseKafkaConfig,

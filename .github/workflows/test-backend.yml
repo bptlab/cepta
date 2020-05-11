@@ -1,0 +1,36 @@
+name: Test Backend
+
+# Run tests all the time
+on: [ push, pull_request ]
+jobs:
+  test-backend:
+    runs-on: self-hosted
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - name: Info
+        run: ./ci/print-workspace-status.sh
+
+      - name: Build
+        run: bazel build --noshow_progress --noshow_loading_progress --logging=0 :cepta
+
+      - name: Smoke tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: :smoke
+
+      - name: Unit tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: :unit
+
+      - name: Integration tests
+        run: bazel test ${RUN_OPTS} ${TEST_TARGET} --test_output=errors --test_tag_filters="${TEST_FILTER}"
+        env:
+          RUN_OPTS: "--show_result=0 --noshow_progress --noshow_loading_progress --logging=0"
+          TEST_TARGET: :integration
