@@ -58,7 +58,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
-        System.out.println("INVOKE");
+        // System.out.println("INVOKE");
         Document document = protoToBson(dataset);
 
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
@@ -78,7 +78,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
             return acknowledged;
         });
         if (ackFuture.get()){
-            System.out.println("Success");
+            // System.out.println("Success");
         } else {
             System.out.println("Failed");
         }
