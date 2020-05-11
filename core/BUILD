@@ -123,6 +123,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/data-to-mongo-db:data-to-mongo-db",
     "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
     "//core/src/test/java/org/bptlab/cepta/delay-shift:delay-shift",
+    "//core/src/test/java/org/bptlab/cepta/delay-shift:delay-shift-mongo",
     "//core/src/test/java/org/bptlab/cepta/sum-of-delay-at-station:sum-of-delay-at-station",
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
