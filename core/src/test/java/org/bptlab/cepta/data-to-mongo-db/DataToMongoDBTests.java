@@ -53,13 +53,14 @@ import org.junit.*;
 import org.testcontainers.containers.GenericContainer;
 
 import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.Timestamp;
 
 import sun.awt.image.SunWritableRaster.DataStealer;
 
 import java.sql.*;
 import java.util.function.Supplier;
 
-import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.*;
 
 public class DataToMongoDBTests {
     private OneInputStreamOperatorTestHarness<PlannedTrainData, PlannedTrainData> testHarness;
@@ -73,7 +74,9 @@ public class DataToMongoDBTests {
                             .setNumberTaskManagers(1)
                             .build());
 
-    @Before
+    // I don't think we really need this... But to be honest:
+    // I also don't really know what it is supposed to be for
+    @Ignore//@Before
     public void setupTestHarness() throws Exception {
         MiniClusterWithClientResource resource;
 
@@ -128,7 +131,7 @@ public class DataToMongoDBTests {
         testHarness.open();
     }
 
-    @Test
+    @Ignore//@Test
     public void oneUploaded() throws Exception {
         PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         //push (timestamped) elements into the operator (and hence user defined function)
@@ -145,18 +148,28 @@ public class DataToMongoDBTests {
         Assert.assertEquals(testHarness.getOutput(), train);
     }
 
-    @Test
-    public void inputAmount() throws Exception {
-         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    private StreamExecutionEnvironment setupEnv(){
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
         CollectSink.values.clear();
+        return env;
+    }
 
+    private MongoConfig setupMongoContainer(){
         GenericContainer mongoContainer = newMongoContainer();
         mongoContainer.start();
         String address = mongoContainer.getContainerIpAddress();
         Integer port = mongoContainer.getFirstMappedPort();
         MongoConfig mongoConfig = new MongoConfig().withHost(address).withPort(port).withPassword("example").withUser("root").withName("mongodb");
+
+        return mongoConfig;
+    }
+
+    @Test
+    public void inputAmountOne() throws Exception {
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
 
         TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
@@ -165,58 +178,107 @@ public class DataToMongoDBTests {
         DataStream<PlannedTrainData> resultStream = AsyncDataStream
             .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
-        resultStream.print();
-
-
-        DataStream<List<Document>> checkStream = AsyncDataStream
-                .unorderedWait(resultStream, new RichAsyncFunction<PlannedTrainData, List<Document>>() {
-                            @Override
-                            public void asyncInvoke(PlannedTrainData plannedTrainData, ResultFuture<List<Document>> resultFuture) throws Exception {
-                                MongoClient mongoClient = Mongo.getMongoClient(mongoConfig);
-                                MongoDatabase database = mongoClient.getDatabase("mongodb");
-                                MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
-
-                                SubscriberHelpers.OperationSubscriber<Document> findSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-
-                                plannedTrainDataCollection.find().subscribe(findSubscriber);
-
-                                CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
-                                    @Override
-                                    public List<Document> get() {
-//                                        try {
-//                                            TimeUnit.SECONDS.sleep(50);
-//                                        } catch (InterruptedException e) {
-//                                            throw new IllegalStateException();
-//                                        }
-                                        List<Document> result = findSubscriber.get();
-                                        return result;
-                                    }
-                                }).thenAccept(result ->{
-                                    resultFuture.complete(Collections.singletonList(result));
-                                    System.out.println(result);
-                                });
-
-                            }
-                        },100000, TimeUnit.MILLISECONDS, 1);
 
         resultStream.addSink(new CollectSink());
-        checkStream.addSink(new CheckSink());
-        checkStream.print();
+        //checkStream.addSink(new CheckSink());
+        env.execute();
+
+        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
+        assertEquals(1, databaseInards.size());
+    }
+
+
+    @Test
+    public void inputAmountMore() throws Exception {
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
+
+        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
+        PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
+        PlannedTrainData train1 = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
+        PlannedTrainData train2 = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
+        DataStream<PlannedTrainData> inputStream = env.fromElements(train, train1, train2);
+        
+        DataStream<PlannedTrainData> resultStream = AsyncDataStream
+            .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
+
+        resultStream.addSink(new CollectSink());
+        //checkStream.addSink(new CheckSink());
+        env.execute();
+
+        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
+        assertEquals(3, databaseInards.size());
+    }
+
+    @Test
+    public void inputValueOne() throws Exception {
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
+
+        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
+        ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
+        plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
+        DataStream<PlannedTrainData> inputStream = env.fromCollection(plannedTrainData);
+        
+        DataStream<PlannedTrainData> resultStream = AsyncDataStream
+            .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
+
+        resultStream.addSink(new CollectSink());
+        //checkStream.addSink(new CheckSink());
+        env.execute();
+
+        ArrayList<PlannedTrainData> databaseInards = getDatabaseContentAsData(mongoConfig, env);
+        assertEquals(plannedTrainData, databaseInards);
+    }
+
+    @Test
+    public void inputValueMore() throws Exception {
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
+
+        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
+        ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(2, 3));
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(4, 5));
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(5, 6));
+        DataStream<PlannedTrainData> inputStream = env.fromCollection(plannedTrainData);
+        
+        DataStream<PlannedTrainData> resultStream = AsyncDataStream
+            .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
 
         env.execute();
 
-        assertTrue(CollectSink.values.contains(train));
-        assertTrue(CheckSink.values.size() == 1);
-        
-////        List<Document> docs = findSubscriber.get();
-//
-//        int count = result.size();
-//        int s = StreamUtils.countOfEventsInStream(inputStream);
-//        Assert.assertEquals(2, count);
-//        assertTrue(sink.getResult().contains(train));
+        ArrayList<PlannedTrainData> databaseInards = getDatabaseContentAsData(mongoConfig, env);
+        assertEquals(plannedTrainData, databaseInards);
     }
 
-    // create a testing sink
+    @Test
+    public void outputStays() throws Exception {
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
+
+        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
+        ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
+        plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
+        plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
+        plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
+        DataStream<PlannedTrainData> inputStream = env.fromCollection(plannedTrainData);
+        
+        DataStream<PlannedTrainData> resultStream = AsyncDataStream
+            .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
+
+        env.execute();
+
+        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
+        ArrayList<PlannedTrainData> streamData = StreamUtils.collectStreamToArrayList(resultStream);
+        assertEquals(plannedTrainData, streamData);
+    }
+
+    // create a testing sink that collects PlannedTrainData values
     private static class CollectSink implements SinkFunction<PlannedTrainData> {
 
         // must be static
@@ -228,6 +290,7 @@ public class DataToMongoDBTests {
         }
     }
 
+    // create a testing sink that collects List<Document> values
     private static class CheckSink implements SinkFunction<List<Document>> {
 
         // must be static
@@ -239,8 +302,74 @@ public class DataToMongoDBTests {
         }
     }
 
-    public int getNumberOfDatabaseEntries(){
-        return 2;
+    public List<Document> getDatabaseContent(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
+        DataStream<Integer> oneElementStream = env.fromElements(1);
+
+        /* we do this with a stream because we collect asynchronously and 
+           this is the easiest way we came up with to do this */
+        DataStream<List<Document>> checkStream = AsyncDataStream
+        .unorderedWait(oneElementStream, new RichAsyncFunction<Integer, List<Document>>() {
+                    @Override
+                    public void asyncInvoke(Integer elem, ResultFuture<List<Document>> resultFuture) throws Exception {
+                        MongoClient mongoClient = Mongo.getMongoClient(mongoConfig);
+                        MongoDatabase database = mongoClient.getDatabase("mongodb");
+                        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
+
+                        SubscriberHelpers.OperationSubscriber<Document> findSubscriber = new SubscriberHelpers.OperationSubscriber<>();
+
+                        plannedTrainDataCollection.find().subscribe(findSubscriber);
+
+                        CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
+                            @Override
+                            public List<Document> get() {
+//                                        try {
+//                                            TimeUnit.SECONDS.sleep(50);
+//                                        } catch (InterruptedException e) {
+//                                            throw new IllegalStateException();
+//                                        }
+                                // get all the database's content
+                                List<Document> result = findSubscriber.get();
+                                return result;
+                            }
+                        }).thenAccept(result ->{
+                            resultFuture.complete(Collections.singletonList(result));
+                            //System.out.println(result);
+                        });
+
+                    }
+                },100000, TimeUnit.MILLISECONDS, 1);
+
+        return StreamUtils.collectStreamToArrayList(checkStream).get(0); 
+    }
+
+    public ArrayList<PlannedTrainData> getDatabaseContentAsData(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
+        List<Document> docs = getDatabaseContent(mongoConfig, env);
+        ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
+        for (Document doc : docs){
+            plannedTrainData.add(documentToPlannedTrainData(doc));
+        }
+        return plannedTrainData;
+    }
+
+    private PlannedTrainData documentToPlannedTrainData(Document doc){
+        PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
+        builder.setId((Long)doc.get("id"));
+        builder.setTrainSectionId((Long)doc.get("train_section_id"));
+        builder.setStationId((Long)doc.get("station_id"));
+        builder.setPlannedEventTime((Timestamp)doc.get("planned_event_time"));
+        builder.setStatus((Long)doc.get("status"));
+        builder.setFirstTrainId((Long)doc.get("first_train_id"));
+        builder.setTrainId((Long)doc.get("train_id"));
+        builder.setPlannedDepartureTimeStartStation((Timestamp)doc.get("planned_departure_time_start_station"));
+        builder.setPlannedArrivalTimeEndStation((Timestamp)doc.get("planned_arrival_time_end_station"));
+        builder.setRuId((Long)doc.get("ru_id"));
+        builder.setEndStationId((Long)doc.get("end_station_id"));
+        builder.setImId((Long)doc.get("im_id"));
+        builder.setFollowingImId((Long)doc.get("following_im_id"));
+        builder.setMessageStatus((Long)doc.get("message_status"));
+        builder.setIngestionTime((Timestamp)doc.get("ingestion_time"));
+        builder.setOriginalTrainId((Long)doc.get("original_train_id"));
+        return builder.build();
     }
 
     public GenericContainer newMongoContainer(){
