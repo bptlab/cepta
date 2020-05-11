@@ -1472,3 +1472,24 @@ go_repository(
     sum = "h1:YDjusn29QI/Das2iO9M0BHnIbxPeyuCHsjMW+lJfyTc=",
     version = "v0.5.4",
 )
+
+go_repository(
+    name = "com_github_yourbasic_graph",
+    importpath = "github.com/yourbasic/graph",
+    sum = "h1:4u7nCRnWizT8R6xOP7cGaq+Ov0oBGkKMsLWZKiwDFas=",
+    version = "v0.0.0-20170921192928-40eb135c0b26",
+)
+
+go_repository(
+    name = "com_github_k0kubun_pp",
+    importpath = "github.com/k0kubun/pp",
+    sum = "h1:3tqvf7QgUnZ5tXO6pNAZlrvHgl6DvifjDrd9g2S9Z40=",
+    version = "v3.0.1+incompatible",
+)
+
+go_repository(
+    name = "com_github_mattn_go_colorable",
+    importpath = "github.com/mattn/go-colorable",
+    sum = "h1:6Su7aK7lXmJ/U79bYtBjLNaha4Fs1Rg9plHpcH+vvnE=",
+    version = "v0.1.6",
+)
