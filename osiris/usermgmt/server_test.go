@@ -24,7 +24,7 @@ import (
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	tc "github.com/romnnn/testcontainers"
 	tcmongo "github.com/romnnn/testcontainers/mongo"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 )
 
 const parallel = true

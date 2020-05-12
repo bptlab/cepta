@@ -95,7 +95,7 @@ go_test(
         "//osiris/usermgmt:go_default_library",
         "@com_github_romnnn_testcontainers//:go_default_library",
         "@com_github_romnnn_testcontainers//mongo:go_default_library",
-        "@com_github_testcontainers_testcontainers_go//:go_default_library",
+        "@com_github_romnnn_testcontainers_go//:go_default_library",
         "@org_golang_google_grpc//test/bufconn:go_default_library",
     ],
 )
