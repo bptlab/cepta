@@ -85,5 +85,26 @@ public class Mongo {
         }
         return document;
     }
+
+    public static PlannedTrainData documentToPlannedTrainData(Document doc){
+        PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
+        builder.setId((Long)doc.get("id"));
+        builder.setTrainSectionId((Long)doc.get("train_section_id"));
+        builder.setStationId((Long)doc.get("station_id"));
+        builder.setPlannedEventTime((Timestamp)doc.get("planned_event_time"));
+        builder.setStatus((Long)doc.get("status"));
+        builder.setFirstTrainId((Long)doc.get("first_train_id"));
+        builder.setTrainId((Long)doc.get("train_id"));
+        builder.setPlannedDepartureTimeStartStation((Timestamp)doc.get("planned_departure_time_start_station"));
+        builder.setPlannedArrivalTimeEndStation((Timestamp)doc.get("planned_arrival_time_end_station"));
+        builder.setRuId((Long)doc.get("ru_id"));
+        builder.setEndStationId((Long)doc.get("end_station_id"));
+        builder.setImId((Long)doc.get("im_id"));
+        builder.setFollowingImId((Long)doc.get("following_im_id"));
+        builder.setMessageStatus((Long)doc.get("message_status"));
+        builder.setIngestionTime((Timestamp)doc.get("ingestion_time"));
+        builder.setOriginalTrainId((Long)doc.get("original_train_id"));
+        return builder.build();
+    }
 }
 
