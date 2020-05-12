@@ -16,9 +16,9 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.*;
 import static com.mongodb.client.model.Sorts.*;
 
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass;
 import org.bptlab.cepta.models.internal.delay.DelayOuterClass.Delay;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
@@ -47,7 +47,6 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.*;
 
 
@@ -91,41 +90,28 @@ public class DelayShiftFunctionMongo extends
                         eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
                 )
         ).sort(ascending("plannedEventTime")).subscribe(findMultipleSubscriber);
-//        List<Document> docs = findMultipleSubscriber.get();
-//        try {
-//            System.out.println(docs);
-//            System.out.println(docs.get(0).get("planned_event_time"));
-//            System.out.println(docs.get(0).get("planned_event_time") instanceof Timestamp);
-//        } catch (IndexOutOfBoundsException e) {
-//            System.out.println("Empty result");
-//        }
-//      TODO the actual work
+
         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
             @Override
             public List<Document> get() {
                 return findMultipleSubscriber.get();
             }
         }).thenAccept(result ->{
-
-
-            resultFuture.complete(generateDelayEvents(dataset, Mongo.documentListToPlannedTrainDataList(result)));
+            resultFuture.complete(generateDelayEvents(dataset, Mongo.documentListToPlannedTrainDataList(dataset.getStationId(), result)));
         });
         queryFuture.get();
     }
-    private Collection<Notification> generateDelayEvents(LiveTrainData liveTrainData,List<PlannedTrainData> plannedTrainDataList) {
+
+    private Collection<Notification> generateDelayEvents(LiveTrainData liveTrainData, List<PlannedTrainData> plannedTrainDataList) {
         Collection<Notification> events = new ArrayList<>();
         long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
-        int backwardsIterator = plannedTrainDataList.size()-1;
-        while (liveTrainData.getStationId() != plannedTrainDataList.get(backwardsIterator).getStationId()){
-            DelayNotification.Builder delayBuilder = DelayNotification.newBuilder();
-            delayBuilder.setDelay(Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()).setDetails("DelayShift from Station: "+liveTrainData.getStationId()).build() );
-            delayBuilder.setTransportId(Ids.CeptaTransportID.newBuilder());
-            delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(liveTrainData.getStationId())).build());
-            events.add(Notification.newBuilder().setDelay(delayBuilder.build()).build());
-            backwardsIterator--;
-            if (backwardsIterator<0) {
-                break;
-            }
+
+        for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
+            events.add(NotificationHelper.getTrainDelayNotificationFrom(
+                String.valueOf(liveTrainData.getTrainId()),
+                delay,
+                "DelayShift from Station: "+liveTrainData.getStationId(),
+                plannedTrainDataTrain.getStationId()));
         }
 
         return events;
