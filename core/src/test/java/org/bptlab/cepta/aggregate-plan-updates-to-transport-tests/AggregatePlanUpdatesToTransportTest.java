@@ -165,8 +165,11 @@ public class AggregatePlanUpdatesToTransportTest {
 
         // ArrayList<PlanUpdateOuterClass.PlanUpdate> in = StreamUtils.collectStreamToArrayList(planUpdates);
 
+
         KeyedOneInputStreamOperatorTestHarness<Ids.CeptaTransportID, PlanUpdateOuterClass.PlanUpdate, TransportOuterClass.Transport> testHarness = setupTestHarnessForSource(planUpdates);
 
+        testHarness.getExecutionConfig().registerTypeWithKryoSerializer(TransportOuterClass.Transport.class, KryoProtoSerializer.class);
+        testHarness.getExecutionConfig().registerTypeWithKryoSerializer(StationOuterClass.Station.class, KryoProtoSerializer.class);
 
         // ArrayList<PlanUpdateOuterClass.PlanUpdate> transports = StreamUtils.collectStreamToArrayList(planUpdates);
         testHarness.processWatermark(Long.MIN_VALUE);
