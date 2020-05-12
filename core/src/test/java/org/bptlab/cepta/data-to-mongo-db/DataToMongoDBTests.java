@@ -88,7 +88,6 @@ public class DataToMongoDBTests {
         String address = mongoContainer.getContainerIpAddress();
         Integer port = mongoContainer.getFirstMappedPort();
         MongoConfig mongoConfig = new MongoConfig().withHost(address).withPort(port).withPassword("example").withUser("root").withName("mongodb");
-
         return mongoConfig;
     }
 

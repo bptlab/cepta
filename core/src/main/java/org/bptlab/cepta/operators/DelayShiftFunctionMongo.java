@@ -43,7 +43,6 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 
 
 
