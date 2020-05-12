@@ -17,8 +17,9 @@ import org.bson.codecs.configuration.CodecRegistry;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
@@ -105,6 +106,14 @@ public class Mongo {
         builder.setIngestionTime((Timestamp)doc.get("ingestion_time"));
         builder.setOriginalTrainId((Long)doc.get("original_train_id"));
         return builder.build();
+    }
+
+    public static List<PlannedTrainData> documentListToPlannedTrainDataList(List<Document> documentList) {
+        List<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
+        for (Document doc : documentList) {
+            plannedTrainDataList.add(documentToPlannedTrainData(doc));
+        }
+        return plannedTrainDataList;
     }
 }
 

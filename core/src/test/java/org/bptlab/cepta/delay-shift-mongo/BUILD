@@ -1,7 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "delay-shift",
+    name = "delay-shift-mongo",
     srcs = ["DelayShiftFunctionMongoTests.java"],
     test_class = "org.bptlab.cepta.DelayShiftFunctionMongoTests",
     size = "medium",
