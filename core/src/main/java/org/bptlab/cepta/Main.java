@@ -35,6 +35,7 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
+import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
@@ -155,17 +156,17 @@ public class Main implements Callable<Integer> {
 
     countOfTrainsAtStationDataStream.print();
 
-       DataStream<TrainDelayNotification> delayShiftNotifications = AsyncDataStream
+       DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
           .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
 
-       /*
+
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
         AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
-        */
+
 
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
