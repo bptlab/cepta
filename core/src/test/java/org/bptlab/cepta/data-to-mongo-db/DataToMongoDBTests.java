@@ -74,80 +74,6 @@ public class DataToMongoDBTests {
                             .setNumberTaskManagers(1)
                             .build());
 
-    // I don't think we really need this... But to be honest:
-    // I also don't really know what it is supposed to be for
-    @Ignore//@Before
-    public void setupTestHarness() throws Exception {
-        MiniClusterWithClientResource resource;
-
-        GenericContainer mongoContainer = newMongoContainer();
-        mongoContainer.start();
-        String address = mongoContainer.getContainerIpAddress();
-        Integer port = mongoContainer.getFirstMappedPort();
-        MongoConfig mongoConfig = new MongoConfig().withHost(address).withPort(port).withPassword("example").withUser("root").withName("mongodb");
-
-                TestListResultSink testListResultSink;
-        //instantiate user-defined function
-        dataToMongoDBFunction = new DataToMongoDB("test",mongoConfig);
-
-        MockEnvironment environment = MockEnvironment.builder().build();
-        ExecutionConfig executionConfig = environment.getExecutionConfig();
-
-        ByteArrayOutputStream streamEdgesBytes = new ByteArrayOutputStream();
-        ObjectOutputStream oosStreamEdges = new
-                ObjectOutputStream(streamEdgesBytes);
-        oosStreamEdges.writeObject(Collections.<StreamEdge>emptyList());
-
-        KryoSerializer<PlannedTrainData> kryoSerializer = new KryoSerializer<>(
-                PlannedTrainData.class, executionConfig);
-        ByteArrayOutputStream kryoSerializerBytes = new ByteArrayOutputStream();
-        ObjectOutputStream oosKryoSerializer = new
-                ObjectOutputStream(kryoSerializerBytes);
-        oosKryoSerializer.writeObject(kryoSerializer);
-
-        Configuration configuration = new Configuration();
-        configuration.setBytes("edgesInOrder", streamEdgesBytes.toByteArray());
-        configuration.setBytes("typeSerializer_in_1",
-                kryoSerializerBytes.toByteArray());
-
-
-        environment.getTaskConfiguration().addAll(configuration);
-//        MailboxExecutorFactory mailboxExecutorFactory = ;
-//        MailboxExecutor mailboxExecutor = mailboxExecutorFactory.createExecutor(configuration.getChainIndex());
-        // wrap user defined function into a the corresponding operator
-        testHarness = new OneInputStreamOperatorTestHarness<PlannedTrainData, PlannedTrainData>(
-                new AsyncWaitOperator<PlannedTrainData, PlannedTrainData>(
-                        dataToMongoDBFunction,
-                        100000,
-                        1,
-                        AsyncDataStream.OutputMode.UNORDERED
-                )
-                ,environment );
-
-        // optionally configured the execution environment
-        testHarness.getExecutionConfig().setAutoWatermarkInterval(50);
-
-        // open the test harness (will also call open() on RichFunctions)
-        testHarness.open();
-    }
-
-    @Ignore//@Test
-    public void oneUploaded() throws Exception {
-        PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
-        //push (timestamped) elements into the operator (and hence user defined function)
-        synchronized (testHarness.getCheckpointLock()) {
-            testHarness.processElement(train, 1);
-        }
-        //trigger event time timers by advancing the event time of the operator with a watermark
-        testHarness.processWatermark(100L);
-
-        //trigger processing time timers by advancing the processing time of the operator directly
-        testHarness.setProcessingTime(100L);
-
-        //retrieve list of emitted records for assertions
-        Assert.assertEquals(testHarness.getOutput(), train);
-    }
-
     private StreamExecutionEnvironment setupEnv(){
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
@@ -183,10 +109,9 @@ public class DataToMongoDBTests {
         //checkStream.addSink(new CheckSink());
         env.execute();
 
-        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
-        assertEquals(1, databaseInards.size());
+        List<Document> databaseContent = getDatabaseContent(mongoConfig, env);
+        assertEquals(1, databaseContent.size());
     }
-
 
     @Test
     public void inputAmountMore() throws Exception {
@@ -229,8 +154,8 @@ public class DataToMongoDBTests {
         //checkStream.addSink(new CheckSink());
         env.execute();
 
-        ArrayList<PlannedTrainData> databaseInards = getDatabaseContentAsData(mongoConfig, env);
-        assertEquals(plannedTrainData, databaseInards);
+        ArrayList<PlannedTrainData> databaseContent = getDatabaseContentAsData(mongoConfig, env);
+        assertEquals(plannedTrainData, databaseContent);
     }
 
     @Test
@@ -251,8 +176,8 @@ public class DataToMongoDBTests {
 
         env.execute();
 
-        ArrayList<PlannedTrainData> databaseInards = getDatabaseContentAsData(mongoConfig, env);
-        assertEquals(plannedTrainData, databaseInards);
+        ArrayList<PlannedTrainData> databaseContent = getDatabaseContentAsData(mongoConfig, env);
+        assertEquals(plannedTrainData, databaseContent);
     }
 
     @Test
@@ -271,7 +196,7 @@ public class DataToMongoDBTests {
             .unorderedWait(inputStream, new DataToMongoDB("plannedTrainData", mongoConfig),
                 100000, TimeUnit.MILLISECONDS, 1);
 
-        env.execute();
+        // env.execute();
 
         List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
         ArrayList<PlannedTrainData> streamData = StreamUtils.collectStreamToArrayList(resultStream);
@@ -303,6 +228,8 @@ public class DataToMongoDBTests {
     }
 
     public List<Document> getDatabaseContent(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
+        // if this gets flaky, use the actual output stream of the asynch operator instead of this
+        // to make sure the elements are in the database
         DataStream<Integer> oneElementStream = env.fromElements(1);
 
         /* we do this with a stream because we collect asynchronously and 
