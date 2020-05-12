@@ -1,0 +1,6 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/result";
+option java_package = "org.bptlab.cepta.models.internal.types.result";
+
+message Empty {}

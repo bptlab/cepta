@@ -12,8 +12,9 @@ import { Component, Vue } from "vue-property-decorator";
 import NprogressContainer from "vue-nprogress/src/NprogressContainer.vue";
 import { AuthModule } from "./store/modules/auth";
 import { AppModule } from "./store/modules/app";
-import { TrainDelayNotification } from "./generated/protobuf/models/events/TrainDelayNotification_pb";
+import { Notification } from "./generated/protobuf/models/internal/notifications/notification_pb";
 import { COOKIE_THEME } from "./constants";
+import { NotificationsModule } from "./store/modules/notifications";
 
 @Component({
   name: "App",
@@ -25,39 +26,6 @@ export default class App extends Vue {
   redraw() {
     // @ts-ignore: No such attribute
     this.$redrawVueMasonry();
-  }
-
-  connectWebsocket() {
-    let socket: WebSocket = new WebSocket(
-      "ws://" + window.location.hostname + "/ws/userdata"
-    );
-    socket.binaryType = "arraybuffer";
-    console.log("Attempting Connection...");
-    socket.onopen = () => {
-      console.log("Successfully Connected");
-      socket.send(this.generateRandomUserID(10));
-    };
-    socket.onmessage = event => {
-      let deserializedEvent = TrainDelayNotification.deserializeBinary(
-        new Uint8Array(event.data)
-      );
-      console.log(deserializedEvent);
-      AppModule.addDelay(deserializedEvent);
-      // var message = JSON.parse(event.data);
-    };
-
-    socket.onclose = event => {
-      console.log("Socket Closed Connection: ", event);
-      socket.send("Client Closed!");
-    };
-    socket.onerror = error => {
-      console.log("Socket Error: ", error);
-    };
-  }
-
-  generateRandomUserID(quantity: number): string {
-    var userId: string = Math.floor(Math.random() * quantity).toString();
-    return userId;
   }
 
   created() {
@@ -82,13 +50,12 @@ export default class App extends Vue {
 
   mounted() {
     this.redraw();
-    this.connectWebsocket();
+    NotificationsModule.setup();
   }
-  /*
+
   destroyed() {
-    this.socket.close();
+    NotificationsModule.socket.close();
   }
-  */
 }
 </script>
 

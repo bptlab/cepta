@@ -1,0 +1,9 @@
+syntax = "proto3";
+package models.internal.modalities.air;
+option go_package = "github.com/bptlab/cepta/models/internal/modalities/air";
+option java_package = "org.bptlab.cepta.models.internal.modalities.air";
+
+message AirCargo {}
+message AirVehicle {}
+message AirTransport {}
+message AirStation {}

@@ -87,7 +87,7 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
 
   @Test
   public void testIdMatch() throws IOException {
-    try(PostgreSQLContainer postgres = newPostgreSQLContainer()) {
+    try(PostgreSQLContainer postgres = new PostgresContainer<>()) {
       postgres.start();
       String address = postgres.getContainerIpAddress();
       Integer port = postgres.getFirstMappedPort();
@@ -106,11 +106,6 @@ public int checkDatabaseInput(PostgreSQLContainer container) {
       // We insert 2 row into our Database with DataToPostgresDatabase() therefore we need to have 2 rows in our table
        Assert.assertTrue(checkDatabaseInput(postgres) == 2);    
       }
-}
-      
-
-  private PostgreSQLContainer newPostgreSQLContainer(){
-    return new PostgreSQLContainer<>().withDatabaseName("postgres").withUsername("postgres").withPassword("");
   }
 
   private String createSelectQuery(){

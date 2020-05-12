@@ -9,15 +9,16 @@ import (
 
 	authpb "github.com/bptlab/cepta/models/grpc/auth"
 	usermgmtpb "github.com/bptlab/cepta/models/grpc/usermgmt"
-	"github.com/bptlab/cepta/models/types/users"
+	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	usermgmt "github.com/bptlab/cepta/osiris/usermgmt"
 	"github.com/dgrijalva/jwt-go"
 	tc "github.com/romnnn/testcontainers"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go"
+	"github.com/romnnn/testcontainers-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
@@ -39,10 +40,16 @@ func dailerFor(listener *bufconn.Listener) DialerFunc {
 func setUpAuthServer(t *testing.T, listener *bufconn.Listener, mongoConfig libdb.MongoDBConfig) (*AuthenticationServer, error) {
 	server := NewAuthServer(mongoConfig)
 	server.UserCollection = userCollection
-	server.GenerateKeys()
-	server.Setup()
+	if err := server.GenerateKeys(); err != nil {
+		t.Fatalf("Failed to generate keys: %v", err)
+	}
+	if err := server.Setup(); err != nil {
+		t.Fatalf("Failed to setup auth server: %v", err)
+	}
 	go func() {
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			t.Fatalf("Failed to serve auth service: %v", err)
+		}
 	}()
 	return &server, nil
 }
@@ -79,14 +86,14 @@ type Test struct {
 
 func (test *Test) setup(t *testing.T) *Test {
 	var err error
-	var mongoConfig tc.MongoDBConfig
+	var mongoConfig tcmongo.DBConfig
 	log.SetLevel(logLevel)
 	if parallel {
 		t.Parallel()
 	}
 
 	// Start mongodb container
-	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
+	test.mongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -114,7 +121,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	}
 	test.authServer, err = setUpAuthServer(t, authListener, mc)
 	if err != nil {
@@ -134,11 +141,11 @@ func (test *Test) setup(t *testing.T) *Test {
 }
 
 func (test *Test) teardown() {
-	test.mongoC.Terminate(context.Background())
-	test.authEndpoint.Close()
-	test.userEndpoint.Close()
-	teardownServer(test.authServer)
-	teardownServer(test.userServer)
+	_ = test.mongoC.Terminate(context.Background())
+	_ = test.authEndpoint.Close()
+	_ = test.userEndpoint.Close()
+	test.authServer.Shutdown()
+	test.userServer.Shutdown()
 }
 
 func TestLogin(t *testing.T) {

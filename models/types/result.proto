@@ -1,5 +1,0 @@
-syntax = "proto3";
-package models.types.result;
-option go_package = "github.com/bptlab/cepta/models/types/result";
-
-message Empty {}

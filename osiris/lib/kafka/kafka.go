@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Config ...

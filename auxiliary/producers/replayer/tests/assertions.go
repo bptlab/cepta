@@ -8,7 +8,7 @@ import (
 	"github.com/Shopify/sarama"
 	eventpb "github.com/bptlab/cepta/models/events/event"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/internal/types/result"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
 	"github.com/bptlab/cepta/osiris/lib/utils"
 	"github.com/romnnn/deepequal"

@@ -10,7 +10,7 @@ message Update {
     google.protobuf.Timestamp time = 2;
 }
 
-message CummulatedUpdates {
+message AccumulatedUpdates {
     repeated Update updates = 1;
     int32 total = 2;
 }

@@ -1,0 +1,20 @@
+syntax = "proto3";
+package models.internal.types;
+option go_package = "github.com/bptlab/cepta/models/internal/types/transport";
+option java_package = "org.bptlab.cepta.models.internal.types.transport";
+
+import "models/internal/types/ids.proto";
+
+message Transport {
+    models.internal.types.CeptaTransportID cepta_id = 1;
+    TransportType type = 2;
+}
+
+enum TransportType {
+    NONE = 0;
+    RAIL = 1;
+    ROAD = 2;
+    MARINE = 3;
+    AIR = 4;
+    INTERMODAL = 5;
+}

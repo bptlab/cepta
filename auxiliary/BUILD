@@ -1,7 +1,7 @@
 filegroup(
     name = "auxiliary",
     srcs = [
-        "//auxiliary/producers/mockkafkaproducer",
+        "//auxiliary/producers/generator/notifications",
         "//auxiliary/producers/replayer",
     ],
     visibility = ["//visibility:public"],

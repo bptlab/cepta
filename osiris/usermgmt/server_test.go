@@ -3,11 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/bptlab/cepta/models/internal/types/result"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/bptlab/cepta/models/internal/types/ids"
+	"github.com/golang/protobuf/proto"
 	"net"
 	"testing"
 	"time"
+	"io"
 
-	"github.com/bptlab/cepta/models/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	"github.com/sirupsen/logrus"
@@ -19,7 +23,8 @@ import (
 
 	pb "github.com/bptlab/cepta/models/grpc/usermgmt"
 	tc "github.com/romnnn/testcontainers"
-	"github.com/testcontainers/testcontainers-go"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
+	"github.com/romnnn/testcontainers-go"
 )
 
 const parallel = true
@@ -67,7 +72,7 @@ type Test struct {
 
 func (test *Test) setup(t *testing.T) *Test {
 	var err error
-	var mongoConfig tc.MongoDBConfig
+	var mongoConfig tcmongo.DBConfig
 	log.SetLevel(logLevel)
 	if parallel {
 		t.Parallel()
@@ -75,7 +80,7 @@ func (test *Test) setup(t *testing.T) *Test {
 
 	// Start mongodb container
 
-	test.mongoC, mongoConfig, err = tc.StartMongoContainer(tc.MongoContainerOptions{})
+	test.mongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{})
 	if err != nil {
 		t.Fatalf("Failed to start the mongodb container: %v", err)
 		return test
@@ -96,7 +101,7 @@ func (test *Test) setup(t *testing.T) *Test {
 		User:                mongoConfig.User,
 		Database:            fmt.Sprintf("mockdatabase-%s", tc.UniqueID()),
 		Password:            mongoConfig.Password,
-		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 20},
+		ConnectionTolerance: libcli.ConnectionTolerance{TimeoutSec: 60},
 	})
 	if err != nil {
 		t.Fatalf("Failed to setup the user management service: %v", err)
@@ -269,7 +274,10 @@ func TestGetUser(t *testing.T) {
 
 	// Add a new user
 	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
-		User:     &users.User{Email: "email@mail.de"},
+		User: &users.User{
+			Email:      "email@mail.de",
+			Transports: []*ids.CeptaTransportID{{Id: "14"}},
+		},
 		Password: "hard-to-guess",
 	}}
 	added, err := test.userClient.AddUser(context.Background(), newUserReq)
@@ -285,13 +293,11 @@ func TestGetUser(t *testing.T) {
 		if found == nil {
 			t.Fatalf("Failed to get user by querying for %v", req)
 		}
+		if equal := proto.Equal(found, added); !equal {
+			t.Fatalf("Found user: %v doesn't match expected: %v", found, added)
+		}
 		return found, err
 	}
-
-	// Assert user is found by email
-	assertCanFindUser(&pb.GetUserRequest{
-		Email: newUserReq.User.User.Email,
-	})
 
 	// Assert user is found by ID
 	assertCanFindUser(&pb.GetUserRequest{
@@ -304,9 +310,67 @@ func TestGetUser(t *testing.T) {
 		Email:  "not the real email",
 	})
 
-	// Assert user is found by ID and Email when ID is not found
+	// Assert user is found by email
+	assertCanFindUser(&pb.GetUserRequest{
+		Email: newUserReq.User.User.Email,
+	})
+
+
+	// Assert user is found by Email when ID is not found
 	assertCanFindUser(&pb.GetUserRequest{
 		UserId: &users.UserID{Id: "dumb-id"},
 		Email:  newUserReq.User.User.Email,
 	})
+}
+
+func TestGetUsers(t *testing.T) {
+	test := new(Test).setup(t)
+	defer test.teardown()
+
+	// Add a new user
+	newUserReq := &pb.AddUserRequest{User: &users.InternalUser{
+		User: &users.User{
+			Email:      "example@gmail.com",
+			Transports: []*ids.CeptaTransportID{{Id: "13"}},
+		},
+		Password: "hard-to-guess",
+	}}
+	added, err := test.userClient.AddUser(context.Background(), newUserReq)
+	if err != nil {
+		t.Fatal("Failed to add new user: %v: %v", newUserReq.User, err)
+	}
+
+	assertCanFindAllUsers := func() {
+	  // 2 Users must be in the database
+	  count := test.countUsers(t)
+	  var receivedUserCount int64 = 0
+	  var lastUser *users.User
+
+		stream, err := test.userClient.GetUsers(context.Background(), &result.Empty{})
+    if err != nil {
+      t.Fatalf("Failed to receive stream from the usermgmt service %v", err)
+    }
+
+    for {
+      user, err := stream.Recv()
+      if err == io.EOF {
+        break
+      }
+      if err != nil {
+        t.Fatalf("Failed to receive user from our stream: %v", err)
+      }
+      receivedUserCount++
+      lastUser = user
+    }
+
+    if count != receivedUserCount {
+      t.Fatalf("Failed to receive all users in our Database. Received: %d, Expected: %d", receivedUserCount, count)
+    }
+
+    if equal := proto.Equal(lastUser, added); !equal {
+        t.Fatal("Last added user in the database doesn't match last returned user")
+      }
+  }
+
+	assertCanFindAllUsers()
 }

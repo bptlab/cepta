@@ -1,0 +1,25 @@
+name: Test Frontend
+
+# Build the frontend every time anubis or some models are changed
+on: [ push, pull_request ]
+jobs:
+  build-frontend:
+    runs-on: self-hosted
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - name: Info
+        run: ./ci/print-workspace-status.sh
+
+      - name: Install Dependencies
+        run: |
+          cd anubis
+          npm install
+
+      - name: Build frontend
+        run: |
+          cd anubis
+          npm run build

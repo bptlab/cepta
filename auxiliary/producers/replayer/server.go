@@ -14,7 +14,7 @@ import (
 
 	"github.com/bptlab/cepta/ci/versioning"
 	pb "github.com/bptlab/cepta/models/grpc/replayer"
-	"github.com/bptlab/cepta/models/types/result"
+	"github.com/bptlab/cepta/models/internal/types/result"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	libdb "github.com/bptlab/cepta/osiris/lib/db"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
@@ -126,7 +126,7 @@ func mergeReplayerOptions(dest proto.Message, merge proto.Message) error {
 		return nil
 	}
 	if dest == nil {
-		return errors.New("Merge option destination can not be nil")
+		return errors.New("merge option destination can not be nil")
 	}
 	proto.SetDefaults(merge)
 	msg := proto.Clone(merge)
@@ -141,7 +141,7 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 
 	// Set default options if no options are provided
 	if err := mergeReplayerOptions(&newStartOptions, proto.Clone(in)); err != nil {
-		return errors.New("Failed to merge replay options")
+		return errors.New("failed to merge replay options")
 	}
 
 	// Include all replayers if no sources are specified
@@ -160,7 +160,7 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 		for _, source := range newStartOptions.Sources {
 			if inSource.Source == source.Source {
 				if err := mergeReplayerOptions(source.Options, inSource.Options); err != nil {
-					return errors.New("Failed to merge replay options")
+					return errors.New("failed to merge replay options")
 				}
 			}
 		}
@@ -178,12 +178,12 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 // Start ...
 func (s *ReplayerServer) Start(ctx context.Context, in *pb.ReplayStartOptions) (res *result.Empty, err error) {
 	if s.Active {
-		err = errors.New("Replayer is already started and must be stopped first")
+		err = errors.New("replayer is already started and must be stopped first")
 		return
 	}
 	s.Active = true
 	res = &result.Empty{}
-	s.setStartOptions(in)
+	_ = s.setStartOptions(in)
 	s.start()
 	log.Debugf("Sources: %v", s.StartOptions.GetSources())
 	return
@@ -252,9 +252,9 @@ func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptions
 
 	// Set global options first
 	if in.Options != nil {
-		applyActiveOptions(in.Options, s.StartOptions.Options)
+		_ = applyActiveOptions(in.Options, s.StartOptions.Options)
 		for _, source := range s.StartOptions.Sources {
-			applyActiveOptions(in.Options, source.Options)
+			_ = applyActiveOptions(in.Options, source.Options)
 		}
 	}
 
@@ -263,7 +263,7 @@ func (s *ReplayerServer) SetOptions(ctx context.Context, in *pb.ReplaySetOptions
 		// Find replaying source with matching topic
 		for _, srcReq := range in.Sources {
 			if srcReq.Source == source.Source {
-				applyActiveOptions(srcReq, source.Options)
+				_ = applyActiveOptions(srcReq, source.Options)
 			}
 		}
 	}
@@ -299,9 +299,9 @@ func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServ
 			},
 		})
 	}
-	s.setStartOptions(&updateStartOptions)
+	_ = s.setStartOptions(&updateStartOptions)
 
-	sort := in.GetSort()
+	replaySort := in.GetSort()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -309,7 +309,7 @@ func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServ
 	var eventCount int
 	handler := func(r *Replayer) func(event *pb.ReplayedEvent) {
 		return func(event *pb.ReplayedEvent) {
-			if !sort {
+			if !replaySort {
 				// Send right away
 				if err := stream.Send(event); err != nil {
 					r.log.Errorf("Failed to send: %v", err)
@@ -336,10 +336,10 @@ func (s *ReplayerServer) Query(in *pb.QueryOptions, stream pb.Replayer_QueryServ
 		}
 	}
 
-	// All done, sort now. This will HURT memory but okay for usage in tests with small datasets
-	if sort {
+	// All done, sort now. This will HURT memory but okay for usage in tests with small data sets
+	if replaySort {
 		if ctx.Err() != nil {
-			return errors.New("Too many events. Either disable sort or set a limit")
+			return errors.New("too many events. Either disable sort or set a limit")
 		}
 		replayTime := func(e1, e2 *pb.ReplayedEvent) bool {
 			if t1, err := utils.FromProtoTime(e1.GetReplayTimestamp()); err == nil {
@@ -452,6 +452,7 @@ func (s *ReplayerServer) Serve(listener net.Listener) error {
 
 	log.Infof("Serving at %s", listener.Addr())
 	s.grpcServer = grpc.NewServer(
+		grpc.ConnectionTimeout(300 * time.Second),
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
 				MaxConnectionIdle:     10 * time.Minute,
@@ -466,7 +467,7 @@ func (s *ReplayerServer) Serve(listener net.Listener) error {
 		go func() {
 			log.Info("Immediate replay will start in 1 second")
 			time.Sleep(1 * time.Second)
-			s.setStartOptions(&s.StartOptions)
+			_ = s.setStartOptions(&s.StartOptions)
 			s.start()
 		}()
 	} else {
@@ -477,7 +478,7 @@ func (s *ReplayerServer) Serve(listener net.Listener) error {
 		log.Fatalf("failed to serve: %v", err)
 	}
 	log.Info("Closing socket")
-	listener.Close()
+	_ = listener.Close()
 	s.done <- true
 	return nil
 }
@@ -506,7 +507,7 @@ func main() {
 		sources = append(sources, t)
 	}
 
-	cliFlags := []cli.Flag{}
+	var cliFlags []cli.Flag
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServicePort, libcli.ServiceLogLevel)...)
 	cliFlags = append(cliFlags, libcli.CommonCliOptions(libcli.ServiceConnectionTolerance)...)
 	cliFlags = append(cliFlags, libdb.PostgresDatabaseCliOptions...)
@@ -698,7 +699,9 @@ func main() {
 					server.StartOptions.Options.Speed = &pb.Speed{Speed: 5000}
 				}
 
-				server.Serve(listener)
+				if err := server.Serve(listener); err != nil {
+					log.Errorf("Failed to serve: %v", err)
+				}
 			}()
 			<-done
 			log.Info("Exiting")

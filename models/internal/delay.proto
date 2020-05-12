@@ -1,0 +1,22 @@
+syntax = "proto3";
+package models.internal;
+option go_package = "github.com/bptlab/cepta/models/internal/delay";
+option java_package = "org.bptlab.cepta.models.internal.delay";
+
+import "google/protobuf/duration.proto";
+
+// GENERIC SCHEMA FOR A CEPTA DELAY
+message Delay {
+    google.protobuf.Duration delta = 1;
+    string details = 3;
+    // TODO: Add generic payload
+}
+
+// Use case specific
+// int64 delay_code = 11;
+//    string delay_reason = 12;
+//    string delay_reason_addition = 13;
+//    string defective_wagon_id = 14;
+//    string vehicle_id_1 = 15;
+//    string vehicle_id_2 = 16;
+//    string vehicle_id_3 = 17;
