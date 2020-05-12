@@ -12,7 +12,7 @@ import (
 func ascendingLiveTrainEvents(n int64, interval int) []proto.Message {
 	var events []proto.Message
 	for i := int64(1); i <= n; i++ {
-		events = append(events, &livetrainpb.LiveTrainData{TrainId: i, IngestionTime: toProtoTime(time.Now().Add(time.Duration(i*int64(interval)) * time.Second))})
+		events = append(events, &livetrainpb.LiveTrainData{TrainId: i, EventTime: toProtoTime(time.Now().Add(time.Duration(i*int64(interval)) * time.Second))})
 	}
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(events), func(i, j int) { events[i], events[j] = events[j], events[i] })
