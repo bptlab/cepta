@@ -35,6 +35,7 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.operators.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
@@ -48,7 +49,8 @@ import picocli.CommandLine.Mixin;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
@@ -141,7 +143,7 @@ public class Main implements Callable<Integer> {
     });
 
 
-    DataStream<TrainDelayNotification> delayShiftMongo = AsyncDataStream
+    DataStream<Notification> delayShiftMongo = AsyncDataStream
     .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
       100000, TimeUnit.MILLISECONDS, 1);
 

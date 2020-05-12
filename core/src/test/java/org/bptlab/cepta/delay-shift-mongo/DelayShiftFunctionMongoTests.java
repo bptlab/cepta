@@ -8,7 +8,6 @@ import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
-import org.bptlab.cepta.models.events.train.TrainDelayNotificationOuterClass.TrainDelayNotification;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.DelayShiftFunctionMongo;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;

@@ -10,6 +10,7 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.DataToPostgresDatabase;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.bptlab.cepta.containers.PostgresContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
