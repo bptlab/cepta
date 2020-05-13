@@ -63,7 +63,11 @@ public class PlannedTrainDataProvider {
 
   public static PlannedTrainData trainEventWithStationId(int stationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setStationId(stationId).build();
+            .setStationId(stationId).build();
+  }
+  public static PlannedTrainData trainEventWithStationIdPlannedEventTime(int stationId, Timestamp plannedEventTime){
+    return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
+            .setStationId(stationId).setPlannedEventTime(plannedEventTime).build();
   }
   public static PlannedTrainData trainEventWithTrainID(int trainId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
