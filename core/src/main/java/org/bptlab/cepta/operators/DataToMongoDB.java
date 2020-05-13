@@ -28,6 +28,9 @@ import java.util.function.Supplier;
 
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
+/* This Operator pushes the received Events into a MongoDB and
+    passes the received event as soon as the DB acknowledges the Upload
+    ProtoTimestamps will be en/decoded by a custom en/decoder*/
 
 public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
@@ -58,7 +61,6 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
-        // System.out.println("INVOKE");
         Document document = protoToBson(dataset);
 
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();

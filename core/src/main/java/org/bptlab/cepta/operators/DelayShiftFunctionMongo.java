@@ -24,7 +24,9 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.*;
 
 
-
+/* This Function calls a MongoDB to get all future Planned Stations
+    and sends Notifications with the Delay between the Current stations plannedArrivalTime
+     and the live event Time, for all upcoming stations. */
 public class DelayShiftFunctionMongo extends
     RichAsyncFunction<LiveTrainData, Notification> {
 
@@ -94,7 +96,7 @@ public class DelayShiftFunctionMongo extends
         -> No delay will be calculated
         -> No Notifications will be send*/
         try {
-            long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
+            long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(plannedTrainDataList.size()-1).getPlannedEventTime().getSeconds();
             if (Math.abs(delay)>=delayThreshold){
                 for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
                     events.add(NotificationHelper.getTrainDelayNotificationFrom(
