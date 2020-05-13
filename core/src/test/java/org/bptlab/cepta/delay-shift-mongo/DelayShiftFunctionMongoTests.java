@@ -68,7 +68,7 @@ public class DelayShiftFunctionMongoTests {
                         100000, TimeUnit.MILLISECONDS, 1);
 
         ArrayList<Notification> expectedNots = new ArrayList<>();
-        Notification expectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(train.getTrainId()), 0, "DelayShift from Station: " + train.getStationId(), planned.getStationId());
+        Notification expectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(train.getTrainSectionId()), 0, "DelayShift from Station: " + train.getStationId(), planned.getStationId());
         expectedNots.add(expectedNotification);
         // resultStream.addSink(new CollectSink());
 
@@ -97,11 +97,11 @@ public class DelayShiftFunctionMongoTests {
                 .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig),
                         100000, TimeUnit.MILLISECONDS, 1);
 
-        Notification unexpectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainId()),
+        Notification unexpectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
                 0, "DelayShift from Station: " + live.getStationId(), planned1.getStationId());
-        Notification expectedNotification1 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainId()),
+        Notification expectedNotification1 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
                 0, "DelayShift from Station: " + live.getStationId(), planned2.getStationId());
-        Notification expectedNotification2 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainId()),
+        Notification expectedNotification2 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
                 0, "DelayShift from Station: " + live.getStationId(), planned3.getStationId());
 
         resultStream.addSink(new CollectSink());

@@ -122,21 +122,27 @@ public class Mongo {
         return builder.build();
     }
 
-    public static List<PlannedTrainData> documentListToPlannedTrainDataList(long currentStationId,List<Document> documentList) {
+    public static List<PlannedTrainData> getUpcomingPlannedTrainDataStartingFromStation(long currentStationId, List<Document> documentList) {
         ArrayList<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
         int backwardsIterator = documentList.size()-1;
+        boolean hasReferenceStation = true;
         try {
             while (currentStationId != (long) documentList.get(backwardsIterator).get("station_id")) {
-                plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
-                backwardsIterator--;
                 if (backwardsIterator < 0) {
+                    hasReferenceStation = false;
                     break;
                 }
+                plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
+                backwardsIterator--;
             }
         } catch ( Exception e) {
             // No element in DocumentList with station_id
         }
-        return  plannedTrainDataList;
+        if (hasReferenceStation) {
+            return  plannedTrainDataList;
+        } else {
+            return new ArrayList<PlannedTrainData>();
+        }
     }
 }
 

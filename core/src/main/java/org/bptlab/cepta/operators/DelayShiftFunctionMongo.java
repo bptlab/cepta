@@ -1,42 +1,16 @@
 package org.bptlab.cepta.operators;
 
-import com.google.protobuf.Duration;
-import com.google.protobuf.Message;
-import com.google.protobuf.Timestamp;
-
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ServerAddress;
-import com.mongodb.MongoCredential;
 import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Updates.*;
 import static com.mongodb.client.model.Sorts.*;
 
-import org.bptlab.cepta.models.internal.delay.DelayOuterClass.Delay;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
-import org.bson.BsonReader;
-import org.bson.BsonWriter;
-import org.bson.codecs.Codec;
-import org.bson.codecs.DecoderContext;
-import org.bson.codecs.EncoderContext;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.Document;
-import static org.bson.codecs.configuration.CodecRegistries.*;
 
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.util.Collector;
-
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -104,8 +78,9 @@ public class DelayShiftFunctionMongo extends
                 return findMultipleSubscriber.get();
             }
         }).thenAccept(result ->{
+            //only generate Notifications if there is Data about the Train in the DB
             if (!result.isEmpty()) {
-                resultFuture.complete(generateDelayEvents(dataset, Mongo.documentListToPlannedTrainDataList(dataset.getStationId(), result)));
+                resultFuture.complete(generateDelayEvents(dataset, Mongo.getUpcomingPlannedTrainDataStartingFromStation(dataset.getStationId(), result)));
             } else {
                 resultFuture.complete(new ArrayList<Notification>());
             }
@@ -115,24 +90,23 @@ public class DelayShiftFunctionMongo extends
 
     private Collection<Notification> generateDelayEvents(LiveTrainData liveTrainData, List<PlannedTrainData> plannedTrainDataList) {
         Collection<Notification> events = new ArrayList<>();
+        /*plannedTrainDataList can be empty if the current Station could not be found in the result
+        -> No delay will be calculated
+        -> No Notifications will be send*/
         try {
             long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
             if (Math.abs(delay)>=delayThreshold){
                 for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
                     events.add(NotificationHelper.getTrainDelayNotificationFrom(
-                            String.valueOf(liveTrainData.getTrainId()),
+                            String.valueOf(liveTrainData.getTrainSectionId()),
                             delay,
                             "DelayShift from Station: "+liveTrainData.getStationId(),
                             plannedTrainDataTrain.getStationId()));
                 }
             }
-        } catch (ArrayIndexOutOfBoundsException e){
-            //no Current or Future Station based PlannedTrainData returned from DB
-        } catch (IndexOutOfBoundsException e){
+        } catch ( IndexOutOfBoundsException e) {
             //no Current or Future Station based PlannedTrainData returned from DB
         }
-
-
         return events;
     }
 }
