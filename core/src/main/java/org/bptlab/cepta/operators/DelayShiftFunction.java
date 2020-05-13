@@ -22,9 +22,10 @@ import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class DelayShiftFunction extends
-    RichAsyncFunction<LiveTrainData, NotificationOuterClass.DelayNotification> {
+    RichAsyncFunction<LiveTrainData, NotificationOuterClass.Notification> {
     /**
      * This function can be applied to a stream of LiveTrainData.
      * For every event it creates TrainDelayNotifications shifting its delay to the following stations
@@ -33,9 +34,14 @@ public class DelayShiftFunction extends
 
     private PostgresConfig postgresConfig = new PostgresConfig();
     private transient ConnectionPool<PostgreSQLConnection> connection;
+    private long delayThreshold = 60;
 
     public DelayShiftFunction(PostgresConfig postgresConfig) {
         this.postgresConfig = postgresConfig;
+    }
+    public DelayShiftFunction(PostgresConfig postgresConfig, long delayThreshold) {
+        this.postgresConfig = postgresConfig;
+        this.delayThreshold = delayThreshold;
     }
 
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
@@ -67,7 +73,7 @@ public class DelayShiftFunction extends
 
     @Override
     public void asyncInvoke(LiveTrainData liveEvent,
-        final ResultFuture<NotificationOuterClass.DelayNotification> resultFuture) throws Exception {
+        final ResultFuture<NotificationOuterClass.Notification> resultFuture) throws Exception {
 
         /*
         asyncInvoke will be called for each incoming live train element
@@ -100,32 +106,40 @@ public class DelayShiftFunction extends
                     return null;
                 }
             }
-            }).thenAccept((ArrayList<PlannedTrainData> plannedTrainData) -> {
-                /*
-                After the CompletableFuture is completed, the .thenAccept call will be made with the value from the CompletableFuture.
-                We use the supplied PlannedTrainDatas to build corresponding TrainDelayNotifications.
-                */
-                PlannedTrainData referencePlannedData = PlannedTrainData.newBuilder().build();
-                ArrayList<NotificationOuterClass.DelayNotification> delays = new ArrayList<NotificationOuterClass.DelayNotification>();
-                for (PlannedTrainData planned : plannedTrainData){
-                    // find matching planned data
-                    if (planned.getStationId() == liveEvent.getStationId()){
-                        referencePlannedData = planned;
-                        break;
-                    }
+        }).thenAccept((ArrayList<PlannedTrainData> plannedTrainData) -> {
+            /*
+            After the CompletableFuture is completed, the .thenAccept call will be made with the value from the CompletableFuture.
+            We use the supplied PlannedTrainDatas to build corresponding TrainDelayNotifications.
+            */
+            PlannedTrainData referencePlannedData = PlannedTrainData.newBuilder().build();
+            ArrayList<NotificationOuterClass.Notification> delays = new ArrayList<>();
+            for (PlannedTrainData planned : plannedTrainData){
+                // find matching planned data
+                if (planned.getStationId() == liveEvent.getStationId()){
+                    referencePlannedData = planned;
+                    break;
                 }
+            }
+            //only send events if there is a reference station found
+            if (referencePlannedData.getStationId() == liveEvent.getStationId()) {
+                long delay = liveEvent.getEventTime().getSeconds() - referencePlannedData.getPlannedEventTime().getSeconds();
                 for (PlannedTrainData planned : plannedTrainData){
-                    // only consider the following stations
+                    // only consider the stations beyond the current Station (including)
                     if (compareProtoTimestamps(planned.getPlannedEventTime(), referencePlannedData.getPlannedEventTime()) >= 0){
-                        NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();
-                        delayBuilder.setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(liveEvent.getDelay()).build()).build());
-                        delayBuilder.setTransportId(Ids.CeptaTransportID.newBuilder().setId(String.valueOf(planned.getTrainSectionId())));
-                        delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(planned.getStationId())).build());
-                        delays.add(delayBuilder.build());
+                        //only send beyond the threshold
+                        if (Math.abs(delay)>=delayThreshold){
+                            delays.add(NotificationHelper.getTrainDelayNotificationFrom(
+                                    String.valueOf(planned.getTrainSectionId()),
+                                    delay,
+                                    "DelayShift from Station: "+liveEvent.getStationId(),
+                                    planned.getStationId())
+                            );
+                        }
                     }
                 }
-                resultFuture.complete(delays);
-            });
+            }
+            resultFuture.complete(delays);
+        });
         
     }
 

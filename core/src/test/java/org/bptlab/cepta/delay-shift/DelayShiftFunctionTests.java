@@ -20,6 +20,7 @@ import org.bptlab.cepta.providers.LiveTrainDataProvider;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
 import org.bptlab.cepta.providers.WeatherDataProvider;
 import org.bptlab.cepta.utils.functions.StreamUtils;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,12 +32,11 @@ public class DelayShiftFunctionTests {
    public void testRightAmount() throws IOException {
       try(PostgresContainer postgres = new PostgresContainer()) {
          postgres.start();
-
          ArrayList<String> insertQueries = new ArrayList<String>();
-         insertQueries.add(insertTrainWithSectionIdQuery(42382923));
-         insertQueries.add(insertTrainWithSectionIdQuery(42382923));
-         insertQueries.add(insertTrainWithSectionIdQuery(42093766));
-         insertQueries.add(insertTrainWithSectionIdQuery(333));
+         insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923,11111111, "2020-04-28 10:03:00.0"));
+         insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 2,"2020-04-28 11:03:00.0"));
+         insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42093766,11111111, "2020-04-28 10:03:00.0"));
+         insertQueries.add(insertTrainWithSectionIdStationIdQuery(333,11111111));
          
          initDatabase(postgres, insertQueries);
          String address = postgres.getContainerIpAddress();
@@ -44,11 +44,11 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
-            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
+         DataStream<NotificationOuterClass.Notification> delayStream = AsyncDataStream
+            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig, 0),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.Notification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
          Assert.assertEquals(3, delayEvents.size());
       }
    }
@@ -59,7 +59,7 @@ public class DelayShiftFunctionTests {
          postgres.start();
          
          ArrayList<String> insertQueries = new ArrayList<String>();
-         insertQueries.add(insertTrainWithSectionIdStationIdQuery(42382923, 1));
+         insertQueries.add(insertTrainWithSectionIdStationIdQuery(42382923, 11111111));
          insertQueries.add(insertTrainWithSectionIdStationIdQuery(42382923, 2));
          insertQueries.add(insertTrainWithSectionIdStationIdQuery(42093766, 3));
 
@@ -69,26 +69,25 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
-            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
+         DataStream<NotificationOuterClass.Notification> delayStream = AsyncDataStream
+            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig, 0),
                100000, TimeUnit.MILLISECONDS, 1);
 
-         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.Notification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
-         ArrayList<NotificationOuterClass.DelayNotification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.DelayNotification>();
-         expectedDelayNotifications.add(makeDelayNotification(42382923, 1, 1));
-         expectedDelayNotifications.add(makeDelayNotification(42382923, 2, 1));
-         expectedDelayNotifications.add(makeDelayNotification(42093766, 3, 1));
+         ArrayList<NotificationOuterClass.Notification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.Notification>();
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 11111111, 1, 11111111));
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 2, 1,11111111));
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }
 
-   private NotificationOuterClass.DelayNotification makeDelayNotification(int trainID, int stationID, int delay) {
-      return NotificationOuterClass.DelayNotification.newBuilder()
-              .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delay).build()))
-              .setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(stationID)).build())
-              .setTransportId(Ids.CeptaTransportID.newBuilder().setId(String.valueOf(trainID)).build())
-              .build();
+   private NotificationOuterClass.Notification makeDelayNotification(int trainID, int stationID, int delay, int occurrenceStationID) {
+      return NotificationHelper.getTrainDelayNotificationFrom(
+              String.valueOf(trainID),
+              delay,
+              "DelayShift from Station: "+occurrenceStationID,
+              stationID );
    }
 
    @Test
@@ -97,7 +96,7 @@ public class DelayShiftFunctionTests {
          postgres.start();
 
          ArrayList<String> insertQueries = new ArrayList<String>();
-         insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 11111111, "2020-04-28 10:03:40.0"));
+         insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 11111111, "2020-04-28 10:03:39.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 2, "2020-03-28 10:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 3, "2020-06-28 10:03:40.0"));
          insertQueries.add(insertTrainWithSectionIdStationIdPlannedTimeQuery(42382923, 4, "2020-04-28 11:03:40.0"));
@@ -109,14 +108,14 @@ public class DelayShiftFunctionTests {
          PostgresConfig postgresConfig = new PostgresConfig().withHost(address).withPort(port).withPassword(postgres.getPassword()).withUser(postgres.getUsername());
          
          DataStream<LiveTrainData> liveStream = LiveTrainDataProvider.matchingLiveTrainDatas(); 
-         DataStream<NotificationOuterClass.DelayNotification> delayStream = AsyncDataStream
-            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig),
+         DataStream<NotificationOuterClass.Notification> delayStream = AsyncDataStream
+            .unorderedWait(liveStream, new DelayShiftFunction(postgresConfig, 0),
                100000, TimeUnit.MILLISECONDS, 1);
-         ArrayList<NotificationOuterClass.DelayNotification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
+         ArrayList<NotificationOuterClass.Notification> delayEvents = StreamUtils.collectStreamToArrayList(delayStream);
 
-         ArrayList<NotificationOuterClass.DelayNotification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.DelayNotification>();
-         expectedDelayNotifications.add(makeDelayNotification(42382923, 11111111, 1));
-         expectedDelayNotifications.add(makeDelayNotification(42382923, 4, 1));
+         ArrayList<NotificationOuterClass.Notification> expectedDelayNotifications = new ArrayList<NotificationOuterClass.Notification>();
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 11111111, 1,11111111));
+         expectedDelayNotifications.add(makeDelayNotification(42382923, 4, 1,11111111));
          Assert.assertEquals(expectedDelayNotifications, delayEvents);
       }
    }
@@ -192,7 +191,7 @@ public class DelayShiftFunctionTests {
          "original_train_id )" +
       "VALUES (1, %d, 3, '2020-04-28 10:03:40.0', 5, 6, 7, '2020-04-28 10:03:40.0', '2020-04-28 10:03:40.0', 10, 11, 12, 13, 14, '2020-04-28 10:03:40.0', 16)", sectionId);
    }
-   private String insertTrainWithSectionIdStationIdQuery(long trainId, int stationId){
+   private String insertTrainWithSectionIdStationIdQuery(long trainSectionId, int stationId){
       return String.format(
       "INSERT INTO public.planned(" +
          "id, " +
@@ -211,10 +210,10 @@ public class DelayShiftFunctionTests {
          "message_status , " +
          "ingestion_time , " +
          "original_train_id )" +
-      "VALUES (1, %d, %d, '2020-04-28 10:03:40.0', 5, 6, 7, '2020-04-28 10:03:40.0', '2020-04-28 10:03:40.0', 10, 11, 12, 13, 14, '2020-04-28 10:03:40.0', 16)", trainId, stationId);
+      "VALUES (1, %d, %d, '2020-04-28 10:03:39.0', 5, 6, 7, '2020-04-28 10:03:40.0', '2020-04-28 10:03:40.0', 10, 11, 12, 13, 14, '2020-04-28 10:03:40.0', 16)", trainSectionId, stationId);
    }
 
-   private String insertTrainWithSectionIdStationIdPlannedTimeQuery(long trainId, int stationId, String plannedEventTime){
+   private String insertTrainWithSectionIdStationIdPlannedTimeQuery(long trainSectionId, int stationId, String plannedEventTime){
       return String.format(
       "INSERT INTO public.planned(" +
          "id, " +
@@ -233,7 +232,7 @@ public class DelayShiftFunctionTests {
          "message_status , " +
          "ingestion_time , " +
          "original_train_id )" +
-      "VALUES (1, %d, %d, '%s', 5, 6, 7, '2020-04-28 10:03:40.0', '2020-04-28 10:03:40.0', 10, 11, 12, 13, 14, '2020-04-28 10:03:40.0', 16)", trainId, stationId, plannedEventTime);
+      "VALUES (1, %d, %d, '%s', 5, 6, 7, '2020-04-28 10:03:40.0', '2020-04-28 10:03:40.0', 10, 11, 12, 13, 14, '2020-04-28 10:03:40.0', 16)", trainSectionId, stationId, plannedEventTime);
    }
 
    private String createPlannedDatabaseQuery(){
