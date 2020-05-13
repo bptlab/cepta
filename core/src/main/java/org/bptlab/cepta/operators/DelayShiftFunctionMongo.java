@@ -85,7 +85,7 @@ public class DelayShiftFunctionMongo extends
         the resultFuture is where the outgoing element(s) will be
         */
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedtraindata");
+        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
 
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
