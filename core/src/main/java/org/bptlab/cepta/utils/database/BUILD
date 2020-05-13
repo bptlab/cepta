@@ -13,5 +13,6 @@ java_library(
         "@maven//:org_mongodb_bson",
         "@maven//:org_mongodb_mongodb_driver_core",
         "@maven//:org_mongodb_mongodb_driver_reactivestreams",
+        "@maven//:org_mongodb_mongodb_driver_sync",
     ],
 )

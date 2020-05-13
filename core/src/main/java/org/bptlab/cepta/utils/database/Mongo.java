@@ -4,9 +4,15 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Timestamp;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoClients;
+import com.mongodb.reactivestreams.client.*;
+//import com.mongodb.reactivestreams.client.MongoClients;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+
 import org.bptlab.cepta.config.MongoConfig;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.BsonWriter;
@@ -25,7 +31,16 @@ import static org.bson.codecs.configuration.CodecRegistries.*;
 
 public class Mongo {
 
-    public static MongoClient getMongoClient(MongoConfig mongoConfig) {
+    public static com.mongodb.reactivestreams.client.MongoClient getMongoClient(MongoConfig mongoConfig) {
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .codecRegistry(getCustomCodecRegistry())
+                .applyConnectionString(new ConnectionString("mongodb://" + mongoConfig.getUser() + ":" + mongoConfig.getPassword() + "@" + mongoConfig.getHost() + ":" + mongoConfig.getPort() + "/?authSource=admin"))
+                .build();
+
+        return com.mongodb.reactivestreams.client.MongoClients.create(settings);
+    }
+
+    public static MongoClient getMongoClientSync(MongoConfig mongoConfig) {
         MongoClientSettings settings = MongoClientSettings.builder()
                 .codecRegistry(getCustomCodecRegistry())
                 .applyConnectionString(new ConnectionString("mongodb://" + mongoConfig.getUser() + ":" + mongoConfig.getPassword() + "@" + mongoConfig.getHost() + ":" + mongoConfig.getPort() + "/?authSource=admin"))
@@ -33,7 +48,6 @@ public class Mongo {
 
         return MongoClients.create(settings);
     }
-
     private static CodecRegistry getCustomCodecRegistry() {
         Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
         replacements.put(BsonType.DATE_TIME, com.google.protobuf.Timestamp.class);
