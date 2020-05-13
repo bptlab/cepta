@@ -49,8 +49,7 @@ public class DelayShiftFunctionMongoTests {
    public void testRightAmount() throws Exception {
       StreamExecutionEnvironment env = setupEnv();
       MongoConfig mongoConfig = setupMongoContainer();
-
-      TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
+      
       LiveTrainData train = LiveTrainDataProvider.getDefaultLiveTrainDataEvent();
       DataStream<LiveTrainData> inputStream = env.fromElements(train);
       
