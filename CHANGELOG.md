@@ -1,5 +1,15 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
+### [0.6.0] - 2020-05-17
+##### Added
+- [#261]
+- Mongo DelayShift Operator
+- DataToMongoDB Operator
+- NotificationHelper Utility to generate embedded DelayNotifications
+##### Changed
+- [#261]
+    - PostgresDelayShift Operator only sends Delay events if ReferenceStation can be found
+    - PostgresDelayShift has Delay threshold option (Default 60 Seconds)
 
 ### [0.5.0] - 2020-05-10
 ##### Added
