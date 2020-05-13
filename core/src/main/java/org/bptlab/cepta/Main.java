@@ -156,9 +156,9 @@ public class Main implements Callable<Integer> {
 
     countOfTrainsAtStationDataStream.print();
 
-       DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
-          .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
-            100000, TimeUnit.MILLISECONDS, 1);
+    DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
+       .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
+         100000, TimeUnit.MILLISECONDS, 1);
 
 
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =

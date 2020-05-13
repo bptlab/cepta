@@ -10,6 +10,7 @@ java_library(
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_apache_flink_flink_cep_2_11",
         "@maven//:com_google_protobuf_protobuf_java",
+        "//models/events:checkpoint_data_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:stays_in_station_event_java_proto",
