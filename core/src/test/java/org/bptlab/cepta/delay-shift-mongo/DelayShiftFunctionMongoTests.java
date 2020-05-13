@@ -58,8 +58,6 @@ public class DelayShiftFunctionMongoTests {
       //checkStream.addSink(new CheckSink());
       env.execute();
 
-      List<Document> databaseContent = getDatabaseContent(mongoConfig, env);
-      assertEquals(1, databaseContent.size());
    }
 
    @Test
@@ -114,7 +112,7 @@ public class DelayShiftFunctionMongoTests {
       }
   }
 
-  public List<Document> insertToDb(, PlannedTrainData dataset) throws Exception{
+  public void insertToDb(MongoConfig mongoConfig, PlannedTrainData dataset) throws Exception{
       MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
       MongoDatabase database = mongoClient.getDatabase("mongodb");
       MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
@@ -124,7 +122,7 @@ public class DelayShiftFunctionMongoTests {
       Document document = protoToBson(dataset);
 
       SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-      coll.insertOne(document).subscribe(insertOneSubscriber);
+      plannedTrainDataCollection.insertOne(document);
       return StreamUtils.collectStreamToArrayList(checkStream).get(0); 
   }
 
