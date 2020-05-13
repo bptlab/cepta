@@ -34,6 +34,10 @@
     <div class="map">
       <map-visualisation :transport="currentTransport"></map-visualisation>
     </div>
+
+    <div class="map">
+      <map-visualisation :transport="currentTransport"></map-visualisation>
+    </div>
   </div>
 </template>
 
@@ -43,7 +47,7 @@ import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import MapCell from "../components/MapCell.vue";
-import { MappedTransport, Transport } from "../models/geo";
+import { MappedTransport, Transport, TripPosition } from "../models/geo";
 
 @Component({
   name: "Map",
@@ -119,6 +123,11 @@ export default class Dashboard extends Vue {
       ]
     }
   });
+
+  stations: TripPosition[] = Array(10).fill({
+      coordinates: [52.487991, 13.260937],
+      description: "Berlin HBF"
+  })
 
   handleTrack(transport: Transport) {
     this.tracked = transport.id;
