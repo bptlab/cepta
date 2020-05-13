@@ -122,12 +122,17 @@ public class Mongo {
         return builder.build();
     }
 
-    public static List<PlannedTrainData> documentListToPlannedTrainDataList(List<Document> documentList) {
-        List<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
-        for (Document doc : documentList) {
-            plannedTrainDataList.add(documentToPlannedTrainData(doc));
+    public static List<PlannedTrainData> documentListToPlannedTrainDataList(long currentStationId,List<Document> documentList) {
+        ArrayList<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
+        int backwardsIterator = documentList.size()-1;
+        while (currentStationId != (long)documentList.get(backwardsIterator).get("station_id") ) {
+            plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
+            backwardsIterator--;
+            if (backwardsIterator<0) {
+                break;
+            }
         }
-        return plannedTrainDataList;
+        return  plannedTrainDataList;
     }
 }
 

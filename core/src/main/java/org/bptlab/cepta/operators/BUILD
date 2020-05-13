@@ -10,6 +10,7 @@ java_library(
         "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/database/mongohelper:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/triggers:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/notification:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:event_java_proto",
