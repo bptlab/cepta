@@ -20,6 +20,9 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
  */
 public class CountOfTrainsAtStationFunction {
 
+    private final static Time WINDOW_SIZE = Time.hours(1);
+    private final static Time SLIDING_INTERVAL = Time.minutes(15);
+
     public static DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStation(DataStream<LiveTrainData> inputStream) {
         DataStream<CountOfTrainsAtStationEvent> resultStream = inputStream
         .keyBy(
@@ -29,7 +32,7 @@ public class CountOfTrainsAtStationFunction {
                 }
             }
         )
-        .window(SlidingEventTimeWindows.of(Time.hours(1), Time.minutes(15)))
+        .window(SlidingEventTimeWindows.of(WINDOW_SIZE, SLIDING_INTERVAL))
         .process(
             CountOfTrainsAtStationProcessFunction()
         );
