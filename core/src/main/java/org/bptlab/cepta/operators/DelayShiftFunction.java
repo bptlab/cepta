@@ -24,6 +24,7 @@ import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 
+/*Depricated: Makes very basic Shift of Delays on upcoming Stations of the Same Day*/
 public class DelayShiftFunction extends
     RichAsyncFunction<LiveTrainData, NotificationOuterClass.Notification> {
     /**
@@ -36,9 +37,11 @@ public class DelayShiftFunction extends
     private transient ConnectionPool<PostgreSQLConnection> connection;
     private long delayThreshold = 60;
 
+    @Deprecated
     public DelayShiftFunction(PostgresConfig postgresConfig) {
         this.postgresConfig = postgresConfig;
     }
+    @Deprecated
     public DelayShiftFunction(PostgresConfig postgresConfig, long delayThreshold) {
         this.postgresConfig = postgresConfig;
         this.delayThreshold = delayThreshold;

@@ -19,11 +19,14 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.database.Util;
 import org.bptlab.cepta.utils.database.Util.ProtoInfoStrings;
 
+/*Depricated: Uploads received Events into a PostgresDatabase
+  with Custom prototimestamp Conversion*/
 public class DataToPostgresDatabase<T extends Message> implements MapFunction<T, T> {
 
   private String table_name;
   private PostgresConfig postgresConfig = new PostgresConfig();
 
+  @Deprecated
   public DataToPostgresDatabase(String table, PostgresConfig postgresConfig){
     this.table_name = table;
     this.postgresConfig = postgresConfig;
