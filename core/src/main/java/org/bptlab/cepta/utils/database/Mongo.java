@@ -126,7 +126,7 @@ public class Mongo {
         ArrayList<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
         boolean hasReferenceStation = false;
         try {
-            for (int backwardsIterator = documentList.size()-1; backwardsIterator <= 0; backwardsIterator--) {
+            for (int backwardsIterator = documentList.size()-1; backwardsIterator >= 0; backwardsIterator--) {
                 long plannedStationId = (long) documentList.get(backwardsIterator).get("station_id");
                 if (currentStationId != plannedStationId ) {
                     plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
@@ -138,6 +138,7 @@ public class Mongo {
             }
         } catch ( Exception e) {
             // No element in DocumentList with station_id
+            e.printStackTrace();
         }
         if (hasReferenceStation) {
             return  plannedTrainDataList;

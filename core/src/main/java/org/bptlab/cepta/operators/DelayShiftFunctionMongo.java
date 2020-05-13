@@ -94,7 +94,7 @@ public class DelayShiftFunctionMongo extends
         -> No delay will be calculated
         -> No Notifications will be send*/
         try {
-            long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
+            long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(plannedTrainDataList.size()-1).getPlannedEventTime().getSeconds();
             if (Math.abs(delay)>=delayThreshold){
                 for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
                     events.add(NotificationHelper.getTrainDelayNotificationFrom(
