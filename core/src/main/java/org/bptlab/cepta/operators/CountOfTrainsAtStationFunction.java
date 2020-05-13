@@ -11,7 +11,7 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindow
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 
 /**
- * This class implements a function that takes in an LiveTrainStream and return a stream of Tuple2<Long, Integer>
+ * This class implements a function that takes in an LiveTrainStream and returns a stream of Tuple2<Long, Integer>
  * where each tuple describes a station and the count of trains inside that station in an one hour
  * window.
  *
