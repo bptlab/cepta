@@ -42,6 +42,7 @@ import org.junit.*;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -82,34 +83,34 @@ public class DelayShiftFunctionMongoTests {
     public void testOnlyFollowingStations() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
-        CollectSink.values.clear();
 
-        PlannedTrainData planned1 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(2, Timestamp.newBuilder().setSeconds(90).build());
-        PlannedTrainData planned2 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(3, Timestamp.newBuilder().setSeconds(120).build());
-        PlannedTrainData planned3 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(4, Timestamp.newBuilder().setSeconds(130).build());
+        PlannedTrainData planned0 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(1, Timestamp.newBuilder().setSeconds(100).build());
+        PlannedTrainData planned1 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(2, Timestamp.newBuilder().setSeconds(110).build());
+        PlannedTrainData planned2 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(3, Timestamp.newBuilder().setSeconds(90).build());
+        PlannedTrainData planned3 = PlannedTrainDataProvider.trainEventWithStationIdPlannedEventTime(4, Timestamp.newBuilder().setSeconds(120).build());
+        insertToDb(mongoConfig, planned0);
         insertToDb(mongoConfig, planned1);
         insertToDb(mongoConfig, planned2);
         insertToDb(mongoConfig, planned3);
+
         LiveTrainData live = LiveTrainDataProvider.trainEventWithEventTime(Timestamp.newBuilder().setSeconds(100).build());
         DataStream<LiveTrainData> inputStream = env.fromElements(live);
 
         DataStream<Notification> resultStream = AsyncDataStream
-                .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig),
+                .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig, 0),
                         100000, TimeUnit.MILLISECONDS, 1);
 
-        Notification unexpectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
-                0, "DelayShift from Station: " + live.getStationId(), planned1.getStationId());
-        Notification expectedNotification1 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
-                0, "DelayShift from Station: " + live.getStationId(), planned2.getStationId());
-        Notification expectedNotification2 = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
-                0, "DelayShift from Station: " + live.getStationId(), planned3.getStationId());
-
-        resultStream.addSink(new CollectSink());
+        //Notification unexpectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
+        //        0, "DelayShift from Station: " + live.getStationId(), planned1.getStationId());
+        ArrayList<Notification> expectedNotifications = new ArrayList<>();
+        expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
+                0, "DelayShift from Station: " + live.getStationId(), planned2.getStationId()));
+        expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
+                0, "DelayShift from Station: " + live.getStationId(), planned3.getStationId()));
 
         env.execute();
-        assertFalse(CollectSink.values.contains(unexpectedNotification));
-        assertTrue(CollectSink.values.contains(expectedNotification1));
-        assertTrue(CollectSink.values.contains(expectedNotification2));
+        ArrayList<Notification> resultNotifications = StreamUtils.collectStreamToArrayList(resultStream);
+        assertEquals(expectedNotifications, resultNotifications);
     }
 
     private StreamExecutionEnvironment setupEnv() {
