@@ -1,5 +1,6 @@
 package org.bptlab.cepta;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +43,9 @@ import org.testcontainers.containers.GenericContainer;
 
 import java.util.function.Supplier;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.ascending;
 import static junit.framework.TestCase.*;
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
@@ -51,24 +55,27 @@ public class DelayShiftFunctionMongoTests {
     public void testOneDirectMatch() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
-        CollectSink.values.clear();
+        // CollectSink.values.clear();
 
         PlannedTrainData planned = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         insertToDb(mongoConfig, planned);
         LiveTrainData train = LiveTrainDataProvider.getDefaultLiveTrainDataEvent();
+
         DataStream<LiveTrainData> inputStream = env.fromElements(train);
         //inputStream.print();
         DataStream<Notification> resultStream = AsyncDataStream
-                .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig),
+                .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig, 0),
                         100000, TimeUnit.MILLISECONDS, 1);
 
+        ArrayList<Notification> expectedNots = new ArrayList<>();
         Notification expectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(train.getTrainId()), 0, "DelayShift from Station: " + train.getStationId(), planned.getStationId());
-        resultStream.addSink(new CollectSink());
+        expectedNots.add(expectedNotification);
+        // resultStream.addSink(new CollectSink());
 
-        // env.execute();
-        System.out.println(getDatabaseContent(mongoConfig));
-        List<Notification> nots = CollectSink.values;
-        assertTrue(nots.contains(expectedNotification));
+        env.execute();
+        // System.out.println(getDatabaseContent(mongoConfig));
+        ArrayList<Notification> nots = StreamUtils.collectStreamToArrayList(resultStream);
+        assertEquals(expectedNots, nots);
     }
 
     @Ignore
@@ -99,7 +106,7 @@ public class DelayShiftFunctionMongoTests {
 
         resultStream.addSink(new CollectSink());
 
-// env.execute();
+        env.execute();
         assertFalse(CollectSink.values.contains(unexpectedNotification));
         assertTrue(CollectSink.values.contains(expectedNotification1));
         assertTrue(CollectSink.values.contains(expectedNotification2));

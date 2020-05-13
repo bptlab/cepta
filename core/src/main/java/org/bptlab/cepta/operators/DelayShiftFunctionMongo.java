@@ -92,11 +92,11 @@ public class DelayShiftFunctionMongo extends
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         plannedTrainDataCollection.find(
                 and(
-                        eq("trainSectionId",dataset.getTrainSectionId()),
-                        eq("endStationId",dataset.getEndStationId()),
-                        eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
+                        eq("train_section_id",dataset.getTrainSectionId()),
+                        eq("end_station_id",dataset.getEndStationId()),
+                        eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
                 )
-        ).sort(ascending("plannedEventTime")).subscribe(findMultipleSubscriber);
+        ).sort(ascending("planned_event_time")).subscribe(findMultipleSubscriber);
 
         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
             @Override
@@ -127,6 +127,8 @@ public class DelayShiftFunctionMongo extends
                 }
             }
         } catch (ArrayIndexOutOfBoundsException e){
+            //no Current or Future Station based PlannedTrainData returned from DB
+        } catch (IndexOutOfBoundsException e){
             //no Current or Future Station based PlannedTrainData returned from DB
         }
 
