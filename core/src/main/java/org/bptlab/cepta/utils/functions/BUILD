@@ -7,6 +7,6 @@ java_library(
     deps = [
         "@maven//:org_apache_flink_flink_cep_2_11",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
-
+        "//models/events:live_train_data_java_proto",
     ],
 )

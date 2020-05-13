@@ -5,6 +5,8 @@ import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
+import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,5 +72,15 @@ public class StreamUtils {
         PatternStream<T> patternStream = CEP.pattern(inputStream, inputPattern);
         //TODO: create an interface for ProcessFunctions so we can add them as a parameter
         return 0;
+    }
+
+    public static AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData> eventTimeExtractor() {
+        return new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
+            @Override
+            public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
+                // flink timestamps are specified as millisecons since java epoch on 1970-01-01T00:00:00Z.
+                return liveTrainData.getEventTime().getSeconds() * 1000;
+            }
+        };
     }
 }
