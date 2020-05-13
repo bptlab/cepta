@@ -7,7 +7,7 @@
 <script lang="ts">
 import L from "leaflet";
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
-import { MappedTransport, MapTripPosition } from "../models/geo";
+import { MappedTransport, MapTripPosition, TripPosition } from "../models/geo";
 
 export interface Marker {
   marker?: L.Marker;
@@ -31,11 +31,13 @@ export default class MapVisualisation extends Vue {
   })
   attribution!: string;
   @Prop() transport?: MappedTransport;
+  @Prop() stations?: MapTripPosition[];
   @Prop() stationPreview?: any;
 
   protected map!: L.Map;
   protected coordinates: [number, number][] = [];
   protected markers: Marker[] = [];
+  protected stationMarkers: Marker[] = [];
   protected polyline: L.Polyline = L.polyline([]);
 
   setupRoute(transport: MappedTransport): Marker[] {
@@ -57,7 +59,7 @@ export default class MapVisualisation extends Vue {
           });
         }
         let marker = L.marker(c, markerOptions).bindPopup(
-          "A pretty CSS3 popup.<br> Easily customizable.",
+          "Moin",
           {
             autoPan: false
           }
@@ -76,7 +78,7 @@ export default class MapVisualisation extends Vue {
     let polyline: [number, number][] = [];
     this.markers.forEach(p => {
       polyline.push(p.coordinates);
-      p.marker?.addTo(this.map);
+      //p.marker?.addTo(this.map);
     });
     this.polyline = L.polyline(polyline, {
       color: transport.color ?? "black"
@@ -93,9 +95,45 @@ export default class MapVisualisation extends Vue {
     });
   }
 
+  loadStations(stations?: MapTripPosition[]) {
+    if (stations == undefined) {
+      console.log("undefined stations")
+      return;
+    }
+
+    //this.StationMarkers = this.setupStations(stations);
+    for (let i=0; i<stations.length; i++) {
+      console.log(stations[i]);
+      let c = stations[i].position.coordinates;
+      let size = stations[i].icon?.size ?? [30, 30];
+      let anchor: L.PointTuple = [0, -(size[1] / 2)];
+      let markerOptions: L.MarkerOptions = {};
+             if (stations[i].icon != undefined || this.forceIcon) {
+          markerOptions.icon = L.icon({
+            // Icon from https://findicons.com/icon/260843/train_transportation
+            iconUrl:
+              stations[i].icon?.url ??
+              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
+            iconSize: size,
+            tooltipAnchor: anchor,
+            popupAnchor: anchor
+          });
+        }
+      let marker = L.marker(c, markerOptions).bindPopup("Moin Station",{
+            autoPan: false
+          })
+      this.stationMarkers.push({coordinates: c, marker: marker})
+    }
+    this.stationMarkers.forEach(p => {
+      p.marker?.addTo(this.map);
+    });
+  }
+
   @Watch("transport")
   onTransportChanged(newValue: MappedTransport) {
     this.loadTransport(newValue);
+    console.log("this.stations: " + this.stations);
+    this.loadStations(this.stations);
   }
 
   @Watch("center")
@@ -120,7 +158,10 @@ export default class MapVisualisation extends Vue {
       attribution: this.attribution
     }).addTo(this.map);
 
-    if (this.transport != undefined) this.loadTransport(this.transport);
+    if (this.transport != undefined){
+       this.loadTransport(this.transport);
+      this.loadStations(this.stations);
+    }
   }
 
   /*
