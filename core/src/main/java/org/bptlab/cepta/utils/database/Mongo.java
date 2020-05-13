@@ -125,12 +125,16 @@ public class Mongo {
     public static List<PlannedTrainData> documentListToPlannedTrainDataList(long currentStationId,List<Document> documentList) {
         ArrayList<PlannedTrainData> plannedTrainDataList = new ArrayList<>();
         int backwardsIterator = documentList.size()-1;
-        while (currentStationId != (long)documentList.get(backwardsIterator).get("station_id") ) {
-            plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
-            backwardsIterator--;
-            if (backwardsIterator<0) {
-                break;
+        try {
+            while (currentStationId != (long) documentList.get(backwardsIterator).get("station_id")) {
+                plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
+                backwardsIterator--;
+                if (backwardsIterator < 0) {
+                    break;
+                }
             }
+        } catch ( Exception e) {
+            // No element in DocumentList with station_id
         }
         return  plannedTrainDataList;
     }

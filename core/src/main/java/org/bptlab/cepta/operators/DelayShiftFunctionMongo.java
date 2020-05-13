@@ -56,9 +56,16 @@ public class DelayShiftFunctionMongo extends
 
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    private long delayThreshold = 60;
 
     public DelayShiftFunctionMongo(MongoConfig mongoConfig) {
         this.mongoConfig = mongoConfig;    }
+
+    public DelayShiftFunctionMongo(MongoConfig mongoConfig, long delayThreshold) {
+        this.mongoConfig = mongoConfig;
+        this.delayThreshold = delayThreshold;
+    }
+
 
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
@@ -97,22 +104,32 @@ public class DelayShiftFunctionMongo extends
                 return findMultipleSubscriber.get();
             }
         }).thenAccept(result ->{
-            resultFuture.complete(generateDelayEvents(dataset, Mongo.documentListToPlannedTrainDataList(dataset.getStationId(), result)));
+            if (!result.isEmpty()) {
+                resultFuture.complete(generateDelayEvents(dataset, Mongo.documentListToPlannedTrainDataList(dataset.getStationId(), result)));
+            } else {
+                resultFuture.complete(new ArrayList<Notification>());
+            }
         });
         queryFuture.get();
     }
 
     private Collection<Notification> generateDelayEvents(LiveTrainData liveTrainData, List<PlannedTrainData> plannedTrainDataList) {
         Collection<Notification> events = new ArrayList<>();
-        long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
-
-        for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
-            events.add(NotificationHelper.getTrainDelayNotificationFrom(
-                String.valueOf(liveTrainData.getTrainId()),
-                delay,
-                "DelayShift from Station: "+liveTrainData.getStationId(),
-                plannedTrainDataTrain.getStationId()));
+        try {
+            long delay = liveTrainData.getEventTime().getSeconds() - plannedTrainDataList.get(0).getPlannedEventTime().getSeconds();
+            if (Math.abs(delay)>=delayThreshold){
+                for ( PlannedTrainData plannedTrainDataTrain : plannedTrainDataList) {
+                    events.add(NotificationHelper.getTrainDelayNotificationFrom(
+                            String.valueOf(liveTrainData.getTrainId()),
+                            delay,
+                            "DelayShift from Station: "+liveTrainData.getStationId(),
+                            plannedTrainDataTrain.getStationId()));
+                }
+            }
+        } catch (ArrayIndexOutOfBoundsException e){
+            //no Current or Future Station based PlannedTrainData returned from DB
         }
+
 
         return events;
     }
