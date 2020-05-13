@@ -78,7 +78,7 @@ public class DelayShiftFunctionMongoTests {
         assertEquals(expectedNots, nots);
     }
 
-    @Ignore
+    @Test
     public void testOnlyFollowingStations() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
