@@ -19,6 +19,7 @@ import org.apache.flink.test.streaming.runtime.util.*;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.config.MongoConfig;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
 import org.bptlab.cepta.operators.*;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.DelayShiftFunctionMongo;
@@ -50,14 +51,14 @@ public class DelayShiftFunctionMongoTests {
       MongoConfig mongoConfig = setupMongoContainer();
 
       TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
-      PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
-      DataStream<PlannedTrainData> inputStream = env.fromElements(train);
+      LiveTrainData train = LiveTrainDataProvider.getDefaultLiveTrainDataEvent();
+      DataStream<LiveTrainData> inputStream = env.fromElements(train);
       
-      DataStream<PlannedTrainData> resultStream = AsyncDataStream
+      DataStream<Notification> resultStream = AsyncDataStream
           .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig),
               100000, TimeUnit.MILLISECONDS, 1);
 
-      resultStream.addSink(new CollectSink());
+      //resultStream.addSink(new CollectSink());
       //checkStream.addSink(new CheckSink());
       env.execute();
 
@@ -120,22 +121,9 @@ public class DelayShiftFunctionMongoTests {
       MongoDatabase database = mongoClient.getDatabase("mongodb");
       MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
 
-      // SubscriberHelpers.OperationSubscriber<Document> findSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-
       Document document = protoToBson(dataset);
 
-      SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
       plannedTrainDataCollection.insertOne(document);
-      return StreamUtils.collectStreamToArrayList(checkStream).get(0); 
-  }
-
-  public ArrayList<PlannedTrainData> getDatabaseContentAsData(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
-      List<Document> docs = getDatabaseContent(mongoConfig, env);
-      ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
-      for (Document doc : docs){
-          plannedTrainData.add(Mongo.documentToPlannedTrainData(doc));
-      }
-      return plannedTrainData;
   }
 
   public GenericContainer newMongoContainer(){
