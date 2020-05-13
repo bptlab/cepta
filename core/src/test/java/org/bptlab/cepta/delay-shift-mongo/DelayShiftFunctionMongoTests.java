@@ -56,14 +56,12 @@ public class DelayShiftFunctionMongoTests {
     public void testOneDirectMatch() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
-        // CollectSink.values.clear();
 
         PlannedTrainData planned = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         insertToDb(mongoConfig, planned);
         LiveTrainData train = LiveTrainDataProvider.getDefaultLiveTrainDataEvent();
 
         DataStream<LiveTrainData> inputStream = env.fromElements(train);
-        //inputStream.print();
         DataStream<Notification> resultStream = AsyncDataStream
                 .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig, 0),
                         100000, TimeUnit.MILLISECONDS, 1);
@@ -71,10 +69,8 @@ public class DelayShiftFunctionMongoTests {
         ArrayList<Notification> expectedNots = new ArrayList<>();
         Notification expectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(train.getTrainSectionId()), 0, "DelayShift from Station: " + train.getStationId(), planned.getStationId());
         expectedNots.add(expectedNotification);
-        // resultStream.addSink(new CollectSink());
 
         env.execute();
-        // System.out.println(getDatabaseContent(mongoConfig));
         ArrayList<Notification> nots = StreamUtils.collectStreamToArrayList(resultStream);
         assertEquals(expectedNots, nots);
     }
@@ -100,13 +96,13 @@ public class DelayShiftFunctionMongoTests {
                 .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig, 0),
                         100000, TimeUnit.MILLISECONDS, 1);
 
-        //Notification unexpectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
-        //        0, "DelayShift from Station: " + live.getStationId(), planned1.getStationId());
         ArrayList<Notification> expectedNotifications = new ArrayList<>();
         expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
-                0, "DelayShift from Station: " + live.getStationId(), planned2.getStationId()));
-        expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
                 0, "DelayShift from Station: " + live.getStationId(), planned3.getStationId()));
+        expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
+                0, "DelayShift from Station: " + live.getStationId(), planned1.getStationId()));
+        expectedNotifications.add(NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(live.getTrainSectionId()),
+                0, "DelayShift from Station: " + live.getStationId(), planned0.getStationId()));
 
         env.execute();
         ArrayList<Notification> resultNotifications = StreamUtils.collectStreamToArrayList(resultStream);
@@ -117,7 +113,6 @@ public class DelayShiftFunctionMongoTests {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        CollectSink.values.clear();
         return env;
     }
 
@@ -142,47 +137,11 @@ public class DelayShiftFunctionMongoTests {
         plannedTrainDataCollection.insertOne(document);
     }
 
-    public List<Document> getDatabaseContent(MongoConfig mongoConfig) throws Exception {
-        MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
-        MongoDatabase database = mongoClient.getDatabase("mongodb");
-        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
-        ArrayList<Document> docs = new ArrayList<>();
-
-        for (Document cur : plannedTrainDataCollection.find()) {
-            docs.add(cur);
-        }
-        return docs;
-    }
-
     public GenericContainer newMongoContainer() {
         return new GenericContainer("mongo")
                 .withExposedPorts(27017)
                 .withEnv("MONGO_INITDB_ROOT_USERNAME", "root")
                 .withEnv("MONGO_INITDB_ROOT_PASSWORD", "example");
-    }
-
-    // create a testing sink that collects PlannedTrainData values
-    private static class CollectSink implements SinkFunction<Notification> {
-
-        // must be static
-        public static final List<Notification> values = new ArrayList<>();
-
-        @Override
-        public synchronized void invoke(Notification value) throws Exception {
-            values.add(value);
-        }
-    }
-
-    // create a testing sink that collects List<Document> values
-    private static class CheckSink implements SinkFunction<List<Document>> {
-
-        // must be static
-        public static final List<List<Document>> values = new ArrayList<>();
-
-        @Override
-        public synchronized void invoke(List<Document> value) throws Exception {
-            values.add(value);
-        }
     }
 
 }

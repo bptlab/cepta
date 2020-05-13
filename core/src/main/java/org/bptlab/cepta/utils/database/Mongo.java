@@ -138,6 +138,7 @@ public class Mongo {
             }
         } catch ( Exception e) {
             // No element in DocumentList with station_id
+            e.printStackTrace();
         }
         if (hasReferenceStation) {
             return  plannedTrainDataList;
