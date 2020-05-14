@@ -1,6 +1,6 @@
-# Operators in and for Flink
+# Operators and Patterns in and for Flink
 
-## Functions
+## Operators
 ### AverageSpeedFunction
 not implemented
 
@@ -74,3 +74,15 @@ RichAsynchFunction<WeatherData, Tuple2<WeatherData, Integer>>
 **Functionality:** Assigns a stationId to every incoming weather event. The stations ar fetched from the database specified in the postgresConfig
 
 ## Patterns
+
+### StaysInStationPattern
+**Stream:** LiveTrainData
+**Matches:** status=3 is followed by a status=4
+**Meaning:** Train stays in station for a while
+**ProcessFunction:** creates StaystInStationEvent 
+
+### NoMatchinPlannedTrainPattern
+**Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see (LivePlannedCorrelationFunction)[https://github.com/bptlab/cepta/edit/dev/docs/flink/operators.md#LivePlannedCorrelationFunction] )
+**Matches:** tuple.f1 == null
+**Meaning:**  a LiveTrainDataEvent does not have a corresponding PlannedTrainData
+**ProcessFunction:** creates StaystInStationEvent 
