@@ -23,7 +23,8 @@ export interface NotificationsState {
 @Module({ dynamic: true, store, name: "notifications" })
 class Notifications extends VuexModule implements NotificationsState {
   public socket = new WebSocket(
-    "ws://" + window.location.hostname + "/ws/notifications"
+    // "ws://" + window.location.hostname + "/ws/notifications"
+     "ws://" + "172.17.0.1"+ "/notifications"
   );
 
   @Mutation

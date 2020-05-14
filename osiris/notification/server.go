@@ -344,10 +344,11 @@ func (s *NotificationServer) Setup(ctx context.Context, usermgmtConn *grpc.Clien
 			Password: s.redisConfig.Password,
 			DB:       s.redisConfig.Database,
 		})
+		log.Infof("Heres my ClientConfig: %v", s.rclient)
 		_, err := s.rclient.Ping().Result()
 		connected <- err
 	}()
-
+	log.Infof("Heres my ClientConfig :) : %v", 49)
 	select {
 	case <-ctx.Done():
 		err = errors.New("Setup was cancelled")
@@ -434,7 +435,7 @@ func main() {
 		// External user managemnt service config
 		&cli.StringFlag{
 			Name:    "usermgmt-host",
-			Value:   "localhost",
+			Value:   "usermgmt",
 			EnvVars: []string{"USERMGMT_HOST"},
 			Usage:   "usermgmt microservice host",
 		},
@@ -469,8 +470,8 @@ func main() {
 			log.SetLevel(level)
 
 			server := NewNotificationServer(kafkaconsumer.Config{}.ParseCli(ctx), libredis.Config{}.ParseCli(ctx))
-			server.usermgmtEndpoint = Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")}
-
+			//server.usermgmtEndpoint = Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")}
+			server.usermgmtEndpoint = Endpoint{Host: "usermgmt", Port: 80}
 			// Register shutdown routine
 			setupCtx, cancelSetup := context.WithCancel(context.Background())
 			shutdown := make(chan os.Signal)

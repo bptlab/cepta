@@ -21,6 +21,9 @@ package org.bptlab.cepta;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+
+import com.google.protobuf.Duration;
+import com.google.protobuf.Timestamp;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
@@ -35,6 +38,9 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
+import org.bptlab.cepta.models.events.delay_explanation.DelayExplanationDataOuterClass;
+import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
@@ -191,6 +197,27 @@ public class Main implements Callable<Integer> {
    //  delayShiftNotifications.print();
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
+
+    NotificationOuterClass.DelayNotification myNotification = NotificationOuterClass.DelayNotification.newBuilder()
+            .setDelay(
+                    DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setNanos(100).build()).setDetails("We did it!").build())
+            .setStationId(Ids.CeptaStationID.newBuilder().setId("51410").build())
+            .setTransportId(Ids.CeptaTransportID.newBuilder().setId("Yoink!").build())
+            .build();
+    NotificationOuterClass.Notification wrappedMyNotification = NotificationOuterClass.Notification.newBuilder()
+            .setType(NotificationOuterClass.Type.BROADCAST)
+            .setUrgency(NotificationOuterClass.Urgency.HIGH)
+            .setOccurred(Timestamp.newBuilder().setSeconds(9001))
+            .setDelay(myNotification)
+            .build();
+
+
+
+    DataStream<NotificationOuterClass.Notification> delayNotificationDataStream = env.fromElements(wrappedMyNotification);
+
+    delayNotificationDataStream.addSink(trainDelayNotificationProducer);
+    delayNotificationDataStream.print();
+
 
     FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
             Topic.STAYS_IN_STATION.getValueDescriptor().getName(),

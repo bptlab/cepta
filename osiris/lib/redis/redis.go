@@ -18,7 +18,8 @@ type Config struct {
 
 // ConnectionURI ...
 func (config Config) ConnectionURI() string {
-	return fmt.Sprintf("%s:%d", config.Host, config.Port)
+	//return fmt.Sprintf("%s:%d", config.Host, config.Port)
+	return fmt.Sprintf("%s:%d", "redis", config.Port)
 }
 
 // ParseCli ...

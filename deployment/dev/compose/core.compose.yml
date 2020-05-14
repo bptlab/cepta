@@ -151,6 +151,8 @@ services:
       - flink-taskmanager
       - kafka
       - replayer
+      - redis
+      - usermgmt
 
   auth:
     image: bazel/osiris/auth:image

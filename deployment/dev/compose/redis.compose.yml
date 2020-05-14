@@ -7,4 +7,3 @@ services:
       - 5672
     ports:
       - ${CEPTA_REDIS_PORT}:6379
-
