@@ -88,7 +88,7 @@ RichAsynchFunction<WeatherData, Tuple2<WeatherData, Integer>>
 **ProcessFunction:** creates StaystInStationEvent 
 
 ### NoMatchinPlannedTrainPattern
-**Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/dev/docs/flink/operators_patterns.md#liveplannedcorrelationfunction))  
+**Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/blob/dev/docs/flink/operators_patterns.md#liveplannedcorrelationfunction))  
 **Matches:** tuple.f1 == null  
 **Meaning:**  a LiveTrainDataEvent does not have a corresponding PlannedTrainData  
 **ProcessFunction:** creates StaystInStationEvent 
