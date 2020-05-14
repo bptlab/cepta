@@ -132,6 +132,12 @@ public class Main implements Callable<Integer> {
     this.setupConsumers();
     this.setupProducers();
 
+    /*-------------------------
+     * End - StreamExecution Environment Setup
+     * ++++++++++++++++++++++++
+     * Begin - InputStream Setup
+     * ------------------------*/
+
     DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
     DataStream<EventOuterClass.Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
     DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
@@ -152,6 +158,12 @@ public class Main implements Callable<Integer> {
     DataStream<LiveTrainData> liveTrainDataStream2 = liveTrainDataStream.assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
     // liveTrainDataStream.print();
 
+    /*-------------------------
+     * End - InputStream Setup
+     * ++++++++++++++++++++++++
+     * Begin - Weather
+     * ------------------------*/
+
     DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
       @Override
       public WeatherData map(Event event) throws Exception{
@@ -159,59 +171,30 @@ public class Main implements Callable<Integer> {
       }
     });
 
+    /*-------------------------
+     * End - Weather
+     * ++++++++++++++++++++++++
+     * Begin - StaysInStation
+     * ------------------------*/
 
-    DataStream<Notification> delayShiftMongo = AsyncDataStream
+    DataStream<Notification> notificationFromDelayShift = AsyncDataStream
     .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
       100000, TimeUnit.MILLISECONDS, 1);
 
-
+    //The Stream is not necessary it passes through all events independent from a successfull upload
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
+    /*-------------------------
+     * End - MongoDelayShift
+     * ++++++++++++++++++++++++
+     * Begin - StaysInStation
+     * ------------------------*/
+
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
-
-    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream2);
-
-    countOfTrainsAtStationDataStream.print();
-//Deprecated
-//       DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
-//          .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
-//            100000, TimeUnit.MILLISECONDS, 1);
-
-
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-        AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 1);
-
-
-
-    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
-        .process(new DetectStationArrivalDelay()).name("train-delays");
-
-    // Produce delay notifications into new queue
-     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
-        .withKeySerializer(Optional.of(LongSerializer::new));
-
-
-    FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
-        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
-        new GenericBinaryProtoSerializer<NotificationOuterClass.Notification>(),
-        delaySenderConfig.getProperties());
-
-    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
-    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-
-    /*delayShiftNotifications.addSink(trainDelayNotificationProducer);
-    delayShiftNotifications.print();
-
-     trainDelayNotificationDataStream.print();
-    delayShiftNotifications.addSink(trainDelayNotificationProducer);
-     delayShiftNotifications.print();*/
 
     KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
@@ -222,6 +205,58 @@ public class Main implements Callable<Integer> {
             staysInStationKafkaConfig.getProperties());
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
+
+    /*-------------------------
+     * End - StaysInStation
+     * ++++++++++++++++++++++++
+     * Begin - CountOfTrainsAtStation
+     * ------------------------*/
+
+    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream2);
+
+    countOfTrainsAtStationDataStream.print();
+
+    /*-------------------------
+     * End - CountOfTrainsAtStation
+     * ++++++++++++++++++++++++
+     * Begin - matchedLivePlanned
+     * ------------------------*/
+
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
+        AsyncDataStream
+            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
+
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
+        .process(new DetectStationArrivalDelay()).name("train-delays");
+
+    // Produce delay notifications into new queue
+     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+        .withKeySerializer(Optional.of(LongSerializer::new));
+
+    FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
+        Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
+        new GenericBinaryProtoSerializer<NotificationOuterClass.Notification>(),
+        delaySenderConfig.getProperties());
+
+    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
+    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
+    trainDelayNotificationDataStream.print();
+
+    /*-------------------------
+     * End - matchedLivePlanned
+     * ++++++++++++++++++++++++
+     * Begin - !
+     * ------------------------*/
+
+    /*delayShiftNotifications.addSink(trainDelayNotificationProducer);
+    delayShiftNotifications.print();
+
+     trainDelayNotificationDataStream.print();
+    delayShiftNotifications.addSink(trainDelayNotificationProducer);
+     delayShiftNotifications.print();*/
+
+
 
     env.execute("CEPTA CORE");
     return 0;
