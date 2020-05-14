@@ -1,12 +1,15 @@
 package org.bptlab.cepta.utils.functions;
 
+import com.google.protobuf.Message;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
-import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
+import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,12 +77,36 @@ public class StreamUtils {
         return 0;
     }
 
-    public static AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData> eventTimeExtractor() {
-        return new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
+//    public static AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData> eventTimeExtractor() {
+//        return new AscendingTimestampExtractor<LiveTrainDataOuterClass.LiveTrainData>() {
+//            @Override
+//            public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
+//                // flink timestamps are specified as millisecons since java epoch on 1970-01-01T00:00:00Z.
+//                return liveTrainData.getEventTime().getSeconds() * 1000;
+//            }
+//        };
+//    }
+
+    public static <T extends Message> AscendingTimestampExtractor<T> eventTimeExtractor() {
+        return new AscendingTimestampExtractor<T>() {
             @Override
-            public long extractAscendingTimestamp(LiveTrainDataOuterClass.LiveTrainData liveTrainData) {
+            public long extractAscendingTimestamp(T message) {
                 // flink timestamps are specified as millisecons since java epoch on 1970-01-01T00:00:00Z.
-                return liveTrainData.getEventTime().getSeconds() * 1000;
+                long timestamp_millis = 0;
+                try {
+                    if (message instanceof LiveTrainData) {
+                        timestamp_millis = ((LiveTrainData)message).getEventTime().getSeconds() * 1000;
+                    } else if (message instanceof PlannedTrainData) {
+                        timestamp_millis = ((PlannedTrainData)message).getIngestionTime().getSeconds() * 1000;
+                    } else if (message instanceof WeatherData) {
+                        timestamp_millis = ((WeatherData)message).getDetectionTime().getSeconds() * 1000;
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("TimeCharacteristic not defined for this Event Type");
+                    System.exit(-1);
+                }
+                return timestamp_millis;
             }
         };
     }
