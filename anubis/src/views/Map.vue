@@ -120,14 +120,26 @@ export default class Dashboard extends Vue {
     }
   });
 
-  stations: MapTripPosition[] = Array(15).fill({
-    position: {coordinates: [52.487991, 13.260937]},
+  stations: MapTripPosition[] = [
+    {
+    position: {
+        coordinates: [53.026241, 13.19041],
+        stationName: "Example Station Name"
+    },
     icon: {
-      iconUrl:
-        "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+      url: "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
       }
-  });
-
+    },
+        {
+    position: {
+        coordinates: [54.026241, 13.19041],
+        stationName: "Example Station Name 2"
+    },
+    icon: {
+      url: "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
+      }
+    },  
+  ]
   handleTrack(transport: Transport) {
     this.tracked = transport.id;
     this.$router.replace({

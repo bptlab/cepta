@@ -74,16 +74,16 @@ export default class MapVisualisation extends Vue {
   loadTransport(transport?: MappedTransport) {
     if (transport == undefined) return;
 
-    this.markers = this.setupRoute(transport);
+    //this.markers = this.setupRoute(transport);
     let polyline: [number, number][] = [];
-    this.markers.forEach(p => {
+    /*this.markers.forEach(p => {
       polyline.push(p.coordinates);
-      //p.marker?.addTo(this.map);
+      p.marker?.addTo(this.map);
     });
     this.polyline = L.polyline(polyline, {
       color: transport.color ?? "black"
     }).addTo(this.map);
-
+*/
     // Fly to the new route
     let start = transport.positions[0].position.coordinates;
     let end =
@@ -119,7 +119,13 @@ export default class MapVisualisation extends Vue {
             popupAnchor: anchor
           });
         }
-      let marker = L.marker(c, markerOptions).bindPopup("Moin Station",{
+      let stationName; 
+      if (stations[i].position.stationName == undefined){
+        stationName = "undefined station name"
+      } else {
+        stationName = stations[i].position.stationName;
+      }
+      let marker = L.marker(c, markerOptions).bindPopup(stationName,{
             autoPan: false
           })
       this.stationMarkers.push({coordinates: c, marker: marker})
@@ -160,7 +166,9 @@ export default class MapVisualisation extends Vue {
 
     if (this.transport != undefined){
        this.loadTransport(this.transport);
-      this.loadStations(this.stations);
+    }
+    if (this.stations != undefined) {
+     this.loadStations(this.stations);
     }
   }
 
