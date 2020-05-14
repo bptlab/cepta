@@ -15,6 +15,7 @@ java_library(
         "//models/events:planned_train_data_java_proto",
         "//models/events:event_java_proto",
         "//models/events:weather_data_java_proto",
+        "//models/events:count_of_trains_at_station_event_java_proto",
         "//models/internal:delay_java_proto",
         "//models/internal/notifications:notification_java_proto",
         "//models/internal/types:ids_java_proto",
