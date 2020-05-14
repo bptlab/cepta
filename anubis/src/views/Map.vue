@@ -32,7 +32,10 @@
       </ul>
     </div>
     <div class="map">
-      <map-visualisation :transport="currentTransport" :stations="stations"></map-visualisation>
+      <map-visualisation
+        :transport="currentTransport"
+        :stations="stations"
+      ></map-visualisation>
     </div>
   </div>
 </template>
@@ -43,7 +46,12 @@ import { Component, Vue } from "vue-property-decorator";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import MapCell from "../components/MapCell.vue";
-import { MappedTransport, Transport, TripPosition, MapTripPosition } from "../models/geo";
+import {
+  MappedTransport,
+  Transport,
+  TripPosition,
+  MapTripPosition
+} from "../models/geo";
 
 @Component({
   name: "Map",
@@ -122,24 +130,26 @@ export default class Dashboard extends Vue {
 
   stations: MapTripPosition[] = [
     {
-    position: {
+      position: {
         coordinates: [53.026241, 13.19041],
         stationName: "Example Station Name"
-    },
-    icon: {
-      url: "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
+      },
+      icon: {
+        url:
+          "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
       }
     },
-        {
-    position: {
+    {
+      position: {
         coordinates: [54.026241, 13.19041],
         stationName: "Example Station Name 2"
-    },
-    icon: {
-      url: "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
+      },
+      icon: {
+        url:
+          "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
       }
-    },  
-  ]
+    }
+  ];
   handleTrack(transport: Transport) {
     this.tracked = transport.id;
     this.$router.replace({

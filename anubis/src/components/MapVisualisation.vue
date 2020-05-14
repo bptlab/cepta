@@ -58,12 +58,9 @@ export default class MapVisualisation extends Vue {
             popupAnchor: anchor
           });
         }
-        let marker = L.marker(c, markerOptions).bindPopup(
-          "Moin",
-          {
-            autoPan: false
-          }
-        );
+        let marker = L.marker(c, markerOptions).bindPopup("Moin", {
+          autoPan: false
+        });
         acc.push({ coordinates: c, marker: marker });
         return acc;
       },
@@ -97,38 +94,38 @@ export default class MapVisualisation extends Vue {
 
   loadStations(stations?: MapTripPosition[]) {
     if (stations == undefined) {
-      console.log("undefined stations")
+      console.log("undefined stations");
       return;
     }
 
     //this.StationMarkers = this.setupStations(stations);
-    for (let i=0; i<stations.length; i++) {
+    for (let i = 0; i < stations.length; i++) {
       console.log(stations[i]);
       let c = stations[i].position.coordinates;
       let size = stations[i].icon?.size ?? [30, 30];
       let anchor: L.PointTuple = [0, -(size[1] / 2)];
       let markerOptions: L.MarkerOptions = {};
-             if (stations[i].icon != undefined || this.forceIcon) {
-          markerOptions.icon = L.icon({
-            // Icon from https://findicons.com/icon/260843/train_transportation
-            iconUrl:
-              stations[i].icon?.url ??
-              "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
-            iconSize: size,
-            tooltipAnchor: anchor,
-            popupAnchor: anchor
-          });
-        }
-      let stationName; 
-      if (stations[i].position.stationName == undefined){
-        stationName = "undefined station name"
+      if (stations[i].icon != undefined || this.forceIcon) {
+        markerOptions.icon = L.icon({
+          // Icon from https://findicons.com/icon/260843/train_transportation
+          iconUrl:
+            stations[i].icon?.url ??
+            "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png",
+          iconSize: size,
+          tooltipAnchor: anchor,
+          popupAnchor: anchor
+        });
+      }
+      let stationName;
+      if (stations[i].position.stationName == undefined) {
+        stationName = "undefined station name";
       } else {
         stationName = stations[i].position.stationName;
       }
-      let marker = L.marker(c, markerOptions).bindPopup(stationName,{
-            autoPan: false
-          })
-      this.stationMarkers.push({coordinates: c, marker: marker})
+      let marker = L.marker(c, markerOptions).bindPopup(stationName, {
+        autoPan: false
+      });
+      this.stationMarkers.push({ coordinates: c, marker: marker });
     }
     this.stationMarkers.forEach(p => {
       p.marker?.addTo(this.map);
@@ -164,11 +161,11 @@ export default class MapVisualisation extends Vue {
       attribution: this.attribution
     }).addTo(this.map);
 
-    if (this.transport != undefined){
-       this.loadTransport(this.transport);
+    if (this.transport != undefined) {
+      this.loadTransport(this.transport);
     }
     if (this.stations != undefined) {
-     this.loadStations(this.stations);
+      this.loadStations(this.stations);
     }
   }
 
