@@ -15,4 +15,11 @@ public class NotificationHelper {
         delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(stationId)).build());
         return Notification.newBuilder().setDelay(delayBuilder.build()).build();
     }
+    public static Notification getTrainDelayNotificationFrom( String ceptaID, long delayedSeconds, long stationId  ){
+        NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();
+        delayBuilder.setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds(delayedSeconds).build()).setDetails("").build() );
+        delayBuilder.setTransportId(Ids.CeptaTransportID.newBuilder().setId(ceptaID).build());
+        delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(stationId)).build());
+        return Notification.newBuilder().setDelay(delayBuilder.build()).build();
+    }
 }
