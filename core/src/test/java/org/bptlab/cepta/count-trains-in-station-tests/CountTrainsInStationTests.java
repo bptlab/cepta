@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class CountTrainsInStationTests {
 
     @Test
-    public void TestCorrectAmountOfTriggers() throws IOException, ParseException {
+    public void testCorrectAmountOfTriggers() throws IOException, ParseException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         int commonStation = 1;
@@ -50,7 +50,7 @@ public class CountTrainsInStationTests {
     }
 
     @Test
-    public void TestCorrectCountAtStation() throws IOException, ParseException {
+    public void testCorrectCountAtStation() throws IOException, ParseException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         int commonStation = 1;
@@ -85,7 +85,7 @@ public class CountTrainsInStationTests {
     }
 
     @Test
-    public void TestCountEachStationIndependently() throws IOException, ParseException {
+    public void testCountEachStationIndependently() throws IOException, ParseException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         int commonStation = 1;
