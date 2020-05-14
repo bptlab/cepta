@@ -25,12 +25,12 @@ public class SumOfDelayAtStationFunction {
     The window is a fixed event number window.
     It will return a Stream of Tuple2 with the location Id and the sum of delay.
     */
-    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<NotificationOuterClass.DelayNotification> inputStream, int windowSize) {
+    public DataStream<Tuple2<Long, Double>> SumOfDelayAtStation(DataStream<NotificationOuterClass.Notification> inputStream, int windowSize) {
         DataStream<Tuple2<Long, Double>> resultStream = inputStream
                 .keyBy(
-                        new KeySelector<NotificationOuterClass.DelayNotification, Integer>(){
+                        new KeySelector<NotificationOuterClass.Notification, Integer>(){
                             Integer key = 0;
-                            public Integer getKey(NotificationOuterClass.DelayNotification event){
+                            public Integer getKey(NotificationOuterClass.Notification event){
                                 Integer returnKey = key/windowSize;
                                 key++;
                                 return returnKey;
@@ -45,12 +45,13 @@ public class SumOfDelayAtStationFunction {
         return resultStream;
     };
 
-    public static ProcessWindowFunction<NotificationOuterClass.DelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
-        return new ProcessWindowFunction<NotificationOuterClass.DelayNotification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
+    public static ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Double>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
+        return new ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Double>, Integer, GlobalWindow>() {
             @Override
-            public void process(Integer key, Context context, Iterable<NotificationOuterClass.DelayNotification> input, Collector<Tuple2<Long, Double>> out) throws Exception {
+            public void process(Integer key, Context context, Iterable<NotificationOuterClass.Notification> input, Collector<Tuple2<Long, Double>> out) throws Exception {
                 HashMap<Long, Double> sums = new HashMap<Long, Double>();
-                for (NotificationOuterClass.DelayNotification in: input) {
+                for (NotificationOuterClass.Notification outer_in: input) {
+                    NotificationOuterClass.DelayNotification in = outer_in.getDelay();
                     Long trainId = Long.valueOf(in.getTransportId().getId());
                     Long locationId = Long.valueOf(in.getStationId().getId());
                     Double delay = (double) in.getDelay().getDelta().getSeconds();
