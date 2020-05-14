@@ -4,6 +4,12 @@
 ### AverageSpeedFunction
 not implemented
 
+### CountOfTrainsAtStationFunction
+Stream to Stream function  
+**Intput:** DataStream<LiveTrainData> inputStream  
+**Output:** DataStream<CountOfTrainsInStationEvent>  
+**Functionality:** generates CountOfTrainsInStationEvens in a timeWindow of 60 min sliding every 15 min
+
 ### DataCleansingFunction
 Stream to Stream function  
 **Intput:** DataStream<T> input Stream, T filter  
@@ -36,7 +42,7 @@ RichAsynchFunction<LiveTrainData, Notification>
 
 ### DetectStationArrivalDelay
 Stream to Stream function  
-**Intput:** DataStream<Tuple2<LiveTrainData, PlannedTrainData>> inputStream
+**Intput:** DataStream<Tuple2<LiveTrainData, PlannedTrainData>> inputStream  
 **Output:** DataStream<Notification>   
 **Functionality:** Compares dates of live and plan dataset. If there is a delay it generates a delay.
 
@@ -82,7 +88,7 @@ RichAsynchFunction<WeatherData, Tuple2<WeatherData, Integer>>
 **ProcessFunction:** creates StaystInStationEvent 
 
 ### NoMatchinPlannedTrainPattern
-**Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/edit/dev/docs/flink/operators.md#liveplannedcorrelationfunction))  
+**Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/edit/dev/docs/flink/operators_patterns.md#liveplannedcorrelationfunction))  
 **Matches:** tuple.f1 == null  
 **Meaning:**  a LiveTrainDataEvent does not have a corresponding PlannedTrainData  
 **ProcessFunction:** creates StaystInStationEvent 
