@@ -8,6 +8,7 @@ services:
       - ${CEPTA_ENVOY_GRPC_PORT}:81
     environment:
       ENVOY_HOST: ${ENVOY_HOST}
+    network_mode: ${ENVOY_NETWORK_MODE}
     volumes:
       - ../../keys/sample/auth.jwk.json:/etc/envoy/jwks/jwks.json
       - ../envoy.yaml:/etc/envoy/envoy.yaml.tmpl:ro
