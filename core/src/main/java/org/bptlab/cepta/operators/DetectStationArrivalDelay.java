@@ -10,6 +10,7 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class DetectStationArrivalDelay extends
         ProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NotificationOuterClass.Notification> {
@@ -27,16 +28,13 @@ public class DetectStationArrivalDelay extends
           delay < 0 is good, the train might arrive earlier than planned
          */
         try {
-            double delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+            long delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
 
-            // Only send a delay notification if some threshold is exceeded
-            if (Math.abs(delay) > 10) {
-                NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();
-                delayBuilder.setDelay(DelayOuterClass.Delay.newBuilder().setDelta(Duration.newBuilder().setSeconds((long) delay).build()).build());
-                delayBuilder.setTransportId(Ids.CeptaTransportID.newBuilder());
-                delayBuilder.setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(observed.getStationId())).build());
+            // Only send a delay notification if some threshold is exceeded (DIRTY FIX for now 0 )
+            if (Math.abs(delay) >= 0) {
+                NotificationOuterClass.Notification notification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(observed.getTrainSectionId()), delay,"ArrivalDelay",observed.getStationId() );
 
-                collector.collect(NotificationOuterClass.Notification.newBuilder().setDelay(delayBuilder.build()).build());
+                collector.collect(notification);
             }
         } catch ( NullPointerException e) {
             // Do not send a delay event
