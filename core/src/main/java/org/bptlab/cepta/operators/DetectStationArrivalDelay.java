@@ -28,7 +28,13 @@ public class DetectStationArrivalDelay extends
           delay < 0 is good, the train might arrive earlier than planned
          */
         try {
-            long delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+            long delay;
+            if (expected.hasPlannedEventTime()){
+                delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+            } else {
+                //Send already known Delay of LiveTrainData Event if not PlannedTrainData is available
+                delay = observed.getDelay();
+            }
 
             // Only send a delay notification if some threshold is exceeded (DIRTY FIX for now 0 )
             if (Math.abs(delay) >= 0) {
