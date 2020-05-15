@@ -4,7 +4,7 @@ services:
   redis:
     image: redis
     expose:
-      - 5672
+      - 6379
     ports:
       - ${CEPTA_REDIS_PORT}:6379
 

@@ -5,9 +5,10 @@ services:
         volumes:
             - mongodb_data:/data/db
         expose:
-            - 27017
+            - ${CEPTA_MONGODB_PORT}
+        command: mongod --port ${CEPTA_MONGODB_PORT}
         ports:
-            - ${CEPTA_MONGODB_PORT}:27017
+            - ${CEPTA_MONGODB_PORT}:${CEPTA_MONGODB_PORT}
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: example
