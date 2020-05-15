@@ -19,6 +19,8 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 
+import static org.bptlab.cepta.utils.database.Util.ProtoTimestampToSqlTimestamp;
+
 public class LivePlannedCorrelationFunction extends
     RichAsyncFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>> {
 
@@ -65,9 +67,28 @@ public class LivePlannedCorrelationFunction extends
        asyncInvoke will be called for each incoming element
        the resultFuture is where the outgoing element will be
     */
-    String query = String
-        .format("select * from public.planned where train_section_id = %d and station_id = %d;",
-            liveEvent.getTrainSectionId(), liveEvent.getStationId());
+    String query;
+    if (liveEvent.getPlannedArrivalTimeEndStation().getSeconds() != 0 && liveEvent.getEndStationId() > 0) {
+      String plannedArrivalTimeEndStation = String.format("'%s'", ProtoTimestampToSqlTimestamp(liveEvent.getPlannedArrivalTimeEndStation()).toString());
+      query = String
+              .format("select * from public.planned where train_section_id = %d and station_id = %d and end_station_id = %d and planned_arrival_time_end_station = %s;",
+                      liveEvent.getTrainSectionId(),
+                      liveEvent.getStationId(),
+                      liveEvent.getEndStationId(),
+                      plannedArrivalTimeEndStation);
+    } else if (liveEvent.getPlannedArrivalTimeEndStation().getSeconds() == 0 && liveEvent.getEndStationId() > 0){
+      query = String
+              .format("select * from public.planned where train_section_id = %d and station_id = %d and end_station_id = %d;",
+                      liveEvent.getTrainSectionId(),
+                      liveEvent.getStationId(),
+                      liveEvent.getEndStationId());
+    } else {
+      query = String
+              .format("select * from public.planned where train_section_id = %d and station_id = %d;",
+                      liveEvent.getTrainSectionId(),
+                      liveEvent.getStationId());
+    }
+
     final CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
 
     /*
@@ -81,8 +102,10 @@ public class LivePlannedCorrelationFunction extends
           QueryResult queryResult = future.get();
           RowData firstMatch = queryResult.getRows().get(0);
           return new PlannedTrainDataDatabaseConverter().fromRowData(firstMatch);
-        } catch (Exception e) {
-          e.printStackTrace();
+        } catch (IndexOutOfBoundsException e) {
+          return null;
+        } catch (Exception e1) {
+          e1.printStackTrace();
           return null;
         }
       }
