@@ -218,6 +218,7 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Weather/Locations
      * ------------------------*/
+    locationDataStream.map(new DataToPostgresDatabase<LocationData>("location",postgresConfig));
 
     DataStream<Tuple2<WeatherData, Integer>> weatherLocationStream = AsyncDataStream
             .unorderedWait(weatherDataStream, new WeatherLocationCorrelationFunction(postgresConfig),
