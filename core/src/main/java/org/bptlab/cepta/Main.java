@@ -235,7 +235,7 @@ public class Main implements Callable<Integer> {
      * Begin - MongoDelayShift
      * ------------------------*/
 
-    //The Stream is not necessary it passes through all events independent from a successfull upload
+    //The Stream is not necessary it passes through all events independent from a successful upload
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
@@ -245,7 +245,7 @@ public class Main implements Callable<Integer> {
                     100000, TimeUnit.MILLISECONDS, 1);
 
     notificationFromDelayShift.addSink(trainDelayNotificationProducer);
-
+//    notificationFromDelayShift.print();
     /*-------------------------
      * End - MongoDelayShift
      * ++++++++++++++++++++++++
@@ -266,7 +266,7 @@ public class Main implements Callable<Integer> {
 
     DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream);
 
-    countOfTrainsAtStationDataStream.print();
+//    countOfTrainsAtStationDataStream.print();
 
     /*-------------------------
      * End - CountOfTrainsAtStation
@@ -274,15 +274,20 @@ public class Main implements Callable<Integer> {
      * Begin - matchedLivePlanned
      * ------------------------*/
 
-    // LivePlannedCorrelationFunction
+    // LivePlannedCorrelationFunction Mongo
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
+            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
+                    100000, TimeUnit.MILLISECONDS, 1);
+
+    // LivePlannedCorrelationFunction Postgre
     //TODO!!
     //This might be Very Slot, maybe Too slow for  LivePlannedCorrelationFunction!!
-    plannedTrainDataStream.map(new DataToPostgresDatabase<PlannedTrainData>("planned",postgresConfig));
+//    plannedTrainDataStream.map(new DataToPostgresDatabase<PlannedTrainData>("planned",postgresConfig));
 
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-        AsyncDataStream
-            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-                100000, TimeUnit.MILLISECONDS, 1);
+//    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
+//        AsyncDataStream
+//            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
+//                100000, TimeUnit.MILLISECONDS, 1);
 
     // DetectStationArrivalDelay
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
