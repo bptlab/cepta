@@ -68,6 +68,9 @@ BUILD=1 ./deployment/dev/devenv.sh up args...
 ```
 
 #### Deployment on Mac
+Seeing an error like this while starting the docker container:  
+`standard_init_linux.go:211: exec user process caused "exec format error"`
+
 MacOs needs a slight configuration to the build stage. The docker images that are build with bazel have to be build for linux to run in the docker environment. Therefore you have to build the images like this: 
 
 ```
