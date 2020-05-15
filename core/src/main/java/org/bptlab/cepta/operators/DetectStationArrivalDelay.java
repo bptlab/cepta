@@ -29,17 +29,19 @@ public class DetectStationArrivalDelay extends
          */
         try {
             long delay;
+            String delayDetail;
             if (expected.hasPlannedEventTime()){
                 delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+                delayDetail ="ArrivalDelay derived from PlannedTrainData Correlation";
             } else {
                 //Send already known Delay of LiveTrainData Event if not PlannedTrainData is available
                 delay = observed.getDelay();
+                delayDetail ="ArrivalDelay derived from LiveTrainData";
             }
 
             // Only send a delay notification if some threshold is exceeded (DIRTY FIX for now 0 )
             if (Math.abs(delay) >= 0) {
-                NotificationOuterClass.Notification notification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(observed.getTrainSectionId()), delay,"ArrivalDelay",observed.getStationId() );
-
+                NotificationOuterClass.Notification notification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(observed.getTrainSectionId()), delay,delayDetail,observed.getStationId() );
                 collector.collect(notification);
             }
         } catch ( NullPointerException e) {
