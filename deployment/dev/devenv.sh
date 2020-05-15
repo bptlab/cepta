@@ -16,9 +16,13 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
   export ENVOY_HOST=host.docker.internal
+  export ENVOY_NETWORK_MODE=bridge
 else
   # Assume we are running under linux
-  export ENVOY_HOST=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
+  export ENVOY_HOST=localhost
+  export ENVOY_NETWORK_MODE=host
+  # This seems to be not enough
+  # export ENVOY_HOST=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 fi
 
 echo "Using docker host at ${ENVOY_HOST}"

@@ -90,7 +90,7 @@ static_resources:
       connect_timeout: 15.0s
       type: logical_dns
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_NOTIFICATION_BACKEND_PORT} }}]
+      hosts: [{ socket_address: { address: ${ENVOY_HOST}, port_value: ${CEPTA_NOTIFICATION_WS_PORT} }}]
 
     - name: auth_service
       connect_timeout: 15.0s
