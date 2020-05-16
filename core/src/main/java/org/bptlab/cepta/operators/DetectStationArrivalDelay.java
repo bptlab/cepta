@@ -32,10 +32,10 @@ public class DetectStationArrivalDelay extends
             String delayDetail;
             if (expected.hasPlannedEventTime()){
                 delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
-                delayDetail ="ArrivalDelay derived from PlannedTrainData Correlation (ReferenceDelay: "+observed.getDelay()+")";
+                delayDetail ="ArrivalDelay derived from PlannedTrainData Correlation (ReferenceDelay: "+observed.getDelay()*60+" seconds)";
             } else {
                 //Send already known Delay of LiveTrainData Event if not PlannedTrainData is available
-                delay = observed.getDelay();
+                delay = observed.getDelay()*60;
                 delayDetail ="ArrivalDelay derived from LiveTrainData";
             }
 
