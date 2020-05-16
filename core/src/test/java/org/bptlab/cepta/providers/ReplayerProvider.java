@@ -41,9 +41,20 @@ public class ReplayerProvider {
      */
     // return blockingStub.query(options);
 
+    //TODO Replace Placeholder >>>>
+    Iterator<ReplayedEvent> I = new Iterator<ReplayedEvent>() {
+      @Override
+      public boolean hasNext() {
+        return false;
+      }
 
-    Iterator<ReplayedEvent>
-
+      @Override
+      public ReplayedEvent next() {
+        return null;
+      }
+    };
+    return I;
+    //TODO Replace Placeholder <<<<
 
     /*
     try {
