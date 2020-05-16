@@ -154,10 +154,12 @@ services:
     ports:
       - ${CEPTA_NOTIFICATION_WS_PORT}:5000
     depends_on:
-      - flink-jobmanager
-      - flink-taskmanager
+      #- flink-jobmanager
+      #- flink-taskmanager
       - kafka
-      - replayer
+      #- replayer
+      - redis
+      - usermgmt
 
   auth:
     image: bazel/osiris/auth:image

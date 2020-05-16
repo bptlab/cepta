@@ -28,12 +28,20 @@ public class DetectStationArrivalDelay extends
           delay < 0 is good, the train might arrive earlier than planned
          */
         try {
-            long delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+            long delay;
+            String delayDetail;
+            if (expected.hasPlannedEventTime()){
+                delay = observed.getEventTime().getSeconds() - expected.getPlannedEventTime().getSeconds();
+                delayDetail ="ArrivalDelay derived from PlannedTrainData Correlation (ReferenceDelay: "+observed.getDelay()*60+" seconds)";
+            } else {
+                //Send already known Delay of LiveTrainData Event if not PlannedTrainData is available
+                delay = observed.getDelay()*60;
+                delayDetail ="ArrivalDelay derived from LiveTrainData";
+            }
 
             // Only send a delay notification if some threshold is exceeded (DIRTY FIX for now 0 )
             if (Math.abs(delay) >= 0) {
-                NotificationOuterClass.Notification notification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(observed.getTrainSectionId()), delay,"ArrivalDelay",observed.getStationId() );
-
+                NotificationOuterClass.Notification notification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(observed.getTrainSectionId()), delay,delayDetail,observed.getStationId() );
                 collector.collect(notification);
             }
         } catch ( NullPointerException e) {
