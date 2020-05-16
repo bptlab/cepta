@@ -1,12 +1,14 @@
 package org.bptlab.cepta.operators;
 
 import com.google.protobuf.Message;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.reactivestreams.client.MongoClient;
 
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 
@@ -14,16 +16,13 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.utils.database.Util;
-import org.bptlab.cepta.utils.database.Util.ProtoKeyValues;
 
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
@@ -36,16 +35,26 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    private ArrayList<Tuple2<String,Integer>> indices = new ArrayList<>();
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
         this.mongoConfig = mongoConfig;
     }
 
+    public DataToMongoDB(String collection_name, List<Tuple2<String,Integer>> createIndexFor, MongoConfig mongoConfig){
+        this.collection_name = collection_name;
+        this.mongoConfig = mongoConfig;
+        this.indices.addAll(createIndexFor);
+    }
+
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        if (!indices.isEmpty()) {
+            createIndices();
+        }
     }
 
     @Override
@@ -86,4 +95,18 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         }
     }
 
+    private void createIndices(){
+        MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
+        MongoCollection<Document> coll = database.getCollection(collection_name);
+        SubscriberHelpers.OperationSubscriber<String> indexSubscriber = new SubscriberHelpers.OperationSubscriber<>();
+        for (Tuple2<String,Integer> index : indices) {
+            if (index.f1 > 0){
+                coll.createIndex(Indexes.ascending(index.f0)).subscribe(indexSubscriber);
+            } else {
+                coll.createIndex(Indexes.descending(index.f0)).subscribe(indexSubscriber);
+            }
+        }
+        //TODO acknowledge?
+        indexSubscriber.get();
+    }
 }
