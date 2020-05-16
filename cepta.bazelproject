@@ -34,3 +34,6 @@ import_run_configurations:
   ijwb/Test__internal.xml
   ijwb/Test__smoke.xml
   ijwb/Test__unit.xml
+  ijwb/Run__Core___db_host_localhost___mongodb_host_localhost.xml
+  ijwb/Run__Core___db_host_localhost___mongodb_host_localhost___mongodb_port_27018.xml
+  ijwb/Run__Replayer_PLANNED_LIVE_LOCATION.xml
