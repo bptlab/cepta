@@ -108,7 +108,8 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	}
 
 	s.LocationRplr = &Replayer{
-		SourceName: "locationdata",
+		//SourceName: "locationdata",
+		SourceName: "eletastations",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
 		}, &locationpb.LocationData{}, setSortAndID("id", "id")),

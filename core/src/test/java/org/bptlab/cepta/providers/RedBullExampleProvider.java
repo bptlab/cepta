@@ -75,42 +75,9 @@ public class RedBullExampleProvider {
       return optionsBuilder.build();
     }
 
-    // getEvent from our ReplayerProvider
-    public static void getDataEvent() {
-
-      ReplayerContainer container = new ReplayerContainer("bp@localhost", 2222);
-      ReplayerProvider provider = new ReplayerProvider(container);
-
-      provider.query(getQueryOptions());
-      java.lang.System.out.println("Successful querying");
-      java.lang.System.out.println(provider.query(getQueryOptions()));
-
-      // return Event
-    }
-
-
 
 /*
-    // @DataProvider(name = "live-train-data-provider")
-    public static DataStream<LiveTrainData> matchingLiveTrainDatas(){
-      StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-      env.setParallelism(1);
-      ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-      liveTrains.add(trainEventWithTrainSectionIdStationId(42382923, 11111111));
-      liveTrains.add(trainEventWithTrainSectionIdStationId(42093766, 11111111));
-      DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
-          .assignTimestampsAndWatermarks(
-              new AscendingTimestampExtractor<LiveTrainData>() {
-                @Override
-                public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                  return liveTrainData.getIngestionTime().getSeconds();
-                }
-              });
-
-      env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-      return liveTrainStream;
-    }
 
     public static DataStream<LiveTrainData> LiveTrainDatStream(){
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

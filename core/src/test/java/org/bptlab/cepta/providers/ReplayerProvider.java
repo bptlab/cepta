@@ -39,7 +39,12 @@ public class ReplayerProvider {
             .setLo(Point.newBuilder().setLatitude(lowLat).setLongitude(lowLon).build())
             .setHi(Point.newBuilder().setLatitude(hiLat).setLongitude(hiLon).build()).build();
      */
-    return blockingStub.query(options);
+    // return blockingStub.query(options);
+
+
+    Iterator<ReplayedEvent>
+
+
     /*
     try {
       features = blockingStub.listFeatures(request);

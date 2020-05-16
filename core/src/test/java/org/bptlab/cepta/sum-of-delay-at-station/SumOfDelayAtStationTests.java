@@ -33,7 +33,7 @@ public class SumOfDelayAtStationTests {
         // element 2 has stationId 2, trainId 2, delay 5
         // element 3 has stationId 1, trainId 2, delay 15
         // element 4 has stationId 2, trainId 1, delay 8
-        DataStream<NotificationOuterClass.DelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
+        DataStream<NotificationOuterClass.Notification> delayNotificationStream = TrainDelayNotificationDataProvider.NotificationDataStream();
 
         DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4);
         ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();

@@ -6,6 +6,7 @@ import org.bptlab.cepta.models.internal.notifications.notification.NotificationO
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import com.google.protobuf.Duration;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 
 public class TrainDelayNotificationDataProvider {
@@ -32,6 +33,22 @@ public class TrainDelayNotificationDataProvider {
       
           return trainDelayNotificationStream;
         }
+
+        //TODO make own Provider
+        public static DataStream<NotificationOuterClass.Notification> NotificationDataStream(){
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+            env.setParallelism(1);
+
+            NotificationOuterClass.Notification ele1 = NotificationHelper.getTrainDelayNotificationFrom("1",10L,1);
+            NotificationOuterClass.Notification ele2 = NotificationHelper.getTrainDelayNotificationFrom("2",5L,2);
+            NotificationOuterClass.Notification ele3 = NotificationHelper.getTrainDelayNotificationFrom("2",15L,1);
+            NotificationOuterClass.Notification ele4 = NotificationHelper.getTrainDelayNotificationFrom("1",8L,2);
+
+            DataStream<NotificationOuterClass.Notification> notificationStream = env.fromElements(ele1, ele2, ele3, ele4);
+
+            return notificationStream;
+        }
+
 
         private static NotificationOuterClass.DelayNotification trainDelayNotificationWithLocationIdWithTrainIdWithDelay(String locationId, String trainId, Long delay){
             return NotificationOuterClass.DelayNotification.newBuilder()
