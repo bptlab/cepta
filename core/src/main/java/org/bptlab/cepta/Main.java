@@ -315,14 +315,14 @@ public class Main implements Callable<Integer> {
      * Begin - SumOfDelaysAtStation
      * ------------------------*/
     //TODO Discuss Has this to be this way?
-    SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
+//    SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
     //TODO Decided about input (Stream and events Notification VS DelayNotification) and Window
 
     int sumOfDelayWindow = 4;
-    DataStream<Tuple2<Long, Double>> sumOfDelayAtStationStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow );
+    DataStream<Tuple2<Long, Long>> sumOfDelayAtStationStream = SumOfDelayAtStationFunction.sumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow );
 
     //TODO Make Sink/Producer
-
+    sumOfDelayAtStationStream.print();
     /*-------------------------
      * End - SumOfDelaysAtStation
      * ++++++++++++++++++++++++
