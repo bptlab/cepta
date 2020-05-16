@@ -285,6 +285,7 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 		defer func() { subscriberDone <- true }()
 		for {
 			select {
+
 			case msg := <-s.kc.Messages:
 				var notification notificationpb.Notification
 				err := proto.Unmarshal(msg.Value, &notification)
@@ -302,9 +303,14 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 
 				switch notification.GetNotification().(type) {
 				case *notificationpb.Notification_Delay:
+					s.broadcast(&notification)
+					// Users need to be assigned to transports to do this
+
+					/*
 					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
 						log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
 					}
+					*/
 					break
 				case *notificationpb.Notification_System:
 					s.broadcast(&notification)

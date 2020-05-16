@@ -107,7 +107,7 @@ proto_library(
     srcs = ["transport.proto"],
     visibility = ["//visibility:public"],
     deps = [
-        ":ids_proto",
+        ":ids_proto"
     ],
 )
 
