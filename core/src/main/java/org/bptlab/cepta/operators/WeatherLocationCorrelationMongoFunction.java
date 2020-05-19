@@ -34,7 +34,7 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.ascending;
 
 public class WeatherLocationCorrelationMongoFunction extends
-    RichAsyncFunction<WeatherData, Tuple2<WeatherData, Integer> > {
+    RichAsyncFunction<WeatherData, Tuple2<WeatherData, Long> > {
 
   private MongoConfig mongoConfig = new MongoConfig();
   private transient MongoClient mongoClient;
@@ -62,7 +62,7 @@ public class WeatherLocationCorrelationMongoFunction extends
 
   @Override
   public void asyncInvoke(WeatherData weatherEvent,
-    final ResultFuture<Tuple2<WeatherData, Integer>> resultFuture) throws Exception {
+    final ResultFuture<Tuple2<WeatherData, Long>> resultFuture) throws Exception {
     /*
         asyncInvoke will be called for each incoming element
         the resultFuture is where the outgoing element(s) will be
@@ -81,10 +81,10 @@ public class WeatherLocationCorrelationMongoFunction extends
     locationDataCollection.find(
             and(
                     /* 0.02 is about 2 kilometers */
-                    gte("lat", weatherEvent.getLatitude() - 0.02)
-                    , lte("lat", weatherEvent.getLatitude() + 0.02)
-                    , gte("lon", weatherEvent.getLongitude() - 0.02)
-                    , lte("lon", weatherEvent.getLongitude() + 0.02)
+                    gte("latitude", weatherEvent.getLatitude() - 0.02)
+                    , lte("latitude", weatherEvent.getLatitude() + 0.02)
+                    , gte("longitude", weatherEvent.getLongitude() - 0.02)
+                    , lte("longitude", weatherEvent.getLongitude() + 0.02)
             )
     ).subscribe(findMultipleSubscriber);
 
@@ -105,11 +105,11 @@ public class WeatherLocationCorrelationMongoFunction extends
     queryFuture.get();
   }
 
-  private Collection<Tuple2<WeatherData, Integer>> generateWeatherStationEvents(WeatherData weatherData, List<Document> matchingStations) {
-    Collection<Tuple2<WeatherData, Integer>> events = new ArrayList<>();
+  private Collection<Tuple2<WeatherData, Long>> generateWeatherStationEvents(WeatherData weatherData, List<Document> matchingStations) {
+    Collection<Tuple2<WeatherData, Long>> events = new ArrayList<>();
       for ( Document matchedStation : matchingStations) {
         try {
-          events.add(new Tuple2<>(weatherData,matchedStation.getInteger("id")));
+          events.add(new Tuple2<>(weatherData,matchedStation.getLong("stationId")));
         } catch ( Exception e) {
           e.printStackTrace();
         }
