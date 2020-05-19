@@ -71,6 +71,7 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     return success;
   }
 
+  //TODO: change void to boolean that reflects whether the collection was changed
   public void insert(T dataSet)
       throws NoSuchFieldException, IllegalAccessException {
 
