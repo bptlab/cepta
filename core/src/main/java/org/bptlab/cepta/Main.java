@@ -18,7 +18,7 @@
 
 package org.bptlab.cepta;
 
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
@@ -50,6 +50,8 @@ import org.bptlab.cepta.patterns.NoMatchingPlannedTrainDataPattern;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
+import org.bptlab.cepta.utils.database.Mongo;
+import org.bptlab.cepta.utils.database.Mongo.IndexContainer;
 import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,6 @@ import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 
 @Command(
     name = "cepta core",
@@ -218,12 +219,15 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Weather/Locations
      * ------------------------*/
+    //Instruct to create an Index to increase performance of queries after Insertion
+    List<IndexContainer> locationIndex = Mongo.makeIndexContainerList(Arrays.asList("latitude","longitude"));
+
     //The Stream is not necessary it passes through all events independent from a successful upload
     DataStream<LocationData> uploadedLocationStream = AsyncDataStream
-            .unorderedWait(locationDataStream, new DataToMongoDB<LocationData>("location",mongoConfig),
+            .unorderedWait(locationDataStream, new DataToMongoDB<LocationData>("location",locationIndex,mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
-    DataStream<Tuple2<WeatherData, Integer>> weatherLocationStream = AsyncDataStream
+    DataStream<Tuple2<WeatherData, Long>> weatherLocationStream = AsyncDataStream
             .unorderedWait(weatherDataStream, new WeatherLocationCorrelationMongoFunction("location",mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
@@ -231,24 +235,24 @@ public class Main implements Callable<Integer> {
     DataStream<NotificationOuterClass.Notification> delayFromWeatherStream = WeatherLiveTrainJoinFunction.delayFromWeather(weatherLocationStream,liveTrainDataStream);
 
     delayFromWeatherStream.addSink(trainDelayNotificationProducer);
-
+//    delayFromWeatherStream.print();
     /*-------------------------
      * End - Weather
      * ++++++++++++++++++++++++
      * Begin - MongoDelayShift
      * ------------------------*/
-
+    List<IndexContainer> plannedTrainDataIndex = Mongo.makeIndexContainerList(Arrays.asList("trainSectionId","endStationId","plannedArrivalTimeEndStation","plannedEventTime"));
     //The Stream is not necessary it passes through all events independent from a successful upload
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
-      .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
+      .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData",plannedTrainDataIndex, mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<Notification> notificationFromDelayShift = AsyncDataStream
             .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
-    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
 //    notificationFromDelayShift.print();
+    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
     /*-------------------------
      * End - MongoDelayShift
      * ++++++++++++++++++++++++
@@ -282,16 +286,6 @@ public class Main implements Callable<Integer> {
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
-    // LivePlannedCorrelationFunction Postgre
-    //TODO!!
-    //This might be Very Slot, maybe Too slow for  LivePlannedCorrelationFunction!!
-//    plannedTrainDataStream.map(new DataToPostgresDatabase<PlannedTrainData>("planned",postgresConfig));
-
-//    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-//        AsyncDataStream
-//            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-//                100000, TimeUnit.MILLISECONDS, 1);
-
     // DetectStationArrivalDelay
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
@@ -311,19 +305,17 @@ public class Main implements Callable<Integer> {
             patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc());
 
     //TODO add consumer for these Events
-
     /*-------------------------
      * End - matchedLivePlanned
      * ++++++++++++++++++++++++
      * Begin - SumOfDelaysAtStation
      * ------------------------*/
     //TODO Decided about input (Stream and events Notification VS DelayNotification) and Window
-
     int sumOfDelayWindow = 4;
     DataStream<Tuple2<Long, Long>> sumOfDelayAtStationStream = SumOfDelayAtStationFunction.sumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow );
 
     //TODO Make Sink/Producer
-    sumOfDelayAtStationStream.print();
+//    sumOfDelayAtStationStream.print();
     /*-------------------------
      * End - SumOfDelaysAtStation
      * ++++++++++++++++++++++++
