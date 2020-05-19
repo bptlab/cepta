@@ -26,6 +26,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
 /* This Operator pushes the received Events into a MongoDB and
@@ -36,6 +39,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    private final Logger log = LoggerFactory.getLogger(DataToMongoDB.class);
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
@@ -46,11 +50,13 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        log.info("Mongo Connection established");
     }
 
     @Override
     public void close(){
         this.mongoClient.close();
+        log.info("Mongo Connection closed");
         // super.close();
     }
 
@@ -91,7 +97,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         if (ackFuture.get()){
             // System.out.println("Success");
         } else {
-            System.out.println("Failed");
+            log.error("Failure insertion of {} was not acknowledged!",document);
         }
     }
 
