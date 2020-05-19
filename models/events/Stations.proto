@@ -5,7 +5,7 @@ option java_package = "org.bptlab.cepta.models.events.station";
 
 import "google/protobuf/timestamp.proto";
 
-message StationData {
+message Stations {
     int64 stationId = 1; 
     double longitude = 2;
     double latitude = 3;

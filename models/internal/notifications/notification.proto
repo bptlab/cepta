@@ -4,6 +4,7 @@ option go_package = "github.com/bptlab/cepta/models/internal/notifications/notif
 option java_package = "org.bptlab.cepta.models.internal.notifications.notification";
 
 import "models/internal/types/ids.proto";
+import "models/internal/types/coordinate.proto";
 import "models/internal/delay.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -24,7 +25,7 @@ message DelayNotification {
     models.internal.types.CeptaTransportID transport_id = 1;
     models.internal.types.CeptaStationID station_id = 2;
     models.internal.Delay delay = 3;
-    models.internal.types.coordiante coordinate = 4;
+    models.internal.types.Coordinate coordinate = 4;
 }
 
 message HazardNotification {

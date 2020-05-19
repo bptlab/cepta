@@ -10,6 +10,7 @@ proto_library(
     deps = [
         "//models/internal:delay_proto",
         "//models/internal/types:ids_proto",
+        "//models/internal/types:coordinate_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -22,6 +23,7 @@ go_proto_library(
     deps = [
         "//models/internal:delay_go_proto",
         "//models/internal/types:ids_go_proto",
+        "//models/internal/types:coordinate_go_proto"
     ],
 )
 
