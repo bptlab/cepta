@@ -3,12 +3,12 @@ load("@rules_java//java:defs.bzl", "java_test")
 java_test(
     name = "delay-shift-mongo",
     size = "medium",
-    srcs = ["DelayShiftFunctionMongoTests.java"],
+    srcs = ["EnrichDelayWithCoordinatesFunctionTests.java"],
     tags = [
         "docker",
         "integration",
     ],
-    test_class = "org.bptlab.cepta.DelayShiftFunctionMongoTests",
+    test_class = "org.bptlab.cepta.EnrichDelayWithCoordinatesFunctionTests",
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
