@@ -218,10 +218,13 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Weather/Locations
      * ------------------------*/
-    locationDataStream.map(new DataToPostgresDatabase<LocationData>("location",postgresConfig));
+    //The Stream is not necessary it passes through all events independent from a successful upload
+    DataStream<LocationData> uploadedLocationStream = AsyncDataStream
+            .unorderedWait(locationDataStream, new DataToMongoDB<LocationData>("location",mongoConfig),
+                    100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<Tuple2<WeatherData, Integer>> weatherLocationStream = AsyncDataStream
-            .unorderedWait(weatherDataStream, new WeatherLocationCorrelationFunction(postgresConfig),
+            .unorderedWait(weatherDataStream, new WeatherLocationCorrelationMongoFunction("location",mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
     //this is a bit weird compared to the other operators
@@ -314,8 +317,6 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - SumOfDelaysAtStation
      * ------------------------*/
-    //TODO Discuss Has this to be this way?
-//    SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
     //TODO Decided about input (Stream and events Notification VS DelayNotification) and Window
 
     int sumOfDelayWindow = 4;
