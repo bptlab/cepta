@@ -17,11 +17,12 @@ import GridTable from "../components/GridTable.vue";
 import { AppModule } from "../store/modules/app";
 import { ReplayerModule } from "../store/modules/replayer";
 import { Component, Vue, Prop } from "vue-property-decorator";
-import { computed } from "@vue/composition-api";
+
+import computed from '@vue/composition-api';
 import {Notification} from "../generated/protobuf/models/internal/notifications/notification_pb";
 
 @Component({
-  name: "TransportTableView",
+  name: "DelaysTableView",
   components: {
     BasicTable,
     GridTable
@@ -31,13 +32,14 @@ export default class DelaysTableView extends Vue {
   @Prop({ default: false }) enableSearchBar!: boolean;
   protected search!: string;
 
-  protected receivedUpdates: { [key: string]: any }[]  = computed(() =>
-          AppModule.notifications.slice(AppModule.notifications.length-3, AppModule.notifications.length-1).map(mapDelayToStringKey))
+  get receivedUpdates(): { [key: string]: any }[] {
+    return AppModule.notifications.slice(AppModule.notifications.length - 3, AppModule.notifications.length - 1).map(mapDelayToStringKey)
+  };
 
 }
 
-function mapDelayToStringKey(noti: Notification){
-  var ding = {
+function mapDelayToStringKey(noti: Notification):{ [key: string]: any }{
+  let ding:{ [key: string]: any } = {
     CeptaStationID: noti.getDelay().getStationId(),
     CeptaID: noti.getDelay().getTransportId(),
     Delay: noti.getDelay().getDelay()
