@@ -4,7 +4,6 @@ import com.google.protobuf.Message;
 import com.google.protobuf.Timestamp;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.reactivestreams.client.*;
 //import com.mongodb.reactivestreams.client.MongoClients;
 
 import com.mongodb.client.MongoClient;
@@ -20,12 +19,13 @@ import org.bson.Document;
 import org.bson.codecs.*;
 import org.bson.codecs.configuration.CodecRegistry;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
+import org.javatuples.Pair;
 
 import static org.bson.codecs.configuration.CodecRegistries.*;
 
@@ -145,6 +145,50 @@ public class Mongo {
         } else {
             return new ArrayList<PlannedTrainData>();
         }
+    }
+
+    public static class IndexContainer implements Serializable {
+        private String indexAttributeNameOrCompound;
+        private Integer orderIndicator;
+
+        //orderIndicator = 0 indicates both ascending and descending indices will be created
+        public IndexContainer(String indexAttributeNameOrCompound){
+            this.indexAttributeNameOrCompound = indexAttributeNameOrCompound;
+            this.orderIndicator = 0;
+        }
+
+        public IndexContainer(String indexAttributeNameOrCompound, Integer orderIndicator){
+            this.indexAttributeNameOrCompound = indexAttributeNameOrCompound;
+            this.orderIndicator = orderIndicator;
+        }
+
+        public Pair<String,Integer> get(){
+            return new Pair<>(indexAttributeNameOrCompound, orderIndicator);
+        }
+
+        public String getIndexAttributeNameOrCompound() {
+            return indexAttributeNameOrCompound;
+        }
+
+        public Integer getOrderIndicator() {
+            return orderIndicator;
+        }
+    }
+
+    public static List<IndexContainer> makeIndexContainerListFromPairs(List<Pair<String,Integer>> indicesToBeCreated){
+        ArrayList<IndexContainer> indexList = new ArrayList();
+        for (Pair<String,Integer> indexPair : indicesToBeCreated) {
+            indexList.add(new IndexContainer(indexPair.getValue0(),indexPair.getValue1()) );
+        }
+        return indexList;
+    }
+
+    public static List<IndexContainer> makeIndexContainerList(List<String> indicesToBeCreated){
+        ArrayList<IndexContainer> indexList = new ArrayList();
+        for (String indexAttributeOrCompound : indicesToBeCreated) {
+            indexList.add(new IndexContainer(indexAttributeOrCompound) );
+        }
+        return indexList;
     }
 }
 
