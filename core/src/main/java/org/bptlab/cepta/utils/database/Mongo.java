@@ -103,22 +103,26 @@ public class Mongo {
 
     public static PlannedTrainData documentToPlannedTrainData(Document doc){
         PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
-        builder.setId((Long)doc.get("id"));
-        builder.setTrainSectionId((Long)doc.get("train_section_id"));
-        builder.setStationId((Long)doc.get("station_id"));
-        builder.setPlannedEventTime((Timestamp)doc.get("planned_event_time"));
-        builder.setStatus((Long)doc.get("status"));
-        builder.setFirstTrainId((Long)doc.get("first_train_id"));
-        builder.setTrainId((Long)doc.get("train_id"));
-        builder.setPlannedDepartureTimeStartStation((Timestamp)doc.get("planned_departure_time_start_station"));
-        builder.setPlannedArrivalTimeEndStation((Timestamp)doc.get("planned_arrival_time_end_station"));
-        builder.setRuId((Long)doc.get("ru_id"));
-        builder.setEndStationId((Long)doc.get("end_station_id"));
-        builder.setImId((Long)doc.get("im_id"));
-        builder.setFollowingImId((Long)doc.get("following_im_id"));
-        builder.setMessageStatus((Long)doc.get("message_status"));
-        builder.setIngestionTime((Timestamp)doc.get("ingestion_time"));
-        builder.setOriginalTrainId((Long)doc.get("original_train_id"));
+        try {
+            builder.setId((Long) doc.get("id"));
+            builder.setTrainSectionId((Long) doc.get("trainSectionId"));
+            builder.setStationId((Long) doc.get("stationId"));
+            builder.setPlannedEventTime((Timestamp) doc.get("plannedEventTime"));
+            builder.setStatus((Long) doc.get("status"));
+            builder.setFirstTrainId((Long) doc.get("firstTrainId"));
+            builder.setTrainId((Long) doc.get("trainId"));
+            builder.setPlannedDepartureTimeStartStation((Timestamp) doc.get("plannedDepartureTimeStartStation"));
+            builder.setPlannedArrivalTimeEndStation((Timestamp) doc.get("plannedArrivalTimeEndStation"));
+            builder.setRuId((Long) doc.get("ruId"));
+            builder.setEndStationId((Long) doc.get("endStationId"));
+            builder.setImId((Long) doc.get("imId"));
+            builder.setFollowingImId((Long) doc.get("followingImId"));
+            builder.setMessageStatus((Long) doc.get("messageStatus"));
+            builder.setIngestionTime((Timestamp) doc.get("ingestionTime"));
+            builder.setOriginalTrainId((Long) doc.get("originalTrainId"));
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
         return builder.build();
     }
 
@@ -127,7 +131,7 @@ public class Mongo {
         boolean hasReferenceStation = false;
         try {
             for (int backwardsIterator = documentList.size()-1; backwardsIterator >= 0; backwardsIterator--) {
-                long plannedStationId = (long) documentList.get(backwardsIterator).get("station_id");
+                long plannedStationId = (long) documentList.get(backwardsIterator).get("stationId");
                 if (currentStationId != plannedStationId ) {
                     plannedTrainDataList.add(documentToPlannedTrainData(documentList.get(backwardsIterator)));
                 } else {
@@ -137,7 +141,7 @@ public class Mongo {
                 }
             }
         } catch ( Exception e) {
-            // No element in DocumentList with station_id
+            // No element in DocumentList with stationId
             e.printStackTrace();
         }
         if (hasReferenceStation) {
