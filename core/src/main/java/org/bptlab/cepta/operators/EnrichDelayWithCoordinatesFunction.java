@@ -3,8 +3,10 @@ package org.bptlab.cepta.operators;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
+import org.apache.flink.util.Collector;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
@@ -15,13 +17,15 @@ import org.bson.Document;
 import java.util.Hashtable;
 import java.util.List;
 
-public class EnrichDelayWithCoordinatesFunction extends RichAsyncFunction<NotificationOuterClass.DelayNotification, NotificationOuterClass.DelayNotification> {
+public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<NotificationOuterClass.Notification, NotificationOuterClass.Notification> {
 
     public EnrichDelayWithCoordinatesFunction(MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
     }
 
     private Hashtable<Integer, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+
+    public Hashtable<Integer, CoordinateOuterClass.Coordinate> getCoordinateMapping(){ return coordinateMapping;}
 
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
@@ -42,10 +46,6 @@ public class EnrichDelayWithCoordinatesFunction extends RichAsyncFunction<Notifi
         return true;
     }
 
-    @Override
-    public void asyncInvoke(NotificationOuterClass.DelayNotification delayNotification, ResultFuture<NotificationOuterClass.DelayNotification> resultFuture) throws Exception {
-
-    }
 
     /**
      * First we read in the station data into our local map variable.
@@ -55,6 +55,11 @@ public class EnrichDelayWithCoordinatesFunction extends RichAsyncFunction<Notifi
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
+    }
+
+    @Override
+    public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
+
     }
     
     /* This Function takes an inputstream of DelayNotifications and enriches the events 
