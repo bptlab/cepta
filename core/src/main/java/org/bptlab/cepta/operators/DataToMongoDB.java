@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
 /* This Operator pushes the received Events into a MongoDB and
@@ -35,6 +38,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    private final Logger log = LoggerFactory.getLogger(DataToMongoDB.class);
     private ArrayList<Tuple2<String,Integer>> indices = new ArrayList<>();
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
@@ -55,22 +59,33 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         if (!indices.isEmpty()) {
             createIndices();
         }
+        log.info("Mongo Connection established");
     }
 
     @Override
     public void close(){
         this.mongoClient.close();
+        log.info("Mongo Connection closed");
         // super.close();
     }
 
     @Override
     public void asyncInvoke(T dataset, ResultFuture<T> resultFuture) throws Exception {
-        //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
-        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
-        
+         /*
+        asyncInvoke will be called for each incoming element
+        the resultFuture is where the outgoing element(s) will be
+        */
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> coll = database.getCollection(collection_name);
         Document document = protoToBson(dataset);
+
+        //The new AsyncMongo Driver now uses Reactive Streams,
+        // so we need Subscribers to get the Query executed and Results received.
+        // For further details consider the following links:
+        //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
+        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
+        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
+        //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
 
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         coll.insertOne(document).subscribe(insertOneSubscriber);
@@ -91,7 +106,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         if (ackFuture.get()){
             // System.out.println("Success");
         } else {
-            System.out.println("Failed");
+            log.error("Failure insertion of {} was not acknowledged!",document);
         }
     }
 
