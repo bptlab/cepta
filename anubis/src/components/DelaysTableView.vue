@@ -44,7 +44,8 @@ function mapDelayToStringKey(noti: Notification): { [key: string]: any } {
   let ding: { [key: string]: any } = {
     CeptaStationID: noti.getDelay().getStationId(),
     CeptaID: noti.getDelay().getTransportId(),
-    Delay: noti.getDelay().getDelay()
+    Delay: noti.getDelay().getDelay().getDelta()/60,
+    Details: noti.getDelay().getDelay().getDetails()
   };
   return ding;
 }
