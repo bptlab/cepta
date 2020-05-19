@@ -67,7 +67,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         the resultFuture is where the outgoing element(s) will be
         */
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> coll = database.getCollection(collection_name);
+        MongoCollection<Document> collection = database.getCollection(collection_name);
         Document document = protoToBson(dataset);
 
         //The new AsyncMongo Driver now uses Reactive Streams,
@@ -79,7 +79,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
 
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-        coll.insertOne(document).subscribe(insertOneSubscriber);
+        collection.insertOne(document).subscribe(insertOneSubscriber);
         //start the subscriber -> start querying timeout defaults to 60seconds
 
         CompletableFuture<Boolean> queryFuture = CompletableFuture.supplyAsync(new Supplier<Boolean>() {
