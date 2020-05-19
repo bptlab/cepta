@@ -39,6 +39,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
         List<Document> allStations = findMultipleSubscriber.get();
 
+        System.out.println("HALLO HIER KOMMEN DIE STATIONS!!!!!!!!!!!");
         for (Document station: allStations){
             System.out.println(station);
         }
@@ -54,12 +55,15 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
      */
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
+        System.out.println("open!!!!!!!!!");
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        readInStationData();
     }
 
     @Override
     public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
-
+//        System.out.println("Trying to flatten and mappen" + notification.toString());
+        System.out.println("Trying to flatten and mappen");
     }
     
     /* This Function takes an inputstream of DelayNotifications and enriches the events 

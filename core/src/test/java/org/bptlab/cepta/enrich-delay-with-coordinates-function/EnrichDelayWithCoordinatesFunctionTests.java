@@ -3,6 +3,7 @@ package org.bptlab.cepta;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.flink.api.java.Utils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.config.MongoConfig;
@@ -11,12 +12,14 @@ import org.bptlab.cepta.models.internal.notifications.notification.NotificationO
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.operators.EnrichDelayWithCoordinatesFunction;
 import org.bptlab.cepta.utils.database.Mongo;
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.bson.Document;
 import org.junit.Assert;
 import org.junit.Test;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.IOException;
 import java.util.Hashtable;
 
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
@@ -24,7 +27,7 @@ import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 public class EnrichDelayWithCoordinatesFunctionTests {
 
     @Test
-    public void testInitializesCoordinateMapping(){
+    public void testInitializesCoordinateMapping() throws IOException {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
@@ -41,9 +44,17 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         DataStream<NotificationOuterClass.Notification> testStream = env.fromElements(testNotification);
 
+//        for (NotificationOuterClass.Notification n : StreamUtils.collectStreamToArrayList(testStream)){
+//            System.out.println(n);
+//        }
+
         EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
 
         DataStream<NotificationOuterClass.Notification> enrichedStream = testStream.flatMap(testedFunction);
+
+        for (NotificationOuterClass.Notification n : StreamUtils.collectStreamToArrayList(enrichedStream)){
+            System.out.println(n);
+        }
 
         Hashtable<Integer, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
 
@@ -51,6 +62,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(3);
 
+//        Assert.assertTrue(true);
         Assert.assertEquals("", expectedCoordinate, actualCoordinate);
     }
 
