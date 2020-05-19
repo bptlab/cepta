@@ -17,6 +17,7 @@ import GridTable from "../components/GridTable.vue";
 import { AppModule } from "../store/modules/app";
 import { ReplayerModule } from "../store/modules/replayer";
 import { Component, Vue, Prop } from "vue-property-decorator";
+import { computed } from "@vue/composition-api";
 import {Notification} from "../generated/protobuf/models/internal/notifications/notification_pb";
 
 @Component({
@@ -30,18 +31,18 @@ export default class DelaysTableView extends Vue {
   @Prop({ default: false }) enableSearchBar!: boolean;
   protected search!: string;
 
-  protected receivedUpdates: { [key: string]: any }[]  =
-          AppModule.notifications.slice(0, 5).map(this.mapDelayToStringKey);
-  mapDelayToStringKey(noti){
-    var ding = {
-      CeptaStationID: noti.getDelay().getStationId(),
-      CeptaID: noti.getDelay().getId(),
-      Delay: noti.getDelay().getDelay()
-    };
-    console.log("KRAM");
-    console.log(ding);
-    return ding;
+  protected receivedUpdates: { [key: string]: any }[]  = computed(() =>
+          AppModule.notifications.slice(AppModule.notifications.length-3, AppModule.notifications.length-1).map(mapDelayToStringKey))
+
+}
+
+function mapDelayToStringKey(noti: Notification){
+  var ding = {
+    CeptaStationID: noti.getDelay().getStationId(),
+    CeptaID: noti.getDelay().getTransportId(),
+    Delay: noti.getDelay().getDelay()
   };
+  return ding;
 }
 </script>
 
