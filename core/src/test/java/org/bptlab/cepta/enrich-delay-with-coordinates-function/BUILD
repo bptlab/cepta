@@ -20,7 +20,7 @@ java_test(
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/internal/notifications:notification_java_proto",
-        "//models/events:stations_java_proto",
+        "//models/events:location_data_java_proto",
         "//models/internal/types:coordinate_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit_4_13",

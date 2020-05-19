@@ -23,9 +23,9 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
         this.mongoConfig = mongoConfig;
     }
 
-    private Hashtable<Integer, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+    private  Hashtable<Long, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
 
-    public Hashtable<Integer, CoordinateOuterClass.Coordinate> getCoordinateMapping(){ return coordinateMapping;}
+    public Hashtable<Long, CoordinateOuterClass.Coordinate> getCoordinateMapping(){ return coordinateMapping;}
 
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
@@ -41,7 +41,16 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
         System.out.println("HALLO HIER KOMMEN DIE STATIONS!!!!!!!!!!!");
         for (Document station: allStations){
-            System.out.println(station);
+            CoordinateOuterClass.Coordinate coordinate =
+                    CoordinateOuterClass.Coordinate.newBuilder()
+                            .setLongitude((double) station.get("longitude"))
+                            .setLatitude((double) station.get("latitude"))
+                            .build();
+            System.out.println(coordinate);
+            Long key = (Long) station.get("stationId");
+            coordinateMapping.put(key, coordinate);
+            System.out.println("moeps:" + coordinateMapping);
+
         }
 
         return true;

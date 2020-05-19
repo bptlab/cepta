@@ -3,11 +3,12 @@ package org.bptlab.cepta;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.apache.flink.api.java.Utils;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.models.events.station.StationsOuterClass;
+import org.bptlab.cepta.models.events.info.LocationDataOuterClass;
+
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.operators.EnrichDelayWithCoordinatesFunction;
@@ -31,7 +32,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        StationsOuterClass.Stations testStation = StationsOuterClass.Stations.newBuilder().setStationId(1).setLatitude(100).setLongitude(100).build();
+        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData.newBuilder().setStationId(1).setLatitude(100).setLongitude(100).build();
 
         try {
             insertToDb(mongoConfig, testStation);
@@ -56,17 +57,19 @@ public class EnrichDelayWithCoordinatesFunctionTests {
             System.out.println(n);
         }
 
-        Hashtable<Integer, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
+        Hashtable<Long, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
+
+        System.out.println(functionMap);
 
         CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate.newBuilder().setLatitude(100).setLongitude(100).build();
 
-        CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(3);
+        CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(3L);
 
 //        Assert.assertTrue(true);
         Assert.assertEquals("", expectedCoordinate, actualCoordinate);
     }
 
-    public void insertToDb(MongoConfig mongoConfig, StationsOuterClass.Stations dataset) throws Exception {
+    public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
         MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
         //MongoIterable<String> databases = mongoClient.listDatabaseNames();
         MongoDatabase database = mongoClient.getDatabase("mongodb");
