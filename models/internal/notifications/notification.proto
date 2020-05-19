@@ -24,6 +24,7 @@ message DelayNotification {
     models.internal.types.CeptaTransportID transport_id = 1;
     models.internal.types.CeptaStationID station_id = 2;
     models.internal.Delay delay = 3;
+    models.internal.types.coordiante coordinate = 4;
 }
 
 message HazardNotification {

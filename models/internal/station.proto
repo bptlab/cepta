@@ -27,17 +27,6 @@ message Station {
     models.internal.types.TransportType type = 7;
     InfrastructureProvider infrastructure_provider = 8;
 
-    google.protobuf.Timestamp planned_departure_time = 10;
-    google.protobuf.Timestamp actual_departure_time = 11;
-    google.protobuf.Timestamp planned_arrival_time = 12;
-    google.protobuf.Timestamp actual_arrival_time = 13;
-    google.protobuf.Timestamp predicted_arrival_time = 14;
-
-    bool crew_change = 20;
-    bool vehicle_change = 21;
-
-    models.internal.Delay delay = 30;
-
     oneof station {
         models.internal.modalities.rail.RailStation rail = 100;
         models.internal.modalities.road.RoadStation road = 101;
