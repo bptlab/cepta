@@ -204,6 +204,26 @@ go_proto_library(
 )
 
 proto_library(
+    name = "stations_proto",
+    srcs = ["Stations.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "stations_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":stations_proto"],
+)
+
+go_proto_library(
+    name = "stations_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/stationsevent",
+    proto = ":stations_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
     name = "delay_explanation_data_proto",
     srcs = ["DelayExplanationData.proto"],
     visibility = ["//visibility:public"],
@@ -463,6 +483,7 @@ proto_library(
         ":predicted_train_data_proto",
         ":railway_undertaking_data_proto",
         ":station_data_proto",
+        ":stations_proto",
         ":train_information_data_proto",
         ":vehicle_data_proto",
         ":weather_data_proto",
@@ -492,6 +513,7 @@ go_proto_library(
         ":predicted_train_data_go_proto",
         ":railway_undertaking_data_go_proto",
         ":station_data_go_proto",
+        ":stations_go_proto",
         ":train_information_data_go_proto",
         ":vehicle_data_go_proto",
         ":weather_data_go_proto",
@@ -541,6 +563,8 @@ filegroup(
         ":railway_undertaking_data_java_proto",
         ":station_data_go_proto",
         ":station_data_java_proto",
+        ":stations_go_proto",
+        ":stations_java_proto",
         ":stays_in_station_event_go_proto",
         ":stays_in_station_event_java_proto",
         ":train_information_data_go_proto",
