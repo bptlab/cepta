@@ -48,6 +48,7 @@
         class="delays-overview"
         section="Delays"
         layoutStyle="col-md-12"
+        height="2000px"
       >
         <p>You can use the navigation bar to filter</p>
         <delays-table-view></delays-table-view>

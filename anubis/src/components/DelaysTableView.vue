@@ -33,9 +33,8 @@ export default class DelaysTableView extends Vue {
   protected search!: string;
 
   get receivedUpdates(): { [key: string]: any }[] {
-    return AppModule.notifications.slice(AppModule.notifications.length - 3, AppModule.notifications.length - 1).map(mapDelayToStringKey)
+    return AppModule.notifications.slice(AppModule.notifications.length-11, AppModule.notifications.length-1).map(mapDelayToStringKey);
   };
-
 }
 
 function mapDelayToStringKey(noti: Notification):{ [key: string]: any }{
