@@ -12,6 +12,7 @@ import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class WeatherLiveTrainJoinFunction {
   public static DataStream<NotificationOuterClass.Notification> delayFromWeather(DataStream<Tuple2<WeatherData, Integer>> weather, DataStream<LiveTrainData> train){
@@ -32,24 +33,23 @@ public class WeatherLiveTrainJoinFunction {
           @Override
           public NotificationOuterClass.Notification join(Tuple2<WeatherData, Integer> weatherDataIntegerTuple2,
               LiveTrainData liveTrainData) throws Exception {
-            return NotificationOuterClass.Notification.newBuilder().setDelay(
-                    NotificationOuterClass.DelayNotification.newBuilder()
-                            .setDelay(DelayOuterClass.Delay.newBuilder().setDelta(delayFromWeather(weatherDataIntegerTuple2.f0)).build())
-                            .setStationId(Ids.CeptaStationID.newBuilder().setId(String.valueOf(liveTrainData.getStationId())).build())
-                            .build()
-            ).build();
+            return NotificationHelper.getTrainDelayNotificationFrom(
+                    String.valueOf(liveTrainData.getTrainSectionId()),
+                    delayFromWeather(weatherDataIntegerTuple2.f0),
+                    "Delay caused by weather: "+weatherDataIntegerTuple2.f0.getEventClass().toString(),
+                    liveTrainData.getStationId());
           }
         });
   }
 
-  private static Duration delayFromWeather(WeatherData weather){
+  private static Long delayFromWeather(WeatherData weather){
     String eventClass = weather.getEventClass().toString();
-    int delay;
+    Long delayedSeconds;
     switch (eventClass){
-      case "Clear_night": delay = 0; break;
-      case "rain": delay = 10; break;
-      default: delay = 0;
+      case "Clear_night": delayedSeconds = 0L; break;
+      case "rain": delayedSeconds = 600L; break;
+      default: delayedSeconds = 0L;
     }
-    return Duration.newBuilder().setSeconds((long) delay).build();
+    return delayedSeconds;
   }
 }
