@@ -87,7 +87,7 @@ export default class GridTable extends Vue {
   gridData!: { [key: string]: string }[];
   // TODO: Make filterKey v-model compatible
   @Prop({ default: "" }) private filterKey!: string;
-  @Prop({ default: "delta" }) private delayKey!: string;
+  @Prop({ default: "Delay" }) private delayKey!: string;
   sortKey: string = "delta";
   sortOrder: number = -1;
 

@@ -48,7 +48,6 @@
         class="delays-overview"
         section="Delays"
         layoutStyle="col-md-12"
-        height="2000px"
       >
         <p>You can use the navigation bar to filter</p>
         <delays-table-view></delays-table-view>
@@ -135,4 +134,7 @@ export default class Dashboard extends Vue {}
 
       &.metric-value
         font-size: 2.5rem
+
+.delays-overview
+  height: 100%
 </style>

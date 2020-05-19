@@ -157,7 +157,7 @@
                   class="form-control-range"
                   id="formControlRange"
                   v-model="replaySpeed"
-                >
+                />
               </div>
               <div class="form-group">
                 <div class="form-check form-check-inline">
@@ -191,9 +191,9 @@
               </div>
               <div class="form-group replayerOptionBtn">
                 <button
-                    @click.prevent="resetReplay"
-                    id="resetReplayButton"
-                    class="btn btn-danger"
+                  @click.prevent="resetReplay"
+                  id="resetReplayButton"
+                  class="btn btn-danger"
                 >
                   Reset
                 </button>
@@ -211,9 +211,9 @@
                   @click.prevent="toggleReplay"
                   id="toggleReplayButton"
                   :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
-              >
-                {{ isReplaying ? "Stop" : "Start" }}
-              </button>
+                >
+                  {{ isReplaying ? "Stop" : "Start" }}
+                </button>
               </div>
             </form>
           </template>
