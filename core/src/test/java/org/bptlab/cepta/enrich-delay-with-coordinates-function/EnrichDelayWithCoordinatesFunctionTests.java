@@ -6,12 +6,7 @@ import com.mongodb.client.MongoDatabase;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.models.events.station.StationDataOuterClass;
-import org.bptlab.cepta.models.events.station.Stations;
-
 import org.bptlab.cepta.models.events.station.StationsOuterClass;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass;
-import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.operators.EnrichDelayWithCoordinatesFunction;
