@@ -146,6 +146,8 @@ class Replayer extends VuexModule implements IReplayerState {
   @Action({ rawError: true })
   public async startReplayer(options?: ReplayStartOptions) {
     let newOptions = options || new ReplayStartOptions();
+    console.log(newOptions.getOptions()?.getMode());
+    console.log(newOptions.getSourcesList());
     this.replayer.start(newOptions, AuthModule.authHeader, (err, response) => {
       if (err) {
         alert(err.message);

@@ -153,10 +153,11 @@
                   type="range"
                   min="0"
                   max="100"
+                  value="2"
                   class="form-control-range"
                   id="formControlRange"
                   v-model="replaySpeed"
-                />
+                >
               </div>
               <div class="form-group">
                 <div class="form-check form-check-inline">
@@ -188,29 +189,31 @@
                   >
                 </div>
               </div>
-              <div class="form-group">
+              <div class="form-group replayerOptionBtn">
                 <button
-                  @click.prevent="toggleReplay"
-                  id="toggleReplayButton"
-                  :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
+                    @click.prevent="resetReplay"
+                    id="resetReplayButton"
+                    class="btn btn-danger"
                 >
-                  {{ isReplaying ? "Stop" : "Start" }}
+                  Reset
                 </button>
+
                 <button
                   @click.prevent="updateReplay"
                   id="updateReplayButton"
-                  class="btn btn-cepta-default"
+                  class="btn btn-primary"
                   :disabled="!replayerConfigChanged"
                 >
                   Apply
                 </button>
+
                 <button
-                  @click.prevent="resetReplay"
-                  id="resetReplayButton"
-                  class="btn btn-danger"
-                >
-                  Reset
-                </button>
+                  @click.prevent="toggleReplay"
+                  id="toggleReplayButton"
+                  :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
+              >
+                {{ isReplaying ? "Stop" : "Start" }}
+              </button>
               </div>
             </form>
           </template>
@@ -363,7 +366,7 @@ export default class NavigationBar extends Vue {
   }
 
   get replayFrequencyMin(): number {
-    return this.isConstantReplay ? 0.0 : 1.0;
+    return this.isConstantReplay ? 1.0 : 1.0;
   }
 
   get replayFrequencyMax(): number {
@@ -509,11 +512,10 @@ export default class NavigationBar extends Vue {
 .header
   z-index: 1001 !important
 
-#toggleReplayButton
-  float: right
-
-#resetReplayButton
-  float: left
+  .replayerOptionBtn
+    color: white
+    .btn
+      margin: 0px 20px
 
 // ---------------------------------------------------------
 // @TOC
@@ -549,7 +551,6 @@ export default class NavigationBar extends Vue {
 
   +between($breakpoint-md, $breakpoint-xl)
     width: calc(100% - #{$collapsed-size})
-
 
   .header-container
     +clearfix
@@ -708,6 +709,34 @@ export default class NavigationBar extends Vue {
             +theme-color-diff(border-color, bgc-navbar, 20)
             .icon
               opacity: 1
+
+  #formControlRange
+    appearance: none
+    width: 100%
+    height: 5px
+    background: #d3d3d3
+    outline: none
+    opacity: 0.7
+    -webkit-transition: .2s
+    transition: opacity .2s
+
+    &:hover
+      opacity: 1
+
+    &::-webkit-slider-thumb
+      appearance: none
+      width: 15px
+      height: 15px
+      border-radius: 50%
+      background: #353535
+      cursor: pointer
+
+    &::-moz-range-thumb
+      width: 15px
+      height: 15px
+      border-radius: 50%
+      background: #353535
+      cursor: pointer
 
 // ---------------------------------------------------------
 // @Collapsed State

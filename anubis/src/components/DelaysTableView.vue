@@ -40,13 +40,13 @@ export default class DelaysTableView extends Vue {
   }
 }
 
-function mapDelayToStringKey(noti: Notification): { [key: string]: any } {
-  let ding: { [key: string]: any } = {
-    CeptaStationID: noti.getDelay().getStationId(),
-    CeptaID: noti.getDelay().getTransportId(),
-    Delay: noti.getDelay().getDelay()
+function mapDelayToStringKey(notification: Notification): { [key: string]: any } {
+  let delayStringKey: { [key: string]: any } = {
+    CeptaStationID: notification.getDelay()?.getStationId(),
+    CeptaID: notification.getDelay()?.getTransportId(),
+    Delay: notification.getDelay()?.getDelay()
   };
-  return ding;
+  return delayStringKey;
 }
 </script>
 
