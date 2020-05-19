@@ -109,7 +109,7 @@ public class LiveTrainDataProvider {
     }
 
     // @DataProvider(name = "one-matching-live-train-weather-data-provider")
-    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> oneMatchingLiveTrainWeatherData() {
+    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> oneMatchingLiveTrainWeatherData() {
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
       env.setParallelism(1);
       ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
@@ -123,24 +123,24 @@ public class LiveTrainDataProvider {
                   return liveTrainData.getIngestionTime().getSeconds();
                 }
           });
-      ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
+      ArrayList<Tuple2<WeatherData, Long>> weather = new ArrayList<>();
     
     weather.add(correlatedWeatherEventWithStationIdClass(1, "weather1"));
       env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-      DataStream<Tuple2<WeatherData, Integer>> weatherStream = env.fromCollection(weather)
+      DataStream<Tuple2<WeatherData, Long>> weatherStream = env.fromCollection(weather)
           .assignTimestampsAndWatermarks(
-            new AscendingTimestampExtractor<Tuple2<WeatherData, Integer>>() {
+            new AscendingTimestampExtractor<Tuple2<WeatherData, Long>>() {
               @Override
               public long extractAscendingTimestamp(
-                  Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
+                  Tuple2<WeatherData, Long> weatherDataIntegerTuple2) {
                 return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
               }
           });
-      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
+      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>>(liveTrainStream, weatherStream);
     }
 
     // @DataProvider(name = "several-matching-live-train-weather-data-provider")
-    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> multipleMatchingLiveTrainWeatherData() {
+    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> multipleMatchingLiveTrainWeatherData() {
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
       env.setParallelism(1);
       ArrayList<LiveTrainData>  matchingTrains = new ArrayList<>();
@@ -157,28 +157,28 @@ public class LiveTrainDataProvider {
                   return liveTrainData.getIngestionTime().getSeconds();
                 }
               });
-      ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
+      ArrayList<Tuple2<WeatherData, Long>> weather = new ArrayList<>();
 
       weather.add(correlatedWeatherEventWithStationIdClass(1, "Clear_night"));
       weather.add(correlatedWeatherEventWithStationIdClass(2, "Clear_night"));
       weather.add(correlatedWeatherEventWithStationIdClass(3, "Clear_night"));
       weather.add(correlatedWeatherEventWithStationIdClass(4, "Clear_night"));
       env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-      DataStream<Tuple2<WeatherData, Integer>> weatherStream = env.fromCollection(weather)
+      DataStream<Tuple2<WeatherData, Long>> weatherStream = env.fromCollection(weather)
           .assignTimestampsAndWatermarks(
-              new AscendingTimestampExtractor<Tuple2<WeatherData, Integer>>() {
+              new AscendingTimestampExtractor<Tuple2<WeatherData, Long>>() {
                 @Override
                 public long extractAscendingTimestamp(
-                    Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
+                    Tuple2<WeatherData, Long> weatherDataIntegerTuple2) {
                   return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
                 }
               });
-      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
+      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>>(liveTrainStream, weatherStream);
       // return new Object[][] { {liveTrainStream, weatherStream} };
     }
 
     // @DataProvider(name = "not-matching-live-train-weather-data-provider")
-    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> noMatchingLiveTrainWeatherData(){
+    public static Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> noMatchingLiveTrainWeatherData(){
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
       env.setParallelism(1);
       ArrayList<LiveTrainData> oneMatchingTrain = new ArrayList<>();
@@ -192,20 +192,20 @@ public class LiveTrainDataProvider {
                   return liveTrainData.getIngestionTime().getSeconds();
                 }
               });
-    ArrayList<Tuple2<WeatherData, Integer>> weather = new ArrayList<>();
+    ArrayList<Tuple2<WeatherData, Long>> weather = new ArrayList<>();
 
       weather.add(correlatedWeatherEventWithStationIdClass(2, "weather1"));
       env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-    DataStream<Tuple2<WeatherData, Integer>> weatherStream = env.fromCollection(weather)
+    DataStream<Tuple2<WeatherData, Long>> weatherStream = env.fromCollection(weather)
           .assignTimestampsAndWatermarks(
-              new AscendingTimestampExtractor<Tuple2<WeatherData, Integer>>() {
+              new AscendingTimestampExtractor<Tuple2<WeatherData, Long>>() {
                 @Override
                 public long extractAscendingTimestamp(
-                    Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) {
+                    Tuple2<WeatherData, Long> weatherDataIntegerTuple2) {
                   return weatherDataIntegerTuple2.f0.getStartTime().getSeconds();
                 }
               });
-      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>>(liveTrainStream, weatherStream);
+      return new Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>>(liveTrainStream, weatherStream);
     }
 
     public static LiveTrainData trainEventWithEventTime( Timestamp timestamp ){
@@ -230,9 +230,9 @@ public class LiveTrainDataProvider {
           .setTrainSectionId(trainId).setStationId(stationId).build();
     }
 
-    public static Tuple2<WeatherData, Integer> correlatedWeatherEventWithStationIdClass(int stationId, String eventClass){
+    public static Tuple2<WeatherData, Long> correlatedWeatherEventWithStationIdClass(int stationId, String eventClass){
       WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
         .setEventClass(eventClass).build();
-      return new Tuple2<>(weather, stationId);
+      return new Tuple2<>(weather, (long) stationId);
     }
 }
