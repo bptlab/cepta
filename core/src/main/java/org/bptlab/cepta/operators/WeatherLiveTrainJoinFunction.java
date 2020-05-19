@@ -15,23 +15,23 @@ import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class WeatherLiveTrainJoinFunction {
-  public static DataStream<NotificationOuterClass.Notification> delayFromWeather(DataStream<Tuple2<WeatherData, Integer>> weather, DataStream<LiveTrainData> train){
+  public static DataStream<NotificationOuterClass.Notification> delayFromWeather(DataStream<Tuple2<WeatherData, Long>> weather, DataStream<LiveTrainData> train){
     return weather.join(train)
-        .where(new KeySelector<Tuple2<WeatherData, Integer>, Integer>() {
+        .where(new KeySelector<Tuple2<WeatherData, Long>, Long>() {
           @Override
-          public Integer getKey(Tuple2<WeatherData, Integer> weatherDataIntegerTuple2) throws Exception {
+          public Long getKey(Tuple2<WeatherData, Long> weatherDataIntegerTuple2) throws Exception {
             return weatherDataIntegerTuple2.f1;
           }
-        }).equalTo(new KeySelector<LiveTrainData, Integer>() {
+        }).equalTo(new KeySelector<LiveTrainData, Long>() {
           @Override
-          public Integer getKey(LiveTrainData liveTrainData) throws Exception {
-            return (int) liveTrainData.getStationId();
+          public Long getKey(LiveTrainData liveTrainData) throws Exception {
+            return liveTrainData.getStationId();
           }
         })
         .window(SlidingEventTimeWindows.of(Time.seconds(60), Time.seconds(60)))
-        .apply(new RichJoinFunction<Tuple2<WeatherData, Integer>, LiveTrainData, NotificationOuterClass.Notification>() {
+        .apply(new RichJoinFunction<Tuple2<WeatherData, Long>, LiveTrainData, NotificationOuterClass.Notification>() {
           @Override
-          public NotificationOuterClass.Notification join(Tuple2<WeatherData, Integer> weatherDataIntegerTuple2,
+          public NotificationOuterClass.Notification join(Tuple2<WeatherData, Long> weatherDataIntegerTuple2,
               LiveTrainData liveTrainData) throws Exception {
             return NotificationHelper.getTrainDelayNotificationFrom(
                     String.valueOf(liveTrainData.getTrainSectionId()),
