@@ -15,11 +15,11 @@ import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExt
 
 public class RBDelayPatternProvider {
     public static void getDataEvent() {
-        RedBullExampleProvider.getDataEvent();
+//        RedBullExampleProvider.getDataEvent();
         // return
       }
 
-    public static DataStream<Event> receiveEventsFromReplayer(){
+    /*public static DataStream<Event> receiveEventsFromReplayer(){
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
       env.setParallelism(1);
       ArrayList<Event> events = new ArrayList<>();
@@ -33,14 +33,14 @@ public class RBDelayPatternProvider {
 
       QueryOptions options = RedBullExampleProvider.getQueryOptions();
 
-      DataStream<Event> eventStream = provider.query(options);
+      DataStream<Event> eventStream *//*= provider.query(options)*//*;
 
 
       java.lang.System.out.println("Successful querying");
       java.lang.System.out.println(provider.query(options));
 
       return eventStream;
-      /*
+      *//*
 
 
       // @DataProvider(name = "live-train-data-provider")
@@ -97,6 +97,6 @@ public class RBDelayPatternProvider {
             }
           });
       return mockedStream;
-      */
-    }
+      *//*
+    }*/
 }
