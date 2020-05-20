@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import com.google.protobuf.Timestamp;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -15,11 +16,14 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.providers.LiveTrainDataProvider;
+import org.junit.Ignore;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.sql.*;
+
+import static org.bptlab.cepta.utils.database.Util.ProtoTimestampToSqlTimestamp;
 
 public class LivePlannedCorrelationTests {
 
@@ -138,6 +142,10 @@ public class LivePlannedCorrelationTests {
     }
 
     private String insertTrainWithTrainSectionIdStationIdQuery(long trainSectionId, long stationId) {
+        long millis = 1588068220471l;
+        com.google.protobuf.Timestamp timestamp = Timestamp.newBuilder().setSeconds((int)(millis / 1000))
+                .setNanos((int) ((millis % 1000) * 1000000)).build();
+        String plannedArrivalTimeEndStation = String.format("'%s'", ProtoTimestampToSqlTimestamp(timestamp).toString());
         return String.format(
                 "INSERT INTO public.planned(" +
                         "id, " +
@@ -156,26 +164,26 @@ public class LivePlannedCorrelationTests {
                         "message_status , " +
                         "ingestion_time , " +
                         "original_train_id )" +
-                        "VALUES (1, %d, %d, current_timestamp, 5, 6, 7, current_timestamp, current_timestamp, 10, 11, 12, 13, 14, current_timestamp, 16)", trainSectionId, stationId);
+                        "VALUES (1, %d, %d, current_timestamp, 5, 6, 7, current_timestamp, %s, 10, 1, 12, 13, 14, current_timestamp, 16)", trainSectionId, stationId,plannedArrivalTimeEndStation );
     }
 
     private String createPlannedDatabaseQuery() {
         return "CREATE TABLE public.planned ( " +
-                "id integer, " +
-                "train_section_id integer, " +
-                "station_id integer, " +
+                "id bigint, " +
+                "train_section_id bigint, " +
+                "station_id bigint, " +
                 "planned_event_time timestamp, " +
-                "status integer, " +
-                "first_train_id integer, " +
-                "train_id integer, " +
+                "status bigint, " +
+                "first_train_id bigint, " +
+                "train_id bigint, " +
                 "planned_departure_time_start_station timestamp, " +
                 "planned_arrival_time_end_station timestamp, " +
-                "ru_id integer, " +
-                "end_station_id integer, " +
-                "im_id integer, " +
-                "following_im_id integer, " +
-                "message_status integer, " +
+                "ru_id bigint, " +
+                "end_station_id bigint, " +
+                "im_id bigint, " +
+                "following_im_id bigint, " +
+                "message_status bigint, " +
                 "ingestion_time timestamp, " +
-                "original_train_id integer)";
+                "original_train_id bigint)";
     }
 }
