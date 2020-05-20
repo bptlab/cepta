@@ -140,7 +140,7 @@ func (s *NotificationServer) fillUserCache(ctx context.Context) {
 			break
 		}
 		if err != nil {
-			log.Warnf("Failed to receive user from stream: %v", err)
+			log.Warnf("Failed to receive user from streams: %v", err)
 			continue
 		}
 		log.Debugf("Adding transports for user %v", user)
