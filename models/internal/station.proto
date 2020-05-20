@@ -3,13 +3,11 @@ package models.internal;
 option go_package = "github.com/bptlab/cepta/models/internal/station";
 option java_package = "org.bptlab.cepta.models.internal.station";
 
-import "google/protobuf/timestamp.proto";
 
 import "models/internal/types/coordinate.proto";
 import "models/internal/types/transport.proto";
 import "models/internal/types/country.proto";
 import "models/internal/types/ids.proto";
-import "models/internal/delay.proto";
 
 import "models/internal/modalities/rail/rail.proto";
 import "models/internal/modalities/road/road.proto";

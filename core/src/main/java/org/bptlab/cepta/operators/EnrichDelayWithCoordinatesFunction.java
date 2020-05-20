@@ -12,27 +12,38 @@ import org.bptlab.cepta.models.internal.notifications.notification.NotificationO
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
+import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
 import java.util.Hashtable;
 import java.util.List;
 
+
 public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<NotificationOuterClass.Notification, NotificationOuterClass.Notification> {
+    /* This Function takes an inputstream of DelayNotifications and enriches the events
+       with information about the coordinations of the dedicated station */
 
     public EnrichDelayWithCoordinatesFunction(MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
+        this.tableName = "eletastations"/*"location"*/;
     }
 
-    private  Hashtable<Long, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+    public EnrichDelayWithCoordinatesFunction(String tableName, MongoConfig mongoConfig){
+        this.mongoConfig = mongoConfig;
+        this.tableName = tableName;
+    }
 
-    public Hashtable<Long, CoordinateOuterClass.Coordinate> getCoordinateMapping(){ return coordinateMapping;}
+    private  Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+
+    public Hashtable<String, CoordinateOuterClass.Coordinate> getCoordinateMapping(){ return coordinateMapping;}
 
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    private String tableName;
 
     private boolean readInStationData(){
-        MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> eletastations = database.getCollection("eletastations");
+        MongoDatabase database = mongoClient.getDatabase("replay"/*mongoConfig.getName()*/);
+        MongoCollection<Document> eletastations = database.getCollection(tableName);
 
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         eletastations.find().subscribe(findMultipleSubscriber);
@@ -46,13 +57,11 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
                             .setLongitude((double) station.get("longitude"))
                             .setLatitude((double) station.get("latitude"))
                             .build();
-            System.out.println(coordinate);
+//            System.out.println(coordinate);
             Long key = (Long) station.get("stationId");
-            coordinateMapping.put(key, coordinate);
-            System.out.println("moeps:" + coordinateMapping);
-
+            coordinateMapping.put(String.valueOf(key), coordinate);
+//            System.out.println("moeps:" + coordinateMapping);
         }
-
         return true;
     }
 
@@ -65,7 +74,8 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
         System.out.println("open!!!!!!!!!");
-        this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        //TODO Remove Port after Demo!
+        this.mongoClient = Mongo.getMongoClient(mongoConfig.withPort(27017));
         readInStationData();
     }
 
@@ -73,15 +83,16 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
 //        System.out.println("Trying to flatten and mappen" + notification.toString());
         System.out.println("Trying to flatten and mappen");
+        CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(notification.getDelay().getStationId().toString());
+        NotificationOuterClass.DelayNotification delayNotification = notification.getDelay();
+        //TODO make this less ugly please!
+        collector.collect(NotificationHelper.getTrainDelayNotificationFrom(
+                delayNotification.getTransportId().toString(),
+                delayNotification.getDelay().getDelta().getSeconds(),
+                delayNotification.getDelay().getDetails(),
+                Long.parseLong(delayNotification.getStationId().toString()),
+                matchingCoordinate));
     }
-    
-    /* This Function takes an inputstream of DelayNotifications and enriches the events 
-    with information about the coordinations of the dedicated station */
-
-//    public static DataStream<NotificationOuterClass.DelayNotification> enrichDelayWithCoordinatesFunction(DataStream<NotificationOuterClass.DelayNotification> inputStream) {
-//        DataStream<NotificationOuterClass.DelayNotification> outputStream;
-//        return outputStream;
-//    }
 
 
 }

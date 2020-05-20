@@ -57,13 +57,13 @@ public class EnrichDelayWithCoordinatesFunctionTests {
             System.out.println(n);
         }
 
-        Hashtable<Long, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
+        Hashtable<String, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
 
         System.out.println(functionMap);
 
         CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate.newBuilder().setLatitude(100).setLongitude(100).build();
 
-        CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(3L);
+        CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(String.valueOf(3L));
 
 //        Assert.assertTrue(true);
         Assert.assertEquals("", expectedCoordinate, actualCoordinate);
@@ -72,7 +72,8 @@ public class EnrichDelayWithCoordinatesFunctionTests {
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
         MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
         //MongoIterable<String> databases = mongoClient.listDatabaseNames();
-        MongoDatabase database = mongoClient.getDatabase("mongodb");
+        //TODO Fix to mongodb later after Demo
+        MongoDatabase database = mongoClient.getDatabase("replay"/*"mongodb"*/);
         MongoCollection<Document> plannedTrainDataCollection = database.getCollection("eletastations");
 
         plannedTrainDataCollection.insertOne(protoToBson(dataset));
