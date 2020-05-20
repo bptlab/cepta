@@ -255,6 +255,7 @@ public class Main implements Callable<Integer> {
 //    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
 
     DataStream<Notification> notificationFromDelayShiftenriched = notificationFromDelayShift.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
+    //notificationFromDelayShiftenriched.print();
     notificationFromDelayShiftenriched.addSink(trainDelayNotificationProducer);
     /*-------------------------
      * End - MongoDelayShift
@@ -294,9 +295,11 @@ public class Main implements Callable<Integer> {
         .process(new DetectStationArrivalDelay()).name("train-delays");
 
 
-    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStream.print();
-
+//    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStreamE = trainDelayNotificationDataStream.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig) );
+    //trainDelayNotificationDataStream.print();
+    trainDelayNotificationDataStreamE.addSink(trainDelayNotificationProducer);
+    trainDelayNotificationDataStreamE.print();
     // NoMatchingPlannedTrainDataPattern
 
     PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(
