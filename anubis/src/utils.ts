@@ -3,13 +3,14 @@ export const formatDelay = (delay: number): string => {
 };
 
 export const timeSincePretty = (
-  minutes: number
+    seconds: number
 ): {
   hrs: number;
   min: number;
   sec: number;
   msec: number;
 } => {
+  let minutes = seconds / 60;
   let msec = minutes * 60 * 1000;
   let hh = Math.floor(msec / 1000 / 60 / 60);
   msec -= hh * 1000 * 60 * 60;

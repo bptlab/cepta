@@ -38,7 +38,7 @@
           "
         >
           <span v-if="key == delayKey">
-            {{ entry[key] | formatDelay }}
+            {{ entry[key] | formDelay }}
           </span>
           <span v-else>{{ entry[key] }}</span>
         </td>
@@ -62,7 +62,7 @@ import { formatDelay } from "../utils";
     capitalize(str: string): string {
       return str.charAt(0).toUpperCase() + str.slice(1);
     },
-    formatDelay(delay: number): string {
+    formDelay(delay: number): string {
       return formatDelay(delay);
     }
   },

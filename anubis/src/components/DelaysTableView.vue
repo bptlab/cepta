@@ -33,7 +33,7 @@ export default class DelaysTableView extends Vue {
   get receivedUpdates(): { [key: string]: any }[] {
     return AppModule.notifications
       .slice(
-        AppModule.notifications.length - 11,
+        AppModule.notifications.length - 51,
         AppModule.notifications.length - 1
       )
       .map(mapDelayToStringKey);
@@ -46,7 +46,7 @@ function mapDelayToStringKey(
   let delayStringKey: { [key: string]: any } = {
     CeptaStationID: notification.getDelay()?.getStationId(),
     CeptaID: notification.getDelay()?.getTransportId(),
-    Delta: notification
+    Delay: notification
       .getDelay()
       ?.getDelay()
       ?.getDelta(),
@@ -55,10 +55,6 @@ function mapDelayToStringKey(
       ?.getDelay()
       ?.getDetails()
   };
-
-  if (delayStringKey["Delta"] != undefined) {
-    delayStringKey["Delta"] = delayStringKey["Delta"] / 60;
-  }
 
   return delayStringKey;
 }

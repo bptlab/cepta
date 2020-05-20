@@ -1,3 +1,4 @@
+import {Topic} from "@/generated/protobuf/models/constants/Topic_pb";
 <template>
   <div class="header navbar">
     <div class="header-container">
@@ -189,6 +190,40 @@
                   >
                 </div>
               </div>
+              <div class="form-group">
+                <div class="form-check form-check-inline">
+                  <input
+                      class="form-check-input"
+                      v-model="replaySourceInput"
+                      type="checkbox"
+                      name="inlineCheckboxOptions"
+                      id="livetraindataCheckbox"
+                      value="LiveTrainData"
+                      :disabled="disableSourceInput"
+                  />
+                  <label
+                      class="form-check-label"
+                      for="livetraindataCheckbox"
+                  >LiveTrainData</label
+                  >
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                      class="form-check-input"
+                      v-model="replaySourceInput"
+                      type="checkbox"
+                      name="inlineCheckboxOptions"
+                      id="plannedtraindataCheckbox"
+                      value="PlannedTrainData"
+                      :disabled="disableSourceInput"
+                  />
+                  <label
+                      class="form-check-label"
+                      for="plannedtraindataCheckbox"
+                  >PlannedTrainData</label
+                  >
+                </div>
+              </div>
               <div class="form-group replayerOptionBtn">
                 <button
                   @click.prevent="resetReplay"
@@ -244,29 +279,27 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
-import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
-import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
-import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
-import AccountDropdown from "@/components/AccountDropdown.vue";
-import NavbarDropdown from "@/components/NavbarDropdown.vue";
-import { ReplayerModule } from "../store/modules/replayer";
-import { AppModule } from "../store/modules/app";
-import axios from "axios";
-import BeatLoader from "vue-spinner/src/BeatLoader.vue";
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue";
-import {
-  Speed,
-  ReplayStartOptions,
-  ReplayMode,
-  ReplayOptions,
-  SourceReplay,
-  ReplaySetOptionsRequest,
-  ActiveReplayOptions
-} from "../generated/protobuf/models/grpc/replayer_pb";
-import { COOKIE_THEME } from "../constants";
+  import {Component, Vue} from "vue-property-decorator";
+  import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+  import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+  import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+  import AccountDropdown from "@/components/AccountDropdown.vue";
+  import NavbarDropdown from "@/components/NavbarDropdown.vue";
+  import {ReplayerModule} from "../store/modules/replayer";
+  import {AppModule} from "../store/modules/app";
+  import BeatLoader from "vue-spinner/src/BeatLoader.vue";
+  import {
+    ActiveReplayOptions,
+    ReplayMode,
+    ReplayOptions,
+    ReplaySetOptionsRequest,
+    ReplayStartOptions,
+    SourceReplay,
+    Speed
+  } from "../generated/protobuf/models/grpc/replayer_pb";
+  import {Topic} from "../generated/protobuf/models/constants/Topic_pb";
 
-@Component({
+  @Component({
   name: "NavigationBar",
   components: {
     NavbarDropdown,
@@ -281,6 +314,8 @@ export default class NavigationBar extends Vue {
   searchToggled: boolean = false;
   search: any = null;
   replaySpeed: number = 0;
+  replaySourceInput: Array<string> = [];
+  disableSourceInput: boolean = false;
   replayIdsInput: string = "";
   defaultReplayMode: ReplayMode =
     ReplayMode[Object.keys(ReplayMode)[0] as keyof typeof ReplayMode];
@@ -382,6 +417,29 @@ export default class NavigationBar extends Vue {
     ); // Bitwise-OR the value with zero to get int
   }
 
+  get sourceReplayerArray(): Array<SourceReplay> {
+    let sourceArray: Array<SourceReplay> = [];
+
+    this.replaySourceInput.forEach(string => {
+      switch (string) {
+        case "LiveTrainData": {
+          let source: SourceReplay = new SourceReplay();
+          source.setSource(Topic.LIVE_TRAIN_DATA);
+          sourceArray.push(source);
+          break;
+        }
+        case "PlannedTrainData": {
+          let source: SourceReplay = new SourceReplay();
+          source.setSource(Topic.PLANNED_TRAIN_DATA);
+          sourceArray.push(source);
+          break;
+        }
+      }
+    });
+
+    return sourceArray;
+  }
+
   get isFilter(): boolean {
     return this.$route.meta.useSearchToFilter as boolean;
   }
@@ -398,11 +456,13 @@ export default class NavigationBar extends Vue {
       options.setOptions(new ReplayOptions());
     }
     options.getOptions()?.setMode(this.replayMode);
+    options.setSourcesList(this.sourceReplayerArray);
     if (this.scaledReplaySpeed) {
       let speed = new Speed();
       speed.setSpeed(this.scaledReplaySpeed);
       options.getOptions()?.setSpeed(speed);
     }
+    this.disableSourceInput = true;
     return options;
   }
 
@@ -466,6 +526,7 @@ export default class NavigationBar extends Vue {
   }
 
   resetReplay() {
+    this.disableSourceInput = false;
     ReplayerModule.resetReplayer();
   }
 
