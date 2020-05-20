@@ -8,7 +8,6 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 
@@ -25,6 +24,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
 /* This Operator pushes the received Events into a MongoDB and
@@ -35,14 +37,15 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
-    private ArrayList<Tuple2<String,Integer>> indices = new ArrayList<>();
+    private final Logger log = LoggerFactory.getLogger(DataToMongoDB.class);
+    private ArrayList<Mongo.IndexContainer> indices = new ArrayList<>();
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
         this.mongoConfig = mongoConfig;
     }
 
-    public DataToMongoDB(String collection_name, List<Tuple2<String,Integer>> createIndexFor, MongoConfig mongoConfig){
+    public DataToMongoDB(String collection_name, List<Mongo.IndexContainer> createIndexFor, MongoConfig mongoConfig){
         this.collection_name = collection_name;
         this.mongoConfig = mongoConfig;
         this.indices.addAll(createIndexFor);
@@ -52,28 +55,44 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
-        if (!indices.isEmpty()) {
-            createIndices();
+        try{
+            if (!indices.isEmpty()) {
+                createIndices();
+            }
+        } catch (NullPointerException e) {
+            //no indexing provided
         }
+
+        log.info("Mongo Connection established");
     }
 
     @Override
     public void close(){
         this.mongoClient.close();
+        log.info("Mongo Connection closed");
         // super.close();
     }
 
     @Override
     public void asyncInvoke(T dataset, ResultFuture<T> resultFuture) throws Exception {
-        //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
-        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
-        
+         /*
+        asyncInvoke will be called for each incoming element
+        the resultFuture is where the outgoing element(s) will be
+        */
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> coll = database.getCollection(collection_name);
+        MongoCollection<Document> collection = database.getCollection(collection_name);
         Document document = protoToBson(dataset);
 
+        //The new AsyncMongo Driver now uses Reactive Streams,
+        // so we need Subscribers to get the Query executed and Results received.
+        // For further details consider the following links:
+        //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
+        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
+        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
+        //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
+
         SubscriberHelpers.OperationSubscriber<InsertOneResult> insertOneSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-        coll.insertOne(document).subscribe(insertOneSubscriber);
+        collection.insertOne(document).subscribe(insertOneSubscriber);
         //start the subscriber -> start querying timeout defaults to 60seconds
 
         CompletableFuture<Boolean> queryFuture = CompletableFuture.supplyAsync(new Supplier<Boolean>() {
@@ -91,19 +110,26 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         if (ackFuture.get()){
             // System.out.println("Success");
         } else {
-            System.out.println("Failed");
+            log.error("Failure insertion of {} was not acknowledged!",document);
         }
     }
 
     private void createIndices(){
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
-        MongoCollection<Document> coll = database.getCollection(collection_name);
+        MongoCollection<Document> collection = database.getCollection(collection_name);
         SubscriberHelpers.OperationSubscriber<String> indexSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-        for (Tuple2<String,Integer> index : indices) {
-            if (index.f1 > 0){
-                coll.createIndex(Indexes.ascending(index.f0)).subscribe(indexSubscriber);
-            } else {
-                coll.createIndex(Indexes.descending(index.f0)).subscribe(indexSubscriber);
+        for (Mongo.IndexContainer index : indices) {
+            switch (index.getOrderIndicator()){
+                default:
+                    collection.createIndex(Indexes.ascending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    collection.createIndex(Indexes.descending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
+                case 1:
+                    collection.createIndex(Indexes.ascending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
+                case -1:
+                    collection.createIndex(Indexes.descending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
             }
         }
         //TODO acknowledge?

@@ -66,13 +66,13 @@ public class DelayShiftFunctionMongoTests {
                 .unorderedWait(inputStream, new DelayShiftFunctionMongo(mongoConfig, 0),
                         100000, TimeUnit.MILLISECONDS, 1);
 
-        ArrayList<Notification> expectedNots = new ArrayList<>();
+        ArrayList<Notification> expectedNotifications = new ArrayList<>();
         Notification expectedNotification = NotificationHelper.getTrainDelayNotificationFrom(String.valueOf(train.getTrainSectionId()), 0, "DelayShift from Station: " + train.getStationId(), planned.getStationId());
-        expectedNots.add(expectedNotification);
+        expectedNotifications.add(expectedNotification);
 
         env.execute();
-        ArrayList<Notification> nots = StreamUtils.collectStreamToArrayList(resultStream);
-        assertEquals(expectedNots, nots);
+        ArrayList<Notification> notificationArrayList = StreamUtils.collectStreamToArrayList(resultStream);
+        assertEquals(expectedNotifications, notificationArrayList);
     }
 
     @Test
@@ -128,7 +128,6 @@ public class DelayShiftFunctionMongoTests {
 
     public void insertToDb(MongoConfig mongoConfig, PlannedTrainData dataset) throws Exception {
         MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
-        //MongoIterable<String> databases = mongoClient.listDatabaseNames();
         MongoDatabase database = mongoClient.getDatabase("mongodb");
         MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
 
