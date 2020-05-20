@@ -76,7 +76,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
         super.open(parameters);
         System.out.println("open!!!!!!!!!");
         //TODO Remove Port after Demo!
-        this.mongoClient = Mongo.getMongoClient(mongoConfig.withPort(27017));
+        this.mongoClient = Mongo.getMongoClient(mongoConfig/*.withPort(27017)*/);
         readInStationData();
     }
 
