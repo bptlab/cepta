@@ -3,7 +3,7 @@ export const formatDelay = (delay: number): string => {
 };
 
 export const timeSincePretty = (
-    seconds: number
+  seconds: number
 ): {
   hrs: number;
   min: number;

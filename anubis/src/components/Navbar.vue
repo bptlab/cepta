@@ -193,34 +193,30 @@ import {Topic} from "@/generated/protobuf/models/constants/Topic_pb";
               <div class="form-group">
                 <div class="form-check form-check-inline">
                   <input
-                      class="form-check-input"
-                      v-model="replaySourceInput"
-                      type="checkbox"
-                      name="inlineCheckboxOptions"
-                      id="livetraindataCheckbox"
-                      value="LiveTrainData"
-                      :disabled="disableSourceInput"
+                    class="form-check-input"
+                    v-model="replaySourceInput"
+                    type="checkbox"
+                    name="inlineCheckboxOptions"
+                    id="livetraindataCheckbox"
+                    value="LiveTrainData"
+                    :disabled="disableSourceInput"
                   />
-                  <label
-                      class="form-check-label"
-                      for="livetraindataCheckbox"
-                  >LiveTrainData</label
+                  <label class="form-check-label" for="livetraindataCheckbox"
+                    >LiveTrainData</label
                   >
                 </div>
                 <div class="form-check form-check-inline">
                   <input
-                      class="form-check-input"
-                      v-model="replaySourceInput"
-                      type="checkbox"
-                      name="inlineCheckboxOptions"
-                      id="plannedtraindataCheckbox"
-                      value="PlannedTrainData"
-                      :disabled="disableSourceInput"
+                    class="form-check-input"
+                    v-model="replaySourceInput"
+                    type="checkbox"
+                    name="inlineCheckboxOptions"
+                    id="plannedtraindataCheckbox"
+                    value="PlannedTrainData"
+                    :disabled="disableSourceInput"
                   />
-                  <label
-                      class="form-check-label"
-                      for="plannedtraindataCheckbox"
-                  >PlannedTrainData</label
+                  <label class="form-check-label" for="plannedtraindataCheckbox"
+                    >PlannedTrainData</label
                   >
                 </div>
               </div>
@@ -279,27 +275,27 @@ import {Topic} from "@/generated/protobuf/models/constants/Topic_pb";
 </template>
 
 <script lang="ts">
-  import {Component, Vue} from "vue-property-decorator";
-  import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
-  import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
-  import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
-  import AccountDropdown from "@/components/AccountDropdown.vue";
-  import NavbarDropdown from "@/components/NavbarDropdown.vue";
-  import {ReplayerModule} from "../store/modules/replayer";
-  import {AppModule} from "../store/modules/app";
-  import BeatLoader from "vue-spinner/src/BeatLoader.vue";
-  import {
-    ActiveReplayOptions,
-    ReplayMode,
-    ReplayOptions,
-    ReplaySetOptionsRequest,
-    ReplayStartOptions,
-    SourceReplay,
-    Speed
-  } from "../generated/protobuf/models/grpc/replayer_pb";
-  import {Topic} from "../generated/protobuf/models/constants/Topic_pb";
+import { Component, Vue } from "vue-property-decorator";
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
+import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
+import AccountDropdown from "@/components/AccountDropdown.vue";
+import NavbarDropdown from "@/components/NavbarDropdown.vue";
+import { ReplayerModule } from "../store/modules/replayer";
+import { AppModule } from "../store/modules/app";
+import BeatLoader from "vue-spinner/src/BeatLoader.vue";
+import {
+  ActiveReplayOptions,
+  ReplayMode,
+  ReplayOptions,
+  ReplaySetOptionsRequest,
+  ReplayStartOptions,
+  SourceReplay,
+  Speed
+} from "../generated/protobuf/models/grpc/replayer_pb";
+import { Topic } from "../generated/protobuf/models/constants/Topic_pb";
 
-  @Component({
+@Component({
   name: "NavigationBar",
   components: {
     NavbarDropdown,

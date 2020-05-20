@@ -134,5 +134,4 @@ export default class Dashboard extends Vue {}
 
       &.metric-value
         font-size: 2.5rem
-
 </style>
