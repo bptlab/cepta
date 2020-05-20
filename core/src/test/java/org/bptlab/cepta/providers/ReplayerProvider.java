@@ -42,7 +42,7 @@ public class ReplayerProvider {
     // return blockingStub.query(options);
 
 
-    Iterator<ReplayedEvent>
+    //Iterator<ReplayedEvent>
 
 
     /*
