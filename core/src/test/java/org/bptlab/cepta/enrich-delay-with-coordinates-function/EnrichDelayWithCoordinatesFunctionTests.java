@@ -21,9 +21,11 @@ import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
+import static org.bptlab.cepta.utils.functions.StreamUtils.collectStreamToArrayList;
 
 public class EnrichDelayWithCoordinatesFunctionTests {
 
@@ -32,7 +34,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData.newBuilder().setStationId(1).setLatitude(100).setLongitude(100).build();
+        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData.newBuilder().setStationId(3).setLatitude(100).setLongitude(100).build();
 
         try {
             insertToDb(mongoConfig, testStation);
@@ -53,7 +55,9 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         DataStream<NotificationOuterClass.Notification> enrichedStream = testStream.flatMap(testedFunction);
 
-        for (NotificationOuterClass.Notification n : StreamUtils.collectStreamToArrayList(enrichedStream)){
+        ArrayList<NotificationOuterClass.Notification> enrichedEvents = StreamUtils.collectStreamToArrayList(enrichedStream);
+
+        for (NotificationOuterClass.Notification n :enrichedEvents){
             System.out.println(n);
         }
 

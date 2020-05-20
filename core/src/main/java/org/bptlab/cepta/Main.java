@@ -252,7 +252,10 @@ public class Main implements Callable<Integer> {
                     100000, TimeUnit.MILLISECONDS, 1);
 
 //    notificationFromDelayShift.print();
-    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
+//    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
+
+    DataStream<Notification> notificationFromDelayShiftenriched = notificationFromDelayShift.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
+    notificationFromDelayShiftenriched.addSink(trainDelayNotificationProducer);
     /*-------------------------
      * End - MongoDelayShift
      * ++++++++++++++++++++++++

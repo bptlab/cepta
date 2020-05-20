@@ -17,6 +17,14 @@ public class NotificationHelper {
         delayBuilder.setCoordinate(coordinate);
         return Notification.newBuilder().setDelay(delayBuilder.build()).build();
     }
+    public static Notification getTrainDelayNotificationFrom(Ids.CeptaTransportID ceptaID, DelayOuterClass.Delay delay, Ids.CeptaStationID stationId, CoordinateOuterClass.Coordinate coordinate){
+        NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();
+        delayBuilder.setDelay(delay).build();
+        delayBuilder.setTransportId(ceptaID).build();
+        delayBuilder.setStationId(stationId).build();
+        delayBuilder.setCoordinate(coordinate);
+        return Notification.newBuilder().setDelay(delayBuilder.build()).build();
+    }
 
     public static Notification getTrainDelayNotificationFrom( String ceptaID, long delayedSeconds, String delayDetail, long stationId  ){
         NotificationOuterClass.DelayNotification.Builder delayBuilder = NotificationOuterClass.DelayNotification.newBuilder();

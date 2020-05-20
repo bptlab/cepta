@@ -15,6 +15,7 @@ import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -83,15 +84,16 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
 //        System.out.println("Trying to flatten and mappen" + notification.toString());
         System.out.println("Trying to flatten and mappen");
-        CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(notification.getDelay().getStationId().toString());
+        String searchForStationId = notification.getDelay().getStationId().getId();
+        CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
         NotificationOuterClass.DelayNotification delayNotification = notification.getDelay();
         //TODO make this less ugly please!
-        collector.collect(NotificationHelper.getTrainDelayNotificationFrom(
-                delayNotification.getTransportId().toString(),
-                delayNotification.getDelay().getDelta().getSeconds(),
-                delayNotification.getDelay().getDetails(),
-                Long.parseLong(delayNotification.getStationId().toString()),
-                matchingCoordinate));
+        NotificationOuterClass.Notification new_notification = NotificationHelper.getTrainDelayNotificationFrom(
+                delayNotification.getTransportId(),
+                delayNotification.getDelay(),
+                delayNotification.getStationId(),
+                matchingCoordinate);
+        collector.collect(new_notification);
     }
 
 
