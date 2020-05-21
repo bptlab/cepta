@@ -63,6 +63,7 @@ function mapDelayToStringKey(
 <style scoped lang="sass">
 #mainContent
   padding: 0
+  height: 500px
 
 .form-control
   width: 100%
