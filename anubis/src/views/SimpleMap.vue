@@ -132,7 +132,9 @@ function toPosition(delay: DelayNotification): MapTripPosition {
     coordinates: [1, 2], //[delay.getCoordinates().getLongitude(), delay.getCoordinates().getLatitude()],
     description:
       delay
-        .getDelay()?.getDelta()?.toString() +
+        .getDelay()
+        ?.getDelta()
+        ?.toString() +
       " Grund ist: " +
       delay.getDelay()?.getDetails(),
     stationID: delay.getStationId()?.toString()
