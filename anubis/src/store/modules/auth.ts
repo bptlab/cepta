@@ -42,7 +42,8 @@ class Auth extends VuexModule implements IAuthState {
   public authState: AuthenticationState | null = null;
 
   get isAuthenticated(): boolean {
-    return !!this.authToken;
+    return true;
+    //return !!this.authToken;
   }
 
   get authHeader(): { Authorization: string } {

@@ -141,14 +141,44 @@ export default class Dashboard extends Vue {
     },
     {
       position: {
-        coordinates: [54.026241, 13.19041],
+        coordinates: [53.526241, 13.19041],
         stationName: "Example Station Name 2"
       },
       icon: {
         url:
           "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
       }
-    }
+    },
+    {
+      position: {
+        coordinates: [54.026241, 13.19041],
+        stationName: "Example Station Name 3"
+      },
+      icon: {
+        url:
+          "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+      }
+    },
+    {
+      position: {
+        coordinates: [54.026241, 13.69041],
+        stationName: "Example Station Name 3"
+      },
+      icon: {
+        url:
+          "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+      }
+    },
+        {
+      position: {
+        coordinates: [53.526241, 13.69041],
+        stationName: "Example Station Name 3"
+      },
+      icon: {
+        url:
+          "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
+      }
+    },
   ];
   handleTrack(transport: Transport) {
     this.tracked = transport.id;

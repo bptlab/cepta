@@ -106,7 +106,7 @@ export const routes: RouteConfig[] = [
     path: "/dashboard",
     redirect: "/dashboard/home",
     name: "dashboard",
-    beforeEnter: requireAuthenticated,
+    //beforeEnter: requireAuthenticated,
     component: Main,
     children: [
       {
