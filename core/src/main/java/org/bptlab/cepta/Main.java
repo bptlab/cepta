@@ -32,8 +32,12 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
+import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.operators.*;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
@@ -51,11 +55,10 @@ import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
+import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
-
 
 @Command(
     name = "cepta core",
@@ -109,6 +112,9 @@ public class Main implements Callable<Integer> {
   @Mixin
   PostgresConfig postgresConfig = new PostgresConfig();
 
+  @Mixin
+  MongoConfig mongoConfig = new MongoConfig();
+
   @Override
   public Integer call() throws Exception {
     logger.info("Starting CEPTA core...");
@@ -156,7 +162,7 @@ public class Main implements Callable<Integer> {
 
     countOfTrainsAtStationDataStream.print();
 
-       DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
+       DataStream<NotificationOuterClass.Notification> delayShiftNotifications = AsyncDataStream
           .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
             100000, TimeUnit.MILLISECONDS, 1);
 
@@ -175,7 +181,7 @@ public class Main implements Callable<Integer> {
 
 
     // Produce delay notifications into new queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+/*     KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
         .withKeySerializer(Optional.of(LongSerializer::new));
 
 
@@ -197,8 +203,8 @@ public class Main implements Callable<Integer> {
             new GenericBinaryProtoSerializer<>(),
             staysInStationKafkaConfig.getProperties());
 
-   // staysInStationEventDataStream.addSink(staysInStationProducer);
-
+    staysInStationEventDataStream.addSink(staysInStationProducer);
+    */
     env.execute("CEPTA CORE");
     return 0;
   }

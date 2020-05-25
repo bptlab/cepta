@@ -16,8 +16,10 @@ import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 public class PlannedTrainDataProvider {
 
   public static PlannedTrainData getDefaultPlannedTrainDataEvent() {
-    long millis = System.currentTimeMillis();
-    Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
+      // this represents the timestamp 2020-04-28 10:03:40.0
+      // equals the proto timestamp {seconds: 1588068220, nanos: 471000000}
+      long millis = 1588068220471l;
+      Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
          .setNanos((int) ((millis % 1000) * 1000000)).build();
     PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
     builder.setId(1);
@@ -42,10 +44,11 @@ public class PlannedTrainDataProvider {
   public static DataStream<PlannedTrainData> plannedTrainDatas(){
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(1);
-    ArrayList<PlannedTrainData> plannedTrains = new ArrayList<>();
 
+    ArrayList<PlannedTrainData> plannedTrains = new ArrayList<>();
     plannedTrains.add(getDefaultPlannedTrainDataEvent());
     plannedTrains.add(getDefaultPlannedTrainDataEvent());
+    
     DataStream<PlannedTrainData> plannedTrainsStream = env.fromCollection(plannedTrains)
         .assignTimestampsAndWatermarks(
             new AscendingTimestampExtractor<PlannedTrainData>() {
@@ -59,11 +62,15 @@ public class PlannedTrainDataProvider {
     return plannedTrainsStream;
   }
 
-  private static PlannedTrainData trainEventWithStationId(int stationId){
+  public static PlannedTrainData trainEventWithStationId(int stationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setStationId(stationId).build();
+            .setStationId(stationId).build();
   }
-  private static PlannedTrainData trainEventWithTrainID(int trainId){
+  public static PlannedTrainData trainEventWithStationIdPlannedEventTime(int stationId, Timestamp plannedEventTime){
+    return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
+            .setStationId(stationId).setPlannedEventTime(plannedEventTime).build();
+  }
+  public static PlannedTrainData trainEventWithTrainID(int trainId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
         .setTrainId(trainId).build();
   }
@@ -72,12 +79,12 @@ public class PlannedTrainDataProvider {
             .setPlannedEventTime(timestamp).build();
   }
 
-  private static PlannedTrainData trainEventWithTrainIdStationId(int trainId, int stationId){
+  public static PlannedTrainData trainEventWithTrainIdStationId(int trainId, int stationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
         .setTrainId(trainId).setStationId(stationId).build();
   }
 
-  private static Tuple2<WeatherData, Integer> correlatedWeatherEventWithStationIDClass(int stationId, String eventClass){
+  public static Tuple2<WeatherData, Integer> correlatedWeatherEventWithStationIDClass(int stationId, String eventClass){
     WeatherData weather = WeatherDataProvider.getDefaultWeatherEvent().toBuilder()
       .setEventClass(eventClass).build();
     return new Tuple2<>(weather, stationId);

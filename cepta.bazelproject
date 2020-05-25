@@ -24,10 +24,12 @@ additional_languages:
 
 import_run_configurations:
   ijwb/Run__Core.xml
+  ijwb/Run__Core___db_host_localhost.xml
   ijwb/Build__Core.xml
   ijwb/Build__Cepta.xml
   ijwb/Build__Docker_Images.xml
   ijwb/Run__Replayer.xml
+  ijwb/Run__Replayer_PLANNED.xml
   ijwb/Test__integration.xml
   ijwb/Test__internal.xml
   ijwb/Test__smoke.xml

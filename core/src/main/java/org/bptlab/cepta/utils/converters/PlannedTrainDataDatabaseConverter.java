@@ -71,17 +71,17 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
   }
 
   private com.google.protobuf.Timestamp sqlTimestampToPrototimestamp(java.sql.Timestamp sqlTimestamp){
-    long millis = sqlTimestamp.getTime();
-    com.google.protobuf.Timestamp timestamp = com.google.protobuf.Timestamp.newBuilder().setSeconds(millis / 1000)
-         .setNanos((int) ((millis % 1000) * 1000000)).build(); 
+    Instant instant = sqlTimestamp.toInstant();
+    com.google.protobuf.Timestamp timestamp = com.google.protobuf.Timestamp.newBuilder().setSeconds(instant.getEpochSecond())
+         .setNanos( instant.getNano() ).build();
     return timestamp;
   }
 
   
   private com.google.protobuf.Timestamp localDateTimeToPrototimestamp(org.joda.time.LocalDateTime dateTime){
-    int millis = dateTime.getMillisOfDay();
-    com.google.protobuf.Timestamp timestamp = com.google.protobuf.Timestamp.newBuilder().setSeconds(millis / 1000)
-    .setNanos((int) ((millis % 1000) * 1000000)).build();
+    Instant instant = dateTime.toDate().toInstant();
+    com.google.protobuf.Timestamp timestamp = com.google.protobuf.Timestamp.newBuilder().setSeconds(instant.getEpochSecond())
+    .setNanos(instant.getNano()).build();
     return timestamp;
   }
   

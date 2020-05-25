@@ -1,26 +1,22 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "delay-shift",
+    name = "data-to-postgres-database",
     size = "medium",
-    srcs = ["DelayShiftFunctionTests.java"],
+    srcs = ["DataToPostgresDatabaseTests.java"],
     tags = [
         "docker",
         "integration",
     ],
-    test_class = "org.bptlab.cepta.DelayShiftFunctionTests",
+    test_class = "org.bptlab.cepta.DataToPostgresDatabaseTests",
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
-        "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
-        "//core/src/main/java/org/bptlab/cepta/utils/notification:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
-        "//models/internal:delay_java_proto",
         "//models/internal/notifications:notification_java_proto",
-        "//models/internal/types:ids_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit_4_13",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
