@@ -66,10 +66,10 @@ export default class Dashboard extends Vue {
   tracked: string = "";
 
   get delays(): DelayNotification[] {
-    let delayNotis: DelayNotification = AppModule.notifications.map(noti =>
-      noti.getDelay()
+    let delayNotis: DelayNotification[] = AppModule.notifications.map(noti =>
+      noti.getDelay()!
     );
-    return delayNotis.filter(noti => noti.getCeptaId() == this.tracked);
+    return delayNotis.filter(delayNoti => delayNoti.getTransportId()!.toString() == this.tracked);
   }
 
   get transport(): Transport {
@@ -91,8 +91,11 @@ export default class Dashboard extends Vue {
       actualDuration: -1,
 
       // TODO!!: Are you sure this is the intended behaviour? You expect a string but try to assign an array. Will there be in the future in each element of the Array the same reason that it is enough to just return the first element?
-      delay: this.delays.map(del => del.getDelay()?.getDelta()),
-      delayReason: this.delays.map(del => del.getDelay()?.getDetails()),
+      //delay: this.delays.map(del => del.getDelay()?.getDelta()),
+      //delayReason: this.delays.map(del => del.getDelay()?.getDetails()),
+
+      delay: this.delays[0].getDelay()!.getDelta()!.getSeconds(),
+      delayReason: this.delays[0].getDelay()!.getDetails(),
       // TODO: insert positions into mapped transport
       map: {
         positions: delayPositions
@@ -122,8 +125,8 @@ export default class Dashboard extends Vue {
     let trackRequest = this.$route.query.track;
     if (trackRequest != undefined && trackRequest != null) {
       // TODO: Query for the real transport here
-      let transport = this.transports[0];
-      this.handleTrack(transport);
+      //let transport = this.transports[0];
+      this.handleTrack(this.transport);
     }
   }
 }
