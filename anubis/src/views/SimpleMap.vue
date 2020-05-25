@@ -66,10 +66,12 @@ export default class Dashboard extends Vue {
   tracked: string = "";
 
   get delays(): DelayNotification[] {
-    let delayNotis: DelayNotification[] = AppModule.notifications.map(noti =>
-      noti.getDelay()!
+    let delayNotis: DelayNotification[] = AppModule.notifications.map(
+      noti => noti.getDelay()!
     );
-    return delayNotis.filter(delayNoti => delayNoti.getTransportId()!.toString() == this.tracked);
+    return delayNotis.filter(
+      delayNoti => delayNoti.getTransportId()!.toString() == this.tracked
+    );
   }
 
   get transport(): Transport {
@@ -94,7 +96,10 @@ export default class Dashboard extends Vue {
       //delay: this.delays.map(del => del.getDelay()?.getDelta()),
       //delayReason: this.delays.map(del => del.getDelay()?.getDetails()),
 
-      delay: this.delays[0].getDelay()!.getDelta()!.getSeconds(),
+      delay: this.delays[0]
+        .getDelay()!
+        .getDelta()!
+        .getSeconds(),
       delayReason: this.delays[0].getDelay()!.getDetails(),
       // TODO: insert positions into mapped transport
       map: {
