@@ -169,7 +169,7 @@ export default class Dashboard extends Vue {
           "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
       }
     },
-        {
+    {
       position: {
         coordinates: [53.526241, 13.69041],
         stationName: "Example Station Name 3"
@@ -178,7 +178,7 @@ export default class Dashboard extends Vue {
         url:
           "https://findicons.com/files/icons/2219/dot_pictograms/128/train_transportation.png"
       }
-    },
+    }
   ];
   handleTrack(transport: Transport) {
     this.tracked = transport.id;
