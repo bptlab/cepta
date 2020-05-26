@@ -14,22 +14,22 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
   public PlannedTrainData fromResult(ResultSet result) throws Exception {
     PlannedTrainData.Builder event = PlannedTrainData.newBuilder();
     try {
-      event.setId(result.getInt("id"));
-      event.setTrainSectionId(result.getInt("train_section_id"));
-      event.setStationId(result.getInt("station_id"));
+      event.setId(result.getLong("id"));
+      event.setTrainSectionId(result.getLong("train_section_id"));
+      event.setStationId(result.getLong("station_id"));
       event.setPlannedEventTime(sqlTimestampToPrototimestamp(result.getTimestamp("planned_event_time")));
-      event.setStatus(result.getInt("status"));
-      event.setFirstTrainId(result.getInt("first_train_id"));
-      event.setTrainId(result.getInt("train_id"));
+      event.setStatus(result.getLong("status"));
+      event.setFirstTrainId(result.getLong("first_train_id"));
+      event.setTrainId(result.getLong("train_id"));
       event.setPlannedDepartureTimeStartStation(sqlTimestampToPrototimestamp(result.getTimestamp("planned_departure_time_start_station")));
       event.setPlannedArrivalTimeEndStation(sqlTimestampToPrototimestamp(result.getTimestamp("planned_arrival_time_end_station")));
-      event.setRuId(result.getInt("ru_id"));
-      event.setEndStationId(result.getInt("end_station_id"));
-      event.setImId(result.getInt("im_id"));
-      event.setFollowingImId(result.getInt("following_im_id"));
-      event.setMessageStatus(result.getInt("message_status"));
+      event.setRuId(result.getLong("ru_id"));
+      event.setEndStationId(result.getLong("end_station_id"));
+      event.setImId(result.getLong("im_id"));
+      event.setFollowingImId(result.getLong("following_im_id"));
+      event.setMessageStatus(result.getLong("message_status"));
       event.setIngestionTime(sqlTimestampToPrototimestamp(result.getTimestamp("ingestion_time")));
-      event.setOriginalTrainId(result.getInt("original_train_id"));
+      event.setOriginalTrainId(result.getLong("original_train_id"));
     } catch (Exception e) {
       logger.error(e.toString());
       e.printStackTrace();
@@ -44,22 +44,22 @@ public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<Planned
     PlannedTrainData.Builder event = PlannedTrainData.newBuilder();
     logger.debug(result.toString());
     try {
-      if (result.getInt("id") != null) event.setId(result.getInt("id"));
-      if (result.getInt("train_section_id") != null) event.setTrainSectionId(result.getInt("train_section_id"));
-      if (result.getInt("station_id") != null) event.setStationId(result.getInt("station_id"));
+      if (result.getLong("id") != null) event.setId(result.getLong("id"));
+      if (result.getLong("train_section_id") != null) event.setTrainSectionId(result.getLong("train_section_id"));
+      if (result.getLong("station_id") != null) event.setStationId(result.getLong("station_id"));
       if (result.getDate("planned_event_time") != null) event.setPlannedEventTime(localDateTimeToPrototimestamp(result.getDate("planned_event_time")));
-      if (result.getInt("status") != null) event.setStatus(result.getInt("status"));
-      if (result.getInt("first_train_id") != null) event.setFirstTrainId(result.getInt("first_train_id"));
-      if (result.getInt("train_id") != null) event.setTrainId(result.getInt("train_id"));
+      if (result.getLong("status") != null) event.setStatus(result.getLong("status"));
+      if (result.getLong("first_train_id") != null) event.setFirstTrainId(result.getLong("first_train_id"));
+      if (result.getLong("train_id") != null) event.setTrainId(result.getLong("train_id"));
       if (result.getDate("planned_departure_time_start_station") != null) event.setPlannedDepartureTimeStartStation(localDateTimeToPrototimestamp(result.getDate("planned_departure_time_start_station")));
       if (result.getDate("planned_arrival_time_end_station") != null) event.setPlannedArrivalTimeEndStation(localDateTimeToPrototimestamp(result.getDate("planned_arrival_time_end_station")));
-      if (result.getInt("ru_id") != null) event.setRuId(result.getInt("ru_id"));
-      if (result.getInt("end_station_id") != null) event.setEndStationId(result.getInt("end_station_id"));
-      if (result.getInt("im_id") != null) event.setImId(result.getInt("im_id"));
-      if (result.getInt("following_im_id") != null) event.setFollowingImId(result.getInt("following_im_id"));
-      if (result.getInt("message_status") != null) event.setMessageStatus(result.getInt("message_status"));
+      if (result.getLong("ru_id") != null) event.setRuId(result.getLong("ru_id"));
+      if (result.getLong("end_station_id") != null) event.setEndStationId(result.getLong("end_station_id"));
+      if (result.getLong("im_id") != null) event.setImId(result.getLong("im_id"));
+      if (result.getLong("following_im_id") != null) event.setFollowingImId(result.getLong("following_im_id"));
+      if (result.getLong("message_status") != null) event.setMessageStatus(result.getLong("message_status"));
       if (result.getDate("ingestion_time") != null) event.setIngestionTime(localDateTimeToPrototimestamp(result.getDate("ingestion_time")));
-      if (result.getInt("original_train_id") != null) event.setOriginalTrainId(result.getInt("original_train_id"));
+      if (result.getLong("original_train_id") != null) event.setOriginalTrainId(result.getLong("original_train_id"));
     } catch (Exception e) {
       logger.error(e.toString());
       e.printStackTrace();
