@@ -4,6 +4,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.bptlab.cepta.config.MongoConfig;
@@ -30,7 +31,7 @@ import static org.bptlab.cepta.utils.functions.StreamUtils.collectStreamToArrayL
 public class EnrichDelayWithCoordinatesFunctionTests {
 
     @Test
-    public void testInitializesCoordinateMapping() throws IOException {
+    public void testInitializesCoordinateMapping() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
@@ -44,26 +45,16 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         }
 
         NotificationOuterClass.Notification testNotification = NotificationHelper.getTrainDelayNotificationFrom("1",2,3);
-        DataStream<NotificationOuterClass.Notification> testStream = env.fromElements(testNotification);
-
-//        for (NotificationOuterClass.Notification n : StreamUtils.collectStreamToArrayList(testStream)){
-//            System.out.println(n);
-//        }
 
         EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
         /*
         FIXME: currently the input testedFunction is apparently not the same function we have in the flatMap, so their
                 initialisations are different
          */
+        testedFunction.open(new Configuration());
 
-        DataStream<NotificationOuterClass.Notification> enrichedStream = testStream.flatMap(testedFunction);
-        ArrayList<NotificationOuterClass.Notification> enrichedEvents = StreamUtils.collectStreamToArrayList(enrichedStream);
-        for (NotificationOuterClass.Notification n :enrichedEvents){
-            System.out.println(n);
-        }
-
-        String mapString = testedFunction.getMapString();
-        System.out.println(mapString);
+        Hashtable<String, CoordinateOuterClass.Coordinate> hashtable = testedFunction.getMapping();
+        System.out.println(hashtable);
         CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate.newBuilder().setLatitude(100).setLongitude(100).build();
         Assert.fail();
     }

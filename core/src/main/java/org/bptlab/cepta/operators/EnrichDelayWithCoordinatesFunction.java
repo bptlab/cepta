@@ -34,9 +34,9 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
         this.tableName = tableName;
     }
 
-    private  Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+    private Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
 
-    public String getMapString(){ return coordinateMapping.toString();}
+    public Hashtable<String, CoordinateOuterClass.Coordinate> getMapping(){ return coordinateMapping;}
 
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
