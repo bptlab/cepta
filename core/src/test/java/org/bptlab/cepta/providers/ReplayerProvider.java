@@ -32,14 +32,28 @@ public class ReplayerProvider {
     this.asyncStub = ReplayerGrpc.newStub(channel);
   }
 
-  public Iterator<ReplayedEvent> query(QueryOptions options) throws StatusRuntimeException {
-    /*
-    ReplayedEvent request =
-        Rectangle.newBuilder()
-            .setLo(Point.newBuilder().setLatitude(lowLat).setLongitude(lowLon).build())
-            .setHi(Point.newBuilder().setLatitude(hiLat).setLongitude(hiLon).build()).build();
-     */
-    // return blockingStub.query(options);
+//  public Iterator<ReplayedEvent> query(QueryOptions options) throws StatusRuntimeException {
+//    /*
+//    ReplayedEvent request =
+//        Rectangle.newBuilder()
+//            .setLo(Point.newBuilder().setLatitude(lowLat).setLongitude(lowLon).build())
+//            .setHi(Point.newBuilder().setLatitude(hiLat).setLongitude(hiLon).build()).build();
+//     */
+//    // return blockingStub.query(options);
+//
+//
+//    //Iterator<ReplayedEvent>
+//
+//
+//    /*
+//    try {
+//      features = blockingStub.listFeatures(request);
+//    } catch (StatusRuntimeException ex) {
+//      logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+//      return;
+//    }
+//    */
+//  }
 
     //TODO Replace Placeholder >>>>
     Iterator<ReplayedEvent> I = new Iterator<ReplayedEvent>() {

@@ -40,8 +40,6 @@
 <script lang="ts">
 import MapVisualisation from "@/components/MapVisualisation.vue";
 import { Component, Vue } from "vue-property-decorator";
-import VueLodash from "vue-lodash";
-import { lodash, groupBy } from "lodash";
 import MasonryLayout from "../components/MasonryLayout.vue";
 import MasonryLayoutTile from "../components/MasonryLayoutTile.vue";
 import MapCell from "../components/MapCell.vue";
@@ -55,24 +53,25 @@ import { DelayNotification } from "../generated/protobuf/models/internal/notific
 import { AppModule } from "../store/modules/app";
 
 @Component({
-  name: "Map",
+  name: "SimpleMap",
   components: {
     MapVisualisation,
     MasonryLayout,
     MasonryLayoutTile,
-    MapCell,
-    VueLodash
+    MapCell
   }
 })
 export default class Dashboard extends Vue {
   currentTransport: MappedTransport | null = null;
-  tracked: string | null = null;
+  tracked: string = "";
 
   get delays(): DelayNotification[] {
-    let delayNotis: DelayNotification = AppModule.notifications.map(noti =>
-      noti.getDelay()
+    let delayNotis: DelayNotification[] = AppModule.notifications.map(
+      noti => noti.getDelay()!
     );
-    return delayNotis.filter(noti => noti.getCeptaId() == this.tracked);
+    return delayNotis.filter(
+      delayNoti => delayNoti.getTransportId()!.toString() == this.tracked
+    );
   }
 
   get transport(): Transport {
@@ -80,8 +79,8 @@ export default class Dashboard extends Vue {
     delayPositions = this.delays.map(toPosition);
     return {
       id: this.tracked,
-      start: this.delays[0].getStationId().toString(),
-      end: this.delays[-1].getStationId().toString(),
+      start: this.delays[0].getStationId()?.toString() || "",
+      end: this.delays[-1].getStationId()?.toString() || "",
       trend: {
         value: -1,
         sample: ""
@@ -92,8 +91,16 @@ export default class Dashboard extends Vue {
       },
       plannedDuration: -1,
       actualDuration: -1,
-      delay: this.delays.map(del => del.getDelay().getDelta()),
-      delayReason: this.delays.map(del => del.getDelay().getDetails()),
+
+      // TODO!!: Are you sure this is the intended behaviour? You expect a string but try to assign an array. Will there be in the future in each element of the Array the same reason that it is enough to just return the first element?
+      //delay: this.delays.map(del => del.getDelay()?.getDelta()),
+      //delayReason: this.delays.map(del => del.getDelay()?.getDetails()),
+
+      delay: this.delays[0]
+        .getDelay()!
+        .getDelta()!
+        .getSeconds(),
+      delayReason: this.delays[0].getDelay()!.getDetails(),
       // TODO: insert positions into mapped transport
       map: {
         positions: delayPositions
@@ -111,7 +118,7 @@ export default class Dashboard extends Vue {
   }
 
   handleUntrack(transport: Transport) {
-    this.tracked = null;
+    this.tracked = "";
     this.$router.replace({
       name: "map",
       query: {}
@@ -123,8 +130,8 @@ export default class Dashboard extends Vue {
     let trackRequest = this.$route.query.track;
     if (trackRequest != undefined && trackRequest != null) {
       // TODO: Query for the real transport here
-      let transport = this.transports[0];
-      this.handleTrack(transport);
+      //let transport = this.transports[0];
+      this.handleTrack(this.transport);
     }
   }
 }
@@ -134,11 +141,11 @@ function toPosition(delay: DelayNotification): MapTripPosition {
     description:
       delay
         .getDelay()
-        .getDelta()
-        .toString() +
+        ?.getDelta()
+        ?.toString() +
       " Grund ist: " +
-      delay.getDelay().getDetails(),
-    stationID: delay.getStationId().toString()
+      delay.getDelay()?.getDetails(),
+    stationID: delay.getStationId()?.toString()
   };
   return {
     position: tpos

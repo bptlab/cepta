@@ -19,7 +19,7 @@ public class RBDelayPatternProvider {
         // return
       }
 
-    public static DataStream<Event> receiveEventsFromReplayer(){
+    /*public static DataStream<Event> receiveEventsFromReplayer(){
       StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
       env.setParallelism(1);
       ArrayList<Event> events = new ArrayList<>();
@@ -97,6 +97,6 @@ public class RBDelayPatternProvider {
             }
           });
       return mockedStream;
-      */
-    }
+      *//*
+    }*/
 }
