@@ -1,6 +1,8 @@
 package org.bptlab.cepta.providers;
 
 import java.util.ArrayList;
+
+import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.javatuples.Pair;
 import com.google.protobuf.Timestamp;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -46,16 +48,10 @@ public class LiveTrainDataProvider {
       env.setParallelism(1);
       ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-      liveTrains.add(trainEventWithTrainSectionIdStationId(42382923, 11111111));
-      liveTrains.add(trainEventWithTrainSectionIdStationId(42093766, 11111111));
+      liveTrains.add(trainEventWithTrainSectionIdStationId(TrainAttributeValueProvider.getTrainSectionIdA(), TrainAttributeValueProvider.getStationIdA()));
+      liveTrains.add(trainEventWithTrainSectionIdStationId(TrainAttributeValueProvider.getTrainSectionIdB(), TrainAttributeValueProvider.getStationIdA()));
       DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
-          .assignTimestampsAndWatermarks(
-              new AscendingTimestampExtractor<LiveTrainData>() {
-                @Override
-                public long extractAscendingTimestamp(LiveTrainData liveTrainData) {
-                  return liveTrainData.getIngestionTime().getSeconds();
-                }
-              });
+          .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
       env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
       return liveTrainStream;
@@ -93,8 +89,8 @@ public class LiveTrainDataProvider {
       env.setParallelism(1);
       ArrayList<LiveTrainData> liveTrains = new ArrayList<>();
 
-      liveTrains.add(trainEventWithTrainSectionId(11111111));
-      liveTrains.add(trainEventWithTrainSectionId(22222222));
+      liveTrains.add(trainEventWithTrainSectionId(TrainAttributeValueProvider.getStationIdA()));
+      liveTrains.add(trainEventWithTrainSectionId(TrainAttributeValueProvider.getStationIdB()));
       DataStream<LiveTrainData> liveTrainStream= env.fromCollection(liveTrains)
           .assignTimestampsAndWatermarks(
               new AscendingTimestampExtractor<LiveTrainData>() {
@@ -217,17 +213,17 @@ public class LiveTrainDataProvider {
       return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
           .setStationId(locationId).build();
     }
-    public static LiveTrainData trainEventWithTrainSectionId(int trainId){
+    public static LiveTrainData trainEventWithTrainSectionId(int trainSectionId){
       return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-          .setTrainSectionId(trainId).build();
+          .setTrainSectionId(trainSectionId).build();
     }
-    public static LiveTrainData trainEventWithTrainSectionIdEventTime(int trainId, Timestamp eventTime){
+    public static LiveTrainData trainEventWithTrainSectionIdEventTime(int trainSectionId, Timestamp eventTime){
       return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-          .setTrainSectionId(trainId).setEventTime(eventTime).build();
+          .setTrainSectionId(trainSectionId).setEventTime(eventTime).build();
     }
-    public static LiveTrainData trainEventWithTrainSectionIdStationId(int trainId, int stationId){
+    public static LiveTrainData trainEventWithTrainSectionIdStationId(int trainSectionId, int stationId){
       return LiveTrainDataProvider.getDefaultLiveTrainDataEvent().toBuilder()
-          .setTrainSectionId(trainId).setStationId(stationId).build();
+          .setTrainSectionId(trainSectionId).setStationId(stationId).build();
     }
 
     public static Tuple2<WeatherData, Long> correlatedWeatherEventWithStationIdClass(int stationId, String eventClass){
