@@ -55,10 +55,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         NotificationOuterClass.Notification testNotification = NotificationHelper.getTrainDelayNotificationFrom("1",2,3);
 
         EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
-        /*
-        FIXME: currently the input testedFunction is apparently not the same function we have in the flatMap, so their
-                initialisations are different
-         */
+
         testedFunction.open(new Configuration());
 
         Hashtable<String, CoordinateOuterClass.Coordinate> actualHashtable = testedFunction.getMapping();

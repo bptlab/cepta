@@ -51,17 +51,14 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
         List<Document> allStations = findMultipleSubscriber.get();
 
-        System.out.println("HALLO HIER KOMMEN DIE STATIONS!!!!!!!!!!!");
         for (Document station: allStations){
             CoordinateOuterClass.Coordinate coordinate =
                     CoordinateOuterClass.Coordinate.newBuilder()
                             .setLongitude((double) station.get("longitude"))
                             .setLatitude((double) station.get("latitude"))
                             .build();
-//            System.out.println(coordinate);
             Long key = (Long) station.get("stationId");
             coordinateMapping.put(String.valueOf(key), coordinate);
-//            System.out.println("moeps:" + coordinateMapping);
         }
         return true;
     }
@@ -82,8 +79,6 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
     @Override
     public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
-//        System.out.println("Trying to flatten and mappen" + notification.toString());
-        System.out.println("Trying to flatten and mappen");
         String searchForStationId = notification.getDelay().getStationId().getId();
         CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
         NotificationOuterClass.DelayNotification delayNotification = notification.getDelay();
