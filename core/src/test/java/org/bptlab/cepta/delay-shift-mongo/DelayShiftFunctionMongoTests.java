@@ -48,6 +48,8 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Sorts.ascending;
 import static junit.framework.TestCase.*;
+import static org.bptlab.cepta.providers.MongoDbProvider.insertToDb;
+import static org.bptlab.cepta.providers.MongoDbProvider.setupMongoContainer;
 import static org.bptlab.cepta.utils.database.Mongo.protoToBson;
 
 public class DelayShiftFunctionMongoTests {
@@ -114,33 +116,6 @@ public class DelayShiftFunctionMongoTests {
         env.setParallelism(1);
 
         return env;
-    }
-
-    private MongoConfig setupMongoContainer() {
-        GenericContainer mongoContainer = newMongoContainer();
-        mongoContainer.start();
-        String address = mongoContainer.getContainerIpAddress();
-        Integer port = mongoContainer.getFirstMappedPort();
-        MongoConfig mongoConfig = new MongoConfig().withHost(address).withPort(port).withPassword("example").withUser("root").withName("mongodb");
-
-        return mongoConfig;
-    }
-
-    public void insertToDb(MongoConfig mongoConfig, PlannedTrainData dataset) throws Exception {
-        MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
-        MongoDatabase database = mongoClient.getDatabase("mongodb");
-        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
-
-        Document document = protoToBson(dataset);
-
-        plannedTrainDataCollection.insertOne(document);
-    }
-
-    public GenericContainer newMongoContainer() {
-        return new GenericContainer("mongo")
-                .withExposedPorts(27017)
-                .withEnv("MONGO_INITDB_ROOT_USERNAME", "root")
-                .withEnv("MONGO_INITDB_ROOT_PASSWORD", "example");
     }
 
 }

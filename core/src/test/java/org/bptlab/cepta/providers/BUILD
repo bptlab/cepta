@@ -5,6 +5,9 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/database/mongohelper:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/notification:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
         "//models/constants:topic_java_proto",
@@ -27,6 +30,9 @@ java_library(
         "@maven//:org_apache_flink_flink_java",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_javatuples_javatuples",
+        "@maven//:org_mongodb_bson",
+        "@maven//:org_mongodb_mongodb_driver_sync",
+        "@maven//:org_testcontainers_testcontainers",
     ],
 )
 
