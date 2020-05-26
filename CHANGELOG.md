@@ -1,5 +1,9 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
+### [0.7.0] -
+##### Changed
+- [#287]
+    - DelayNotifications are now embedded within Notifications
 ### [0.6.0] - 2020-05-17
 ##### Added
 - [#261]
