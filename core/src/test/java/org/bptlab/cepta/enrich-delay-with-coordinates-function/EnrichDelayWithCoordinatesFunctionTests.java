@@ -44,7 +44,6 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         }
 
         NotificationOuterClass.Notification testNotification = NotificationHelper.getTrainDelayNotificationFrom("1",2,3);
-
         DataStream<NotificationOuterClass.Notification> testStream = env.fromElements(testNotification);
 
 //        for (NotificationOuterClass.Notification n : StreamUtils.collectStreamToArrayList(testStream)){
@@ -52,25 +51,21 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 //        }
 
         EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
+        /*
+        FIXME: currently the input testedFunction is apparently not the same function we have in the flatMap, so their
+                initialisations are different
+         */
 
         DataStream<NotificationOuterClass.Notification> enrichedStream = testStream.flatMap(testedFunction);
-
         ArrayList<NotificationOuterClass.Notification> enrichedEvents = StreamUtils.collectStreamToArrayList(enrichedStream);
-
         for (NotificationOuterClass.Notification n :enrichedEvents){
             System.out.println(n);
         }
 
-        Hashtable<String, CoordinateOuterClass.Coordinate> functionMap = testedFunction.getCoordinateMapping();
-
-        System.out.println(functionMap);
-
+        String mapString = testedFunction.getMapString();
+        System.out.println(mapString);
         CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate.newBuilder().setLatitude(100).setLongitude(100).build();
-
-        CoordinateOuterClass.Coordinate actualCoordinate = functionMap.get(String.valueOf(3L));
-
-//        Assert.assertTrue(true);
-        Assert.assertEquals("", expectedCoordinate, actualCoordinate);
+        Assert.fail();
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
