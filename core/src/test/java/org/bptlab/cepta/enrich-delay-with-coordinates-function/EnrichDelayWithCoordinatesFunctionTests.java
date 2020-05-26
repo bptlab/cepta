@@ -32,10 +32,18 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
     @Test
     public void testInitializesCoordinateMapping() throws Exception {
-        StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData.newBuilder().setStationId(3).setLatitude(100).setLongitude(100).build();
+        Long stationId = 3L;
+        Long latitude = 100L;
+        Long longitude = 100L;
+
+        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData
+                .newBuilder()
+                    .setStationId(stationId)
+                    .setLatitude(latitude)
+                    .setLongitude(longitude)
+                .build();
 
         try {
             insertToDb(mongoConfig, testStation);
@@ -53,10 +61,19 @@ public class EnrichDelayWithCoordinatesFunctionTests {
          */
         testedFunction.open(new Configuration());
 
-        Hashtable<String, CoordinateOuterClass.Coordinate> hashtable = testedFunction.getMapping();
-        System.out.println(hashtable);
-        CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate.newBuilder().setLatitude(100).setLongitude(100).build();
-        Assert.fail();
+        Hashtable<String, CoordinateOuterClass.Coordinate> actualHashtable = testedFunction.getMapping();
+        System.out.println(actualHashtable);
+
+        CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate
+                .newBuilder()
+                    .setLatitude(100)
+                    .setLongitude(100)
+                .build();
+
+        Hashtable<String, CoordinateOuterClass.Coordinate> expectedHastable = new Hashtable<String, CoordinateOuterClass.Coordinate>();
+        expectedHastable.put("3", expectedCoordinate);
+
+        Assert.assertEquals(expectedHastable, actualHashtable);
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
