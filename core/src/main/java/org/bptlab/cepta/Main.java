@@ -37,6 +37,11 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
+<<<<<<<<< Temporary merge branch 1
+import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.operators.*;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
+=========
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
 import org.bptlab.cepta.models.events.info.LocationDataOuterClass.LocationData;
@@ -264,15 +269,17 @@ public class Main implements Callable<Integer> {
      * Begin - CountOfTrainsAtStation
      * ------------------------*/
 
-    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream);
+       DataStream<NotificationOuterClass.DelayNotification> delayShiftNotifications = AsyncDataStream
+          .unorderedWait(liveTrainDataStream, new DelayShiftFunction(postgresConfig),
+            100000, TimeUnit.MILLISECONDS, 1);
 
 //    countOfTrainsAtStationDataStream.print();
 
-    /*-------------------------
-     * End - CountOfTrainsAtStation
-     * ++++++++++++++++++++++++
-     * Begin - matchedLivePlanned
-     * ------------------------*/
+>>>>>>>>> Temporary merge branch 2
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
+        AsyncDataStream
+            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
+                100000, TimeUnit.MILLISECONDS, 1);
 
     // LivePlannedCorrelationFunction Mongo
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
