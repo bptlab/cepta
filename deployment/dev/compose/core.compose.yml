@@ -139,7 +139,8 @@ services:
       - flink-taskmanager
       - kafka
       - replayer
-      - postgres
+      # - postgres
+      # - mongodb
 
   notification:
     image: bazel/osiris/notification:image
@@ -154,10 +155,12 @@ services:
     ports:
       - ${CEPTA_NOTIFICATION_WS_PORT}:5000
     depends_on:
-      - flink-jobmanager
-      - flink-taskmanager
+      #- flink-jobmanager
+      #- flink-taskmanager
       - kafka
-      - replayer
+      #- replayer
+      - redis
+      - usermgmt
 
   auth:
     image: bazel/osiris/auth:image
@@ -188,6 +191,10 @@ services:
       CLEAR: "true"
     depends_on:
       - mongodb
+      - auth
+
+  # bazel run //osiris/usermgmt:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+  # bazel run //auxiliary/producers/replayer -- --port 8083 --mode constant --replay-log debug --immediate  --include-sources LIVE_TRAIN_DATA
 
   replayer:
     image: bazel/auxiliary/producers/replayer:image
@@ -200,7 +207,9 @@ services:
       PORT: 9000
       # Benchmark indicates MongoDB is the bottleneck
       # REPLAY_MODE: constant
+      # REPLAY_LOG: debug
       # PAUSE: 0
+      # INCLUDE_SOURCES: LIVE_TRAIN_DATA
       MONGODB_HOST: mongodb
       MONGODB_PORT: ${CEPTA_MONGODB_PORT}
     ports:

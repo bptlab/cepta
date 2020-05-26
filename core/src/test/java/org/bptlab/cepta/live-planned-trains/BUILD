@@ -12,11 +12,13 @@ java_test(
     deps = [
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
+        "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/providers:java_default_library",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/internal/notifications:notification_java_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit_4_13",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
         "@maven//:org_apache_flink_flink_core",

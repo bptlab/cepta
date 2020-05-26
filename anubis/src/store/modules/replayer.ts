@@ -11,6 +11,7 @@ import {
   Speed,
   Timerange,
   ReplayStartOptions,
+  SourceReplay,
   ReplayOptions,
   ReplaySetOptionsRequest,
   ActiveReplayOptions
@@ -32,6 +33,7 @@ class Replayer extends VuexModule implements IReplayerState {
   public replayer = new ReplayerClient("/api/grpc/replayer", null, null);
   public isReplaying = false;
   public replayingOptions = new ReplayStartOptions();
+  public replayingSources = new SourceReplay();
   public replayStatus = "Replay inactive";
 
   @Mutation
@@ -118,6 +120,11 @@ class Replayer extends VuexModule implements IReplayerState {
   }
 
   @Mutation
+  public setReplayingSource(source: SourceReplay) {
+    this.replayingSources = source;
+  }
+
+  @Mutation
   public updateReplayingOptions(options: ActiveReplayOptions) {
     if (!this.replayingOptions.hasOptions()) {
       this.replayingOptions.setOptions(new ReplayOptions());
@@ -146,6 +153,8 @@ class Replayer extends VuexModule implements IReplayerState {
   @Action({ rawError: true })
   public async startReplayer(options?: ReplayStartOptions) {
     let newOptions = options || new ReplayStartOptions();
+    //this.newOptions.getOptions()?
+    console.log(newOptions.getSourcesList());
     this.replayer.start(newOptions, AuthModule.authHeader, (err, response) => {
       if (err) {
         alert(err.message);

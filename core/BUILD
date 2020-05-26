@@ -15,6 +15,8 @@ MAIN_DEPS = [
     "//models/events:live_train_data_java_proto",
     "//models/events:count_of_trains_at_station_event_java_proto",
     "//models/events:planned_train_data_java_proto",
+    "//models/events:location_data_java_proto",
+    "//models/events:no_matching_planned_train_data_event_java_proto",
     "//models/events:predicted_train_data_java_proto",
     "//models/events:train_information_data_java_proto",
     "//models/events:weather_data_java_proto",

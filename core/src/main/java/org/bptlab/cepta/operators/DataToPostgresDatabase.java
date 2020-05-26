@@ -16,6 +16,8 @@ import com.google.protobuf.Message;
 import org.apache.flink.api.common.functions.MapFunction;
 
 import org.bptlab.cepta.config.PostgresConfig;
+//import org.bptlab.cepta.models.events.info.LocationDataOuterClass;
+//import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass;
 import org.bptlab.cepta.utils.database.Util;
 import org.bptlab.cepta.utils.database.Util.ProtoInfoStrings;
 
@@ -56,17 +58,24 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     return query;
   }
 
-  public boolean createSchema(ConnectionPool<PostgreSQLConnection> connection, ArrayList<String> columnNames, ArrayList<String> types) {
-    String query = getCreatePlannedDatabaseQuery(columnNames, types);
+  public boolean createSchema(ConnectionPool<PostgreSQLConnection> connection, ArrayList<String> columnNames, ArrayList<String> types/*, T message*/) {
+    String query;
+//    if (message instanceof PlannedTrainDataOuterClass.PlannedTrainData) {
+      query = getCreatePlannedDatabaseQuery(columnNames, types);
+//    } else if (message instanceof LocationDataOuterClass.LocationData) {
+//      query = getCreateLocationDatabaseQuery(columnNames, types);
+//    }
     // send query
     CompletableFuture<QueryResult> future = connection.sendPreparedStatement(query);
     boolean success =true;
     // really execute query and get query result
     try{
       QueryResult result = future.get();
-    }catch (InterruptedException | ExecutionException e){
-      System.out.println("Could not get result");
-      success = false;
+    }catch (InterruptedException | ExecutionException  e){
+      System.out.println("Could not create Schema: public."+table_name+" may already exist.");
+      //Async call may take longer so the next element wants to create the schema too and fails cause it already exists
+      //to prevent event loss try again even if schema creation failed.
+      //success = false;
     }
     return success;
   }
@@ -95,7 +104,7 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     String insertionValues = arrayToQueryString(protoInfo.getValues());
 
     // Create query
-    String insertion_query = "INSERT INTO " + table_name + columnsString
+    String insertion_query = "INSERT INTO " + "public."+table_name + columnsString
         + " VALUES " + insertionValues + ";";
     System.out.println(insertion_query);
 
@@ -108,7 +117,7 @@ public class DataToPostgresDatabase<T extends Message> implements MapFunction<T,
     }catch (InterruptedException | ExecutionException e){
       System.out.println("Could not get result, check for missing schema");
         // check if schema was missing -> create and retry
-      if(createSchema(connection,protoInfo.getColumnNames(), protoInfo.getTypes())){
+      if(createSchema(connection,protoInfo.getColumnNames(), protoInfo.getTypes()/*, dataSet*/)){
         future = connection.sendPreparedStatement(insertion_query);
         try {
           QueryResult result = future.get();

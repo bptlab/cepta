@@ -1,10 +1,3 @@
-export interface TripPosition {
-  coordinates: [number, number];
-  description?: string;
-  stationName?: string;
-  stationID?: string;
-}
-
 export interface Transport {
   id: string;
   start: string;
@@ -42,4 +35,11 @@ export interface MapTripPosition {
 export interface MappedTransport {
   positions: MapTripPosition[];
   color?: string;
+}
+
+export interface TripPosition {
+  coordinates: [number, number];
+  description?: string;
+  stationName?: string;
+  stationID?: string;
 }

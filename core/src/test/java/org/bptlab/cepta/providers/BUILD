@@ -5,7 +5,10 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//core/src/main/java/org/bptlab/cepta/utils/notification:java_default_library",
         "//core/src/test/java/org/bptlab/cepta/containers:java_default_library",
+        "//models/constants:topic_java_proto",
+        "//models/events:event_java_proto",
         "//models/events:live_train_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:weather_data_java_proto",

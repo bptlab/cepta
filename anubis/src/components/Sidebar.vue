@@ -224,7 +224,7 @@ export default class Sidebar extends Vue {
   border-right-style: solid
   +theme-color-diff(border-right-color, bgc-navbar, 6)
   line-height: 0
-  padding: 0 20px
+  padding: 0 25px
   transition: all 0.2s ease
 
   a
@@ -239,6 +239,7 @@ export default class Sidebar extends Vue {
         display: inline-block
         top: 20%
         height: 60%
+        padding-right: 18px
 
     .logo-text
       +theme(color, c-logo-text)

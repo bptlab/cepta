@@ -13,6 +13,7 @@ import {
 import { User } from "@/generated/protobuf/models/internal/types/users_pb";
 import { Error, StatusCode } from "grpc-web";
 import { AuthModule } from "./auth";
+import { AppModule } from "./app";
 import { Notification } from "../../generated/protobuf/models/internal/notifications/notification_pb";
 import { UserID } from "../../generated/protobuf/models/internal/types/users_pb";
 
@@ -47,7 +48,7 @@ class Notifications extends VuexModule implements NotificationsState {
     let deserializedEvent = Notification.deserializeBinary(
       new Uint8Array(event.data)
     );
-    console.log(deserializedEvent);
+    AppModule.addNotification(deserializedEvent);
   }
 
   @Mutation
