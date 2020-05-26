@@ -33,14 +33,14 @@ public class RBDelayPatternProvider {
 
       QueryOptions options = RedBullExampleProvider.getQueryOptions();
 
-      DataStream<Event> eventStream *//*= provider.query(options)*//*;
+//      DataStream<Event> eventStream = provider.query(options);
 
 
       java.lang.System.out.println("Successful querying");
       java.lang.System.out.println(provider.query(options));
 
-      return eventStream;
-      *//*
+      return null/*eventStream*/;
+      /*
 
 
       // @DataProvider(name = "live-train-data-provider")

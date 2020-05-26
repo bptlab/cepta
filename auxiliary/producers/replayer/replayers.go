@@ -168,7 +168,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "weather",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
-		}, &weatherpb.WeatherData{}, setSortAndID("identifier", "identifier")),
+		}, &weatherpb.WeatherData{}, setSortAndID("detectionTime", "eventClass")),
 		Topic: topics.Topic_WEATHER_DATA,
 	}
 

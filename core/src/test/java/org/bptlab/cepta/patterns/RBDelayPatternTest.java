@@ -30,9 +30,9 @@ public class RBDelayPatternTest {
     }
     */
 
-    @Test
-    public void TestStaysInStationDirectly() throws Exception {
+//    @Test
+//    public void TestStaysInStationDirectly() throws Exception {
 //        Assert.assertTrue(RBDelayPatternProvider.receiveEventsFromReplayer());
-    }
+//    }
     
 }

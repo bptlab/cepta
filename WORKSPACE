@@ -160,6 +160,7 @@ load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGET
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
+        "org.apache.commons:commons-text:1.8",
         "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
         "org.testcontainers:testcontainers:1.14.1",

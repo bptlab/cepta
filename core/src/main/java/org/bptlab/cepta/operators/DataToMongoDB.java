@@ -1,6 +1,7 @@
 package org.bptlab.cepta.operators;
 
 import com.google.protobuf.Message;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.reactivestreams.client.MongoClient;
 
@@ -14,16 +15,13 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.utils.database.Util;
-import org.bptlab.cepta.utils.database.Util.ProtoKeyValues;
 
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -40,16 +38,31 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
     private final Logger log = LoggerFactory.getLogger(DataToMongoDB.class);
+    private ArrayList<Mongo.IndexContainer> indices = new ArrayList<>();
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
         this.mongoConfig = mongoConfig;
     }
 
+    public DataToMongoDB(String collection_name, List<Mongo.IndexContainer> createIndexFor, MongoConfig mongoConfig){
+        this.collection_name = collection_name;
+        this.mongoConfig = mongoConfig;
+        this.indices.addAll(createIndexFor);
+    }
+
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        try{
+            if (!indices.isEmpty()) {
+                createIndices();
+            }
+        } catch (NullPointerException e) {
+            //no indexing provided
+        }
+
         log.info("Mongo Connection established");
     }
 
@@ -101,4 +114,25 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
         }
     }
 
+    private void createIndices(){
+        MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
+        MongoCollection<Document> collection = database.getCollection(collection_name);
+        SubscriberHelpers.OperationSubscriber<String> indexSubscriber = new SubscriberHelpers.OperationSubscriber<>();
+        for (Mongo.IndexContainer index : indices) {
+            switch (index.getOrderIndicator()){
+                default:
+                    collection.createIndex(Indexes.ascending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    collection.createIndex(Indexes.descending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
+                case 1:
+                    collection.createIndex(Indexes.ascending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
+                case -1:
+                    collection.createIndex(Indexes.descending(index.getIndexAttributeNameOrCompound())).subscribe(indexSubscriber);
+                    break;
+            }
+        }
+        //TODO acknowledge?
+        indexSubscriber.get();
+    }
 }

@@ -74,11 +74,11 @@ public class DelayShiftFunctionMongo extends
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         plannedTrainDataCollection.find(
                 and(
-                        eq("train_section_id",dataset.getTrainSectionId()),
-                        eq("end_station_id",dataset.getEndStationId()),
-                        eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
+                        eq("trainSectionId",dataset.getTrainSectionId()),
+                        eq("endStationId",dataset.getEndStationId()),
+                        eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
                 )
-        ).sort(ascending("planned_event_time")).subscribe(findMultipleSubscriber);
+        ).sort(ascending("plannedEventTime")).subscribe(findMultipleSubscriber);
 
         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
             @Override
