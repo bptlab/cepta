@@ -61,11 +61,9 @@ import java.sql.*;
 import java.util.function.Supplier;
 
 import static junit.framework.TestCase.*;
+import static org.bptlab.cepta.providers.MongoDbProvider.*;
 
 public class DataToMongoDBTests {
-    private OneInputStreamOperatorTestHarness<PlannedTrainData, PlannedTrainData> testHarness;
-    private DataToMongoDB dataToMongoDBFunction;
-
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
             new MiniClusterWithClientResource(
@@ -82,15 +80,6 @@ public class DataToMongoDBTests {
         return env;
     }
 
-    private MongoConfig setupMongoContainer(){
-        GenericContainer mongoContainer = newMongoContainer();
-        mongoContainer.start();
-        String address = mongoContainer.getContainerIpAddress();
-        Integer port = mongoContainer.getFirstMappedPort();
-        MongoConfig mongoConfig = new MongoConfig().withHost(address).withPort(port).withPassword("example").withUser("root").withName("mongodb");
-        return mongoConfig;
-    }
-
     @Test
     public void inputSingleEvent() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
@@ -104,7 +93,6 @@ public class DataToMongoDBTests {
                 100000, TimeUnit.MILLISECONDS, 1);
 
         resultStream.addSink(new CollectSink());
-        //checkStream.addSink(new CheckSink());
         env.execute();
 
         List<Document> databaseContent = getDatabaseContent(mongoConfig, env);
@@ -126,7 +114,6 @@ public class DataToMongoDBTests {
                 100000, TimeUnit.MILLISECONDS, 1);
 
         resultStream.addSink(new CollectSink());
-        //checkStream.addSink(new CheckSink());
         env.execute();
 
         List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
@@ -147,11 +134,12 @@ public class DataToMongoDBTests {
                 100000, TimeUnit.MILLISECONDS, 1);
 
         resultStream.addSink(new CollectSink());
-        //checkStream.addSink(new CheckSink());
         env.execute();
 
         ArrayList<PlannedTrainData> databaseContent = getDatabaseContentAsData(mongoConfig, env);
+        List<PlannedTrainData> streamContent = CollectSink.values;
         assertEquals(plannedTrainData, databaseContent);
+        assertTrue(streamContent.contains(plannedTrainData.get(0)));
     }
 
     @Test
@@ -192,7 +180,7 @@ public class DataToMongoDBTests {
 
         // env.execute();
 
-        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
+//        List<Document> databaseInards = getDatabaseContent(mongoConfig, env);
         ArrayList<PlannedTrainData> streamData = StreamUtils.collectStreamToArrayList(resultStream);
         assertEquals(plannedTrainData, streamData);
     }
@@ -204,30 +192,19 @@ public class DataToMongoDBTests {
         public static final List<PlannedTrainData> values = new ArrayList<>();
 
         @Override
-        public synchronized void invoke(PlannedTrainData value) throws Exception {
+        public synchronized void invoke(PlannedTrainData value, SinkFunction.Context context) throws Exception {
             values.add(value);
         }
     }
 
-    // create a testing sink that collects List<Document> values
-    private static class CheckSink implements SinkFunction<List<Document>> {
 
-        // must be static
-        public static final List<List<Document>> values = new ArrayList<>();
-
-        @Override
-        public synchronized void invoke(List<Document> value) throws Exception {
-            values.add(value);
-        }
-    }
-
-    public List<Document> getDatabaseContent(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
+    /*public List<Document> getDatabaseContent(MongoConfig mongoConfig, StreamExecutionEnvironment env) throws Exception{
         // if this gets flaky, use the actual output stream of the asynch operator instead of this
         // to make sure the elements are in the database
         DataStream<Integer> oneElementStream = env.fromElements(1);
 
-        /* we do this with a stream because we collect asynchronously and 
-           this is the easiest way we came up with to do this */
+        *//* we do this with a stream because we collect asynchronously and
+           this is the easiest way we came up with to do this *//*
         DataStream<List<Document>> checkStream = AsyncDataStream
         .unorderedWait(oneElementStream, new RichAsyncFunction<Integer, List<Document>>() {
                     @Override
@@ -243,11 +220,6 @@ public class DataToMongoDBTests {
                         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
                             @Override
                             public List<Document> get() {
-//                                        try {
-//                                            TimeUnit.SECONDS.sleep(50);
-//                                        } catch (InterruptedException e) {
-//                                            throw new IllegalStateException();
-//                                        }
                                 // get all the database's content
                                 List<Document> result = findSubscriber.get();
                                 return result;
@@ -270,12 +242,5 @@ public class DataToMongoDBTests {
             plannedTrainData.add(Mongo.documentToPlannedTrainData(doc));
         }
         return plannedTrainData;
-    }
-
-    public GenericContainer newMongoContainer(){
-        return new GenericContainer("mongo")
-            .withExposedPorts(27017)
-            .withEnv("MONGO_INITDB_ROOT_USERNAME", "root")
-            .withEnv("MONGO_INITDB_ROOT_PASSWORD", "example");
-    }
+    }*/
 }
