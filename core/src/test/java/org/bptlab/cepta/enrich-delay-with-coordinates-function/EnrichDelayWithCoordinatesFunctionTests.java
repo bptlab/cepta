@@ -31,7 +31,68 @@ import static org.bptlab.cepta.utils.functions.StreamUtils.collectStreamToArrayL
 public class EnrichDelayWithCoordinatesFunctionTests {
 
     @Test
-    public void testInitializesCoordinateMapping() throws Exception {
+    public void testInitializesCoordinateMappingOfMultipleStations() throws Exception {
+        LocationDataOuterClass.LocationData station1 = LocationDataOuterClass.LocationData
+                .newBuilder()
+                    .setStationId(1)
+                    .setLatitude(1)
+                    .setLongitude(1)
+                .build();
+        LocationDataOuterClass.LocationData station2 = LocationDataOuterClass.LocationData
+                .newBuilder()
+                .setStationId(2)
+                .setLatitude(2)
+                .setLongitude(2)
+                .build();
+        LocationDataOuterClass.LocationData station3 = LocationDataOuterClass.LocationData
+                .newBuilder()
+                .setStationId(3)
+                .setLatitude(3)
+                .setLongitude(3)
+                .build();
+
+        MongoConfig mongoConfig = setupMongoContainer();
+        try {
+            insertToDb(mongoConfig, station1);
+            insertToDb(mongoConfig, station2);
+            insertToDb(mongoConfig, station3);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail("Failed to initialize Db");
+        }
+
+        EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
+        testedFunction.open(new Configuration());
+        Hashtable<String, CoordinateOuterClass.Coordinate> actualHashtable = testedFunction.getMapping();
+
+        CoordinateOuterClass.Coordinate coordinate1 =  CoordinateOuterClass.Coordinate
+                .newBuilder()
+                .setLatitude(1)
+                .setLongitude(1)
+                .build();
+
+        CoordinateOuterClass.Coordinate coordinate2 =  CoordinateOuterClass.Coordinate
+                .newBuilder()
+                .setLatitude(2)
+                .setLongitude(2)
+                .build();
+
+        CoordinateOuterClass.Coordinate coordinate3 =  CoordinateOuterClass.Coordinate
+                .newBuilder()
+                .setLatitude(3)
+                .setLongitude(3)
+                .build();
+
+        Hashtable<String, CoordinateOuterClass.Coordinate> expectedHastable = new Hashtable<>();
+        expectedHastable.put("1", coordinate1);
+        expectedHastable.put("2", coordinate2);
+        expectedHastable.put("3", coordinate3);
+
+        Assert.assertEquals(expectedHastable, actualHashtable);
+    }
+
+    @Test
+    public void testInitializesCoordinateMappingOfSingleStation() throws Exception {
         MongoConfig mongoConfig = setupMongoContainer();
 
         Long stationId = 3L;
@@ -51,15 +112,9 @@ public class EnrichDelayWithCoordinatesFunctionTests {
             e.printStackTrace();
             Assert.fail("Failed to initialize Db");
         }
-
-        NotificationOuterClass.Notification testNotification = NotificationHelper.getTrainDelayNotificationFrom("1",2,3);
-
         EnrichDelayWithCoordinatesFunction testedFunction = new EnrichDelayWithCoordinatesFunction(mongoConfig);
-
         testedFunction.open(new Configuration());
-
         Hashtable<String, CoordinateOuterClass.Coordinate> actualHashtable = testedFunction.getMapping();
-        System.out.println(actualHashtable);
 
         CoordinateOuterClass.Coordinate expectedCoordinate =  CoordinateOuterClass.Coordinate
                 .newBuilder()
@@ -67,7 +122,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
                     .setLongitude(100)
                 .build();
 
-        Hashtable<String, CoordinateOuterClass.Coordinate> expectedHastable = new Hashtable<String, CoordinateOuterClass.Coordinate>();
+        Hashtable<String, CoordinateOuterClass.Coordinate> expectedHastable = new Hashtable<>();
         expectedHastable.put("3", expectedCoordinate);
 
         Assert.assertEquals(expectedHastable, actualHashtable);
