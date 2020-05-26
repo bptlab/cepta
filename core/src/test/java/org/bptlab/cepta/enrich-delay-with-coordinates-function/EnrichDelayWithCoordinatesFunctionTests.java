@@ -12,6 +12,7 @@ import org.bptlab.cepta.models.events.info.LocationDataOuterClass;
 
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.operators.EnrichDelayWithCoordinatesFunction;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.functions.StreamUtils;
@@ -126,6 +127,44 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         expectedHastable.put("3", expectedCoordinate);
 
         Assert.assertEquals(expectedHastable, actualHashtable);
+    }
+
+    @Test
+    public void testEnrichesNotificationWithCorrectCoordinates() throws IOException {
+        MongoConfig mongoConfig = setupMongoContainer();
+
+        Long stationId = 3L;
+        Long latitude = 100L;
+        Long longitude = 100L;
+
+        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData
+                .newBuilder()
+                .setStationId(stationId)
+                .setLatitude(latitude)
+                .setLongitude(longitude)
+                .build();
+
+        try {
+            insertToDb(mongoConfig, testStation);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail("Failed to initialize Db");
+        }
+
+        NotificationOuterClass.Notification unenrichedNotification =
+                NotificationHelper.getTrainDelayNotificationFrom("testId", 1, stationId);
+
+        StreamExecutionEnvironment env = setupEnv();
+
+        DataStream<NotificationOuterClass.Notification> enrichedStream = env.fromElements(unenrichedNotification).flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
+
+        ArrayList<NotificationOuterClass.Notification> enrichedStreamCollection = StreamUtils.collectStreamToArrayList(enrichedStream);
+
+        NotificationOuterClass.Notification enrichedNotification = enrichedStreamCollection.get(0);
+        CoordinateOuterClass.Coordinate expectedCoordinate = CoordinateOuterClass.Coordinate.newBuilder().setLatitude(latitude).setLongitude(longitude).build();
+        Assert.assertEquals(expectedCoordinate, enrichedNotification.getDelay().getCoordinate());
+
+
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {

@@ -1,7 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_test")
 
 java_test(
-    name = "delay-shift-mongo",
+    name = "enrich-delay-with-coordinates-function",
     size = "medium",
     srcs = ["EnrichDelayWithCoordinatesFunctionTests.java"],
     tags = [
@@ -23,6 +23,7 @@ java_test(
         "//models/internal/notifications:notification_java_proto",
         "//models/internal/types:coordinate_java_proto",
         "//models/internal/types:coordinate_proto",
+        "//models/internal/types:ids_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit_4_13",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",

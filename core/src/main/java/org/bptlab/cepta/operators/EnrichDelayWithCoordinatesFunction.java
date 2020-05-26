@@ -26,7 +26,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
     public EnrichDelayWithCoordinatesFunction(MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
-        this.tableName = "eletastations"/*"location"*/;
+        this.tableName = "eletastations";
     }
 
     public EnrichDelayWithCoordinatesFunction(String tableName, MongoConfig mongoConfig){
