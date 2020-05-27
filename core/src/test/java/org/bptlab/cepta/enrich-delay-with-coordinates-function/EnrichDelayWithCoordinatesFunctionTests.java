@@ -175,16 +175,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
-
-        
         DataStream<NotificationOuterClass.Notification> enrichedStream = env.fromElements(unenrichedNotification).flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
-        
-        ArrayList<NotificationOuterClass.Notification> enrichedStreamCollection = StreamUtils.collectStreamToArrayList(enrichedStream);
-
-        NotificationOuterClass.Notification enrichedNotification = enrichedStreamCollection.get(0);
-
-
-        Assert.assertEquals(unenrichedNotification, enrichedNotification);
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
