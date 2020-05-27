@@ -46,7 +46,6 @@ public class DelayShiftFunctionMongo extends
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
-
     }
 
     @Override
