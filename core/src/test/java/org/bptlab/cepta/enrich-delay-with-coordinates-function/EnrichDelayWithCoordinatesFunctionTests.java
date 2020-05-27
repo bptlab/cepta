@@ -155,7 +155,6 @@ public class EnrichDelayWithCoordinatesFunctionTests {
                 NotificationHelper.getTrainDelayNotificationFrom("testId", 1, stationId);
 
         StreamExecutionEnvironment env = setupEnv();
-
         DataStream<NotificationOuterClass.Notification> enrichedStream = env.fromElements(unenrichedNotification).flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
 
         ArrayList<NotificationOuterClass.Notification> enrichedStreamCollection = StreamUtils.collectStreamToArrayList(enrichedStream);
@@ -165,6 +164,18 @@ public class EnrichDelayWithCoordinatesFunctionTests {
         Assert.assertEquals(expectedCoordinate, enrichedNotification.getDelay().getCoordinate());
 
 
+    }
+
+    @Test
+    public void testNoFoundStationKeepsTheNotification() {
+        long stationId = 3;
+
+        NotificationOuterClass.Notification unenrichedNotification =
+                NotificationHelper.getTrainDelayNotificationFrom("testId", 1, stationId);
+
+        StreamExecutionEnvironment env = setupEnv();
+        MongoConfig mongoConfig = setupMongoContainer();
+        DataStream<NotificationOuterClass.Notification> enrichedStream = env.fromElements(unenrichedNotification).flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
