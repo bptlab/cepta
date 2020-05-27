@@ -19,27 +19,23 @@ import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 public class LiveTrainDataProvider {
 
     public static LiveTrainData getDefaultLiveTrainDataEvent() {
-      // this represents the timestamp 2020-04-28 10:03:40.0
-      // equals the proto timestamp {seconds: 1588068220, nanos: 471000000}
-      long millis = 1588068220471l;
-      Timestamp timestamp = Timestamp.newBuilder().setSeconds((int)(millis / 1000))
-          .setNanos((int) ((millis % 1000) * 1000000)).build();
-      LiveTrainData.Builder builder = LiveTrainData.newBuilder();
-      builder.setId(1);
-      builder.setTrainSectionId(1);
-      builder.setStationId(1);
-      builder.setEventTime(timestamp);
-      builder.setStatus(1);
-      builder.setFirstTrainId(1);
-      builder.setTrainId(1);
-      builder.setPlannedArrivalTimeEndStation(timestamp);
-      builder.setDelay(1);
-      builder.setEndStationId(1);
-      builder.setImId(1);
-      builder.setFollowingImId(1);
-      builder.setMessageStatus(1);
-      builder.setIngestionTime(timestamp);
-      return builder.build();
+        Timestamp timestamp =TimestampProvider.getDefaultTimestamp();
+        LiveTrainData.Builder builder = LiveTrainData.newBuilder();
+        builder.setId(1);
+        builder.setTrainSectionId(1);
+        builder.setStationId(1);
+        builder.setEventTime(timestamp);
+        builder.setStatus(1);
+        builder.setFirstTrainId(1);
+        builder.setTrainId(1);
+        builder.setPlannedArrivalTimeEndStation(timestamp);
+        builder.setDelay(1);
+        builder.setEndStationId(1);
+        builder.setImId(1);
+        builder.setFollowingImId(1);
+        builder.setMessageStatus(1);
+        builder.setIngestionTime(timestamp);
+        return builder.build();
     }
 
     // @DataProvider(name = "live-train-data-provider")

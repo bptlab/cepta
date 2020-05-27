@@ -16,11 +16,7 @@ import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 public class PlannedTrainDataProvider {
 
   public static PlannedTrainData getDefaultPlannedTrainDataEvent() {
-      // this represents the timestamp 2020-04-28 10:03:40.0
-      // equals the proto timestamp {seconds: 1588068220, nanos: 471000000}
-      long millis = 1588068220471l;
-      Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
-         .setNanos((int) ((millis % 1000) * 1000000)).build();
+    Timestamp timestamp = TimestampProvider.getDefaultTimestamp();
     PlannedTrainData.Builder builder = PlannedTrainData.newBuilder();
     builder.setId(1);
     builder.setTrainSectionId(1);
