@@ -77,18 +77,21 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     }
 
     @Override
-    public void flatMap(NotificationOuterClass.Notification notification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
-        String searchForStationId = notification.getDelay().getStationId().getId();
-        CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
-        NotificationOuterClass.DelayNotification delayNotification = notification.getDelay();
-        //TODO make this less ugly please!
-        NotificationOuterClass.Notification new_notification = NotificationHelper.getTrainDelayNotificationFrom(
-                delayNotification.getTransportId(),
-                delayNotification.getDelay(),
-                delayNotification.getStationId(),
-                matchingCoordinate);
-        collector.collect(new_notification);
+    public void flatMap(NotificationOuterClass.Notification unenrichedNotification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
+
+        String searchForStationId = unenrichedNotification.getDelay().getStationId().getId();
+        if (coordinateMapping.containsKey(searchForStationId)){
+            CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
+            NotificationOuterClass.DelayNotification delayNotification = unenrichedNotification.getDelay();
+            //TODO make this less ugly please!
+            NotificationOuterClass.Notification enrichedNotification = NotificationHelper.getTrainDelayNotificationFrom(
+                    delayNotification.getTransportId(),
+                    delayNotification.getDelay(),
+                    delayNotification.getStationId(),
+                    matchingCoordinate);
+            collector.collect(enrichedNotification);
+        } else {
+            collector.collect(unenrichedNotification);
+        }
     }
-
-
 }

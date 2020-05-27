@@ -168,7 +168,7 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
     @Test
     public void testNoFoundStationKeepsTheNotification() throws IOException {
-        long stationId1 = 3;
+        Long stationId1 = 420L;
 
         Long stationId2 = 3L;
         Long latitude = 100L;
