@@ -70,18 +70,18 @@ public class PlannedTrainDataProvider {
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
             .setStationId(stationId).setPlannedEventTime(plannedEventTime).build();
   }
-  public static PlannedTrainData trainEventWithTrainID(int trainId){
+  public static PlannedTrainData trainEventWithTrainSectionId(int trainSectionId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setTrainId(trainId).build();
+        .setTrainSectionId(trainSectionId).build();
   }
   public static PlannedTrainData trainEventWithPlannedEventTime(Timestamp timestamp) {
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
             .setPlannedEventTime(timestamp).build();
   }
 
-  public static PlannedTrainData trainEventWithTrainIdStationId(int trainId, int stationId){
+  public static PlannedTrainData trainEventWithTrainSectionIdStationId(int trainSectionId, int stationId){
     return PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent().toBuilder()
-        .setTrainId(trainId).setStationId(stationId).build();
+        .setTrainSectionId(trainSectionId).setStationId(stationId).build();
   }
 
   public static Tuple2<WeatherData, Integer> correlatedWeatherEventWithStationIDClass(int stationId, String eventClass){

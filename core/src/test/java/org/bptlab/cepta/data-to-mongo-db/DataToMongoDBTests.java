@@ -1,64 +1,29 @@
 package org.bptlab.cepta;
 
-import java.io.*;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.mongodb.client.result.InsertOneResult;
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.operators.testutils.MockEnvironment;
 import org.apache.flink.runtime.operators.testutils.MockEnvironmentBuilder;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamUtils;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import org.apache.flink.streaming.api.functions.async.AsyncFunction;
-import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
-import org.apache.flink.streaming.api.graph.StreamEdge;
-import org.apache.flink.streaming.api.operators.async.AsyncWaitOperator;
-import org.apache.flink.streaming.api.operators.async.queue.UnorderedStreamElementQueue;
 
-import org.apache.flink.streaming.util.*;
 import org.apache.flink.test.streaming.runtime.util.*;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
-import org.apache.flink.util.FlinkRuntimeException;
-import org.apache.flink.util.function.RunnableWithException;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.operators.*;
 import org.bptlab.cepta.providers.PlannedTrainDataProvider;
-import org.bptlab.cepta.providers.WeatherDataProvider;
-import org.bptlab.cepta.utils.database.Mongo;
-import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.utils.functions.StreamUtils;
 
 import org.bson.Document;
-import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoCollection;
-import com.mongodb.reactivestreams.client.MongoDatabase;
 
 import org.junit.*;
-import org.testcontainers.containers.GenericContainer;
-
-import com.google.protobuf.GeneratedMessage;
-import com.google.protobuf.Timestamp;
-
-import sun.awt.image.SunWritableRaster.DataStealer;
-
-import java.sql.*;
-import java.util.function.Supplier;
 
 import static junit.framework.TestCase.*;
 import static org.bptlab.cepta.providers.MongoDbProvider.*;
@@ -148,9 +113,9 @@ public class DataToMongoDBTests {
         MongoConfig mongoConfig = setupMongoContainer();
 
         ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
-        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(2, 3));
-        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(4, 5));
-        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(5, 6));
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainSectionIdStationId(2, 3));
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainSectionIdStationId(4, 5));
+        plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainSectionIdStationId(5, 6));
         DataStream<PlannedTrainData> inputStream = env.fromCollection(plannedTrainData);
         
         DataStream<PlannedTrainData> resultStream = AsyncDataStream
