@@ -167,15 +167,43 @@ public class EnrichDelayWithCoordinatesFunctionTests {
     }
 
     @Test
-    public void testNoFoundStationKeepsTheNotification() {
-        long stationId = 3;
+    public void testNoFoundStationKeepsTheNotification() throws IOException {
+        long stationId1 = 3;
+
+        Long stationId2 = 3L;
+        Long latitude = 100L;
+        Long longitude = 100L;
+
+        MongoConfig mongoConfig = setupMongoContainer();
+
+
+        LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData
+                .newBuilder()
+                .setStationId(stationId2)
+                .setLatitude(latitude)
+                .setLongitude(longitude)
+                .build();
+
+        try {
+            insertToDb(mongoConfig, testStation);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail("Failed to initialize Db");
+        }
 
         NotificationOuterClass.Notification unenrichedNotification =
-                NotificationHelper.getTrainDelayNotificationFrom("testId", 1, stationId);
+                NotificationHelper.getTrainDelayNotificationFrom("testId", 1, stationId1);
 
         StreamExecutionEnvironment env = setupEnv();
-        MongoConfig mongoConfig = setupMongoContainer();
         DataStream<NotificationOuterClass.Notification> enrichedStream = env.fromElements(unenrichedNotification).flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
+
+
+        ArrayList<NotificationOuterClass.Notification> enrichedStreamCollection = StreamUtils.collectStreamToArrayList(enrichedStream);
+
+        NotificationOuterClass.Notification enrichedNotification = enrichedStreamCollection.get(0);
+
+
+        Assert.assertEquals(unenrichedNotification, enrichedNotification);
     }
 
     public void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
