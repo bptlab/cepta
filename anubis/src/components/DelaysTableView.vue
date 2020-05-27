@@ -56,7 +56,7 @@ function mapDelayToStringKey(
       ?.getDetails(),
     Coordinates: notification
         .getDelay()
-        .getCoordinate()
+        ?.getCoordinate()
 
   };
 
