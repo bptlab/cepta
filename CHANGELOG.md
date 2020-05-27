@@ -1,11 +1,23 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
+### [0.7.0] -
+##### Added
+- [#287]
+    - [core] Adds Optional Indexing for DataToMongo Operator
+    - [core] Indices for Mongo Planned and Station Data uploads
+##### Changed
+- [#287]
+    - [core] DelayNotifications are now embedded within Notifications
+    - [core] Postgres Schemas integer->bigint/long
+    - [core] Pipeline now uses WeatherLocationCorrelationMongo
+    - [core] ProtoToBson/Mongo schema attribute names from lower_underscore -> lowerCamelCase
+    - [core] DetectStationArrivalDelay uses livetraindata.delay if no matched plannendTrainData was found for delay calculation
 ### [0.6.0] - 2020-05-17
 ##### Added
 - [#261]
-- Mongo DelayShift Operator
-- DataToMongoDB Operator
-- NotificationHelper Utility to generate embedded DelayNotifications
+    - Mongo DelayShift Operator
+    - DataToMongoDB Operator
+    - NotificationHelper Utility to generate embedded DelayNotifications
 ##### Changed
 - [#261]
     - PostgresDelayShift Operator only sends Delay events if ReferenceStation can be found

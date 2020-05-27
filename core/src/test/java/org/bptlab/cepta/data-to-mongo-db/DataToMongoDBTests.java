@@ -92,11 +92,10 @@ public class DataToMongoDBTests {
     }
 
     @Test
-    public void inputAmountOne() throws Exception {
+    public void inputSingleEvent() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         DataStream<PlannedTrainData> inputStream = env.fromElements(train);
         
@@ -113,11 +112,10 @@ public class DataToMongoDBTests {
     }
 
     @Test
-    public void inputAmountMore() throws Exception {
+    public void inputMultipleEvents() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         PlannedTrainData train = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         PlannedTrainData train1 = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
         PlannedTrainData train2 = PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent();
@@ -136,11 +134,10 @@ public class DataToMongoDBTests {
     }
 
     @Test
-    public void inputValueOne() throws Exception {
+    public void verifyInputSingleEvent() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
         plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
         DataStream<PlannedTrainData> inputStream = env.fromCollection(plannedTrainData);
@@ -158,11 +155,10 @@ public class DataToMongoDBTests {
     }
 
     @Test
-    public void inputValueMore() throws Exception {
+    public void verifyInputMultipleEvents() throws Exception {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
         plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(2, 3));
         plannedTrainData.add(PlannedTrainDataProvider.trainEventWithTrainIdStationId(4, 5));
@@ -184,7 +180,6 @@ public class DataToMongoDBTests {
         StreamExecutionEnvironment env = setupEnv();
         MongoConfig mongoConfig = setupMongoContainer();
 
-        TestListResultSink<PlannedTrainData> sink = new TestListResultSink<>();
         ArrayList<PlannedTrainData> plannedTrainData = new ArrayList<PlannedTrainData>();
         plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());
         plannedTrainData.add(PlannedTrainDataProvider.getDefaultPlannedTrainDataEvent());

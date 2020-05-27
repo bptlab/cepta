@@ -63,16 +63,22 @@ public class DelayShiftFunctionMongo extends
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
 
+        //The new AsyncMongo Driver now uses Reactive Streams,
+        // so we need Subscribers to get the Query executed and Results received.
+        // For further details consider the following links:
+        //http://mongodb.github.io/mongo-java-driver/4.0/driver-reactive/tutorials/connect-to-mongodb/
+        //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/tour/QuickTour.java
         //https://github.com/mongodb/mongo-java-driver/blob/eac754d2eed76fe4fa07dbc10ad3935dfc5f34c4/driver-reactive-streams/src/examples/reactivestreams/helpers/SubscriberHelpers.java#L53
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
+
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         plannedTrainDataCollection.find(
                 and(
-                        eq("train_section_id",dataset.getTrainSectionId()),
-                        eq("end_station_id",dataset.getEndStationId()),
-                        eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
+                        eq("trainSectionId",dataset.getTrainSectionId()),
+                        eq("endStationId",dataset.getEndStationId()),
+                        eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
                 )
-        ).sort(ascending("planned_event_time")).subscribe(findMultipleSubscriber);
+        ).sort(ascending("plannedEventTime")).subscribe(findMultipleSubscriber);
 
         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
             @Override

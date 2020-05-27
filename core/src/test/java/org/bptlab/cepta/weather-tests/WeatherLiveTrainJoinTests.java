@@ -24,9 +24,9 @@ public class WeatherLiveTrainJoinTests {
 
   @Test
   public void testMatchesOne() throws IOException {
-    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> input = LiveTrainDataProvider.oneMatchingLiveTrainWeatherData();
+    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> input = LiveTrainDataProvider.oneMatchingLiveTrainWeatherData();
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
-    DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
+    DataStream<Tuple2<WeatherData, Long>> correlatedWeatherStream = input.getValue1();
 
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
@@ -38,9 +38,9 @@ public class WeatherLiveTrainJoinTests {
 
   @Test
   public void testMatchesMultiple() throws IOException {
-    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> input = LiveTrainDataProvider.multipleMatchingLiveTrainWeatherData();
+    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> input = LiveTrainDataProvider.multipleMatchingLiveTrainWeatherData();
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
-    DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
+    DataStream<Tuple2<WeatherData, Long>> correlatedWeatherStream = input.getValue1();
 
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);
@@ -52,9 +52,9 @@ public class WeatherLiveTrainJoinTests {
 
   @Test
   public void testMatchesNone() throws IOException {
-    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Integer>>> input = LiveTrainDataProvider.noMatchingLiveTrainWeatherData();
+    Pair<DataStream<LiveTrainData>, DataStream<Tuple2<WeatherData, Long>>> input = LiveTrainDataProvider.noMatchingLiveTrainWeatherData();
     DataStream<LiveTrainData> liveTrainStream = input.getValue0();
-    DataStream<Tuple2<WeatherData, Integer>> correlatedWeatherStream = input.getValue1();
+    DataStream<Tuple2<WeatherData, Long>> correlatedWeatherStream = input.getValue1();
 
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream =
         WeatherLiveTrainJoinFunction.delayFromWeather(correlatedWeatherStream, liveTrainStream);

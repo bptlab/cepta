@@ -1,5 +1,6 @@
 package org.bptlab.cepta.utils.database;
 
+import org.apache.commons.text.CaseUtils;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 // import com.google.protobuf.Timestamp;
@@ -7,7 +8,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
-import org.javatuples.Triplet;
+
+
+
 
 public class Util {
     
@@ -18,7 +21,7 @@ public class Util {
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
 //      System.out.println(entry.getKey() + "/" + entry.getValue());
 
-      columnNames.add(entry.getKey().getName());
+      columnNames.add(  CaseUtils.toCamelCase(entry.getKey().getName(),false,'_'));
 
       if(entry.getValue() instanceof com.google.protobuf.Timestamp){
         values.add(String.format("'%s'", ProtoTimestampToSqlTimestamp((com.google.protobuf.Timestamp)entry.getValue()).toString()));
@@ -46,7 +49,7 @@ public class Util {
     ArrayList<Object> values = new ArrayList<Object>();
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
 //      System.out.println(entry.getKey() + "/" + entry.getValue());
-      columnNames.add(entry.getKey().getName());
+      columnNames.add(  CaseUtils.toCamelCase(entry.getKey().getName(),false,'_'));
       values.add(entry.getValue());
     }
     ProtoKeyValues protoInfo = new ProtoKeyValues(columnNames,values);
