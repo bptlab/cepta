@@ -298,10 +298,10 @@ public class Main implements Callable<Integer> {
 
 
 //    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
-    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStreamE = trainDelayNotificationDataStream.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig) );
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationsWithCoordinates = trainDelayNotificationDataStream.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig) );
     //trainDelayNotificationDataStream.print();
-    trainDelayNotificationDataStreamE.addSink(trainDelayNotificationProducer);
-    trainDelayNotificationDataStreamE.print();
+    trainDelayNotificationsWithCoordinates.addSink(trainDelayNotificationProducer);
+    trainDelayNotificationsWithCoordinates.print();
     // NoMatchingPlannedTrainDataPattern
 
     PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(
