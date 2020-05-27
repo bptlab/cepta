@@ -30,6 +30,13 @@ filegroup(
     ],
 )
 
+platform(
+    name = "linux",
+    constraint_values = [
+        "@platforms//os:linux",
+    ],
+)
+
 multirun(
     name = "publish",
     commands = [

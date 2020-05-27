@@ -19,6 +19,8 @@ go_image(
         "//models/gql:query_gql_proto",
     ],
     visibility = ["//visibility:public"],
+    goarch = "amd64",
+    goos = "linux",
 )
 
 command(
