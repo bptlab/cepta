@@ -56,7 +56,11 @@ class App extends VuexModule implements IAppState {
 
   @Mutation
   public addNotification(notification: Notification) {
-    this.notifications.push(notification);
+    if (store.state.notifications.length > 100){
+      store.state.notifications = store.state.notifications.slice(-99, -1);
+    }
+    store.state.notifications.push(notification);
+    // this.notifications.push(notification);
   }
 
   @Mutation

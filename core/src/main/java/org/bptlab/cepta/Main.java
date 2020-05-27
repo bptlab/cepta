@@ -93,32 +93,32 @@ public class Main implements Callable<Integer> {
   private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
 
   private void setupConsumers() {
-    this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
-    this.plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+      this.liveTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("LiveTrainDataMainConsumer1").getProperties());
+      this.plannedTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("PlannedTrainDataMainConsumer1").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.WEATHER_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("WeatherDataMainConsumer").withGroupID("Group").getProperties());
+            new KafkaConfig().withClientId("WeatherDataMainConsumer1").withGroupID("Group").getProperties());
 
     this.locationDataConsumer =
         new FlinkKafkaConsumer011<>(
             Topic.LOCATION_DATA.getValueDescriptor().getName(),
             new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("LocationDataMainConsumer").getProperties());
+            new KafkaConfig().withClientId("LocationDataMainConsumer1").getProperties());
   }
 
   private void setupProducers() {
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer1")
             .withKeySerializer(Optional.of(LongSerializer::new));
       this.trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
         Topic.DELAY_NOTIFICATIONS.getValueDescriptor().getName(),
@@ -195,7 +195,7 @@ public class Main implements Callable<Integer> {
     ////// TrainDelayNotification Consumer
 
     // Produce delay notifications into new Kafka queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer1")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
     FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
@@ -207,7 +207,7 @@ public class Main implements Callable<Integer> {
 
     ////// StaysInStation Consumer
 
-    KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
+    KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer1")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
     FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
