@@ -14,6 +14,7 @@ java_library(
         "//models/constants:topic_java_proto",
         "//models/events:event_java_proto",
         "//models/events:live_train_data_java_proto",
+        "//models/events:location_data_java_proto",
         "//models/events:planned_train_data_java_proto",
         "//models/events:weather_data_java_proto",
         "//models/grpc:replayer_java_grpc",

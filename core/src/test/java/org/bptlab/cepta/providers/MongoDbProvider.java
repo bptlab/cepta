@@ -9,6 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.config.MongoConfig;
+import org.bptlab.cepta.models.events.info.LocationDataOuterClass;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
@@ -16,6 +17,7 @@ import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.bson.Document;
 import org.testcontainers.containers.GenericContainer;
 
+import javax.xml.stream.Location;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +42,16 @@ public class MongoDbProvider {
         MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
         MongoDatabase database = mongoClient.getDatabase("mongodb");
         MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
+
+        Document document = protoToBson(dataset);
+
+        plannedTrainDataCollection.insertOne(document);
+    }
+
+    public static void insertToDb(MongoConfig mongoConfig, LocationDataOuterClass.LocationData dataset) throws Exception {
+        MongoClient mongoClient = Mongo.getMongoClientSync(mongoConfig);
+        MongoDatabase database = mongoClient.getDatabase("mongodb");
+        MongoCollection<Document> plannedTrainDataCollection = database.getCollection("locationData");
 
         Document document = protoToBson(dataset);
 
