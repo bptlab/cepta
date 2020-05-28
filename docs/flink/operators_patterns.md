@@ -51,6 +51,12 @@ ProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NotificationOuterClass.
 **Parameter:** none
 **Output:** DataStream<Notification>   
 **Functionality:** Compares dates of live and plan dataset. If there is a delay it generates a delay. Threshold is abs(10sec)
+  
+### EnrichDelayWithCoordinatesFunction
+RichFlatMapFunction<NotificationOuterClass.Notification, NotificationOuterClass.Notification>
+**Input:** DataStream<Notification>
+**Output:** DataStream<Notification>
+**Functionality:** This Function takes an inputstream of DelayNotifications and enriches the events with information about the coordinations of the dedicated station
 
 ### LivePlannedCorrelationFunction
 RichAsynchFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>>  
