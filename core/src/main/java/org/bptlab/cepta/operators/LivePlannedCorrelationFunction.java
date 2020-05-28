@@ -53,7 +53,7 @@ public class LivePlannedCorrelationFunction extends
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     connection.disconnect();
   }
 
