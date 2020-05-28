@@ -57,16 +57,8 @@ Some of the data is not meant for public distribution and is kept private.
 However, the project strives for adaptability to new sources of data.
 If you are a member of the CEPTA project, have a look at some of the private repositories 
 on the [schema information](https://gitlab.hpi.de/cepta/meta_schema),
-[data](https://gitlab.hpi.de/cepta/synfioo-data) 
-and [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
-
-#### Import train data into the database
-1. Clone [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
-2. Start postgres and pgadmin: `/devenv.sh up postgres pgadmin`
-3. Wait for `./bp.sh $(realpath ./selected-data/) $(realpath ./hooks/metaschema-post-load)` to finish importing
-4. After import, the `postgres` database should persist the imported data.
-5. Stop postgres and start the entire cluster: `/devenv.sh down && /devenv.sh up`
-6. Optional: Explore the data using `pgadmin` (check the [dev cockpit](http://localhost:8080))
+[our internal gitlab](https://gitlab.hpi.de/cepta) which includes repositories for the 
+individual data collections and their loading scripts.
 
 #### Modularization
 This launches all the default services.
