@@ -57,8 +57,8 @@ Some of the data is not meant for public distribution and is kept private.
 However, the project strives for adaptability to new sources of data.
 If you are a member of the CEPTA project, have a look at some of the private repositories 
 on the [schema information](https://gitlab.hpi.de/cepta/meta_schema),
-[data](https://gitlab.hpi.de/cepta/synfioo-data) 
-and [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
+[our internal gitlab](https://gitlab.hpi.de/cepta) which includes repositories for the 
+individual data collections and their loading scripts.
 
 #### Modularization
 This launches all the default services.
