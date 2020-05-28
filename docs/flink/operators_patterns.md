@@ -64,7 +64,7 @@ RichAsynchFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>>
 **Output:** DataStream<Tuple2<LiveTrainData, PlannedTrainData>>  
 **Functionality:** fetches matching planned train event for each incoming live train event. The planned events are fetched with the information of the postgresConfig.
 
-### RemonveDuplicatesFunction
+### RemoveDuplicatesFunction
 Stream to Stream function
 **Implements:** ProcessWindowFunction<T, T, Integer, GlobalWindow>
 **Intput:** DataStream<T> inputStream, 
@@ -103,7 +103,7 @@ RichAsynchFunction<WeatherData, Tuple2<WeatherData, Integer>>
 **Meaning:** Train stays in station for a while  
 **ProcessFunction:** creates StaystInStationEvent 
 
-### NoMatchinPlannedTrainPattern
+### NoMatchingPlannedTrainPattern
 **Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/blob/dev/docs/flink/operators_patterns.md#liveplannedcorrelationfunction))  
 **Matches:** tuple.f1 == null  
 **Meaning:**  a LiveTrainDataEvent does not have a corresponding PlannedTrainData  
