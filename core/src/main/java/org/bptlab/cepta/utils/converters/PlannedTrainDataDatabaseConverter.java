@@ -6,7 +6,6 @@ import com.github.jasync.sql.db.RowData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.protobuf.Timestamp;
 
 public class PlannedTrainDataDatabaseConverter extends DatabaseConverter<PlannedTrainData> {
   private static final Logger logger = LoggerFactory.getLogger(PlannedTrainDataDatabaseConverter.class.getName());
