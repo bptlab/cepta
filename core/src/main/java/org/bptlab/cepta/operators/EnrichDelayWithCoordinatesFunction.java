@@ -54,10 +54,10 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
 
     private boolean readInStationData(){
         MongoDatabase database = mongoClient.getDatabase(databaseName);
-        MongoCollection<Document> eletastations = database.getCollection(tableName);
+        MongoCollection<Document> stationsCollection = database.getCollection(tableName);
 
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
-        eletastations.find().subscribe(findMultipleSubscriber);
+        stationsCollection.find().subscribe(findMultipleSubscriber);
 
         List<Document> allStations = findMultipleSubscriber.get();
 
@@ -91,13 +91,14 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
         String searchForStationId = unenrichedNotification.getDelay().getStationId().getId();
         if (coordinateMapping.containsKey(searchForStationId) && unenrichedNotification.hasDelay()){
             CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
-            NotificationOuterClass.DelayNotification delayNotification = unenrichedNotification.getDelay();
-            //TODO make this less ugly please!
-            NotificationOuterClass.Notification enrichedNotification = NotificationHelper.getTrainDelayNotificationFrom(
-                    delayNotification.getTransportId(),
-                    delayNotification.getDelay(),
-                    delayNotification.getStationId(),
-                    matchingCoordinate);
+
+            NotificationOuterClass.DelayNotification enrichedDelayNotification = unenrichedNotification.getDelay().toBuilder()
+                    .setCoordinate(matchingCoordinate)
+                    .build();
+            NotificationOuterClass.Notification enrichedNotification = unenrichedNotification.toBuilder()
+                    .setDelay(enrichedDelayNotification)
+                    .build();
+
             collector.collect(enrichedNotification);
         } else {
             collector.collect(unenrichedNotification);
