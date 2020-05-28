@@ -1,7 +1,6 @@
 package org.bptlab.cepta.operators;
 
 import java.lang.Object;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import java.lang.reflect.*;
