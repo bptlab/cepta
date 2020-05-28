@@ -13,7 +13,6 @@ public class Util {
     ArrayList<String> values = new ArrayList<>();
     ArrayList<String> types = new ArrayList<>();
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
-//      System.out.println(entry.getKey() + "/" + entry.getValue());
 
       columnNames.add(  CaseUtils.toCamelCase(entry.getKey().getName(),false,'_'));
 
@@ -42,7 +41,6 @@ public class Util {
     ArrayList<String> columnNames = new ArrayList<String>();
     ArrayList<Object> values = new ArrayList<Object>();
     for (Map.Entry<FieldDescriptor,java.lang.Object> entry : dataSet.getAllFields().entrySet()) {
-//      System.out.println(entry.getKey() + "/" + entry.getValue());
       columnNames.add(  CaseUtils.toCamelCase(entry.getKey().getName(),false,'_'));
       values.add(entry.getValue());
     }
