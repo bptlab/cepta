@@ -210,6 +210,7 @@ func (pool *Pool) Start() {
 			}
 			break
 		case broadcastRequest := <-pool.Broadcast:
+			log.Debugf("connection pool size: %v", len(pool.Clients))
 			log.Debug("Broadcasting message to all clients in pool")
 			for client := range pool.Clients {
 				if err := client.Conn.WriteMessage(websocket.BinaryMessage, broadcastRequest.Msg); err != nil {

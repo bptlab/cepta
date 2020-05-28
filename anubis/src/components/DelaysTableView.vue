@@ -15,6 +15,7 @@
 import BasicTable from "../components/BasicTable.vue";
 import GridTable from "../components/GridTable.vue";
 import { AppModule } from "../store/modules/app";
+import store from "@/store";
 import { ReplayerModule } from "../store/modules/replayer";
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { Notification } from "../generated/protobuf/models/internal/notifications/notification_pb";
@@ -31,38 +32,46 @@ export default class DelaysTableView extends Vue {
   protected search!: string;
 
   get receivedUpdates(): { [key: string]: any }[] {
+    return this.$store.state.notifications.map(this.mapDelayToStringKey);
+
+    /*
     return AppModule.notifications
       .slice(
         AppModule.notifications.length - 51,
         AppModule.notifications.length - 1
       )
       .map(mapDelayToStringKey);
-  }
-}
 
-function mapDelayToStringKey(
-  notification: Notification
-): { [key: string]: any } {
-  let delayStringKey: { [key: string]: any } = {
-    CeptaStationID: notification.getDelay()?.getStationId(),
-    CeptaID: notification.getDelay()?.getTransportId(),
-    Delay: notification
+     */
+  }
+
+  mapDelayToStringKey(
+      notification: Notification
+  ): { [key: string]: any } {
+    let delayStringKey: { [key: string]: any } = {
+      CeptaStationID: notification.getDelay()?.getStationId(),
+      CeptaID: notification.getDelay()?.getTransportId(),
+      Delay: notification
       .getDelay()
       ?.getDelay()
       ?.getDelta(),
-    Details: notification
+      Details: notification
       .getDelay()
       ?.getDelay()
       ?.getDetails()
-  };
+    };
 
-  return delayStringKey;
+    return delayStringKey;
+  }
 }
+
+
 </script>
 
 <style scoped lang="sass">
 #mainContent
   padding: 0
+  height: 500px
 
 .form-control
   width: 100%

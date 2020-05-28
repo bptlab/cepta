@@ -29,8 +29,8 @@ func (c *Client) Read() {
 	for {
 		messageType, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			log.Errorf("Error reading message from websocket connection: %v", err)
-			return
+			log.Debugf("Error reading message from websocket connection: %v", err)
+			// return
 		}
 
 		switch messageType {
@@ -58,6 +58,9 @@ func (c *Client) Read() {
 			default:
 				log.Warnf("Received client message of unknown type: %v", clientMessage)
 			}
+			break
+		case -1:
+			log.Warnf("User is disconnected %v", messageType)
 			break
 		default:
 			log.Warnf("Received non binary websocket message of type %v", messageType)
