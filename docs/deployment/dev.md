@@ -46,9 +46,11 @@ deployment/dev/devenv.sh up --force-recreate --always-recreate-deps --renew-anon
 
 #### What to do now?
 After starting the dev environment, visit 
-[http://localhost:8080](http://localhost:8080) to see an overview 
+[http://localhost:8090](http://localhost:8090) to see an overview 
 of all the services and their ports. (*Note*: The ports are meant for 
 reference. Not every service exposes a web interface.)
+
+You can then visit the Frontent on [http://localhost:80](http://localhost:80).
 
 #### Starting with data
 Some of the data is not meant for public distribution and is kept private.
