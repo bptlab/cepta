@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 ### [0.7.0] -
 ##### Added
+- [#290]
+    - Enrichment of Notifications with coordinates
+    - display those notifications in the Frontend
 - [#287]
     - [core] Adds Optional Indexing for DataToMongo Operator
     - [core] Indices for Mongo Planned and Station Data uploads
