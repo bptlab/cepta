@@ -42,7 +42,7 @@ public class LivePlannedCorrelationFunctionMongo extends
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     this.mongoClient.close();
   }
 
