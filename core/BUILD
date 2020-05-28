@@ -5,7 +5,6 @@ load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "command", "multirun
 
 MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
-    "//core/src/main/java/org/bptlab/cepta/consumers:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/serialization:java_default_library",

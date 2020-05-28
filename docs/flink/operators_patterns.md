@@ -1,8 +1,6 @@
 # Operators and Patterns in and for Flink
 
 ## Operators
-### AverageSpeedFunction
-not implemented
 
 ### CountOfTrainsAtStationFunction
 Stream to Stream function  
