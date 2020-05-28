@@ -3,11 +3,13 @@ package models.internal;
 option go_package = "github.com/bptlab/cepta/models/internal/station";
 option java_package = "org.bptlab.cepta.models.internal.station";
 
+import "google/protobuf/timestamp.proto";
 
 import "models/internal/types/coordinate.proto";
 import "models/internal/types/transport.proto";
 import "models/internal/types/country.proto";
 import "models/internal/types/ids.proto";
+import "models/internal/delay.proto";
 
 import "models/internal/modalities/rail/rail.proto";
 import "models/internal/modalities/road/road.proto";
@@ -24,6 +26,17 @@ message Station {
     models.internal.types.Coordinate position = 6;
     models.internal.types.TransportType type = 7;
     InfrastructureProvider infrastructure_provider = 8;
+
+    google.protobuf.Timestamp planned_departure_time = 10;
+    google.protobuf.Timestamp actual_departure_time = 11;
+    google.protobuf.Timestamp planned_arrival_time = 12;
+    google.protobuf.Timestamp actual_arrival_time = 13;
+    google.protobuf.Timestamp predicted_arrival_time = 14;
+
+    bool crew_change = 20;
+    bool vehicle_change = 21;
+
+    models.internal.Delay delay = 30;
 
     oneof station {
         models.internal.modalities.rail.RailStation rail = 100;
