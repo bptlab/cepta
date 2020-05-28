@@ -3,14 +3,8 @@ package org.bptlab.cepta.utils.database;
 import org.apache.commons.text.CaseUtils;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
-// import com.google.protobuf.Timestamp;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Objects;
-
-
-
 
 public class Util {
     
