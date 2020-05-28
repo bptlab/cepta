@@ -63,12 +63,12 @@ public class LivePlannedCorrelationFunctionMongo extends
     SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
     plannedTrainDataCollection.find(
             and(
-                    eq("train_section_id",dataset.getTrainSectionId())
-                    ,eq("station_id",dataset.getStationId())
-                    ,eq("end_station_id",dataset.getEndStationId())
-                    ,eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
+                    eq("trainSectionId",dataset.getTrainSectionId())
+                    ,eq("stationId",dataset.getStationId())
+                    ,eq("endStationId",dataset.getEndStationId())
+                    ,eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
             )
-    ).sort( descending("ingestion_time")).subscribe(findMultipleSubscriber);
+    ).sort( descending("ingestionTime")).subscribe(findMultipleSubscriber);
 
 
     CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {

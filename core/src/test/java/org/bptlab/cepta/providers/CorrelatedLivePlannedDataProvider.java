@@ -15,6 +15,7 @@ import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTr
 
 public class CorrelatedLivePlannedDataProvider {
     public static LiveTrainData getDefaultLiveTrainDataEvent() {
+        //TODO Change from now to default time
         long millis = System.currentTimeMillis();
         Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
              .setNanos((int) ((millis % 1000) * 1000000)).build();
@@ -36,6 +37,7 @@ public class CorrelatedLivePlannedDataProvider {
         return builder.build();
     }
     public static PlannedTrainData getDefaultPlannedTrainDataEvent() {
+        //TODO Change from now to default time
         long millis = System.currentTimeMillis();
         Timestamp timestamp = Timestamp.newBuilder().setSeconds(millis / 1000)
             .setNanos((int) ((millis % 1000) * 1000000)).build();
