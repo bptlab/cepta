@@ -79,7 +79,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     public void flatMap(NotificationOuterClass.Notification unenrichedNotification, Collector<NotificationOuterClass.Notification> collector) throws Exception {
 
         String searchForStationId = unenrichedNotification.getDelay().getStationId().getId();
-        if (coordinateMapping.containsKey(searchForStationId)){
+        if (coordinateMapping.containsKey(searchForStationId) && unenrichedNotification.hasDelay()){
             CoordinateOuterClass.Coordinate matchingCoordinate = coordinateMapping.get(searchForStationId);
             NotificationOuterClass.DelayNotification delayNotification = unenrichedNotification.getDelay();
             //TODO make this less ugly please!
