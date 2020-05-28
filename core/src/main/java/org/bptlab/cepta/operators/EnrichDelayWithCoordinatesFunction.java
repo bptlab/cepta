@@ -24,26 +24,36 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     /* This Function takes an inputstream of DelayNotifications and enriches the events
        with information about the coordinations of the dedicated station */
 
+    private MongoConfig mongoConfig = new MongoConfig();
+    private transient MongoClient mongoClient;
+    private String tableName;
+    private String databaseName;
+
+    private Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+
+
     public EnrichDelayWithCoordinatesFunction(MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
         this.tableName = "eletastations";
+        this.databaseName = "replay";
     }
 
     public EnrichDelayWithCoordinatesFunction(String tableName, MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
         this.tableName = tableName;
+        this.databaseName = "replay";
     }
-
-    private Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
+    
+    public EnrichDelayWithCoordinatesFunction(String datebaseName, String tableName, MongoConfig mongoConfig){
+        this.mongoConfig = mongoConfig;
+        this.tableName = tableName;
+        this.databaseName = datebaseName;
+    }
 
     public Hashtable<String, CoordinateOuterClass.Coordinate> getMapping(){ return coordinateMapping;}
 
-    private MongoConfig mongoConfig = new MongoConfig();
-    private transient MongoClient mongoClient;
-    private String tableName;
-
     private boolean readInStationData(){
-        MongoDatabase database = mongoClient.getDatabase("replay"/*mongoConfig.getName()*/);
+        MongoDatabase database = mongoClient.getDatabase(databaseName);
         MongoCollection<Document> eletastations = database.getCollection(tableName);
 
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
