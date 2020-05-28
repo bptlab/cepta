@@ -7,7 +7,6 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.*;
 
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -22,7 +21,6 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.*;
 
 
 /* This Function calls a MongoDB to get all future Planned Stations

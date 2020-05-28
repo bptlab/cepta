@@ -1,9 +1,6 @@
 package org.bptlab.cepta.operators;
 
-import java.lang.Object;
 import java.util.HashMap;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.api.java.tuple.Tuple2;
 

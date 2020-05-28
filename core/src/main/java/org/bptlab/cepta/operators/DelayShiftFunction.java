@@ -7,20 +7,16 @@ import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
 import com.github.jasync.sql.db.RowData;
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import java.lang.Long;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import com.google.protobuf.Duration;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.config.PostgresConfig;
-import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.converters.PlannedTrainDataDatabaseConverter;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 

@@ -4,18 +4,14 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.streaming.api.functions.async.ResultFuture;
-import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
-import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
