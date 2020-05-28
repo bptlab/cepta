@@ -41,15 +41,15 @@ public class EnrichDelayWithCoordinatesFunctionTests {
                 .build();
         LocationDataOuterClass.LocationData station2 = LocationDataOuterClass.LocationData
                 .newBuilder()
-                .setStationId(2)
-                .setLatitude(2)
-                .setLongitude(2)
+                    .setStationId(2)
+                    .setLatitude(2)
+                    .setLongitude(2)
                 .build();
         LocationDataOuterClass.LocationData station3 = LocationDataOuterClass.LocationData
                 .newBuilder()
-                .setStationId(3)
-                .setLatitude(3)
-                .setLongitude(3)
+                    .setStationId(3)
+                    .setLatitude(3)
+                    .setLongitude(3)
                 .build();
 
         MongoConfig mongoConfig = setupMongoContainer();
@@ -68,20 +68,20 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         CoordinateOuterClass.Coordinate coordinate1 =  CoordinateOuterClass.Coordinate
                 .newBuilder()
-                .setLatitude(1)
-                .setLongitude(1)
+                    .setLatitude(1)
+                    .setLongitude(1)
                 .build();
 
         CoordinateOuterClass.Coordinate coordinate2 =  CoordinateOuterClass.Coordinate
                 .newBuilder()
-                .setLatitude(2)
-                .setLongitude(2)
+                    .setLatitude(2)
+                    .setLongitude(2)
                 .build();
 
         CoordinateOuterClass.Coordinate coordinate3 =  CoordinateOuterClass.Coordinate
                 .newBuilder()
-                .setLatitude(3)
-                .setLongitude(3)
+                    .setLatitude(3)
+                    .setLongitude(3)
                 .build();
 
         Hashtable<String, CoordinateOuterClass.Coordinate> expectedHastable = new Hashtable<>();
@@ -139,9 +139,9 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData
                 .newBuilder()
-                .setStationId(stationId)
-                .setLatitude(latitude)
-                .setLongitude(longitude)
+                    .setStationId(stationId)
+                    .setLatitude(latitude)
+                    .setLongitude(longitude)
                 .build();
 
         try {
@@ -179,9 +179,9 @@ public class EnrichDelayWithCoordinatesFunctionTests {
 
         LocationDataOuterClass.LocationData testStation = LocationDataOuterClass.LocationData
                 .newBuilder()
-                .setStationId(stationId2)
-                .setLatitude(latitude)
-                .setLongitude(longitude)
+                    .setStationId(stationId2)
+                    .setLatitude(latitude)
+                    .setLongitude(longitude)
                 .build();
 
         try {
