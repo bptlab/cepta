@@ -1,8 +1,6 @@
 # Operators and Patterns in and for Flink
 
 ## Operators
-### AverageSpeedFunction
-not implemented
 
 ### CountOfTrainsAtStationFunction
 Stream to Stream function  
@@ -53,9 +51,6 @@ ProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NotificationOuterClass.
 **Parameter:** none
 **Output:** DataStream<Notification>   
 **Functionality:** Compares dates of live and plan dataset. If there is a delay it generates a delay. Threshold is abs(10sec)
-
-### GenerateIdFunction 
-not implemented
 
 ### LivePlannedCorrelationFunction
 RichAsynchFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>>  
