@@ -66,7 +66,6 @@ test_suite(
         "//osiris/lib:smoke",
         "//osiris/auth:smoke",
         "//osiris/notification:smoke",
-        "//osiris/query:smoke",
         "//osiris/usermgmt:smoke",
     ]
 )
@@ -80,7 +79,6 @@ test_suite(
         "//osiris/lib:unit",
         "//osiris/auth:unit",
         "//osiris/notification:unit",
-        "//osiris/query:unit",
         "//osiris/usermgmt:unit",
     ]
 )
@@ -94,7 +92,6 @@ test_suite(
         "//osiris/lib:integration",
         "//osiris/auth:integration",
         "//osiris/notification:integration",
-        "//osiris/query:integration",
         "//osiris/usermgmt:integration",
     ]
 )
@@ -108,7 +105,6 @@ test_suite(
         "//osiris/lib:internal",
         "//osiris/auth:internal",
         "//osiris/notification:internal",
-        "//osiris/query:internal",
         "//osiris/usermgmt:internal",
     ]
 )
