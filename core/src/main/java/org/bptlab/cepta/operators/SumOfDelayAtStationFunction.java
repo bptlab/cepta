@@ -41,7 +41,7 @@ public class SumOfDelayAtStationFunction {
                 );
         return resultStream;
     };
-    //TODO Change Delay to Long
+
     public static ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Long>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
         return new ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Long>, Integer, GlobalWindow>() {
             @Override

@@ -9,9 +9,11 @@ import org.bptlab.cepta.containers.ReplayerContainer;
 
 import io.grpc.StatusRuntimeException;
 import io.grpc.Channel;
-import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ReplayerProvider {
 
@@ -32,38 +34,20 @@ public class ReplayerProvider {
     this.asyncStub = ReplayerGrpc.newStub(channel);
   }
 
-  public Iterator<ReplayedEvent> query(QueryOptions options) throws StatusRuntimeException {
-    /*
-    ReplayedEvent request =
-        Rectangle.newBuilder()
-            .setLo(Point.newBuilder().setLatitude(lowLat).setLongitude(lowLon).build())
-            .setHi(Point.newBuilder().setLatitude(hiLat).setLongitude(hiLon).build()).build();
-     */
-    // return blockingStub.query(options);
-
-    //TODO Replace Placeholder >>>>
-    Iterator<ReplayedEvent> I = new Iterator<ReplayedEvent>() {
-      @Override
-      public boolean hasNext() {
-        return false;
-      }
-
-      @Override
-      public ReplayedEvent next() {
-        return null;
-      }
-    };
-    return I;
-    //TODO Replace Placeholder <<<<
-
-    /*
+  public ArrayList<ReplayedEvent> query(QueryOptions options) {
+    Iterator<ReplayedEvent> events;
+    ArrayList<ReplayedEvent> eventList = new ArrayList<ReplayedEvent>();
     try {
-      features = blockingStub.listFeatures(request);
-    } catch (StatusRuntimeException ex) {
+      events = blockingStub.query(options);
+      for (int i = 1; events.hasNext(); i++) {
+        ReplayedEvent event = events.next();
+        logger.log(Level.INFO, "Result #" + i + ": {0}", event);
+        eventList.add(event);
+      }
+      return eventList;
+    } catch (StatusRuntimeException e) {
       logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-      return;
+      return null;
     }
-    */
   }
-
 }
