@@ -9,11 +9,14 @@ import org.bptlab.cepta.containers.ReplayerContainer;
 
 import io.grpc.StatusRuntimeException;
 import io.grpc.Channel;
-import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.Iterator;
+import java.util.ArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReplayerProvider {
+  private static final Logger logger = LoggerFactory.getLogger(ReplayerProvider.class.getName());
 
   private final ReplayerBlockingStub blockingStub;
   private final ReplayerStub asyncStub;
@@ -32,38 +35,19 @@ public class ReplayerProvider {
     this.asyncStub = ReplayerGrpc.newStub(channel);
   }
 
-  public Iterator<ReplayedEvent> query(QueryOptions options) throws StatusRuntimeException {
-    /*
-    ReplayedEvent request =
-        Rectangle.newBuilder()
-            .setLo(Point.newBuilder().setLatitude(lowLat).setLongitude(lowLon).build())
-            .setHi(Point.newBuilder().setLatitude(hiLat).setLongitude(hiLon).build()).build();
-     */
-    // return blockingStub.query(options);
-
-    //TODO Replace Placeholder >>>>
-    Iterator<ReplayedEvent> I = new Iterator<ReplayedEvent>() {
-      @Override
-      public boolean hasNext() {
-        return false;
-      }
-
-      @Override
-      public ReplayedEvent next() {
-        return null;
-      }
-    };
-    return I;
-    //TODO Replace Placeholder <<<<
-
-    /*
+  public ArrayList<ReplayedEvent> query(QueryOptions options) {
+    Iterator<ReplayedEvent> events;
+    ArrayList<ReplayedEvent> eventList = new ArrayList<ReplayedEvent>();
     try {
-      features = blockingStub.listFeatures(request);
-    } catch (StatusRuntimeException ex) {
-      logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
-      return;
+      events = blockingStub.query(options);
+      for (int i = 1; events.hasNext(); i++) {
+        ReplayedEvent event = events.next();
+        eventList.add(event);
+      }
+      return eventList;
+    } catch (StatusRuntimeException e) {
+      logger.error("RPC failed: {}", e.getStatus());
+      return null;
     }
-    */
   }
-
 }

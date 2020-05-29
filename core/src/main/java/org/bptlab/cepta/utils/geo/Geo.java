@@ -2,8 +2,6 @@ package org.bptlab.cepta.utils.geo;
 
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 
-import java.time.LocalDate;
-
 public class Geo {
 
     // See https://en.wikipedia.org/wiki/Earth

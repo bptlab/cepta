@@ -2,7 +2,6 @@ package org.bptlab.cepta.utils.converters;
 
 import com.github.jasync.sql.db.RowData;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;

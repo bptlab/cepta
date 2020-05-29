@@ -38,7 +38,7 @@ public class MongoConfig implements Serializable,Cloneable {
     @Option(
             names = {"-mproto", "--mongodb-protocol"},
             description = "Specifies the protocol of the Database (ex. ).")
-    static String protocol = "postgresql";
+    static String protocol = "mongodb";
 
     public MongoConfig() {
     }

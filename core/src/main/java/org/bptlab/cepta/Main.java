@@ -21,7 +21,6 @@ package org.bptlab.cepta;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
@@ -39,16 +38,10 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.operators.*;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
 import org.bptlab.cepta.models.events.info.LocationDataOuterClass.LocationData;
-import org.bptlab.cepta.operators.DelayShiftFunction;
 import org.bptlab.cepta.operators.DetectStationArrivalDelay;
-import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.operators.*;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.patterns.NoMatchingPlannedTrainDataPattern;
 import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
@@ -70,9 +63,6 @@ import org.bptlab.cepta.models.internal.notifications.notification.NotificationO
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 @Command(
     name = "cepta core",

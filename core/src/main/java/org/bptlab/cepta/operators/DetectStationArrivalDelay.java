@@ -1,15 +1,12 @@
 package org.bptlab.cepta.operators;
 
 
-import com.google.protobuf.Duration;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class DetectStationArrivalDelay extends

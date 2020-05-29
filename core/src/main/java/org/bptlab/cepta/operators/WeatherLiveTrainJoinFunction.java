@@ -1,6 +1,5 @@
 package org.bptlab.cepta.operators;
 
-import com.google.protobuf.Duration;
 import org.apache.flink.api.common.functions.RichJoinFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -8,10 +7,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
-import org.bptlab.cepta.models.internal.delay.DelayOuterClass;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.utils.notification.NotificationHelper;
 
 public class WeatherLiveTrainJoinFunction {

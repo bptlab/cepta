@@ -14,10 +14,8 @@ import java.util.concurrent.ExecutionException;
 
 import com.google.protobuf.Message;
 import org.apache.flink.api.common.functions.MapFunction;
-
 import org.bptlab.cepta.config.PostgresConfig;
-//import org.bptlab.cepta.models.events.info.LocationDataOuterClass;
-//import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass;
+
 import org.bptlab.cepta.utils.database.Util;
 import org.bptlab.cepta.utils.database.Util.ProtoInfoStrings;
 
