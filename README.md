@@ -8,6 +8,8 @@ CEPTA - Complex Event Processing Transportation Analysis
 ![GitHub](https://img.shields.io/github/license/bptlab/cepta)
 [![Release](https://img.shields.io/github/release/bptlab/cepta)](https://github.com/bptlab/cepta/releases/latest)
 
+**NOTE: This branch has unfinished work including the Query Microservice and the correlation for AverageSpeed to submit GPS updates.**
+
 The open-source *CEPTA* project aims to examine the applicability of
 modern (complex) event processing 
 techniques in the context of intermodal transportation.
