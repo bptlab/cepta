@@ -12,10 +12,11 @@ import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReplayerProvider {
+  private static final Logger logger = LoggerFactory.getLogger(ReplayerProvider.class.getName());
 
   private final ReplayerBlockingStub blockingStub;
   private final ReplayerStub asyncStub;
@@ -41,12 +42,11 @@ public class ReplayerProvider {
       events = blockingStub.query(options);
       for (int i = 1; events.hasNext(); i++) {
         ReplayedEvent event = events.next();
-        logger.log(Level.INFO, "Result #" + i + ": {0}", event);
         eventList.add(event);
       }
       return eventList;
     } catch (StatusRuntimeException e) {
-      logger.log(Level.WARNING, "RPC failed: {0}", e.getStatus());
+      logger.error("RPC failed: {}", e.getStatus());
       return null;
     }
   }
