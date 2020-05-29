@@ -36,6 +36,8 @@ java_library(
         "@maven//:org_mongodb_mongodb_driver_reactivestreams",
         "@maven//:org_mongodb_mongodb_driver_sync",
         "@maven//:org_testcontainers_testcontainers",
+        "@maven//:org_slf4j_slf4j_api",
+        "@maven//:org_slf4j_slf4j_log4j12",
     ],
 )
 
