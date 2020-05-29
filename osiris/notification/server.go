@@ -278,14 +278,23 @@ func (s *NotificationServer) serveWebsocket(pool *websocket.Pool, w http.Respons
 }
 
 func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
-	noopTicker := time.NewTicker(time.Second * 10)
+	// Send pings to client with this period. Must be less than pongWait on the client.
+	const pingPeriod = time.Second * 2
+	noopTicker := time.NewTicker(pingPeriod)
 	subscriberDone := make(chan bool, 1)
 	stopSubscriber := make(chan bool, 1)
 	go func() {
-		defer func() { subscriberDone <- true }()
+		defer func() {
+			stopSubscriber <- true
+			noopTicker.Stop()
+		}()
 		for {
 			select {
-
+			case <-noopTicker.C:
+				// Noop, may be used for periodic pings
+				log.Debug("ping")
+				s.Pool.Ping <- "ping"
+				break
 			case msg := <-s.kc.Messages:
 				var notification notificationpb.Notification
 				err := proto.Unmarshal(msg.Value, &notification)
@@ -317,8 +326,6 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 					break
 				}
 				break
-			case <-noopTicker.C:
-				// Noop, may be used for periodic pings
 			case <-stopSubscriber:
 				return
 			}

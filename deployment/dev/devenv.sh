@@ -11,10 +11,10 @@ if [ -z "$BUILD" ]; then
 else
   if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
-    bazel run //osiris/usermgmt:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    #bazel run //osiris/usermgmt:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
     bazel run //osiris/notification:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
-    bazel run //osiris/auth:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
-    bazel run //auxiliary/producers/replayer:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    #bazel run //osiris/auth:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    #bazel run //auxiliary/producers/replayer:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
   else
     # Build local images first
     bazel run //:build-images

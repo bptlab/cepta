@@ -157,7 +157,7 @@ services:
     depends_on:
       #- flink-jobmanager
       #- flink-taskmanager
-      - kafka
+      #- kafkas
       #- replayer
       - redis
       - usermgmt

@@ -63,6 +63,7 @@ type Pool struct {
 	Login         chan *Client
 	NotifyUser    chan UserNotification
 	Broadcast     chan BroadcastNotification
+	Ping     	  chan string
 	Clients       map[*Client]bool
 	ClientMapping map[string]*Client
 	Rclient		*redis.Client
@@ -77,6 +78,7 @@ func NewPool(size int64) *Pool {
 		Unregister:    make(chan *Client),
 		NotifyUser:    make(chan UserNotification, 100),
 		Broadcast:     make(chan BroadcastNotification, 100),
+		Ping:     	   make(chan string),
 		Clients:       make(map[*Client]bool),
 		ClientMapping: make(map[string]*Client),
 		BufferSize: 	size,
@@ -210,11 +212,20 @@ func (pool *Pool) Start() {
 			}
 			break
 		case broadcastRequest := <-pool.Broadcast:
-			log.Debugf("connection pool size: %v", len(pool.Clients))
+			log.Debugf("pool size is now at %v", len(pool.Clients))
 			log.Debug("Broadcasting message to all clients in pool")
 			for client := range pool.Clients {
 				if err := client.Conn.WriteMessage(websocket.BinaryMessage, broadcastRequest.Msg); err != nil {
 					log.Warningf("Broadcasting message to client %v failed: %v", client, err)
+				}
+			}
+			break
+		case <-pool.Ping:
+			log.Debugf("connection pool size: %v", len(pool.Clients))
+			log.Debug("Broadcasting ping to all clients in pool")
+			for client := range pool.Clients {
+				if err := client.Conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					log.Debugf("Broadcasting ping to client %v failed: %v", client, err)
 				}
 			}
 			break

@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"sync"
+	"time"
 
 	pb "github.com/bptlab/cepta/models/grpc/notification"
 	"github.com/bptlab/cepta/models/internal/types/users"
@@ -9,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )
+
+const pongWait = time.Second * 4
 
 // Client ...
 type Client struct {
@@ -22,9 +25,18 @@ type Client struct {
 
 func (c *Client) Read() {
 	defer func() {
+		log.Fatalf("Disconnecting client:", messageType)
 		c.Pool.Unregister <- c
-		_ = c.Conn.Close()
+		// _ = c.Conn.Close()
 	}()
+
+	// Define pong logic to disconnect to client when unreachable
+	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+		log.Debug("PongHandler")
+		return nil
+	})
 
 	for {
 		messageType, message, err := c.Conn.ReadMessage()
@@ -61,6 +73,7 @@ func (c *Client) Read() {
 			break
 		case -1:
 			log.Warnf("User is disconnected %v", messageType)
+			return
 			break
 		default:
 			log.Warnf("Received non binary websocket message of type %v", messageType)

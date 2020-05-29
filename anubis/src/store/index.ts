@@ -17,7 +17,7 @@ export interface IRootState {
 // export default new Vuex.Store<IRootState>({
 export default new Vuex.Store({
   state: {
-    notifications: Array<Notification>(),
+    notifications: <Notification[]>[],
   },
   mutations: {
   }
