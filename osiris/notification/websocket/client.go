@@ -15,17 +15,16 @@ const pongWait = time.Second * 4
 
 // Client ...
 type Client struct {
-	Conn             *websocket.Conn
-	Pool             *Pool
-	ID               *users.UserID
-	Token            string
-	done             chan bool
-	mu               sync.Mutex
+	Conn  *websocket.Conn
+	Pool  *Pool
+	ID    *users.UserID
+	Token string
+	done  chan bool
+	mu    sync.Mutex
 }
 
 func (c *Client) Read() {
 	defer func() {
-		log.Fatalf("Disconnecting client:", messageType)
 		c.Pool.Unregister <- c
 		// _ = c.Conn.Close()
 	}()
@@ -73,6 +72,7 @@ func (c *Client) Read() {
 			break
 		case -1:
 			log.Warnf("User is disconnected %v", messageType)
+			delete(c.Pool.Clients, c)
 			return
 			break
 		default:

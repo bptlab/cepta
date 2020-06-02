@@ -2,9 +2,10 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/bptlab/cepta/models/internal/types/users"
+
 	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
+	"github.com/bptlab/cepta/models/internal/types/users"
+	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -19,9 +20,9 @@ type Notification interface {
 
 // UserNotification ...
 type UserNotification struct {
-	ID  *users.UserID
-	Score float64
-	Msg []byte
+	ID     *users.UserID
+	Score  float64
+	Msg    []byte
 	Resend bool
 }
 
@@ -39,8 +40,8 @@ func (un UserNotification) IsResend() bool {
 
 // BroadcastNotification ...
 type BroadcastNotification struct {
-	Score float64
-	Msg []byte
+	Score  float64
+	Msg    []byte
 	Resend bool
 }
 
@@ -63,11 +64,11 @@ type Pool struct {
 	Login         chan *Client
 	NotifyUser    chan UserNotification
 	Broadcast     chan BroadcastNotification
-	Ping     	  chan string
+	Ping          chan string
 	Clients       map[*Client]bool
 	ClientMapping map[string]*Client
-	Rclient		*redis.Client
-	BufferSize int64
+	Rclient       *redis.Client
+	BufferSize    int64
 }
 
 // NewPool ...
@@ -78,10 +79,10 @@ func NewPool(size int64) *Pool {
 		Unregister:    make(chan *Client),
 		NotifyUser:    make(chan UserNotification, 100),
 		Broadcast:     make(chan BroadcastNotification, 100),
-		Ping:     	   make(chan string),
+		Ping:          make(chan string),
 		Clients:       make(map[*Client]bool),
 		ClientMapping: make(map[string]*Client),
-		BufferSize: 	size,
+		BufferSize:    size,
 	}
 }
 
@@ -179,6 +180,7 @@ func (pool *Pool) Start() {
 			client.done = make(chan bool)
 			pool.Clients[client] = true
 			log.Debugf("connection pool size: %v", len(pool.Clients))
+			go client.Read()
 			break
 		case client := <-pool.Login:
 			pool.ClientMapping[client.ID.GetId()] = client
@@ -195,7 +197,7 @@ func (pool *Pool) Start() {
 		case client := <-pool.Unregister:
 			client.done <- true
 			delete(pool.Clients, client)
-			log.Infof("connection pool size: %v", len(pool.Clients))
+			log.Fatalf("connection pool size: %v", len(pool.Clients))
 			break
 		case notifyUserRequest := <-pool.NotifyUser:
 			if client, ok := pool.ClientMapping[notifyUserRequest.ID.GetId()]; ok {
