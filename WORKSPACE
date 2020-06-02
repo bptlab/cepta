@@ -152,12 +152,15 @@ http_archive(
 )
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:defs.bzl", "artifact")
+load("@rules_jvm_external//:specs.bzl", "maven")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_ARTIFACTS")
 load("@io_grpc_grpc_java//:repositories.bzl", "IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS")
 
 maven_install(
     artifacts = [
         "org.apache.commons:commons-lang3:3.9",
+        "org.apache.commons:commons-text:1.8",
         "org.javatuples:javatuples:1.2",
         "junit:junit:4.13",
         "org.testcontainers:testcontainers:1.14.1",
@@ -175,6 +178,11 @@ maven_install(
         "com.github.jasync-sql:jasync-postgresql:1.0.11",
         "com.github.jasync-sql:jasync-common:1.0.11",
         "org.postgresql:postgresql:42.2.5",
+        "org.mongodb:mongodb-driver-sync:4.0.3",
+        "org.mongodb:mongodb-driver-reactivestreams:4.0.2",
+        "org.mongodb:mongodb-driver-core:4.0.2",
+        "org.mongodb:bson:4.0.2",
+        "org.reactivestreams:reactive-streams:1.0.3",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
@@ -185,6 +193,55 @@ maven_install(
     ] + IO_GRPC_GRPC_JAVA_ARTIFACTS,
     generate_compat_repositories = True,
     override_targets = IO_GRPC_GRPC_JAVA_OVERRIDE_TARGETS,
+    repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+        # https://repo.maven.apache.org/maven2
+        # https://maven-central-eu.storage-download.googleapis.com/repos/central/data/
+    ],
+)
+
+maven_install(
+    name = "testing",
+    artifacts = [
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-runtime_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-streaming-java_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils-junit",
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-test-utils_%s" % SCALA_VERSION,
+            version = FLINK_VERSION,
+            testonly = True,
+        ),
+        maven.artifact(
+            group = "org.apache.flink",
+            artifact = "flink-tests",
+            version = FLINK_VERSION,
+            classifier = "tests",
+            packaging = "test-jar",
+            testonly = True,
+        ),
+    ],
     repositories = [
         "https://jcenter.bintray.com/",
         "https://maven.google.com",
@@ -1462,8 +1519,8 @@ go_repository(
 go_repository(
     name = "com_github_romnnn_testcontainers",
     importpath = "github.com/romnnn/testcontainers",
-    sum = "h1:ZEKymBVEsceaXVQk8SfxGHFj+o6uMgDFrmaH4zZgLx8=",
-    version = "v0.1.8",
+    sum = "h1:mFjfdziXn09Tqs/P4cn+pEmm6gKeKvw7lgHwG49rwYg=",
+    version = "v0.1.9",
 )
 
 go_repository(

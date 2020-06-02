@@ -9,16 +9,29 @@ if [ -z "$BUILD" ]; then
   echo "  BUILD=1 deployment/dev/devenv.sh ..args"
   echo ""
 else
-  # Build local images first
-  bazel run //:build-images
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    bazel run //osiris/usermgmt:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    bazel run //osiris/notification:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    bazel run //osiris/auth:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+    bazel run //auxiliary/producers/replayer:build-image --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
+  else
+    # Build local images first
+    bazel run //:build-images
+  fi
 fi
+
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
   export ENVOY_HOST=host.docker.internal
+  export ENVOY_NETWORK_MODE=bridge
 else
   # Assume we are running under linux
-  export ENVOY_HOST=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
+  export ENVOY_HOST=localhost
+  export ENVOY_NETWORK_MODE=host
+  # This seems to be not enough
+  # export ENVOY_HOST=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 fi
 
 echo "Using docker host at ${ENVOY_HOST}"

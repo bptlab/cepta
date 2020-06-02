@@ -45,12 +45,12 @@
     -->
 
       <masonry-layout-tile
-        class="transports-overview"
-        section="Transports"
+        class="delays-overview"
+        section="Delays"
         layoutStyle="col-md-12"
       >
         <p>You can use the navigation bar to filter</p>
-        <transports-table-view></transports-table-view>
+        <delays-table-view></delays-table-view>
         <div class="view-all">
           <router-link :to="{ name: 'map' }">
             <div class="btn">
@@ -77,7 +77,7 @@
 </template>
 
 <script lang="ts">
-import TransportsTableView from "@/components/TransportsTableView.vue";
+import DelaysTableView from "@/components/DelaysTableView.vue";
 import MapVisualisation from "@/components/MapVisualisation.vue";
 import TraindataInfo from "@/components/TraindataInfo.vue";
 import RankedDelay from "@/components/RankedDelay.vue";
@@ -89,7 +89,7 @@ import TachoChart from "../components/TachoChart.vue";
 @Component({
   name: "Dashboard",
   components: {
-    TransportsTableView,
+    DelaysTableView,
     RankedDelay,
     TraindataInfo,
     MapVisualisation,

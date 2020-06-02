@@ -140,7 +140,7 @@ func (s *NotificationServer) fillUserCache(ctx context.Context) {
 			break
 		}
 		if err != nil {
-			log.Warnf("Failed to receive user from stream: %v", err)
+			log.Warnf("Failed to receive user from streams: %v", err)
 			continue
 		}
 		log.Debugf("Adding transports for user %v", user)
@@ -285,6 +285,7 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 		defer func() { subscriberDone <- true }()
 		for {
 			select {
+
 			case msg := <-s.kc.Messages:
 				var notification notificationpb.Notification
 				err := proto.Unmarshal(msg.Value, &notification)
@@ -302,6 +303,10 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 
 				switch notification.GetNotification().(type) {
 				case *notificationpb.Notification_Delay:
+					// Just for testing porpuses
+					// s.broadcast(&notification)
+					// Users need to be assigned to transports to do this
+
 					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
 						log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
 					}

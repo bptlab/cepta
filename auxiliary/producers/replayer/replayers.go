@@ -103,12 +103,13 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "livetraindata",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
+		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
 		Topic: topics.Topic_LIVE_TRAIN_DATA,
 	}
 
 	s.LocationRplr = &Replayer{
-		SourceName: "locationdata",
+		//SourceName: "locationdata",
+		SourceName: "eletastations",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
 		}, &locationpb.LocationData{}, setSortAndID("id", "id")),
@@ -167,7 +168,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		SourceName: "weather",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_Weather{Weather: event.(*weatherpb.WeatherData)}}
-		}, &weatherpb.WeatherData{}, setSortAndID("identifier", "identifier")),
+		}, &weatherpb.WeatherData{}, setSortAndID("detectionTime", "eventClass")),
 		Topic: topics.Topic_WEATHER_DATA,
 	}
 

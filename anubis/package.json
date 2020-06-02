@@ -15,6 +15,7 @@
     "@types/leaflet": "^1.5.8",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
+    "@vue/composition-api": "^0.5.0",
     "axios": "^0.19.0",
     "bootstrap": "^4.4.1",
     "chart.js": "^2.9.3",

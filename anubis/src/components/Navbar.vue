@@ -1,3 +1,4 @@
+import {Topic} from "@/generated/protobuf/models/constants/Topic_pb";
 <template>
   <div class="header navbar">
     <div class="header-container">
@@ -153,6 +154,7 @@
                   type="range"
                   min="0"
                   max="100"
+                  value="2"
                   class="form-control-range"
                   id="formControlRange"
                   v-model="replaySpeed"
@@ -189,27 +191,59 @@
                 </div>
               </div>
               <div class="form-group">
-                <button
-                  @click.prevent="toggleReplay"
-                  id="toggleReplayButton"
-                  :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
-                >
-                  {{ isReplaying ? "Stop" : "Start" }}
-                </button>
-                <button
-                  @click.prevent="updateReplay"
-                  id="updateReplayButton"
-                  class="btn btn-cepta-default"
-                  :disabled="!replayerConfigChanged"
-                >
-                  Apply
-                </button>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    v-model="replaySourceInput"
+                    type="checkbox"
+                    name="inlineCheckboxOptions"
+                    id="livetraindataCheckbox"
+                    value="LiveTrainData"
+                    :disabled="disableSourceInput"
+                  />
+                  <label class="form-check-label" for="livetraindataCheckbox"
+                    >LiveTrainData</label
+                  >
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    v-model="replaySourceInput"
+                    type="checkbox"
+                    name="inlineCheckboxOptions"
+                    id="plannedtraindataCheckbox"
+                    value="PlannedTrainData"
+                    :disabled="disableSourceInput"
+                  />
+                  <label class="form-check-label" for="plannedtraindataCheckbox"
+                    >PlannedTrainData</label
+                  >
+                </div>
+              </div>
+              <div class="form-group replayerOptionBtn">
                 <button
                   @click.prevent="resetReplay"
                   id="resetReplayButton"
                   class="btn btn-danger"
                 >
                   Reset
+                </button>
+
+                <button
+                  @click.prevent="updateReplay"
+                  id="updateReplayButton"
+                  class="btn btn-primary"
+                  :disabled="!replayerConfigChanged"
+                >
+                  Apply
+                </button>
+
+                <button
+                  @click.prevent="toggleReplay"
+                  id="toggleReplayButton"
+                  :class="['btn', isReplaying ? 'btn-danger' : 'btn-dark']"
+                >
+                  {{ isReplaying ? "Stop" : "Start" }}
                 </button>
               </div>
             </form>
@@ -241,7 +275,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import NotificationDropdownElement from "@/components/NotificationDropdownElement.vue";
 import EmailDropdownElement from "@/components/EmailDropdownElement.vue";
@@ -249,19 +283,17 @@ import AccountDropdown from "@/components/AccountDropdown.vue";
 import NavbarDropdown from "@/components/NavbarDropdown.vue";
 import { ReplayerModule } from "../store/modules/replayer";
 import { AppModule } from "../store/modules/app";
-import axios from "axios";
 import BeatLoader from "vue-spinner/src/BeatLoader.vue";
-import NavigationBarDropdownElement from "@/components/NavbarDropdownElement.vue";
 import {
-  Speed,
-  ReplayStartOptions,
+  ActiveReplayOptions,
   ReplayMode,
   ReplayOptions,
-  SourceReplay,
   ReplaySetOptionsRequest,
-  ActiveReplayOptions
+  ReplayStartOptions,
+  SourceReplay,
+  Speed
 } from "../generated/protobuf/models/grpc/replayer_pb";
-import { COOKIE_THEME } from "../constants";
+import { Topic } from "../generated/protobuf/models/constants/Topic_pb";
 
 @Component({
   name: "NavigationBar",
@@ -278,6 +310,8 @@ export default class NavigationBar extends Vue {
   searchToggled: boolean = false;
   search: any = null;
   replaySpeed: number = 0;
+  replaySourceInput: Array<string> = [];
+  disableSourceInput: boolean = false;
   replayIdsInput: string = "";
   defaultReplayMode: ReplayMode =
     ReplayMode[Object.keys(ReplayMode)[0] as keyof typeof ReplayMode];
@@ -363,7 +397,7 @@ export default class NavigationBar extends Vue {
   }
 
   get replayFrequencyMin(): number {
-    return this.isConstantReplay ? 0.0 : 1.0;
+    return this.isConstantReplay ? 1.0 : 1.0;
   }
 
   get replayFrequencyMax(): number {
@@ -377,6 +411,29 @@ export default class NavigationBar extends Vue {
           (this.replayFrequencyMax - this.replayFrequencyMin)) |
       0
     ); // Bitwise-OR the value with zero to get int
+  }
+
+  get sourceReplayerArray(): Array<SourceReplay> {
+    let sourceArray: Array<SourceReplay> = [];
+
+    this.replaySourceInput.forEach(string => {
+      switch (string) {
+        case "LiveTrainData": {
+          let source: SourceReplay = new SourceReplay();
+          source.setSource(Topic.LIVE_TRAIN_DATA);
+          sourceArray.push(source);
+          break;
+        }
+        case "PlannedTrainData": {
+          let source: SourceReplay = new SourceReplay();
+          source.setSource(Topic.PLANNED_TRAIN_DATA);
+          sourceArray.push(source);
+          break;
+        }
+      }
+    });
+
+    return sourceArray;
   }
 
   get isFilter(): boolean {
@@ -395,11 +452,13 @@ export default class NavigationBar extends Vue {
       options.setOptions(new ReplayOptions());
     }
     options.getOptions()?.setMode(this.replayMode);
+    options.setSourcesList(this.sourceReplayerArray);
     if (this.scaledReplaySpeed) {
       let speed = new Speed();
       speed.setSpeed(this.scaledReplaySpeed);
       options.getOptions()?.setSpeed(speed);
     }
+    this.disableSourceInput = true;
     return options;
   }
 
@@ -463,6 +522,7 @@ export default class NavigationBar extends Vue {
   }
 
   resetReplay() {
+    this.disableSourceInput = false;
     ReplayerModule.resetReplayer();
   }
 
@@ -509,11 +569,10 @@ export default class NavigationBar extends Vue {
 .header
   z-index: 1001 !important
 
-#toggleReplayButton
-  float: right
-
-#resetReplayButton
-  float: left
+  .replayerOptionBtn
+    color: white
+    .btn
+      margin: 0px 20px
 
 // ---------------------------------------------------------
 // @TOC
@@ -549,7 +608,6 @@ export default class NavigationBar extends Vue {
 
   +between($breakpoint-md, $breakpoint-xl)
     width: calc(100% - #{$collapsed-size})
-
 
   .header-container
     +clearfix
@@ -708,6 +766,34 @@ export default class NavigationBar extends Vue {
             +theme-color-diff(border-color, bgc-navbar, 20)
             .icon
               opacity: 1
+
+  #formControlRange
+    appearance: none
+    width: 100%
+    height: 5px
+    background: #d3d3d3
+    outline: none
+    opacity: 0.7
+    -webkit-transition: .2s
+    transition: opacity .2s
+
+    &:hover
+      opacity: 1
+
+    &::-webkit-slider-thumb
+      appearance: none
+      width: 15px
+      height: 15px
+      border-radius: 50%
+      background: #353535
+      cursor: pointer
+
+    &::-moz-range-thumb
+      width: 15px
+      height: 15px
+      border-radius: 50%
+      background: #353535
+      cursor: pointer
 
 // ---------------------------------------------------------
 // @Collapsed State

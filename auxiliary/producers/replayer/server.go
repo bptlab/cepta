@@ -150,7 +150,6 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 			include(replayer, &newStartOptions.Sources)
 		}
 	}
-
 	// Merge source and global options
 	for _, source := range newStartOptions.Sources {
 		source.Options = proto.Clone(newStartOptions.Options).(*pb.ReplayOptions)

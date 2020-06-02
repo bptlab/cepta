@@ -423,6 +423,26 @@ java_proto_library(
     deps = [":no_matching_planned_train_data_event_proto"],
 )
 
+go_proto_library(
+    name = "count_of_trains_at_station_event_go_proto",
+    importpath = "github.com/bptlab/cepta/models/events/countoftrainsatstationevent",
+    proto = ":count_of_trains_at_station_event_proto",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "count_of_trains_at_station_event_proto",
+    srcs = ["CountOfTrainsAtStationEvent.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+java_proto_library(
+    name = "count_of_trains_at_station_event_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":count_of_trains_at_station_event_proto"],
+)
+
 proto_library(
     name = "event_proto",
     srcs = ["Event.proto"],
@@ -446,6 +466,7 @@ proto_library(
         ":train_information_data_proto",
         ":vehicle_data_proto",
         ":weather_data_proto",
+        ":count_of_trains_at_station_event_proto",
         "//models/constants:topic_proto",
     ],
 )
@@ -474,6 +495,7 @@ go_proto_library(
         ":train_information_data_go_proto",
         ":vehicle_data_go_proto",
         ":weather_data_go_proto",
+        "count_of_trains_at_station_event_go_proto",
         "//models/constants:topic_go_proto",
     ],
 )
@@ -529,6 +551,8 @@ filegroup(
         ":wagon_train_run_data_java_proto",
         ":weather_data_go_proto",
         ":weather_data_java_proto",
+        ":count_of_trains_at_station_event_proto",
+        ":count_of_trains_at_station_event_go_proto",
     ],
     visibility = ["//visibility:public"],
 )

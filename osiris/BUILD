@@ -3,7 +3,6 @@ load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "multirun", "command
 filegroup(
     name = "osiris",
     srcs = [
-        "//osiris/query",
         "//osiris/notification",
         "//osiris/auth",
         "//osiris/usermgmt",
@@ -15,7 +14,6 @@ filegroup(
 multirun(
     name = "build-images",
     commands = [
-        "//osiris/query:build-image",
         "//osiris/notification:build-image",
         "//osiris/auth:build-image",
         "//osiris/usermgmt:build-image",
@@ -53,7 +51,6 @@ multirun(
 multirun(
     name = "publish",
     commands = [
-        "//osiris/query:publish",
         "//osiris/notification:publish",
         "//osiris/auth:publish",
         "//osiris/usermgmt:publish",
