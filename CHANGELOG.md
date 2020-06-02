@@ -1,7 +1,39 @@
 ## Changelog
 All notable changes to this project will be documented in this file.
+### [0.5.0] - 2020-06-02
+##### Added
+- [#298](https://github.com/bptlab/cepta/pull/298)
+    - Enrichment of Notifications with coordinates
+    - display those notifications in the Frontend
+- [#292](https://github.com/bptlab/cepta/pull/292)
+    - [core] Adds Optional Indexing for DataToMongo Operator
+    - [core] Indices for Mongo Planned and Station Data uploads
+- [#278](https://github.com/bptlab/cepta/pull/278)
+    - Adding test runner for replaying a specific example
+    
+##### Changed
+- [#292](https://github.com/bptlab/cepta/pull/292)
+    - [core] DelayNotifications are now embedded within Notifications
+    - [core] Postgres Schemas integer->bigint/long
+    - [core] Pipeline now uses WeatherLocationCorrelationMongo
+    - [core] ProtoToBson/Mongo schema attribute names from lower_underscore -> lowerCamelCase
+    - [core] DetectStationArrivalDelay uses livetraindata.delay if no matched plannendTrainData was found for delay calculation
+##### Deleted
+- [#292](https://github.com/bptlab/cepta/pull/292)
+    - General Refactoring of unused code 
+    
+### [0.4.2-internal] - 2020-05-17
+##### Added
+- [#262](https://github.com/bptlab/cepta/pull/262)
+    - Mongo DelayShift Operator
+    - DataToMongoDB Operator
+    - NotificationHelper Utility to generate embedded DelayNotifications
+##### Changed
+- [#262](https://github.com/bptlab/cepta/pull/262)
+    - PostgresDelayShift Operator only sends Delay events if ReferenceStation can be found
+    - PostgresDelayShift has Delay threshold option (Default 60 Seconds)
 
-### [0.5.0] - 2020-05-10
+### [0.4.1-interal] - 2020-05-10
 ##### Added
 - [#213](https://github.com/bptlab/cepta/pull/213)
   - Single install helm chart for deploying to kubernetes clusters
@@ -9,8 +41,6 @@ All notable changes to this project will be documented in this file.
 - [#231](https://github.com/bptlab/cepta/pull/231)
   - Track the average speed of transports
   
-##### Changed
-- WIP
 
 ### [0.4.0] - 2020-05-07
 ##### Added

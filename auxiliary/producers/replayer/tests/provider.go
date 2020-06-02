@@ -25,11 +25,11 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/romnnn/bsonpb"
 	tc "github.com/romnnn/testcontainers"
-	tcmongo "github.com/romnnn/testcontainers/mongo"
+	"github.com/romnnn/testcontainers-go"
 	tckafka "github.com/romnnn/testcontainers/kafka"
+	tcmongo "github.com/romnnn/testcontainers/mongo"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"github.com/testcontainers/testcontainers-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -100,6 +100,14 @@ func (test *Test) Setup(t *testing.T) *Test {
 		},
 	}
 
+	kafkaContainerOptions := containerOptions
+	/*
+		kafkaContainerOptions.ContainerRequest.Resources = &testcontainers.ContainerResourcers{
+			Memory:     1000 * 1024 * 1024, // max. 1GB
+			MemorySwap: -1,               // Unlimited swap
+		}
+	*/
+
 	// Start mongodb container
 	var mongoConfig tcmongo.DBConfig
 	test.MongoC, mongoConfig, err = tcmongo.StartMongoContainer(tcmongo.ContainerOptions{ContainerOptions: containerOptions})
@@ -118,7 +126,7 @@ func (test *Test) Setup(t *testing.T) *Test {
 
 	// Start kafka container
 	var kafkaConfig *tckafka.ContainerConnectionConfig
-	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: containerOptions})
+	test.KafkaC, kafkaConfig, test.ZkC, _, err = tckafka.StartKafkaContainer(tckafka.ContainerOptions{ContainerOptions: kafkaContainerOptions})
 	if err != nil {
 		t.Fatalf("Failed to start the kafka container: %v", err)
 		return test

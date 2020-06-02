@@ -150,7 +150,6 @@ func (s *ReplayerServer) setStartOptions(in *pb.ReplayStartOptions) error {
 			include(replayer, &newStartOptions.Sources)
 		}
 	}
-
 	// Merge source and global options
 	for _, source := range newStartOptions.Sources {
 		source.Options = proto.Clone(newStartOptions.Options).(*pb.ReplayOptions)
@@ -452,6 +451,7 @@ func (s *ReplayerServer) Serve(listener net.Listener) error {
 
 	log.Infof("Serving at %s", listener.Addr())
 	s.grpcServer = grpc.NewServer(
+		grpc.ConnectionTimeout(300 * time.Second),
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
 				MaxConnectionIdle:     10 * time.Minute,

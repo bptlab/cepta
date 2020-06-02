@@ -3,11 +3,7 @@ package org.bptlab.cepta.operators;
 import java.lang.Object;
 import java.util.*;
 
-
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.util.Collector;
-
-import jdk.nashorn.internal.objects.Global;
 
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;

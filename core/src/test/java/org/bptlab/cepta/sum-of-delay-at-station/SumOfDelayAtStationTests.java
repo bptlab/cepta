@@ -24,26 +24,26 @@ public class SumOfDelayAtStationTests {
         boolean pass = true;
         Long expectedStation1 = 1L;
         Long expectedStation2 = 2L;
-        Double expectedDelayAtStation1 = 25.0;
-        Double expectedDelayAtStation2 = 13.0;
+        Long expectedDelayAtStation1 = 25L;
+        Long expectedDelayAtStation2 = 13L;
 
-        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
+//        SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
         // the provider provides four TrainDelayNotification elements
         // element 1 has stationId 1, trainId 1, delay 10
         // element 2 has stationId 2, trainId 2, delay 5
         // element 3 has stationId 1, trainId 2, delay 15
         // element 4 has stationId 2, trainId 1, delay 8
-        DataStream<NotificationOuterClass.DelayNotification> delayNotificationStream = TrainDelayNotificationDataProvider.TrainDelayNotificationDataStream();
+        DataStream<NotificationOuterClass.Notification> delayNotificationStream = TrainDelayNotificationDataProvider.NotificationDataStream();
 
-        DataStream<Tuple2<Long, Double>> locationAndDelayStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(delayNotificationStream, 4);
-        ArrayList<Tuple2<Long, Double>> locationAndDelayArray = new ArrayList<>();
-        Iterator<Tuple2<Long, Double>> iterator = DataStreamUtils.collect(locationAndDelayStream);
+        DataStream<Tuple2<Long, Long>> locationAndDelayStream = SumOfDelayAtStationFunction.sumOfDelayAtStation(delayNotificationStream, 4);
+        ArrayList<Tuple2<Long, Long>> locationAndDelayArray = new ArrayList<>();
+        Iterator<Tuple2<Long, Long>> iterator = DataStreamUtils.collect(locationAndDelayStream);
         while(iterator.hasNext()){
-            Tuple2<Long, Double> tuple = iterator.next();
+            Tuple2<Long, Long> tuple = iterator.next();
             locationAndDelayArray.add(tuple);
         }
 
-        for (Tuple2<Long, Double> tuple : locationAndDelayArray) {
+        for (Tuple2<Long, Long> tuple : locationAndDelayArray) {
             if (tuple.f0.equals(expectedStation1)) {
                 if (!tuple.f1.equals(expectedDelayAtStation1)) {
                     pass = false;

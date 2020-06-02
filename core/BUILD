@@ -5,14 +5,18 @@ load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "command", "multirun
 
 MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
-    "//core/src/main/java/org/bptlab/cepta/consumers:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/serialization:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/utils/types:java_default_library",
+    "//core/src/main/java/org/bptlab/cepta/utils/functions:java_default_library",
+    "//core/src/main/java/org/bptlab/cepta/utils/database:java_default_library",
     "//models/constants:topic_java_proto",
     "//models/events:live_train_data_java_proto",
+    "//models/events:count_of_trains_at_station_event_java_proto",
     "//models/events:planned_train_data_java_proto",
+    "//models/events:location_data_java_proto",
+    "//models/events:no_matching_planned_train_data_event_java_proto",
     "//models/events:predicted_train_data_java_proto",
     "//models/events:train_information_data_java_proto",
     "//models/events:weather_data_java_proto",
@@ -88,17 +92,23 @@ container_push(
 )
 
 sub_tests = [
+    "//core/src/test/java/org/bptlab/cepta/count-trains-in-station-tests:count-trains-in-station",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation",
+    "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation-mongo",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-live-train-join",
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
+    "//core/src/test/java/org/bptlab/cepta/live-planned-trains-mongo:live-planned-train-correlation-mongo",
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
-    "//core/src/test/java/org/bptlab/cepta/data-to-database:data-to-database",
+    "//core/src/test/java/org/bptlab/cepta/data-to-postgres-database:data-to-postgres-database",
+    "//core/src/test/java/org/bptlab/cepta/data-to-mongo-db:data-to-mongo-db",
     "//core/src/test/java/org/bptlab/cepta/remove-duplicates:remove-duplicates",
     "//core/src/test/java/org/bptlab/cepta/delay-shift:delay-shift",
+    "//core/src/test/java/org/bptlab/cepta/delay-shift-mongo:delay-shift-mongo",
     "//core/src/test/java/org/bptlab/cepta/sum-of-delay-at-station:sum-of-delay-at-station",
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
     "//core/src/test/java/org/bptlab/cepta/detect-station-delay-tests:detect-station-arrival-delay",
+    "//core/src/test/java/org/bptlab/cepta/enrich-delay-with-coordinates-function:enrich-delay-with-coordinates-function"
 ]
 
 test_suite(
