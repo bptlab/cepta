@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 - [#287]
     - [core] Adds Optional Indexing for DataToMongo Operator
     - [core] Indices for Mongo Planned and Station Data uploads
+- [#277]
+    - Adding test runner for replaying a specific example
 ##### Changed
 - [#287]
     - [core] DelayNotifications are now embedded within Notifications
@@ -15,6 +17,10 @@ All notable changes to this project will be documented in this file.
     - [core] Pipeline now uses WeatherLocationCorrelationMongo
     - [core] ProtoToBson/Mongo schema attribute names from lower_underscore -> lowerCamelCase
     - [core] DetectStationArrivalDelay uses livetraindata.delay if no matched plannendTrainData was found for delay calculation
+##### Deleted
+- [#287]
+    - General Refactoring of unused code 
+    
 ### [0.6.0] - 2020-05-17
 ##### Added
 - [#261]
