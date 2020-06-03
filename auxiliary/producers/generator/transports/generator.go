@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/Shopify/sarama"
-	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -13,17 +11,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/yourbasic/graph"
-	"github.com/google/uuid"
+	"github.com/Shopify/sarama"
+	"github.com/golang/protobuf/proto"
+
 	"github.com/bptlab/cepta/ci/versioning"
 	"github.com/bptlab/cepta/models/internal/delay"
+	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
+	"github.com/bptlab/cepta/models/internal/station"
+	"github.com/bptlab/cepta/models/internal/types/ids"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
 	kafkaproducer "github.com/bptlab/cepta/osiris/lib/kafka/producer"
-	notificationpb "github.com/bptlab/cepta/models/internal/notifications/notification"
 	durationpb "github.com/golang/protobuf/ptypes/duration"
-	"github.com/bptlab/cepta/models/internal/types/ids"
-	"github.com/bptlab/cepta/models/internal/station"
+	"github.com/google/uuid"
 	"github.com/k0kubun/pp"
+	"github.com/yourbasic/graph"
 
 	topics "github.com/bptlab/cepta/models/constants/topic"
 
@@ -39,23 +40,23 @@ var BuildTime string = ""
 
 // Config ....
 type Config struct {
-	Speedup 		int64
-	JitterSecs 		int
-	TransportIDs 	[]string
-	Nodes 			int64
-	Edges 			int64
+	Speedup      int64
+	JitterSecs   int
+	TransportIDs []string
+	Nodes        int64
+	Edges        int64
 }
 
 // Generator ....
 type Generator struct {
 	Config
-	ProducerConfig 	kafkaproducer.Config
+	ProducerConfig kafkaproducer.Config
 
-	graph 			*graph.Mutable
-	stations 		[]*station.Station
-	producer 		*kafkaproducer.Producer
-	done              chan bool
-	cancelSetup       context.Context
+	graph       *graph.Mutable
+	stations    []*station.Station
+	producer    *kafkaproducer.Producer
+	done        chan bool
+	cancelSetup context.Context
 }
 
 func (gen *Generator) generateUniqueSourceID() string {
@@ -109,7 +110,7 @@ func (gen *Generator) Serve(ctx context.Context) (err error) {
 					pause = pause + (time.Duration(rand.Intn(gen.JitterSecs)) * time.Second)
 				}
 				select {
-				case <- time.After(pause):
+				case <-time.After(pause):
 					notification := &notificationpb.Notification{
 						Notification: &notificationpb.Notification_Delay{
 							Delay: &notificationpb.DelayNotification{
@@ -121,9 +122,9 @@ func (gen *Generator) Serve(ctx context.Context) (err error) {
 						log.Error("Failed to marshal notification: %v", err)
 						break
 					}
-					gen.producer.Send(topics.Topic_CREW_END_DATA.String(), topics.Topic_CREW_END_DATA.String(), sarama.ByteEncoder(eventBytes))
-					log.Debugf("Sent notification with delay=%d to kafka tropic=%s", notification.GetDelay().GetDelay().GetDelta().GetSeconds(), topics.Topic_CREW_END_DATA.String())
-				case <- gen.done:
+					gen.producer.Send(topics.Topic_DELAY_NOTIFICATIONS), topics.Topic_DELAY_NOTIFICATIONS.String(), sarama.ByteEncoder(eventBytes))
+					log.Debugf("Sent notification with delay=%d to kafka topic=%s", notification.GetDelay().GetDelay().GetDelta().GetSeconds(), topics.Topic_DELAY_NOTIFICATIONS.String())
+				case <-gen.done:
 					return
 				}
 			}
@@ -153,7 +154,7 @@ func main() {
 	cliFlags = append(cliFlags, []cli.Flag{
 		&cli.Int64Flag{
 			Name:    "speed",
-			Value: 	 1,
+			Value:   1,
 			Aliases: []string{"speedup", "factor"},
 			EnvVars: []string{"SPEEDUP", "FACTOR"},
 			Usage:   "speedup factor (1x=realtime, 2x=twice as fast as realtime, 0x=benchmark)",
@@ -161,7 +162,7 @@ func main() {
 		&cli.IntFlag{
 			Name:    "jitter",
 			Value:   0, // No jitter
-			Aliases: []string{"variance", "jitter-seconds",},
+			Aliases: []string{"variance", "jitter-seconds"},
 			EnvVars: []string{"JITTER", "VARIANCE"},
 			Usage:   "random lag in seconds to be added to scheduled events to simulate transmission jitter",
 		},
@@ -201,7 +202,7 @@ func main() {
 					JitterSecs:   ctx.Int("jitter"),
 					TransportIDs: []string{},
 					Nodes:        ctx.Int64("nodes"),
-					Edges: 		ctx.Int64("edges"),
+					Edges:        ctx.Int64("edges"),
 				},
 				done: make(chan bool),
 			}
