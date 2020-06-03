@@ -54,6 +54,12 @@ go_proto_library(
         ],
 )
 
+java_proto_library(
+    name = "correlateable_event_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":correlatable_event_proto"],
+)
+
 proto_library(
     name = "delay_proto",
     srcs = ["delay.proto"],
@@ -162,6 +168,7 @@ filegroup(
     name = "internal",
     srcs = [
         ":event_go_proto",
+        ":correlatable_event_proto",
         ":correlatable_event_go_proto",
         ":station_go_proto",
         ":transport_go_proto",
