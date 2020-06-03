@@ -52,7 +52,7 @@ For instructions see `docs/deployment/dev.md` or `docs/deployment/prod.md` respe
 
 Summary: To run the latest version, run 
 ```bash
-CEPTA_VERSION="v0.4.0" docker-compose -f deployment/prod/docker-compose.yml up
+CEPTA_VERSION="v0.5.0" docker-compose -f deployment/prod/docker-compose.yml up
 ```
 
 To run specific containers (single or multiple) run:

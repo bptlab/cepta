@@ -67,7 +67,7 @@ import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "0.4.0",
+    version = "0.5.0",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
