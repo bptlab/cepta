@@ -1,0 +1,20 @@
+syntax = "proto3";
+package models.events;
+option go_package = "github.com/bptlab/cepta/models/events/correlatable_event";
+option java_package = "org.bptlab.cepta.models.events.correlatable_event";
+
+import "google/protobuf/timestamp.proto";
+import "models/internal/types/ids.proto";
+import "models/internal/types/coordinate.proto";
+import "models/events/LiveTrainData.proto";
+import "models/events/PlannedTrainData.proto";
+
+message CorrelatableEvent {
+  models.internal.types.CeptaTransportID cepta_id = 1;
+  models.internal.types.Coordinate coordinate = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  oneof event {
+    models.events.LiveTrainData live_train = 4;
+    models.events.PlannedTrainData planned_train = 5;
+  }
+}

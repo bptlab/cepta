@@ -29,6 +29,32 @@ go_proto_library(
 )
 
 proto_library(
+    name = "correlatable_event_proto",
+    srcs = ["correlateable_event.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//models/internal/types:ids_proto",
+        "//models/internal/types:coordinate_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "//models/events:live_train_data_proto",
+        "//models/events:planned_train_data_proto"
+    ],
+)
+
+go_proto_library(
+    name = "correlatable_event_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/correlatable_event",
+    proto = ":correlatable_event_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+            "//models/internal/types:ids_go_proto",
+            "//models/internal/types:coordinate_go_proto",
+            "//models/events:live_train_data_go_proto",
+            "//models/events:planned_train_data_go_proto"
+        ],
+)
+
+proto_library(
     name = "delay_proto",
     srcs = ["delay.proto"],
     visibility = ["//visibility:public"],
@@ -136,6 +162,7 @@ filegroup(
     name = "internal",
     srcs = [
         ":event_go_proto",
+        ":correlatable_event_go_proto",
         ":station_go_proto",
         ":transport_go_proto",
         "//models/internal/notifications",
