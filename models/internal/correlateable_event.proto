@@ -9,7 +9,7 @@ import "models/internal/types/coordinate.proto";
 import "models/events/LiveTrainData.proto";
 import "models/events/PlannedTrainData.proto";
 
-message CorrelatableEvent {
+message CorrelateableEvent {
   models.internal.types.CeptaTransportID cepta_id = 1;
   models.internal.types.Coordinate coordinate = 2;
   google.protobuf.Timestamp timestamp = 3;
