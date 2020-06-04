@@ -1,4 +1,3 @@
-
 import {
   VuexModule,
   Module,

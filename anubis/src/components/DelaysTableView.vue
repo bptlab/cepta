@@ -45,32 +45,27 @@ export default class DelaysTableView extends Vue {
      */
   }
 
-  mapDelayToStringKey(
-      notification: Notification
-  ): { [key: string]: any } {
+  mapDelayToStringKey(notification: Notification): { [key: string]: any } {
     let delayStringKey: { [key: string]: any } = {
       CeptaStationID: notification.getDelay()?.getStationId(),
       CeptaID: notification.getDelay()?.getTransportId(),
       Delay: notification
-      .getDelay()
-      ?.getDelay()
-      ?.getDelta(),
+        .getDelay()
+        ?.getDelay()
+        ?.getDelta(),
       Details: notification
-      .getDelay()
-      ?.getDelay()
-      ?.getDetails()
+        .getDelay()
+        ?.getDelay()
+        ?.getDetails()
     };
 
     return delayStringKey;
   }
 }
-
-
 </script>
 
 <style scoped lang="sass">
 .form-control
   width: 100%
-  margin-bottom: 20px 
-
+  margin-bottom: 20px
 </style>

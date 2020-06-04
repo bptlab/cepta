@@ -50,7 +50,7 @@
         layoutStyle="col-md-12"
       >
         <p>You can use the navigation bar to filter</p>
-        <delays-table-view class=delay-table></delays-table-view>
+        <delays-table-view class="delay-table"></delays-table-view>
         <div class="view-all">
           <router-link :to="{ name: 'map' }">
             <div class="btn">

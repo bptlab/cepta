@@ -17,19 +17,19 @@ export interface IRootState {
 // export default new Vuex.Store<IRootState>({
 export default new Vuex.Store({
   state: {
-    notificationList: Array<Notification>(),
+    notificationList: Array<Notification>()
   },
   mutations: {
     addNotification(state, notification: Notification) {
-      if (state.notificationList.length > 100){
+      if (state.notificationList.length > 100) {
         state.notificationList = state.notificationList.slice(-99, -1);
       }
-      state.notificationList = [notification, ...state.notificationList]
+      state.notificationList = [notification, ...state.notificationList];
     }
   },
   actions: {
     addNotification(context, notification: Notification) {
-      context.commit('addNotification', notification);
+      context.commit("addNotification", notification);
     }
   }
 });
