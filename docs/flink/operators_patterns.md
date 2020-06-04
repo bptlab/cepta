@@ -1,8 +1,6 @@
 # Operators and Patterns in and for Flink
 
 ## Operators
-### AverageSpeedFunction
-not implemented
 
 ### CountOfTrainsAtStationFunction
 Stream to Stream function  
@@ -53,9 +51,12 @@ ProcessFunction<Tuple2<LiveTrainData, PlannedTrainData>, NotificationOuterClass.
 **Parameter:** none
 **Output:** DataStream<Notification>   
 **Functionality:** Compares dates of live and plan dataset. If there is a delay it generates a delay. Threshold is abs(10sec)
-
-### GenerateIdFunction 
-not implemented
+  
+### EnrichDelayWithCoordinatesFunction
+RichFlatMapFunction<NotificationOuterClass.Notification, NotificationOuterClass.Notification>
+**Input:** DataStream<Notification>
+**Output:** DataStream<Notification>
+**Functionality:** This Function takes an inputstream of DelayNotifications and enriches the events with information about the coordinations of the dedicated station
 
 ### LivePlannedCorrelationFunction
 RichAsynchFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>>  
@@ -64,7 +65,7 @@ RichAsynchFunction<LiveTrainData, Tuple2<LiveTrainData, PlannedTrainData>>
 **Output:** DataStream<Tuple2<LiveTrainData, PlannedTrainData>>  
 **Functionality:** fetches matching planned train event for each incoming live train event. The planned events are fetched with the information of the postgresConfig.
 
-### RemonveDuplicatesFunction
+### RemoveDuplicatesFunction
 Stream to Stream function
 **Implements:** ProcessWindowFunction<T, T, Integer, GlobalWindow>
 **Intput:** DataStream<T> inputStream, 
@@ -103,7 +104,7 @@ RichAsynchFunction<WeatherData, Tuple2<WeatherData, Integer>>
 **Meaning:** Train stays in station for a while  
 **ProcessFunction:** creates StaystInStationEvent 
 
-### NoMatchinPlannedTrainPattern
+### NoMatchingPlannedTrainPattern
 **Stream:** Tuple2<LiveTrainData, PLannedTrainData> (see [LivePlannedCorrelationFunction](https://github.com/bptlab/cepta/blob/dev/docs/flink/operators_patterns.md#liveplannedcorrelationfunction))  
 **Matches:** tuple.f1 == null  
 **Meaning:**  a LiveTrainDataEvent does not have a corresponding PlannedTrainData  

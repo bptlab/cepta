@@ -5,7 +5,6 @@ load("@com_github_atlassian_bazel_tools//multirun:def.bzl", "command", "multirun
 
 MAIN_DEPS = [
     "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
-    "//core/src/main/java/org/bptlab/cepta/consumers:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/operators:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/patterns:java_default_library",
     "//core/src/main/java/org/bptlab/cepta/serialization:java_default_library",
@@ -95,8 +94,10 @@ container_push(
 sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/count-trains-in-station-tests:count-trains-in-station",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation",
+    "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-location-correlation-mongo",
     "//core/src/test/java/org/bptlab/cepta/weather-tests:weather-live-train-join",
     "//core/src/test/java/org/bptlab/cepta/live-planned-trains:live-planned-train-correlation",
+    "//core/src/test/java/org/bptlab/cepta/live-planned-trains-mongo:live-planned-train-correlation-mongo",
     "//core/src/test/java/org/bptlab/cepta/data-cleansing-tests:data-cleansing",
     "//core/src/test/java/org/bptlab/cepta/data-to-postgres-database:data-to-postgres-database",
     "//core/src/test/java/org/bptlab/cepta/data-to-mongo-db:data-to-mongo-db",
@@ -107,6 +108,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
     "//core/src/test/java/org/bptlab/cepta/detect-station-delay-tests:detect-station-arrival-delay",
+    "//core/src/test/java/org/bptlab/cepta/enrich-delay-with-coordinates-function:enrich-delay-with-coordinates-function"
 ]
 
 test_suite(

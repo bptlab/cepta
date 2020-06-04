@@ -1,9 +1,6 @@
 package org.bptlab.cepta.operators;
 
-import java.lang.Object;
 import java.util.HashMap;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.api.java.tuple.Tuple2;
 
@@ -44,7 +41,7 @@ public class SumOfDelayAtStationFunction {
                 );
         return resultStream;
     };
-    //TODO Change Delay to Long
+
     public static ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Long>, Integer, GlobalWindow> sumOfDelayAtStationWindowProcessFunction() {
         return new ProcessWindowFunction<NotificationOuterClass.Notification, Tuple2<Long, Long>, Integer, GlobalWindow>() {
             @Override

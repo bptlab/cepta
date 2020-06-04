@@ -1,11 +1,5 @@
 package org.bptlab.cepta.operators;
 
-import com.github.jasync.sql.db.ConnectionPoolConfigurationBuilder;
-import com.github.jasync.sql.db.QueryResult;
-import com.github.jasync.sql.db.RowData;
-import com.github.jasync.sql.db.pool.ConnectionPool;
-import com.github.jasync.sql.db.postgresql.PostgreSQLConnection;
-import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
@@ -13,25 +7,18 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
-import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass;
 import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
-import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Sorts.ascending;
 
 public class WeatherLocationCorrelationMongoFunction extends
     RichAsyncFunction<WeatherData, Tuple2<WeatherData, Long> > {

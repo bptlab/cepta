@@ -7,7 +7,6 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.*;
 
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.bptlab.cepta.utils.notification.NotificationHelper;
 import org.bson.Document;
 
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -22,7 +21,6 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.*;
 
 
 /* This Function calls a MongoDB to get all future Planned Stations
@@ -44,7 +42,7 @@ public class LivePlannedCorrelationFunctionMongo extends
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     this.mongoClient.close();
   }
 
@@ -63,12 +61,12 @@ public class LivePlannedCorrelationFunctionMongo extends
     SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
     plannedTrainDataCollection.find(
             and(
-                    eq("train_section_id",dataset.getTrainSectionId())
-                    ,eq("station_id",dataset.getStationId())
-                    ,eq("end_station_id",dataset.getEndStationId())
-                    ,eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
+                    eq("trainSectionId",dataset.getTrainSectionId())
+                    ,eq("stationId",dataset.getStationId())
+                    ,eq("endStationId",dataset.getEndStationId())
+                    ,eq("plannedArrivalTimeEndStation",dataset.getPlannedArrivalTimeEndStation())
             )
-    ).sort( descending("ingestion_time")).subscribe(findMultipleSubscriber);
+    ).sort( descending("ingestionTime")).subscribe(findMultipleSubscriber);
 
 
     CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {

@@ -73,7 +73,7 @@ public class WeatherDataProvider {
     ArrayList<WeatherData> testData = new ArrayList<>();
     double baseLat = 49.577;
     double baseLng = 3.0067;
-    double boxRadius = 0.02;
+    double boxRadius = 0.03;
     // exacltyLongitudePlus
     testData.add(weatherWithLatLng(baseLat, baseLng + boxRadius));
     // exacltyLatitudePlus

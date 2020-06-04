@@ -80,55 +80,56 @@ services:
     environment:
       JOB_MANAGER_RPC_ADDRESS: flink-jobmanager
 
-  postgres:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: example
-      POSTGRES_USER: postgres
-      # Secrets might be a good option but the host value is problematic (must be localhost)
-      # POSTGRES_PASSWORD_FILE: /run/secrets/postgres-passwd
-      # Use volumes for persistence but avoid during changes of configuration
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    secrets:
-      - source: postgres_passwd
-        target: postgres-passwd
-    expose:
-      - 5432
-    ports:
-      - ${CEPTA_POSTGRES_PORT}:5432
-    logging:
-      # Disable logging
-      driver: none
-
-  pgadmin:
-    image: dpage/pgadmin4:4.14
-    restart: "no"
-    environment:
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      - ${CEPTA_PGADMIN_PORT}:80
-    volumes:
-      - ../../../deployment/common/pgadmin/pgadmin-servers.json:/pgadmin4/servers.json
-      - ../../../deployment/common/exec-win-compat.sh:/exec-win-compat.sh
-      - ../../../deployment/common/pgadmin/pgadmin-entrypoint.sh:/entrypoint.sh
-      - ../../../deployment/common/pgadmin/pgpass.txt:/.pgpass
-    entrypoint: "/bin/sh /exec-win-compat.sh /entrypoint.sh"
-    healthcheck:
-      test: ["CMD", "curl -f 'http://localhost:8070'"]
-      interval: 3s
-      timeout: 2s
-      retries: 20
-    logging:
-      # Disable logging
-      driver: none
+# ----- For our current deployment we no longer use postgre but for reference if you need to use postgre
+#  postgres:
+#    image: postgres
+#    restart: always
+#    environment:
+#      POSTGRES_PASSWORD: example
+#      POSTGRES_USER: postgres
+#      # Secrets might be a good option but the host value is problematic (must be localhost)
+#      # POSTGRES_PASSWORD_FILE: /run/secrets/postgres-passwd
+#      # Use volumes for persistence but avoid during changes of configuration
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    secrets:
+#      - source: postgres_passwd
+#        target: postgres-passwd
+#    expose:
+#      - 5432
+#    ports:
+#      - ${CEPTA_POSTGRES_PORT}:5432
+#    logging:
+#      # Disable logging
+#      driver: none
+#
+#  pgadmin:
+#    image: dpage/pgadmin4:4.14
+#    restart: "no"
+#    environment:
+#      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+#      PGADMIN_CONFIG_SERVER_MODE: "False"
+#    ports:
+#      - ${CEPTA_PGADMIN_PORT}:80
+#    volumes:
+#      - ../../../deployment/common/pgadmin/pgadmin-servers.json:/pgadmin4/servers.json
+#      - ../../../deployment/common/exec-win-compat.sh:/exec-win-compat.sh
+#      - ../../../deployment/common/pgadmin/pgadmin-entrypoint.sh:/entrypoint.sh
+#      - ../../../deployment/common/pgadmin/pgpass.txt:/.pgpass
+#    entrypoint: "/bin/sh /exec-win-compat.sh /entrypoint.sh"
+#    healthcheck:
+#      test: ["CMD", "curl -f 'http://localhost:8070'"]
+#      interval: 3s
+#      timeout: 2s
+#      retries: 20
+#    logging:
+#      # Disable logging
+#      driver: none
 
   core:
     image: bazel/core:image
@@ -202,7 +203,7 @@ services:
     depends_on:
       - kafka
       #- postgres # now we use mongodb as replayer DB
-      #- mongodb  # in most cases we use an external mongoDB
+      - mongodb  # in most cases we use an external mongoDB
     environment:
       KAFKA_BROKERS: kafka:9092
       PORT: 9000

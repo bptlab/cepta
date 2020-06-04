@@ -43,28 +43,67 @@ the docker volumes and force recreation
 ```
 deployment/dev/devenv.sh up --force-recreate --always-recreate-deps --renew-anon-volumes
 ```
+Sometimes it is enough to force a recreate of kafka and zookeeper
+```
+deployment/dev/devenv.sh up --force-recreate zookeeper kafka
+```
 
 #### What to do now?
 After starting the dev environment, visit 
-[http://localhost:8080](http://localhost:8080) to see an overview 
+[http://localhost:8090](http://localhost:8090) to see an overview 
 of all the services and their ports. (*Note*: The ports are meant for 
 reference. Not every service exposes a web interface.)
+
+You can then visit the Frontent on [http://localhost:80](http://localhost:80).
+
+Development login: `cepta@cepta.org` Password: `cepta` 
 
 #### Starting with data
 Some of the data is not meant for public distribution and is kept private.
 However, the project strives for adaptability to new sources of data.
 If you are a member of the CEPTA project, have a look at some of the private repositories 
 on the [schema information](https://gitlab.hpi.de/cepta/meta_schema),
-[data](https://gitlab.hpi.de/cepta/synfioo-data) 
-and [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
+[our internal gitlab](https://gitlab.hpi.de/cepta) which includes repositories for the 
+individual data collections and their loading scripts.
 
-#### Import train data into the database
-1. Clone [utilities for loading data](https://gitlab.hpi.de/cepta/bp-data-helper).
-2. Start postgres and pgadmin: `/devenv.sh up postgres pgadmin`
-3. Wait for `./bp.sh $(realpath ./selected-data/) $(realpath ./hooks/metaschema-post-load)` to finish importing
-4. After import, the `postgres` database should persist the imported data.
-5. Stop postgres and start the entire cluster: `/devenv.sh down && /devenv.sh up`
-6. Optional: Explore the data using `pgadmin` (check the [dev cockpit](http://localhost:8080))
+In the current state of the project the to be processed events are generated.
+There for we use our [Mongo Importer](https://github.com/romnnn/mongoimport)https://github.com/romnnn/mongoimport)
+We use a Bazel Build setup to import the models of cepta so they can be replayed form a Replay Mongodb instance.
+
+Example BUILD file for the import of Weather data:
+``` 
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+gazelle(name = "gazelle")
+
+go_binary(
+    name = "load",
+    srcs = [
+        "load.go",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_bptlab_cepta//models/events:weather_data_go_proto",
+        "@com_github_golang_protobuf//ptypes:go_default_library",
+        "@com_github_golang_protobuf//ptypes/struct:go_default_library",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@com_github_romnnn_bsonpb//:go_default_library",
+        "@com_github_romnnn_configo//:go_default_library",
+        "@com_github_romnnn_mongoimport//:go_default_library",
+        "@com_github_romnnn_mongoimport//files:go_default_library",
+        "@com_github_romnnn_mongoimport//loaders:go_default_library",
+        "@com_github_sirupsen_logrus//:go_default_library",
+        "@com_github_skydivin4ng3l_datatypeconverter//:go_default_library",
+        "@com_github_urfave_cli_v2//:go_default_library",
+    ],
+)
+```
+
+#### How do events enter the system: Replay of historic Data
+The replayer module will replay by default from the internal docker mongodb instance from a `replay` database. 
+Here the replayer expects to find the history data collections.
+More information about the replayer can be found here [Replayer Readme](../../auxiliary/producers/replayer/README.md)
 
 #### Modularization
 This launches all the default services.

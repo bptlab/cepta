@@ -33,34 +33,25 @@ export default class DelaysTableView extends Vue {
 
   get receivedUpdates(): { [key: string]: any }[] {
     return this.$store.state.notificationList.map(this.mapDelayToStringKey);
-
-    /*
-    return AppModule.notifications
-      .slice(
-        AppModule.notifications.length - 51,
-        AppModule.notifications.length - 1
-      )
-      .map(mapDelayToStringKey);
-
-     */
   }
 
-  mapDelayToStringKey(notification: Notification): { [key: string]: any } {
-    let delayStringKey: { [key: string]: any } = {
-      CeptaStationID: notification.getDelay()?.getStationId(),
-      CeptaID: notification.getDelay()?.getTransportId(),
-      Delay: notification
-        .getDelay()
-        ?.getDelay()
-        ?.getDelta(),
-      Details: notification
-        .getDelay()
-        ?.getDelay()
-        ?.getDetails()
-    };
+mapDelayToStringKey(notification: Notification): { [key: string]: any } {
+  let delayStringKey: { [key: string]: any } = {
+    CeptaStationID: notification.getDelay()?.getStationId(),
+    CeptaID: notification.getDelay()?.getTransportId(),
+    Delay: notification
+      .getDelay()
+      ?.getDelay()
+      ?.getDelta(),
+    Details: notification
+      .getDelay()
+      ?.getDelay()
+      ?.getDetails(),
+    Coordinates: notification.getDelay()?.getCoordinate()
+  };
 
     return delayStringKey;
-  }
+}
 }
 </script>
 
