@@ -77,7 +77,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
      */
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
         super.open(parameters);
-        this.mongoClient = Mongo.getMongoClient(mongoConfig);
+        this.mongoClient = Mongo.getMongoClient(mongoConfig.withPort(27018));
         readInStationData();
     }
 
