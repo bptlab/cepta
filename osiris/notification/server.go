@@ -44,6 +44,8 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
+var testing bool
+
 var (
 	defaultLruSize                     = 1000       // Cache up to 1000 transports
 	defaultLruMaxEntryLength           = 1000       // Cache up to 1000 subscribers per transport
@@ -313,13 +315,14 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 				switch notification.GetNotification().(type) {
 				case *notificationpb.Notification_Delay:
 					// Just for testing porpuses
-					s.broadcast(&notification)
-					// Users need to be assigned to transports to do this
-					/*
+					if testing {
+						s.broadcast(&notification)
+					} else {
+						// Users need to be assigned to transports to do this
 						if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
 							log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
 						}
-					*/
+					}
 					break
 				case *notificationpb.Notification_System:
 					s.broadcast(&notification)
@@ -466,6 +469,12 @@ func main() {
 			EnvVars: []string{"NOTIFICATIONS_TOPIC"},
 			Usage:   "topic to subscribe for notifications",
 		},
+		&cli.BoolFlag{
+			Name:    "testing",
+			Value:   false,
+			EnvVars: []string{"TESTING"},
+			Usage:   "notification service broadcasts all messages for testing purposes",
+		},
 	}...)
 
 	app := &cli.App{
@@ -480,6 +489,7 @@ func main() {
 				level = log.InfoLevel
 			}
 			log.SetLevel(level)
+			testing = ctx.Bool("testing")
 
 			server := NewNotificationServer(kafkaconsumer.Config{}.ParseCli(ctx), libredis.Config{}.ParseCli(ctx))
 			server.usermgmtEndpoint = Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")}

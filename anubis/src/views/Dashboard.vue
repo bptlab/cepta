@@ -50,7 +50,7 @@
         layoutStyle="col-md-12"
       >
         <p>You can use the navigation bar to filter</p>
-        <delays-table-view></delays-table-view>
+        <delays-table-view class=delay-table></delays-table-view>
         <div class="view-all">
           <router-link :to="{ name: 'map' }">
             <div class="btn">
@@ -136,6 +136,8 @@ export default class Dashboard extends Vue {}
         font-size: 2.5rem
 
 
-  .delays-overview
-    height: auto
+  .delay-table
+    padding-right: 10px
+    height: 500px
+    overflow-y: scroll !important
 </style>

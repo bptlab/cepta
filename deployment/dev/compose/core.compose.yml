@@ -152,6 +152,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       LOG: DEBUG
+      TESTING: "true"
     ports:
       - ${CEPTA_NOTIFICATION_WS_PORT}:5000
     depends_on:

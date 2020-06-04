@@ -7,7 +7,7 @@
       type="text"
       placeholder="Search.."
     />
-    <grid-table :grid-data="receivedUpdates"></grid-table>
+    <grid-table id="table" :grid-data="receivedUpdates"></grid-table>
   </div>
 </template>
 
@@ -32,8 +32,7 @@ export default class DelaysTableView extends Vue {
   protected search!: string;
 
   get receivedUpdates(): { [key: string]: any }[] {
-    console.log(this.$store.state.notifications[0]);
-    return this.$store.state.notifications.map(this.mapDelayToStringKey);
+    return this.$store.state.notificationList.map(this.mapDelayToStringKey);
 
     /*
     return AppModule.notifications
@@ -70,11 +69,8 @@ export default class DelaysTableView extends Vue {
 </script>
 
 <style scoped lang="sass">
-#mainContent
-  padding: 0
-  height: 500px
-
 .form-control
   width: 100%
-  margin-bottom: 20px
+  margin-bottom: 20px 
+
 </style>

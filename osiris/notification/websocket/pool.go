@@ -180,7 +180,7 @@ func (pool *Pool) Start() {
 			client.done = make(chan bool)
 			pool.Clients[client] = true
 			log.Debugf("connection pool size: %v", len(pool.Clients))
-			go client.Read()
+			client.Read()
 			break
 		case client := <-pool.Login:
 			pool.ClientMapping[client.ID.GetId()] = client
@@ -195,9 +195,7 @@ func (pool *Pool) Start() {
 			}
 			break
 		case client := <-pool.Unregister:
-			client.done <- true
 			delete(pool.Clients, client)
-			log.Fatalf("connection pool size: %v", len(pool.Clients))
 			break
 		case notifyUserRequest := <-pool.NotifyUser:
 			if client, ok := pool.ClientMapping[notifyUserRequest.ID.GetId()]; ok {
