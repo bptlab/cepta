@@ -139,9 +139,9 @@ services:
       - flink-jobmanager
       - flink-taskmanager
       - kafka
-      - replayer
+      #- replayer
       # - postgres
-      # - mongodb
+      - mongodb
 
   notification:
     image: bazel/osiris/notification:image
