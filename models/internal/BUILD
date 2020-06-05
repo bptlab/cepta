@@ -29,7 +29,7 @@ go_proto_library(
 )
 
 proto_library(
-    name = "correlatable_event_proto",
+    name = "correlateable_event_proto",
     srcs = ["correlateable_event.proto"],
     visibility = ["//visibility:public"],
     deps = [
@@ -42,9 +42,9 @@ proto_library(
 )
 
 go_proto_library(
-    name = "correlatable_event_go_proto",
-    importpath = "github.com/bptlab/cepta/models/internal/correlatable_event",
-    proto = ":correlatable_event_proto",
+    name = "correlateable_event_go_proto",
+    importpath = "github.com/bptlab/cepta/models/internal/correlateable_event",
+    proto = ":correlateable_event_proto",
     visibility = ["//visibility:public"],
     deps = [
             "//models/internal/types:ids_go_proto",
@@ -57,7 +57,7 @@ go_proto_library(
 java_proto_library(
     name = "correlateable_event_java_proto",
     visibility = ["//visibility:public"],
-    deps = [":correlatable_event_proto"],
+    deps = [":correlateable_event_proto"],
 )
 
 proto_library(
@@ -168,8 +168,7 @@ filegroup(
     name = "internal",
     srcs = [
         ":event_go_proto",
-        ":correlatable_event_proto",
-        ":correlatable_event_go_proto",
+        ":correlateable_event_java_proto",
         ":station_go_proto",
         ":transport_go_proto",
         "//models/internal/notifications",

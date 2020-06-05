@@ -1,7 +1,7 @@
 syntax = "proto3";
 package models.internal;
-option go_package = "github.com/bptlab/cepta/models/internal/correlatable_event";
-option java_package = "org.bptlab.cepta.models.internal.correlatable_event";
+option go_package = "github.com/bptlab/cepta/models/internal/correlateable_event";
+option java_package = "org.bptlab.cepta.models.internal.correlateable_event";
 
 import "google/protobuf/timestamp.proto";
 import "models/internal/types/ids.proto";
