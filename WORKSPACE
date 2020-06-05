@@ -182,6 +182,7 @@ maven_install(
         "org.mongodb:mongodb-driver-reactivestreams:4.0.2",
         "org.mongodb:mongodb-driver-core:4.0.2",
         "org.mongodb:bson:4.0.2",
+        "org.mongodb:bson:4.0.2",
         "org.reactivestreams:reactive-streams:1.0.3",
         "com.github.davidmoten:rtree:0.8.7",
         "io.reactivex.rxjava3:rxjava:3.0.4",
