@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/bptlab/cepta/osiris/lib/utils"
-	"github.com/pkg/errors"
 	"io"
 	"net"
 	"net/http"
@@ -15,7 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/bptlab/cepta/osiris/lib/utils"
+	"github.com/pkg/errors"
+
 	"github.com/bptlab/cepta/ci/versioning"
 	topics "github.com/bptlab/cepta/models/constants/topic"
 	pb "github.com/bptlab/cepta/models/grpc/notification"
@@ -25,9 +25,10 @@ import (
 	"github.com/bptlab/cepta/models/internal/types/result"
 	"github.com/bptlab/cepta/models/internal/types/users"
 	libcli "github.com/bptlab/cepta/osiris/lib/cli"
-	libredis "github.com/bptlab/cepta/osiris/lib/redis"
 	kafkaconsumer "github.com/bptlab/cepta/osiris/lib/kafka/consumer"
+	libredis "github.com/bptlab/cepta/osiris/lib/redis"
 	"github.com/bptlab/cepta/osiris/notification/websocket"
+	"github.com/go-redis/redis"
 	clivalues "github.com/romnnn/flags4urfavecli/values"
 
 	"github.com/golang/protobuf/proto"
@@ -43,11 +44,13 @@ var Version string = "Unknown"
 // BuildTime will be injected at build time
 var BuildTime string = ""
 
+var testing bool
+
 var (
-	defaultLruSize                  = 1000 // Cache up to 1000 transports
-	defaultLruMaxEntryLength        = 1000 // Cache up to 1000 subscribers per transport
-	defaultUserNotificationsBufferSize        = int64(200) // Store the most recent 200 notifications for each user (not persistent)
-	defaultNotificationTopic = topics.Topic_DELAY_NOTIFICATIONS
+	defaultLruSize                     = 1000       // Cache up to 1000 transports
+	defaultLruMaxEntryLength           = 1000       // Cache up to 1000 subscribers per transport
+	defaultUserNotificationsBufferSize = int64(200) // Store the most recent 200 notifications for each user (not persistent)
+	defaultNotificationTopic           = topics.Topic_DELAY_NOTIFICATIONS
 )
 
 // Endpoint ...
@@ -69,7 +72,7 @@ type NotificationServer struct {
 	transportCache *lru.Cache
 	Pool           *websocket.Pool
 
-	usermgmtConn *grpc.ClientConn
+	usermgmtConn   *grpc.ClientConn
 	usermgmtClient usermgmtpb.UserManagementClient
 	grpcServer     *grpc.Server
 	wsServer       *http.Server
@@ -78,26 +81,26 @@ type NotificationServer struct {
 	kc           *kafkaconsumer.Consumer
 
 	redisConfig libredis.Config
-	rclient *redis.Client
+	rclient     *redis.Client
 
 	usermgmtEndpoint Endpoint
 
-	LruSize int
-	LruMaxEntryLength int
+	LruSize                     int
+	LruMaxEntryLength           int
 	UserNotificationsBufferSize int64
-	NotificationTopic topics.Topic
+	NotificationTopic           topics.Topic
 }
 
 // NewNotificationServer ...
 func NewNotificationServer(kafkaConfig kafkaconsumer.Config, redisConfig libredis.Config) NotificationServer {
 	return NotificationServer{
 		kafkacConfig: kafkaConfig,
-		redisConfig: redisConfig,
+		redisConfig:  redisConfig,
 		// Use defaults
-		LruSize: defaultLruSize,
-		LruMaxEntryLength: defaultLruMaxEntryLength,
+		LruSize:                     defaultLruSize,
+		LruMaxEntryLength:           defaultLruMaxEntryLength,
 		UserNotificationsBufferSize: defaultUserNotificationsBufferSize,
-		NotificationTopic: defaultNotificationTopic,
+		NotificationTopic:           defaultNotificationTopic,
 	}
 }
 
@@ -118,7 +121,7 @@ func (s *NotificationServer) Shutdown() {
 	}
 	if s.wsServer != nil {
 		log.Info("Stopping websocket server")
-		if err := s.wsServer. Shutdown(context.TODO()); err != nil {
+		if err := s.wsServer.Shutdown(context.TODO()); err != nil {
 			log.Warnf("Failed to close websocket server cleanly: %v", err)
 		}
 	}
@@ -274,18 +277,26 @@ func (s *NotificationServer) serveWebsocket(pool *websocket.Pool, w http.Respons
 	}
 
 	pool.Register <- client
-	client.Read()
 }
 
 func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
-	noopTicker := time.NewTicker(time.Second * 10)
+	// Send pings to client with this period. Must be less than pongWait on the client.
+	const pingPeriod = time.Second * 2
+	noopTicker := time.NewTicker(pingPeriod)
 	subscriberDone := make(chan bool, 1)
 	stopSubscriber := make(chan bool, 1)
 	go func() {
-		defer func() { subscriberDone <- true }()
+		defer func() {
+			stopSubscriber <- true
+			noopTicker.Stop()
+		}()
 		for {
 			select {
-
+			case <-noopTicker.C:
+				// Noop, may be used for periodic pings
+				log.Debug("ping")
+				s.Pool.Ping <- "ping"
+				break
 			case msg := <-s.kc.Messages:
 				var notification notificationpb.Notification
 				err := proto.Unmarshal(msg.Value, &notification)
@@ -295,7 +306,7 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 				log.Debugf("Received notification: %v (%v)", notification, msg.Timestamp)
 
 				// Set occurrence time as a best effort
-				if occurred := notification.GetOccurred(); occurred.GetSeconds() + int64(occurred.GetNanos()) < 1 && !msg.Timestamp.IsZero() {
+				if occurred := notification.GetOccurred(); occurred.GetSeconds()+int64(occurred.GetNanos()) < 1 && !msg.Timestamp.IsZero() {
 					if occurredProto, err := utils.ToProtoTime(msg.Timestamp); err != nil {
 						notification.Occurred = occurredProto
 					}
@@ -304,11 +315,13 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 				switch notification.GetNotification().(type) {
 				case *notificationpb.Notification_Delay:
 					// Just for testing porpuses
-					// s.broadcast(&notification)
-					// Users need to be assigned to transports to do this
-
-					if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
-						log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
+					if testing {
+						s.broadcast(&notification)
+					} else {
+						// Users need to be assigned to transports to do this
+						if err := s.notifySubscribersForTransport(ctx, notification.GetDelay().GetTransportId(), &notification); err != nil {
+							log.Errorf("Failed to notify subscribers of transport %v: %v", notification.GetDelay().GetTransportId(), err)
+						}
 					}
 					break
 				case *notificationpb.Notification_System:
@@ -316,8 +329,6 @@ func (s *NotificationServer) handleKafkaMessages(ctx context.Context) {
 					break
 				}
 				break
-			case <-noopTicker.C:
-				// Noop, may be used for periodic pings
 			case <-stopSubscriber:
 				return
 			}
@@ -458,6 +469,12 @@ func main() {
 			EnvVars: []string{"NOTIFICATIONS_TOPIC"},
 			Usage:   "topic to subscribe for notifications",
 		},
+		&cli.BoolFlag{
+			Name:    "testing",
+			Value:   false,
+			EnvVars: []string{"TESTING"},
+			Usage:   "notification service broadcasts all messages for testing purposes",
+		},
 	}...)
 
 	app := &cli.App{
@@ -472,6 +489,7 @@ func main() {
 				level = log.InfoLevel
 			}
 			log.SetLevel(level)
+			testing = ctx.Bool("testing")
 
 			server := NewNotificationServer(kafkaconsumer.Config{}.ParseCli(ctx), libredis.Config{}.ParseCli(ctx))
 			server.usermgmtEndpoint = Endpoint{Host: ctx.String("usermgmt-host"), Port: ctx.Int("usermgmt-port")}

@@ -55,11 +55,6 @@ class App extends VuexModule implements IAppState {
   }
 
   @Mutation
-  public addNotification(notification: Notification) {
-    this.notifications.push(notification);
-  }
-
-  @Mutation
   public toggleTheme() {
     this.theme = (this.theme + 1) % this.availableThemes.length;
     this.themeClass = getThemeClass(this.availableThemes, this.theme);

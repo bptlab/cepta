@@ -12,6 +12,9 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bson.Document;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Hashtable;
 import java.util.List;
 
@@ -24,6 +27,7 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
     private transient MongoClient mongoClient;
     private String tableName;
     private String databaseName;
+    private final java.util.logging.Logger log = LoggerFactory.getLogger(EnrichDelayWithCoordinatesFunction.class);
 
     private Hashtable<String, CoordinateOuterClass.Coordinate> coordinateMapping =  new Hashtable<>();
 
@@ -56,8 +60,8 @@ public class EnrichDelayWithCoordinatesFunction extends RichFlatMapFunction<Noti
         stationsCollection.find().subscribe(findMultipleSubscriber);
 
         List<Document> allStations = findMultipleSubscriber.get();
-
         for (Document station: allStations){
+            log.info("station long: {0}",station.get("longitude"));
             CoordinateOuterClass.Coordinate coordinate =
                     CoordinateOuterClass.Coordinate.newBuilder()
                             .setLongitude((double) station.get("longitude"))

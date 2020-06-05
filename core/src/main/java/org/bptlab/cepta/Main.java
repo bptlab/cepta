@@ -67,7 +67,7 @@ import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
 @Command(
     name = "cepta core",
     mixinStandardHelpOptions = true,
-    version = "0.4.0",
+    version = "0.5.0",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
 
@@ -83,16 +83,16 @@ public class Main implements Callable<Integer> {
   private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
 
   private void setupConsumers() {
-    this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
-    this.plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+      this.liveTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+      this.plannedTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(
