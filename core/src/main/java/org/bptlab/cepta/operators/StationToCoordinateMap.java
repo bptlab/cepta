@@ -5,6 +5,7 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
+import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bson.Document;
 
@@ -21,6 +22,7 @@ public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass
         this.mongoConfig = mongoConfig;
         this.tableName = "eletastations";
         this.databaseName = "replay";
+        mongoClient = Mongo.getMongoClient(mongoConfig);
         readInStationData();
     }
 
@@ -28,6 +30,7 @@ public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass
         this.mongoConfig = mongoConfig;
         this.tableName = tableName;
         this.databaseName = "replay";
+        mongoClient = Mongo.getMongoClient(mongoConfig);
         readInStationData();
     }
 
@@ -35,6 +38,7 @@ public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass
         this.mongoConfig = mongoConfig;
         this.tableName = tableName;
         this.databaseName = datebaseName;
+        mongoClient = Mongo.getMongoClient(mongoConfig);
         readInStationData();
     }
 
