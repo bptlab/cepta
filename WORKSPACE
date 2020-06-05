@@ -183,6 +183,7 @@ maven_install(
         "org.mongodb:mongodb-driver-core:4.0.2",
         "org.mongodb:bson:4.0.2",
         "org.reactivestreams:reactive-streams:1.0.3",
+        "com.github.davidmoten:rtree:0.8.7",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
