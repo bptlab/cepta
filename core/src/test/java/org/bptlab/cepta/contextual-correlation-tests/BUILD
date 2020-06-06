@@ -17,6 +17,10 @@ java_test(
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
         "@maven//:org_apache_flink_flink_core",
+        "@maven//:org_mongodb_bson",
+        "@maven//:org_mongodb_mongodb_driver_core",
+        "@maven//:org_mongodb_mongodb_driver_reactivestreams",
+        "@maven//:org_mongodb_mongodb_driver_sync",
         "@maven//:junit_junit_4_13",
     ],
 )
