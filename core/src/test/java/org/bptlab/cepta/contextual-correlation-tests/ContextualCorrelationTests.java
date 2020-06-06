@@ -31,9 +31,16 @@ public class ContextualCorrelationTests{
                         .setEventTime(Timestamps.parse("2019-04-28T09:04:00.000Z"))
                         .build();
 
+        MongoConfig mongoConfig = new MongoConfig()
+                .withHost("localhost")
+                .withPort(27017)
+                .withPassword("example")
+                .withUser("root")
+                .withName("mongodb");
+
         DataStream<CorrelateableEventOuterClass.CorrelateableEvent> sampleStream =
                 env.fromElements(sampleTrain1)
-                        .flatMap(new ContextualCorrelationFunction("replay", "eletastations",new MongoConfig()));
+                        .flatMap(new ContextualCorrelationFunction("replay", "eletastations",mongoConfig));
 
         sampleStream.print();
         Assert.fail();

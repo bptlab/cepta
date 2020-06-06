@@ -42,8 +42,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                         .setTimestamp(liveTrainData.getEventTime())
                         .setLiveTrain(liveTrainData)
                     .build();
-        if (uncorrelatedEvent.getLiveTrain().getStatus() == 1){
-            uncorrelatedEvent = uncorrelatedEvent.toBuilder()
+        uncorrelatedEvent = uncorrelatedEvent.toBuilder()
                     .setCeptaId(
                             Ids.CeptaTransportID.newBuilder()
                                     .setId(String.valueOf(uncorrelatedEvent.getLiveTrain().getTrainSectionId()))
@@ -54,10 +53,9 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
 
             List<Entry<CorrelateableEvent, Geometry>> closeEvents = currentEvents.search(pointLocation, 5).toList().toBlocking().single();
 
-                    currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
+            currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
             collector.collect(uncorrelatedEvent);
-        }
-        Vector<CorrelateableEvent> correlatedEventsOfIncomingEvent = correlatedEventsOf(uncorrelatedEvent);
+
     }
 
     private Point pointOfEvent(CorrelateableEvent event){

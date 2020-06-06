@@ -13,10 +13,10 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass.Coordinate> {
-    private MongoConfig mongoConfig = new MongoConfig();
-    private transient MongoClient mongoClient;
-    private String tableName;
-    private String databaseName;
+    public MongoConfig mongoConfig;
+    public transient MongoClient mongoClient;
+    public String tableName;
+    public String databaseName;
 
     public StationToCoordinateMap(MongoConfig mongoConfig){
         this.mongoConfig = mongoConfig;
@@ -38,11 +38,12 @@ public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass
         this.mongoConfig = mongoConfig;
         this.tableName = tableName;
         this.databaseName = datebaseName;
-        mongoClient = Mongo.getMongoClient(mongoConfig);
+        this.mongoClient = Mongo.getMongoClient(mongoConfig);
         readInStationData();
     }
 
     private boolean readInStationData(){
+        System.out.println(mongoClient.toString() + tableName.toString() + databaseName.toString() + mongoConfig.toString());
         MongoDatabase database = mongoClient.getDatabase(databaseName);
         MongoCollection<Document> stationsCollection = database.getCollection(tableName);
 
