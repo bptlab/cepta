@@ -42,7 +42,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
      */
     @Override
     public void flatMap(LiveTrainDataOuterClass.LiveTrainData liveTrainData, Collector<CorrelateableEvent> collector) throws Exception {
-        System.out.println("processing " + liveTrainData.getTrainId());
+//        System.out.println("processing " + liveTrainData.getTrainId());
         CorrelateableEvent uncorrelatedEvent =
                 CorrelateableEvent.newBuilder()
                         .setCoordinate(stationToCoordinateMap.get(liveTrainData.getStationId()))
@@ -51,8 +51,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                     .build();
 
             Point pointLocation = pointOfEvent(uncorrelatedEvent);
-        currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
-        System.out.println("pointLocation :" + pointLocation);
+//        System.out.println("pointLocation :" + pointLocation);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Long>> closeEvents = new Vector<>();
         currentEvents.search(pointLocation, 50000)
@@ -92,20 +91,26 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 countOfIDs.merge(currentID, 1, Integer::sum);
             });
 
-            AtomicReference<Ids.CeptaTransportID> mostCommonID = null;
-            AtomicInteger mostCommonIdCount = new AtomicInteger();
-            countOfIDs.forEach((id, count) -> {
-                if (count > mostCommonIdCount.get()) {
-                    mostCommonIdCount.set(count);
-                    mostCommonID.set(id);
-                }
-            });
+            AtomicReference<Ids.CeptaTransportID> mostCommonID = new AtomicReference<>();
+            AtomicInteger mostCommonIdCount = new AtomicInteger(0);
+            try {
+                countOfIDs.forEach((id, count) -> {
+                    if (count > mostCommonIdCount.get()) {
+                        mostCommonIdCount.set(count + 1);
+                        mostCommonID.set(id);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             correlatedEvent =
                     uncorrelatedEvent
                             .toBuilder()
                             .setCeptaId(mostCommonID.get())
                             .build();
         }
+        currentEvents = currentEvents.add(correlatedEvent, pointOfEvent(uncorrelatedEvent));
         collector.collect(correlatedEvent);
     }
 
