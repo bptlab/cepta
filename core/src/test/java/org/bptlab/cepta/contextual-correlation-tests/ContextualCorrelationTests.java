@@ -34,6 +34,7 @@ public class ContextualCorrelationTests{
                         .setTrainId(1)
                         .setStationId(4019302)
                         .setEventTime(Timestamps.parse("2019-04-28T09:04:00.000Z"))
+                        .setTrainSectionId(42)
                         .build();
         LiveTrainData sampleTrain2 =
                 LiveTrainData
@@ -41,6 +42,7 @@ public class ContextualCorrelationTests{
                         .setTrainId(2)
                         .setStationId(4012434)
                         .setEventTime(Timestamps.parse("2019-04-28T09:05:00.000Z"))
+                        .setTrainSectionId(80085)
                         .build();
 
         MongoConfig mongoConfig = new MongoConfig()
