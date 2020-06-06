@@ -11,9 +11,14 @@ import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.javatuples.Pair;
 import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrainDataOuterClass.LiveTrainData, CorrelateableEvent> {
 
@@ -38,7 +43,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
     @Override
     public void flatMap(LiveTrainDataOuterClass.LiveTrainData liveTrainData, Collector<CorrelateableEvent> collector) throws Exception {
         System.out.println("processing " + liveTrainData.getTrainId());
-        final CorrelateableEvent uncorrelatedEvent =
+        CorrelateableEvent uncorrelatedEvent =
                 CorrelateableEvent.newBuilder()
                         .setCoordinate(stationToCoordinateMap.get(liveTrainData.getStationId()))
                         .setTimestamp(liveTrainData.getEventTime())
@@ -49,31 +54,59 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
         System.out.println("pointLocation :" + pointLocation);
 
-        try {
-            Vector<Pair<Entry<CorrelateableEvent, Geometry>, Long>> closeEvents = new Vector<>();
-            currentEvents.search(pointLocation, 50000)
-                    //filter out events that are on the same point as the variable
-                    .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
-                    // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
-                    .map(entry -> new Pair<>(entry, distanceOfEvent(entry.value())))
-                    .toBlocking()
-                    .subscribe(closeEvents::add);
+        Vector<Pair<Entry<CorrelateableEvent, Geometry>, Long>> closeEvents = new Vector<>();
+        currentEvents.search(pointLocation, 50000)
+                //filter out events that are on the same point as the variable
+                .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
+                // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
+                .map(entry -> new Pair<>(entry, distanceOfEvent(entry.value())))
+                .toBlocking()
+                .subscribe(closeEvents::add);
 
+        CorrelateableEvent correlatedEvent;
+        if (closeEvents.size() == 0) {
+            //there were no close events, so we assume that this must be a new train
+            correlatedEvent =
+                    uncorrelatedEvent
+                        .toBuilder()
+                            .setCeptaId(
+                                    Ids.CeptaTransportID
+                                            .newBuilder()
+                                            .setId(String.valueOf(uncorrelatedEvent.getLiveTrain().getTrainSectionId()))
+                                            .build()
+                            )
+                        .build();
+        } else {
             //sort by distance
             closeEvents.sort(Comparator.comparing(Pair::getValue1));
+            //we now want to only get the first k events, so we resize the vector to k. If it was smaller than k its filled up with null
+            //so we remove those in the second step
+            closeEvents.setSize(k);
+            closeEvents.removeIf(Objects::isNull);
 
+            //now we just look for the ID that is most common under those k events
+            Hashtable<Ids.CeptaTransportID, Integer> countOfIDs = new Hashtable<>();
+            closeEvents.forEach(entry -> {
+                Ids.CeptaTransportID currentID = entry.getValue0().value().getCeptaId();
+                //increase the value by 1, if it is not yet assigned put 1
+                countOfIDs.merge(currentID, 1, Integer::sum);
+            });
 
-//                CorrelateableEvent closestEvent = closeEvents.firstElement().getValue0().value();
-//                System.out.println("closest Event of LiveTrain:" + liveTrainData + " is: " + closestEvent);
-//                collector.collect(closestEvent);
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            collector.collect(null);
-
+            AtomicReference<Ids.CeptaTransportID> mostCommonID = null;
+            AtomicInteger mostCommonIdCount = new AtomicInteger();
+            countOfIDs.forEach((id, count) -> {
+                if (count > mostCommonIdCount.get()) {
+                    mostCommonIdCount.set(count);
+                    mostCommonID.set(id);
+                }
+            });
+            correlatedEvent =
+                    uncorrelatedEvent
+                            .toBuilder()
+                            .setCeptaId(mostCommonID.get())
+                            .build();
+        }
+        collector.collect(correlatedEvent);
     }
 
     private long distanceOfEvent(CorrelateableEvent event){
