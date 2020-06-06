@@ -94,6 +94,6 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
     }
 
     public void setK(int k) {
-        this.k = k;
+        this.k = Math.max(k, 1);
     }
 }
