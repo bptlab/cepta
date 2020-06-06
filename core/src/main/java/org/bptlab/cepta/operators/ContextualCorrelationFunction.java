@@ -11,14 +11,15 @@ import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
-
-import java.util.List;
+import org.javatuples.Pair;
+import java.util.Comparator;
 import java.util.Vector;
 
 public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrainDataOuterClass.LiveTrainData, CorrelateableEvent> {
 
     private StationToCoordinateMap stationToCoordinateMap;
+
+    private int k = 1;
 
     private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
@@ -36,26 +37,47 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
      */
     @Override
     public void flatMap(LiveTrainDataOuterClass.LiveTrainData liveTrainData, Collector<CorrelateableEvent> collector) throws Exception {
-        CorrelateableEvent uncorrelatedEvent =
+        System.out.println("processing " + liveTrainData.getTrainId());
+        final CorrelateableEvent uncorrelatedEvent =
                 CorrelateableEvent.newBuilder()
                         .setCoordinate(stationToCoordinateMap.get(liveTrainData.getStationId()))
                         .setTimestamp(liveTrainData.getEventTime())
                         .setLiveTrain(liveTrainData)
                     .build();
-        uncorrelatedEvent = uncorrelatedEvent.toBuilder()
-                    .setCeptaId(
-                            Ids.CeptaTransportID.newBuilder()
-                                    .setId(String.valueOf(uncorrelatedEvent.getLiveTrain().getTrainSectionId()))
-                                    .build())
-                    .build();
 
             Point pointLocation = pointOfEvent(uncorrelatedEvent);
+        currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
+        System.out.println("pointLocation :" + pointLocation);
 
-            List<Entry<CorrelateableEvent, Geometry>> closeEvents = currentEvents.search(pointLocation, 5).toList().toBlocking().single();
+        try {
+            Vector<Pair<Entry<CorrelateableEvent, Geometry>, Long>> closeEvents = new Vector<>();
+            currentEvents.search(pointLocation, 50000)
+                    //filter out events that are on the same point as the variable
+                    .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
+                    // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
+                    .map(entry -> new Pair<>(entry, distanceOfEvent(entry.value())))
+                    .toBlocking()
+                    .subscribe(closeEvents::add);
 
-            currentEvents = currentEvents.add(uncorrelatedEvent, pointOfEvent(uncorrelatedEvent));
-            collector.collect(uncorrelatedEvent);
+            //sort by distance
+            closeEvents.sort(Comparator.comparing(Pair::getValue1));
 
+
+//                CorrelateableEvent closestEvent = closeEvents.firstElement().getValue0().value();
+//                System.out.println("closest Event of LiveTrain:" + liveTrainData + " is: " + closestEvent);
+//                collector.collect(closestEvent);
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            collector.collect(null);
+
+    }
+
+    private long distanceOfEvent(CorrelateableEvent event){
+        return 0;
     }
 
     private Point pointOfEvent(CorrelateableEvent event){
@@ -65,5 +87,13 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
 
     private Vector<CorrelateableEvent> correlatedEventsOf(CorrelateableEvent newEvent){
         return null;
+    }
+
+    public int getK() {
+        return k;
+    }
+
+    public void setK(int k) {
+        this.k = k;
     }
 }
