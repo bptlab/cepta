@@ -11,7 +11,6 @@ import org.bptlab.cepta.utils.functions.StreamUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Vector;
