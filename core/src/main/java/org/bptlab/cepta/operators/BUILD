@@ -27,6 +27,7 @@ java_library(
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_apache_flink_flink_cep_2_11",
         "@maven//:org_apache_flink_flink_core",
         "@maven//:org_apache_flink_flink_java",

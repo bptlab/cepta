@@ -5,6 +5,7 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Geometry;
 import com.github.davidmoten.rtree.geometry.Point;
+import com.google.protobuf.util.Timestamps;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.config.MongoConfig;
@@ -53,12 +54,17 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             Point pointLocation = pointOfEvent(uncorrelatedEvent);
 //        System.out.println("pointLocation :" + pointLocation);
 
-        Vector<Pair<Entry<CorrelateableEvent, Geometry>, Long>> closeEvents = new Vector<>();
+        Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
         currentEvents.search(pointLocation, 50000)
                 //filter out events that are on the same point as the variable
                 .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
                 // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
-                .map(entry -> new Pair<>(entry, distanceOfEvent(entry.value())))
+                .map(entry ->
+                        new Pair<>(
+                                entry,
+                                distanceBetween(entry.value(), uncorrelatedEvent, entry.geometry().distance(pointLocation))
+                        )
+                )
                 .toBlocking()
                 .subscribe(closeEvents::add);
 
@@ -114,8 +120,17 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         collector.collect(correlatedEvent);
     }
 
-    private long distanceOfEvent(CorrelateableEvent event){
-        return 0;
+    private double distanceBetween(CorrelateableEvent previousEvents, CorrelateableEvent incomingEvent, double suppliedSpacialDistance){
+        double weightTime = 0.5;
+        double weightDistance = 0.5;
+
+        double passedSeconds =
+                Timestamps.between(
+                        previousEvents.getTimestamp(),
+                        incomingEvent.getTimestamp())
+                .getSeconds();
+
+        return weightTime*passedSeconds + weightDistance*suppliedSpacialDistance;
     }
 
     private Point pointOfEvent(CorrelateableEvent event){
