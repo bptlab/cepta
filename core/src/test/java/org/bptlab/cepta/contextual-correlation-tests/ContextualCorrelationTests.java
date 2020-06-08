@@ -88,6 +88,12 @@ public class ContextualCorrelationTests{
         allLiveTrainEvents.forEach(document -> outputVector.add(Mongo.documentToLiveTrainData(document)));
     }
 
+    private <T> void makeCollectionDistinct(Collection<T> collection){
+        HashSet<T> distinctValues = new HashSet<>(collection);
+        collection.clear();
+        collection.addAll(distinctValues);
+    }
+
     private Vector<LiveTrainData> getLiveTrainsOfEuroRailRunId(int euroRailRunId){
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
 
@@ -103,11 +109,11 @@ public class ContextualCorrelationTests{
         trainSectionIdsDocuments.forEach(document -> trainSectionIds.add(document.getLong("trainSectionId")));
 
         //since we could have multiple entries for each trainRun, we make these values distinct
-        HashSet<Long> uniqueTrainSectionIds = new HashSet<>(trainSectionIds);
+        makeCollectionDistinct(trainSectionIds);
 
         Vector<LiveTrainData> allLiveTrainEvents = new Vector<>();
         //now we query for each liveTrain event within these sections
-        uniqueTrainSectionIds.forEach(trainSectionId -> addLiveTrains(trainSectionId, allLiveTrainEvents));
+        trainSectionIds.forEach(trainSectionId -> addLiveTrains(trainSectionId, allLiveTrainEvents));
 
         return allLiveTrainEvents;
     }
