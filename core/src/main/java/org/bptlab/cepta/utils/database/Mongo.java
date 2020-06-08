@@ -9,6 +9,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
 import org.bptlab.cepta.config.MongoConfig;
+import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 
 import org.bson.BsonReader;
@@ -98,6 +99,28 @@ public class Mongo {
             document.append(protoInfo.getColumnNames().get(i), protoInfo.getValues().get(i));
         }
         return document;
+    }
+
+    public static LiveTrainData documentToLiveTrainData(Document doc){
+        LiveTrainData.Builder builder = LiveTrainData.newBuilder();
+        try {
+            builder.setId((Long) doc.get("id"));
+            builder.setTrainSectionId((Long) doc.get("trainSectionId"));
+            builder.setStationId((Long) doc.get("stationId"));
+            builder.setEventTime((Timestamp) doc.get("eventTime"));
+            builder.setStatus((Long) doc.get("status"));
+            builder.setFirstTrainId((Long) doc.get("firstTrainId"));
+            builder.setTrainId((Long) doc.get("trainId"));
+            builder.setPlannedArrivalTimeEndStation((Timestamp) doc.get("plannedArrivalTimeEndStation"));
+            builder.setEndStationId((Long) doc.get("endStationId"));
+            builder.setImId((Long) doc.get("imId"));
+            builder.setFollowingImId((Long) doc.get("followingImId"));
+            builder.setMessageStatus((Long) doc.get("messageStatus"));
+            builder.setIngestionTime((Timestamp) doc.get("ingestionTime"));
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return builder.build();
     }
 
     public static PlannedTrainData documentToPlannedTrainData(Document doc){
