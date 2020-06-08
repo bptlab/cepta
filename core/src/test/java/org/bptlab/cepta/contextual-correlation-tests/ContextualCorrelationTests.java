@@ -31,6 +31,8 @@ public class ContextualCorrelationTests{
 
     private MongoClient mongoClient = this.getMongoClient();
 
+    private Hashtable<Long, Long> correctCorrelation = new Hashtable<>();
+
     private StreamExecutionEnvironment setupEnv(){
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
@@ -94,7 +96,7 @@ public class ContextualCorrelationTests{
         collection.addAll(distinctValues);
     }
 
-    private Vector<LiveTrainData> getLiveTrainsOfEuroRailRunId(int euroRailRunId){
+    private Vector<LiveTrainData> getLiveTrainsOfEuroRailRunId(Long euroRailRunId){
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
 
         MongoDatabase database = mongoClient.getDatabase("replay");
@@ -110,6 +112,9 @@ public class ContextualCorrelationTests{
 
         //since we could have multiple entries for each trainRun, we make these values distinct
         makeCollectionDistinct(trainSectionIds);
+
+        //remember which each trainSectionId belongs to this rail run for the evaluation
+        trainSectionIds.forEach(id -> this.correctCorrelation.put(id, euroRailRunId));
 
         Vector<LiveTrainData> allLiveTrainEvents = new Vector<>();
         //now we query for each liveTrain event within these sections
