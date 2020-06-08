@@ -8,6 +8,7 @@ java_library(
         "//core/src/main/java/org/bptlab/cepta/config:java_default_library",
         "//core/src/main/java/org/bptlab/cepta/utils/database/mongohelper:java_default_library",
         "//models/events:planned_train_data_java_proto",
+        "//models/events:live_train_data_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_apache_commons_commons_text",
         "@maven//:org_javatuples_javatuples",
