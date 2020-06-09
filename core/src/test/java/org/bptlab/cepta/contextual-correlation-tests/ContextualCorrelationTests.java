@@ -43,23 +43,16 @@ public class ContextualCorrelationTests{
     public void TestOneGlobalTrainRunGetsCorrelatedTogether() throws ParseException, IOException {
         StreamExecutionEnvironment env = setupEnv();
 
-        MongoConfig mongoConfig = new MongoConfig()
-                .withHost("localhost")
-                .withPort(27017)
-                .withPassword("example")
-                .withUser("root")
-                .withName("mongodb");
-
         DataStream<LiveTrainData> liveTrainDataDataStream = env
-                .fromCollection(getLiveTrainsOfEuroRailRunId(40510063))
+                .fromCollection(getLiveTrainsOfEuroRailRunId(40510063L))
                 .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
         DataStream<CorrelateableEvent> sampleStream = liveTrainDataDataStream
-                        .flatMap(new ContextualCorrelationFunction("replay", "eletastations", mongoConfig));
+                        .flatMap(new ContextualCorrelationFunction("replay", "eletastations", this.getMongoConfig()));
 
 
         Vector<CorrelateableEvent> sampleStreamElements = StreamUtils.collectStreamToVector(sampleStream);
-        System.out.println(sampleStreamElements);
+//        System.out.println(sampleStreamElements);
 
 
         Vector<Ids.CeptaTransportID> allIds = new Vector<>();
@@ -68,15 +61,21 @@ public class ContextualCorrelationTests{
         Assert.assertEquals("One Trainrun should be correlated to one ID",1,distinctIds.size());
     }
 
+    public void TestSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Collection euroRailRunIds){
+
+    }
+
+    private MongoConfig getMongoConfig(){
+        return new MongoConfig()
+                .withHost("localhost")
+                .withPort(27017)
+                .withPassword("example")
+                .withUser("root")
+                .withName("mongodb");
+    }
+
     private MongoClient getMongoClient(){
-        return Mongo.getMongoClient(
-                new MongoConfig()
-                        .withHost("localhost")
-                        .withPort(27017)
-                        .withPassword("example")
-                        .withUser("root")
-                        .withName("mongodb")
-        );
+        return Mongo.getMongoClient(this.getMongoConfig());
     }
 
     private void addLiveTrains(Long trainSectionId, Vector<LiveTrainData> outputVector){
@@ -113,6 +112,7 @@ public class ContextualCorrelationTests{
         //since we could have multiple entries for each trainRun, we make these values distinct
         makeCollectionDistinct(trainSectionIds);
 
+        //remember which each trainSectionId belongs to this rail run for the evaluation
         //remember which each trainSectionId belongs to this rail run for the evaluation
         trainSectionIds.forEach(id -> this.correctCorrelation.put(id, euroRailRunId));
 
