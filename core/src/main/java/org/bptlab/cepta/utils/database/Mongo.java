@@ -111,7 +111,8 @@ public class Mongo {
             builder.setStatus((Long) doc.get("status"));
             builder.setFirstTrainId((Long) doc.get("firstTrainId"));
             builder.setTrainId((Long) doc.get("trainId"));
-            builder.setPlannedArrivalTimeEndStation((Timestamp) doc.get("plannedArrivalTimeEndStation"));
+//            since some LiveTrains dont appear to have this field, and we dont need to, we just omit it
+//            builder.setPlannedArrivalTimeEndStation((Timestamp) doc.get("plannedArrivalTimeEndStation"));
             builder.setEndStationId((Long) doc.get("endStationId"));
             builder.setImId((Long) doc.get("imId"));
             builder.setFollowingImId((Long) doc.get("followingImId"));
