@@ -1,5 +1,6 @@
 package org.bptlab.cepta.operators;
 
+import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
@@ -55,7 +56,11 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
 //        System.out.println("pointLocation :" + pointLocation);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
-        currentEvents.search(pointLocation, 50000)
+        currentEvents.search(pointLocation, 50, (a, b) -> {
+            Position positionA = Position.create(a.mbr().y1(),a.mbr().x1());
+            Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
+            return positionA.getDistanceToKm(positionB);
+        })
                 //filter out events that are on the same point as the variable
                 .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
                 // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
