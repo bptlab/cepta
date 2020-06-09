@@ -23,6 +23,7 @@ java_library(
         "//models/internal/types:transport_java_proto",
         "//models/internal/types:coordinate_java_proto",
         "@maven//:com_github_davidmoten_rtree",
+        "@maven//:com_github_davidmoten_grumpy_core",
         "@maven//:io_reactivex_rxjava3_rxjava",
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
