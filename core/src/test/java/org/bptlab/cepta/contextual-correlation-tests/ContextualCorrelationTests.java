@@ -61,7 +61,28 @@ public class ContextualCorrelationTests{
         Assert.assertEquals("One Trainrun should be correlated to one ID",1,distinctIds.size());
     }
 
-    public void TestSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Collection euroRailRunIds){
+    public void testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Collection<Long> euroRailRunIds) throws IOException {
+        StreamExecutionEnvironment env = setupEnv();
+        Vector<LiveTrainData> allInputEvents = new Vector<>();
+        euroRailRunIds.forEach(id -> allInputEvents.addAll(getLiveTrainsOfEuroRailRunId(id)));
+        DataStream<LiveTrainData> inputStream = env.fromCollection(allInputEvents).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
+        DataStream<CorrelateableEvent> outputStream =
+                inputStream.flatMap(new ContextualCorrelationFunction("replay", "eletastations", this.getMongoConfig()));
+        Vector<Ids.CeptaTransportID> allIds = new Vector<>();
+        StreamUtils.collectStreamToVector(outputStream).forEach(event -> allIds.add(event.getCeptaId()));
+        HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
+
+        Assert.assertEquals(
+                "There should be as many correlated runs as the input runs",
+                euroRailRunIds.size(),
+                distinctIds.size());
+    }
+
+    @Test
+    public void testDifferentAmountsOfTrainRuns() throws IOException {
+        testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(35770866L));
+        testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(40510063L));
+        testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(40510063L, 35770866L));
 
     }
 
