@@ -89,7 +89,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                             .setCeptaId(
                                     Ids.CeptaTransportID
                                             .newBuilder()
-                                            .setId(String.valueOf(uncorrelatedEvent.getLiveTrain().getTrainSectionId()))
+                                            .setId(uncorrelatedEvent.getLiveTrain().getTrainSectionId() + "@" + uncorrelatedEvent.getTimestamp())
                                             .build()
                             )
                         .build();
