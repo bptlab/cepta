@@ -67,7 +67,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 .map(entry ->
                         new Pair<>(
                                 entry,
-                                distanceBetween(entry.value(), uncorrelatedEvent, entry.geometry().distance(pointLocation))
+                                euclideanDistance(entry.value(), uncorrelatedEvent)
                         )
                 )
                 .toBlocking()
@@ -134,19 +134,24 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         collector.collect(correlatedEvent);
     }
 
-    private double distanceBetween(CorrelateableEvent previousEvents, CorrelateableEvent incomingEvent, double suppliedSpacialDistance){
-        double weightTime = 0.5;
-        double weightDistance = 0.5;
-
-        double passedSeconds =
-                Timestamps.between(
-                        previousEvents.getTimestamp(),
-                        incomingEvent.getTimestamp())
-                .getSeconds();
-
-        return weightTime*passedSeconds + weightDistance*suppliedSpacialDistance;
+    private Point pointOfEvent(CorrelateableEvent event){
+        Coordinate coordinate = event.getCoordinate();
+        return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
     }
 
+    private double euclideanDistance(CorrelateableEvent eventA, CorrelateableEvent eventB){
+        Vector<Double> features = new Vector<Double>();
+        features.add((double) Timestamps.between(
+                eventA.getTimestamp(),
+                eventB.getTimestamp())
+                .getSeconds());
+        features.add(beelineBetween(eventA, eventB));;
+
+        Double sumOfSquared = 0.0;
+        for (Double feature : features) {
+            sumOfSquared += Math.pow(feature, 2.0);
+        }
+        return Math.sqrt(sumOfSquared);
     private Point pointOfEvent(CorrelateableEvent event){
         Coordinate coordinate = event.getCoordinate();
         return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
