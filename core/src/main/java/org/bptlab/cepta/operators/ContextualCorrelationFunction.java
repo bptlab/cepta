@@ -15,10 +15,8 @@ import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOu
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.javatuples.Pair;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.Objects;
-import java.util.Vector;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -86,7 +84,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         if (closeEvents.size() == 0) {
             //there were no close events, so we assume that this must be a new train
             correlatedEvent =
-                    uncorrelatedEvent
+                    correlatedEvent
                         .toBuilder()
                             .setCeptaId(
                                     Ids.CeptaTransportID
@@ -103,33 +101,44 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             closeEvents.setSize(k);
             closeEvents.removeIf(Objects::isNull);
 
-            //now we just look for the ID that is most common under those k events
-            Hashtable<Ids.CeptaTransportID, Integer> countOfIDs = new Hashtable<>();
-            closeEvents.forEach(entry -> {
-                Ids.CeptaTransportID currentID = entry.getValue0().value().getCeptaId();
-                //increase the value by 1, if it is not yet assigned put 1
-                countOfIDs.merge(currentID, 1, Integer::sum);
-            });
+            if (k == 1){
+                //we only look at the nearest event, correlate to that and delete the previous one
+                CorrelateableEvent closestEvent = closeEvents.firstElement().getValue0().value();
+                uncorrelatedEvent.toBuilder().setCorrelatedEvent(closestEvent);
 
-            AtomicReference<Ids.CeptaTransportID> mostCommonID = new AtomicReference<>();
-            AtomicInteger mostCommonIdCount = new AtomicInteger(0);
-            try {
-                countOfIDs.forEach((id, count) -> {
-                    if (count > mostCommonIdCount.get()) {
-                        mostCommonIdCount.set(count + 1);
-                        mostCommonID.set(id);
-                    }
+                //delete that event from our RTree
+                currentEvents.delete(closestEvent, pointOfEvent(closestEvent));
+
+            } else {
+                //now we just look for the ID that is most common under those k events
+                Hashtable<Ids.CeptaTransportID, Integer> countOfIDs = new Hashtable<>();
+                closeEvents.forEach(entry -> {
+                    Ids.CeptaTransportID currentID = entry.getValue0().value().getCeptaId();
+                    //increase the value by 1, if it is not yet assigned put 1
+                    countOfIDs.merge(currentID, 1, Integer::sum);
                 });
-            } catch (Exception e) {
-                e.printStackTrace();
+
+                AtomicReference<Ids.CeptaTransportID> mostCommonID = new AtomicReference<>();
+                AtomicInteger mostCommonIdCount = new AtomicInteger(0);
+                try {
+                    countOfIDs.forEach((id, count) -> {
+                        if (count > mostCommonIdCount.get()) {
+                            mostCommonIdCount.set(count + 1);
+                            mostCommonID.set(id);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                correlatedEvent =
+                        uncorrelatedEvent
+                                .toBuilder()
+                                .setCeptaId(mostCommonID.get())
+                                .build();
+            }
             }
 
-            correlatedEvent =
-                    uncorrelatedEvent
-                            .toBuilder()
-                            .setCeptaId(mostCommonID.get())
-                            .build();
-        }
         currentEvents = currentEvents.add(correlatedEvent, pointOfEvent(uncorrelatedEvent));
         collector.collect(correlatedEvent);
     }
@@ -152,9 +161,6 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             sumOfSquared += Math.pow(feature, 2.0);
         }
         return Math.sqrt(sumOfSquared);
-    private Point pointOfEvent(CorrelateableEvent event){
-        Coordinate coordinate = event.getCoordinate();
-        return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
     }
 
     private double beelineBetween(CorrelateableEvent a, CorrelateableEvent b){
