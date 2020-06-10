@@ -143,8 +143,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
     }
 
-    private Vector<CorrelateableEvent> correlatedEventsOf(CorrelateableEvent newEvent){
-        return null;
+    private double beelineBetween(CorrelateableEvent a, CorrelateableEvent b){
+        Position positionA = Position.create(a.getCoordinate().getLatitude(),a.getCoordinate().getLongitude());
+        Position positionB = Position.create(b.getCoordinate().getLatitude(),b.getCoordinate().getLongitude());
+        return positionA.getDistanceToKm(positionB);
     }
 
     public int getK() {
