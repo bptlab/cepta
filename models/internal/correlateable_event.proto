@@ -13,8 +13,9 @@ message CorrelateableEvent {
   models.internal.types.CeptaTransportID cepta_id = 1;
   models.internal.types.Coordinate coordinate = 2;
   google.protobuf.Timestamp timestamp = 3;
+  CorrelateableEvent correlatedEvent= 4;
   oneof event {
-    models.events.LiveTrainData live_train = 4;
-    models.events.PlannedTrainData planned_train = 5;
+    models.events.LiveTrainData live_train = 5;
+    models.events.PlannedTrainData planned_train = 6;
   }
 }
