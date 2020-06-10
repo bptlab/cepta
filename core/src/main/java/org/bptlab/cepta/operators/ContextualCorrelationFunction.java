@@ -60,7 +60,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                     return positionA.getDistanceToKm(positionB);
                 })
                 //filter out events that are on the same point as the variable
-                .filter(entry -> { return entry.geometry().distance(pointLocation) != 0;})
+//                .filter(entry -> entry.geometry().distance(pointLocation) != 0)
                 // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
                 .map(entry ->
                         new Pair<>(
