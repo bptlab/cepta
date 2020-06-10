@@ -107,8 +107,12 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 uncorrelatedEvent.toBuilder().setCorrelatedEvent(closestEvent);
 
                 //delete that event from our RTree
-                currentEvents.delete(closestEvent, pointOfEvent(closestEvent));
-
+                currentEvents = currentEvents.delete(closestEvent, pointOfEvent(closestEvent));
+                correlatedEvent =
+                        correlatedEvent
+                                .toBuilder()
+                                .setCeptaId(closestEvent.getCeptaId())
+                                .build();
             } else {
                 //now we just look for the ID that is most common under those k events
                 Hashtable<Ids.CeptaTransportID, Integer> countOfIDs = new Hashtable<>();
