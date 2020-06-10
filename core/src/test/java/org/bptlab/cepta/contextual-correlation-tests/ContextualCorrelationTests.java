@@ -140,7 +140,7 @@ public class ContextualCorrelationTests{
         Vector<LiveTrainData> allLiveTrainEvents = new Vector<>();
         //now we query for each liveTrain event within these sections
         trainSectionIds.forEach(trainSectionId -> addLiveTrains(trainSectionId, allLiveTrainEvents));
-
+        allLiveTrainEvents.sort(Comparator.comparingLong(a -> a.getEventTime().getSeconds()));
         return allLiveTrainEvents;
     }
 
