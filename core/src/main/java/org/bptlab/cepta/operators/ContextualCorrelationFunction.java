@@ -73,7 +73,16 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 .toBlocking()
                 .subscribe(closeEvents::add);
 
-        CorrelateableEvent correlatedEvent;
+        CorrelateableEvent correlatedEvent =
+                uncorrelatedEvent
+                    .toBuilder()
+                    .setCeptaId(
+                            Ids.CeptaTransportID
+                                    .newBuilder()
+                                    .setId("NOT YET SET")
+                                    .build()
+                    )
+                    .build();
         if (closeEvents.size() == 0) {
             //there were no close events, so we assume that this must be a new train
             correlatedEvent =
