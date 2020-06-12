@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex, { StoreOptions } from "vuex";
+import { Notification } from "../generated/protobuf/models/internal/notifications/notification_pb";
 import { IAppState } from "./modules/app";
 import { IAuthState } from "./modules/auth";
 import { IReplayerState } from "./modules/replayer";
@@ -16,11 +17,19 @@ export interface IRootState {
 // export default new Vuex.Store<IRootState>({
 export default new Vuex.Store({
   state: {
-    websocket: ""
+    notificationList: Array<Notification>()
   },
   mutations: {
-    setWebsocket(state: { websocket: String }, websocket: String) {
-      state.websocket = websocket;
+    addNotification(state, notification: Notification) {
+      if (state.notificationList.length > 100) {
+        state.notificationList = state.notificationList.slice(-99, -1);
+      }
+      state.notificationList = [notification, ...state.notificationList];
+    }
+  },
+  actions: {
+    addNotification(context, notification: Notification) {
+      context.commit("addNotification", notification);
     }
   }
 });

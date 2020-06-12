@@ -239,11 +239,10 @@ export default class Sidebar extends Vue {
         display: inline-block
         top: 20%
         height: 60%
-        padding-right: 18px
 
     .logo-text
       +theme(color, c-logo-text)
-      padding-left: 10px
+      padding-left: 23px
 
   .mobile-toggle
     display: none

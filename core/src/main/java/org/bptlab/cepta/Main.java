@@ -83,16 +83,16 @@ public class Main implements Callable<Integer> {
   private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
 
   private void setupConsumers() {
-    this.liveTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
-          new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-          new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
-    this.plannedTrainDataConsumer =
-        new FlinkKafkaConsumer011<>(
-          Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
-            new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
-            new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
+      this.liveTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.LIVE_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("LiveTrainDataMainConsumer").getProperties());
+      this.plannedTrainDataConsumer =
+          new FlinkKafkaConsumer011<>(
+              Topic.PLANNED_TRAIN_DATA.getValueDescriptor().getName(),
+              new GenericBinaryProtoDeserializer<EventOuterClass.Event>(EventOuterClass.Event.class),
+              new KafkaConfig().withClientId("PlannedTrainDataMainConsumer").getProperties());
 
     this.weatherDataConsumer =
         new FlinkKafkaConsumer011<>(

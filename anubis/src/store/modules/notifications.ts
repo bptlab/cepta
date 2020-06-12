@@ -48,7 +48,7 @@ class Notifications extends VuexModule implements NotificationsState {
     let deserializedEvent = Notification.deserializeBinary(
       new Uint8Array(event.data)
     );
-    AppModule.addNotification(deserializedEvent);
+    store.dispatch("addNotification", deserializedEvent);
   }
 
   @Mutation
