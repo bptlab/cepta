@@ -82,6 +82,27 @@ public class Main implements Callable<Integer> {
   // Producer 
   private FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer;
 
+  /*-------------------------
+   * Begin - Monitoring Producers
+   * ------------------------*/
+
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_plannedTrainDataStream;
+
+  private void setupMonitoringProducer() {
+    KafkaConfig monitoringConfig = new KafkaConfig().withClientId("MonitoringProducer")
+            .withKeySerializer(Optional.of(LongSerializer::new));
+    this.monitor_plannedTrainDataStream =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_plannedTrainDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties());
+    this.monitor_plannedTrainDataStream.setWriteTimestampToKafka(true);
+  }
+
+
+  /*-------------------------
+   * End - Monitoring Producers
+   * ------------------------*/
   private void setupConsumers() {
     this.liveTrainDataConsumer =
         new FlinkKafkaConsumer011<>(
@@ -137,6 +158,8 @@ public class Main implements Callable<Integer> {
     this.setupConsumers();
     this.setupProducers();
 
+    this.setupMonitoringProducer();
+
     /*-------------------------
      * End - StreamExecution Environment Setup
      * ++++++++++++++++++++++++
@@ -179,9 +202,21 @@ public class Main implements Callable<Integer> {
     /*-------------------------
      * End - InputStream Setup
      * ++++++++++++++++++++++++
+     * Begin - Monitoring Producer Setup
+     * ------------------------*/
+    DataStream<EventOuterClass.Event> monitoredPlannedTrainDataStream = plannedTrainDataStream.map(new MapFunction<PlannedTrainData, Event>() {
+      @Override
+      public Event map(PlannedTrainData plannedTrainData) throws Exception {
+        Event embeddedEvent = Event.newBuilder().setPlannedTrain(plannedTrainData).build();
+        return embeddedEvent;
+      }
+    });
+    monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStream);
+    /*-------------------------
+     * End - Monitoring Producer Setup
+     * ++++++++++++++++++++++++
      * Begin - Output/Consumer Setup
      * ------------------------*/
-
     ////// TrainDelayNotification Consumer
 
     // Produce delay notifications into new Kafka queue
