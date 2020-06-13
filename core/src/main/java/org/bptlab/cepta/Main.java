@@ -86,17 +86,31 @@ public class Main implements Callable<Integer> {
    * Begin - Monitoring Producers
    * ------------------------*/
 
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_plannedTrainDataStream;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_plannedTrainDataStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_liveTrainDataStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_weatherDataStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_locationDataStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_weatherLocationStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_delayFromWeatherStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_notificationFromDelayShiftStreamProducer;
+  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_notificationFromDelayShiftenrichedProducer;
+
 
   private void setupMonitoringProducer() {
     KafkaConfig monitoringConfig = new KafkaConfig().withClientId("MonitoringProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
-    this.monitor_plannedTrainDataStream =
+    this.monitor_plannedTrainDataStreamProducer =
             new FlinkKafkaProducer011<>(
                     "MONITOR_plannedTrainDataStream",
                     new GenericBinaryProtoSerializer<>(),
                     monitoringConfig.getProperties());
-    this.monitor_plannedTrainDataStream.setWriteTimestampToKafka(true);
+    this.monitor_plannedTrainDataStreamProducer.setWriteTimestampToKafka(true);
+    this.monitor_liveTrainDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_liveTrainDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties());
+    this.monitor_liveTrainDataStreamProducer.setWriteTimestampToKafka(true);
   }
 
 
@@ -171,6 +185,7 @@ public class Main implements Callable<Integer> {
     DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
     DataStream<EventOuterClass.Event> locationDataEvents = env.addSource(locationDataConsumer);
 
+
     DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
       @Override
       public PlannedTrainData map(Event event) throws Exception{
@@ -211,7 +226,17 @@ public class Main implements Callable<Integer> {
         return embeddedEvent;
       }
     });
-    monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStream);
+    monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);
+
+    DataStream<EventOuterClass.Event> monitoredLiveTrainDataStream = liveTrainDataStream.map(new MapFunction<LiveTrainData, Event>() {
+      @Override
+      public Event map(LiveTrainData liveTrainData) throws Exception {
+        Event embeddedEvent = Event.newBuilder().setLiveTrain(liveTrainData).build();
+        return embeddedEvent;
+      }
+    });
+    monitoredLiveTrainDataStream.addSink(monitor_liveTrainDataStreamProducer);
+
     /*-------------------------
      * End - Monitoring Producer Setup
      * ++++++++++++++++++++++++
