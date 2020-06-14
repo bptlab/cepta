@@ -18,20 +18,32 @@
 
 package org.bptlab.cepta;
 
+import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternStream;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.datastream.AsyncDataStream;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
+import org.apache.flink.streaming.api.functions.co.KeyedBroadcastProcessFunction;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
+import org.apache.flink.util.Collector;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.MongoConfig;
@@ -151,8 +163,6 @@ public class Main implements Callable<Integer> {
 
     DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
     DataStream<EventOuterClass.Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
-    DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
-    DataStream<EventOuterClass.Event> locationDataEvents = env.addSource(locationDataConsumer);
 
     DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
       @Override
@@ -168,22 +178,47 @@ public class Main implements Callable<Integer> {
       }
     }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
-    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
-      @Override
-      public WeatherData map(Event event) throws Exception{
-        return event.getWeather();
-      }
-    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
-
-    DataStream<LocationData> locationDataStream = locationDataEvents.map(new MapFunction<EventOuterClass.Event, LocationData>(){
-      @Override
-      public LocationData map(Event event) throws Exception{
-        return event.getLocation();
-      }
-    });
-
     /*-------------------------
      * End - InputStream Setup
+     * ++++++++++++++++++++++++
+     * Begin - Gritta BA Kram
+     * ------------------------*/
+
+    DataStream<NotificationOuterClass.DelayNotification> delays = liveTrainDataStream
+        .connect(plannedTrainDataStream)
+        .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
+        .process(new KeyedCoProcessFunction<Long, LiveTrainData, PlannedTrainData, NotificationOuterClass.DelayNotification>(){
+
+          public transient MapState<Long, TrainState> state;
+
+          @Override
+          public void open(Configuration config){
+            MapStateDescriptor<Long, TrainState> stateDescriptor = new MapStateDescriptor<Long, TrainState>(
+                "TrainsBroadcastState",
+                TypeInformation.of(Long.class),
+                TypeInformation.of(TrainState.class));
+            state = getRuntimeContext().getMapState(stateDescriptor);
+          }
+
+          @Override
+          public void processElement1(LiveTrainData liveTrainData, Context context, Collector<NotificationOuterClass.DelayNotification> collector) throws Exception {
+            /*
+             * retrieve stuff from state
+             * update state
+             */
+
+          }
+          @Override
+          public void processElement2(PlannedTrainData plannedTrainData, Context context, Collector<NotificationOuterClass.DelayNotification> collector) throws Exception {
+            /*
+             * put stuff into state
+             */
+            
+          }
+        });
+
+    /*-------------------------
+     * End - Gritta BA Kram
      * ++++++++++++++++++++++++
      * Begin - Output/Consumer Setup
      * ------------------------*/
@@ -191,7 +226,7 @@ public class Main implements Callable<Integer> {
     ////// TrainDelayNotification Consumer
 
     // Produce delay notifications into new Kafka queue
-    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
+/*    KafkaConfig delaySenderConfig = new KafkaConfig().withClientId("TrainDelayNotificationProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
 
     FlinkKafkaProducer011<NotificationOuterClass.Notification> trainDelayNotificationProducer = new FlinkKafkaProducer011<>(
@@ -199,44 +234,17 @@ public class Main implements Callable<Integer> {
             new GenericBinaryProtoSerializer<NotificationOuterClass.Notification>(),
             delaySenderConfig.getProperties());
 
-    trainDelayNotificationProducer.setWriteTimestampToKafka(true);
-
-    ////// StaysInStation Consumer
-
-    KafkaConfig staysInStationKafkaConfig = new KafkaConfig().withClientId("StaysInStationProducer")
-            .withKeySerializer(Optional.of(LongSerializer::new));
-
-    FlinkKafkaProducer011<StaysInStationEvent> staysInStationProducer = new FlinkKafkaProducer011<>(
-            Topic.STAYS_IN_STATION.getValueDescriptor().getName(),
-            new GenericBinaryProtoSerializer<>(),
-            staysInStationKafkaConfig.getProperties());
-
-    staysInStationProducer.setWriteTimestampToKafka(true);
+    trainDelayNotificationProducer.setWriteTimestampToKafka(true);*/
 
     /*-------------------------
      * End - Output/Consumer Setup
-     * ++++++++++++++++++++++++
-     * Begin - Weather/Locations
-     * ------------------------*/
-    locationDataStream.map(new DataToPostgresDatabase<LocationData>("location",postgresConfig));
-
-    DataStream<Tuple2<WeatherData, Integer>> weatherLocationStream = AsyncDataStream
-            .unorderedWait(weatherDataStream, new WeatherLocationCorrelationFunction(postgresConfig),
-                    100000, TimeUnit.MILLISECONDS, 1);
-
-    //this is a bit weird compared to the other operators
-    DataStream<NotificationOuterClass.Notification> delayFromWeatherStream = WeatherLiveTrainJoinFunction.delayFromWeather(weatherLocationStream,liveTrainDataStream);
-
-    delayFromWeatherStream.addSink(trainDelayNotificationProducer);
-
-    /*-------------------------
-     * End - Weather
      * ++++++++++++++++++++++++
      * Begin - MongoDelayShift
      * ------------------------*/
 
     //The Stream is not necessary it passes through all events independent from a successful upload
-    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
+
+/*    DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData", mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
@@ -244,44 +252,24 @@ public class Main implements Callable<Integer> {
             .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
-    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
+    notificationFromDelayShift.addSink(trainDelayNotificationProducer);*/
+
 //    notificationFromDelayShift.print();
     /*-------------------------
      * End - MongoDelayShift
-     * ++++++++++++++++++++++++
-     * Begin - StaysInStation
-     * ------------------------*/
-
-    DataStream<StaysInStationEvent> staysInStationEventDataStream =
-            CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
-            .process(StaysInStationPattern.staysInStationProcessFunction());
-
-    staysInStationEventDataStream.addSink(staysInStationProducer);
-
-    /*-------------------------
-     * End - StaysInStation
-     * ++++++++++++++++++++++++
-     * Begin - CountOfTrainsAtStation
-     * ------------------------*/
-
-    DataStream<CountOfTrainsAtStationEvent> countOfTrainsAtStationDataStream = CountOfTrainsAtStationFunction.countOfTrainsAtStation(liveTrainDataStream);
-
-//    countOfTrainsAtStationDataStream.print();
-
-    /*-------------------------
-     * End - CountOfTrainsAtStation
      * ++++++++++++++++++++++++
      * Begin - matchedLivePlanned
      * ------------------------*/
 
     // LivePlannedCorrelationFunction Mongo
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
+
+    /*DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
-                    100000, TimeUnit.MILLISECONDS, 1);
+                    100000, TimeUnit.MILLISECONDS, 1);*/
 
     // LivePlannedCorrelationFunction Postgre
     //TODO!!
-    //This might be Very Slot, maybe Too slow for  LivePlannedCorrelationFunction!!
+    //This might be Very Slow, maybe Too slow for  LivePlannedCorrelationFunction!!
 //    plannedTrainDataStream.map(new DataToPostgresDatabase<PlannedTrainData>("planned",postgresConfig));
 
 //    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
@@ -290,41 +278,19 @@ public class Main implements Callable<Integer> {
 //                100000, TimeUnit.MILLISECONDS, 1);
 
     // DetectStationArrivalDelay
+/*
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
 
 
     trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
     trainDelayNotificationDataStream.print();
-
-    // NoMatchingPlannedTrainDataPattern
-
-    PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(
-            matchedLivePlannedStream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern());
-
-    //TODO Decide about the other 3 specialised patterns?
-
-    DataStream<NoMatchingPlannedTrainDataEvent> noMatchingPlannedTrainDataEventDataStream =
-            patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc());
+*/
 
     //TODO add consumer for these Events
 
     /*-------------------------
      * End - matchedLivePlanned
-     * ++++++++++++++++++++++++
-     * Begin - SumOfDelaysAtStation
-     * ------------------------*/
-    //TODO Discuss Has this to be this way?
-    SumOfDelayAtStationFunction sumOfDelayAtStationFunction = new SumOfDelayAtStationFunction();
-    //TODO Decided about input (Stream and events Notification VS DelayNotification) and Window
-
-    int sumOfDelayWindow = 4;
-    DataStream<Tuple2<Long, Double>> sumOfDelayAtStationStream = sumOfDelayAtStationFunction.SumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow );
-
-    //TODO Make Sink/Producer
-
-    /*-------------------------
-     * End - SumOfDelaysAtStation
      * ++++++++++++++++++++++++
      * Begin - Execution
      * ------------------------*/
@@ -336,5 +302,30 @@ public class Main implements Callable<Integer> {
   public static void main(String... args) {
     int exitCode = new CommandLine(new Main()).execute(args);
     System.exit(exitCode);
+  }
+
+  public static class StationWithTimestamp{
+    public Integer stationId;
+    public Timestamp plannedArrival;
+  }
+
+  public static class TrainState{
+    public SortedSet<StationWithTimestamp> stationsWithTimestamp;
+    public Integer delay = 0;
+    public Integer nextStation = null;
+    public Timestamp eta = null;
+  }
+
+  public static class PlannedTrainIdKeySelector implements KeySelector<PlannedTrainData, Long> {
+    @Override
+    public Long getKey(PlannedTrainData planned){
+      return planned.getTrainId();
+    }
+  }
+  public static class LiveTrainIdKeySelector implements KeySelector<LiveTrainData, Long> {
+    @Override
+    public Long getKey(LiveTrainData live){
+      return live.getTrainId();
+    }
   }
 }
