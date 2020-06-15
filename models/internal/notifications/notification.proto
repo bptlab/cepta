@@ -17,6 +17,7 @@ message Notification {
         DelayNotification delay = 100;
         HazardNotification hazard = 101;
         SystemNotification system = 102;
+        MyDelayNotification  my_delay= 103;
     }
 }
 
@@ -24,6 +25,12 @@ message DelayNotification {
     models.internal.types.CeptaTransportID transport_id = 1;
     models.internal.types.CeptaStationID station_id = 2;
     models.internal.Delay delay = 3;
+}
+
+message MyDelayNotification {
+    int64 train_id = 1;
+    int64 station_id = 2;
+    int64 delay = 3;
 }
 
 message HazardNotification {

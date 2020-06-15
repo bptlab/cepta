@@ -41,6 +41,7 @@ import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.bptlab.cepta.utils.functions.StreamUtils;
@@ -159,10 +160,10 @@ public class Main implements Callable<Integer> {
     //liveTrainDataStream.print();
     //plannedTrainDataStream.print();
 
-    DataStream<NotificationOuterClass.DelayNotification> delays = liveTrainDataStream
+    DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
         .connect(plannedTrainDataStream)
         .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
-        .process(new KeyedCoProcessFunction<Long, LiveTrainData, PlannedTrainData, NotificationOuterClass.DelayNotification>(){
+        .process(new KeyedCoProcessFunction<Long, LiveTrainData, PlannedTrainData, NotificationOuterClass.MyDelayNotification>(){
 
           public transient MapState<Long, Timestamp> stationsWithTimestampsState;
           public transient ValueState<TreeSet<StationWithTimestamp>> stationsOrderState; // ordered list representing the stations' order
@@ -195,25 +196,30 @@ public class Main implements Callable<Integer> {
           }
 
           @Override
-          public void processElement1(LiveTrainData liveTrainData, Context context, Collector<NotificationOuterClass.DelayNotification> collector) throws Exception {
+          public void processElement1(LiveTrainData liveTrainData, Context context, Collector<NotificationOuterClass.MyDelayNotification> collector) throws Exception {
             /*
              * retrieve stuff from state
              * update state
              */
             Long delay = 0L;
             try{
-              System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
+              //System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
               delay = stationsWithTimestampsState.get(liveTrainData.getStationId()).getSeconds() - liveTrainData.getEventTime().getSeconds();
             }catch (NullPointerException e){
               // there is no corresponding planned data available
             }
             delayState.update(delay);
             currentStationState.update(liveTrainData.getStationId());
+            collector.collect(
+                NotificationOuterClass.MyDelayNotification.newBuilder()
+                    .setStationId(liveTrainData.getStationId())
+                    .setTrainId(liveTrainData.getTrainId())
+                    .setDelay(delay).build());
           }
           @Override
           public void processElement2(PlannedTrainData plannedTrainData,
                                       Context context,
-                                      Collector<NotificationOuterClass.DelayNotification> collector)
+                                      Collector<NotificationOuterClass.MyDelayNotification> collector)
               throws Exception {
 
             // add entry to state or update earlier value
@@ -226,7 +232,7 @@ public class Main implements Callable<Integer> {
             }
           }
         });
-
+    delays.print();
     /*-------------------------
      * End - Gritta BA Kram
      * ++++++++++++++++++++++++
