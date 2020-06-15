@@ -22,6 +22,7 @@ MAIN_DEPS = [
     "//models/events:weather_data_java_proto",
     "//models/events:stays_in_station_event_java_proto",
     "//models/events:event_java_proto",
+    "//models/monitoring:monitor_java_proto",
     "//models/internal/types:transport_java_proto",
     "//models/internal/types:ids_java_proto",
     "//models/internal/notifications:notification_java_proto",
@@ -108,7 +109,7 @@ sub_tests = [
     "//core/src/test/java/org/bptlab/cepta/patterns:stays-in-station-tests",
     "//core/src/test/java/org/bptlab/cepta/patterns:no-matching-planned-train-data-pattern-tests",
     "//core/src/test/java/org/bptlab/cepta/detect-station-delay-tests:detect-station-arrival-delay",
-    "//core/src/test/java/org/bptlab/cepta/enrich-delay-with-coordinates-function:enrich-delay-with-coordinates-function"
+    "//core/src/test/java/org/bptlab/cepta/enrich-delay-with-coordinates-function:enrich-delay-with-coordinates-function",
 ]
 
 test_suite(

@@ -6,6 +6,7 @@ filegroup(
         "//models/gql",
         "//models/grpc",
         "//models/internal",
+        "//models/monitoring",
     ],
     visibility = ["//visibility:public"],
 )

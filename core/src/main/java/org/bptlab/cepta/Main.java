@@ -37,6 +37,7 @@ import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
+import org.bptlab.cepta.models.monitoring.monitor.MonitorOuterClass;
 import org.bptlab.cepta.operators.*;
 import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
 import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
@@ -86,14 +87,14 @@ public class Main implements Callable<Integer> {
    * Begin - Monitoring Producers
    * ------------------------*/
 
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_plannedTrainDataStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_liveTrainDataStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_weatherDataStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_locationDataStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_weatherLocationStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_delayFromWeatherStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_notificationFromDelayShiftStreamProducer;
-  private FlinkKafkaProducer011<EventOuterClass.Event> monitor_notificationFromDelayShiftenrichedProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_plannedTrainDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_liveTrainDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_weatherDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_locationDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_weatherLocationStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_delayFromWeatherStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftenrichedProducer;
 
 
   private void setupMonitoringProducer() {
@@ -219,22 +220,27 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Monitoring Producer Setup
      * ------------------------*/
-    DataStream<EventOuterClass.Event> monitoredPlannedTrainDataStream = plannedTrainDataStream.map(new MapFunction<PlannedTrainData, Event>() {
+    DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( new MonitorMapFunction<>()
+            /*new MapFunction<PlannedTrainData, MonitorOuterClass.Monitor>() {
       @Override
-      public Event map(PlannedTrainData plannedTrainData) throws Exception {
+      public MonitorOuterClass.Monitor map(PlannedTrainData plannedTrainData) throws Exception {
         Event embeddedEvent = Event.newBuilder().setPlannedTrain(plannedTrainData).build();
-        return embeddedEvent;
+        MonitorOuterClass.Monitor monitorEvent = MonitorOuterClass.Monitor.newBuilder().setEvent(embeddedEvent).build();
+        return monitorEvent;
       }
-    });
+    }*/);
+    monitoredPlannedTrainDataStream.print();
     monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);
 
-    DataStream<EventOuterClass.Event> monitoredLiveTrainDataStream = liveTrainDataStream.map(new MapFunction<LiveTrainData, Event>() {
+    DataStream<MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>()
+            /*new MapFunction<LiveTrainData, Event>() {
       @Override
       public Event map(LiveTrainData liveTrainData) throws Exception {
         Event embeddedEvent = Event.newBuilder().setLiveTrain(liveTrainData).build();
         return embeddedEvent;
       }
-    });
+    }*/);
+    monitoredLiveTrainDataStream.print();
     monitoredLiveTrainDataStream.addSink(monitor_liveTrainDataStreamProducer);
 
     /*-------------------------

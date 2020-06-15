@@ -1,0 +1,17 @@
+syntax = "proto3";
+package models.monitoring;
+option java_package = "org.bptlab.cepta.models.monitoring.monitor";
+
+import "models/events/Event.proto";
+import "models/events/CountOfTrainsAtStationEvent.proto";
+import "models/events/NoMatchingPlannedTrainDataEvent.proto";
+import "models/events/StaysInStationEvent.proto";
+import "models/internal/notifications/notification.proto";
+
+message Monitor {
+    models.events.Event Event = 1;
+    models.internal.notifications.Notification notification = 2;
+    models.events.CountOfTrainsAtStationEvent countOfTrainsAtStationEvent = 3;
+    models.events.NoMatchingPlannedTrainDataEvent noMatchingPlannedTrainDataEvent = 4;
+    models.events.StaysInStationEvent staysInStationEvent = 5;
+}
