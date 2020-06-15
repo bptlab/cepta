@@ -62,6 +62,7 @@ import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
+import org.bptlab.cepta.pyramid.*;
 
 
 @Command(
@@ -70,6 +71,13 @@ import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
     version = "0.5.0",
     description = "Captures the train events coming from the Kafka queue.")
 public class Main implements Callable<Integer> {
+
+  Hierachy cepta = new Hierachy();
+
+  Level baseLevel = cepta.addNewLevel();
+  Level hilfsLevel = cepta.addNewLevel();
+  Level HighLevel = cepta.addNewLevel();
+
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
 
@@ -131,9 +139,9 @@ public class Main implements Callable<Integer> {
     logger.info("Starting CEPTA core...");
 
     // Setup the streaming execution environment
-    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.setParallelism(1);
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    //final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    cepta.env.setParallelism(1);
+    cepta.env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
     this.setupConsumers();
     this.setupProducers();
 
@@ -143,38 +151,38 @@ public class Main implements Callable<Integer> {
      * Begin - InputStream Setup
      * ------------------------*/
 
-    DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer);
+    DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer)
     DataStream<EventOuterClass.Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
     DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
     DataStream<EventOuterClass.Event> locationDataEvents = env.addSource(locationDataConsumer);
 
-    DataStream<PlannedTrainData> plannedTrainDataStream = plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
+    DataStream<PlannedTrainData> plannedTrainDataStream = baseLevel.add(plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
       @Override
       public PlannedTrainData map(Event event) throws Exception{
         return event.getPlannedTrain();
       }
-    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
+    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor()));
 
-    DataStream<LiveTrainData> liveTrainDataStream = liveTrainDataEvents.map(new MapFunction<EventOuterClass.Event, LiveTrainData>(){
+    DataStream<LiveTrainData> liveTrainDataStream = baseLevel.add(liveTrainDataEvents.map(new MapFunction<EventOuterClass.Event, LiveTrainData>(){
       @Override
       public LiveTrainData map(Event event) throws Exception{
         return event.getLiveTrain();
       }
-    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
+    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor()));
 
-    DataStream<WeatherData> weatherDataStream = weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
+    DataStream<WeatherData> weatherDataStream = baseLevel.add(weatherDataEvents.map(new MapFunction<EventOuterClass.Event, WeatherData>(){
       @Override
       public WeatherData map(Event event) throws Exception{
         return event.getWeather();
       }
-    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
+    }).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor()));
 
-    DataStream<LocationData> locationDataStream = locationDataEvents.map(new MapFunction<EventOuterClass.Event, LocationData>(){
+    DataStream<LocationData> locationDataStream = baseLevel.add(locationDataEvents.map(new MapFunction<EventOuterClass.Event, LocationData>(){
       @Override
       public LocationData map(Event event) throws Exception{
         return event.getLocation();
       }
-    });
+    }));
 
     /*-------------------------
      * End - InputStream Setup
@@ -220,12 +228,12 @@ public class Main implements Callable<Integer> {
             .unorderedWait(locationDataStream, new DataToMongoDB<LocationData>("location",locationIndex,mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
 
-    DataStream<Tuple2<WeatherData, Long>> weatherLocationStream = AsyncDataStream
+    DataStream<Tuple2<WeatherData, Long>> weatherLocationStream = helpLevel.add(AsyncDataStream
             .unorderedWait(weatherDataStream, new WeatherLocationCorrelationMongoFunction("location",mongoConfig),
-                    100000, TimeUnit.MILLISECONDS, 1);
+                    100000, TimeUnit.MILLISECONDS, 1));
 
     //this is a bit weird compared to the other operators
-    DataStream<NotificationOuterClass.Notification> delayFromWeatherStream = WeatherLiveTrainJoinFunction.delayFromWeather(weatherLocationStream,liveTrainDataStream);
+    DataStream<NotificationOuterClass.Notification> delayFromWeatherStream = highLevel.add(WeatherLiveTrainJoinFunction.delayFromWeather(weatherLocationStream,liveTrainDataStream));
 
     delayFromWeatherStream.addSink(trainDelayNotificationProducer);
 //    delayFromWeatherStream.print();
@@ -240,9 +248,9 @@ public class Main implements Callable<Integer> {
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData",plannedTrainDataIndex, mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
-    DataStream<Notification> notificationFromDelayShift = AsyncDataStream
+    DataStream<Notification> notificationFromDelayShift = highLevel.add(AsyncDataStream
             .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
-                    100000, TimeUnit.MILLISECONDS, 1);
+                    100000, TimeUnit.MILLISECONDS, 1));
 
 //    notificationFromDelayShift.print();
 //    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
@@ -278,13 +286,13 @@ public class Main implements Callable<Integer> {
 //                100000, TimeUnit.MILLISECONDS, 1);
 
     // LivePlannedCorrelationFunction Mongo
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = hilfsLevel.add(AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
-                    100000, TimeUnit.MILLISECONDS, 1);
+                    100000, TimeUnit.MILLISECONDS, 1));
 
     // DetectStationArrivalDelay
-    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
-        .process(new DetectStationArrivalDelay()).name("train-delays");
+    DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = highLevel.add(matchedLivePlannedStream
+        .process(new DetectStationArrivalDelay()).name("train-delays"));
 
 
 //    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
@@ -292,15 +300,15 @@ public class Main implements Callable<Integer> {
     //trainDelayNotificationDataStream.print();
     trainDelayNotificationsWithCoordinates.addSink(trainDelayNotificationProducer);
     trainDelayNotificationsWithCoordinates.print();
-    // NoMatchingPlannedTrainDataPattern
 
+    // NoMatchingPlannedTrainDataPattern
     PatternStream<Tuple2<LiveTrainData, PlannedTrainData>> patternStream = CEP.pattern(
             matchedLivePlannedStream, NoMatchingPlannedTrainDataPattern.noMatchingPlannedTrainDataPattern());
 
     //TODO Decide about the other 3 specialised patterns?
 
     DataStream<NoMatchingPlannedTrainDataEvent> noMatchingPlannedTrainDataEventDataStream =
-            patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc());
+            highLevel.add(patternStream.process(NoMatchingPlannedTrainDataPattern.generateNMPTDEventsFunc()));
 
     //TODO add consumer for these Events
     /*-------------------------
@@ -310,7 +318,7 @@ public class Main implements Callable<Integer> {
      * ------------------------*/
     //TODO Decided about input (Stream and events Notification VS DelayNotification) and Window
     int sumOfDelayWindow = 4;
-    DataStream<Tuple2<Long, Long>> sumOfDelayAtStationStream = SumOfDelayAtStationFunction.sumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow );
+    DataStream<Tuple2<Long, Long>> sumOfDelayAtStationStream = highLevel.add(SumOfDelayAtStationFunction.sumOfDelayAtStation(trainDelayNotificationDataStream, sumOfDelayWindow ));
 
     //TODO Make Sink/Producer
 //    sumOfDelayAtStationStream.print();
