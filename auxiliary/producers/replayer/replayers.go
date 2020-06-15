@@ -43,6 +43,22 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	// Initialization will happen later on
 	s.mongo = new(libdb.MongoDB)
 
+	s.LiveTrainRplr = &Replayer{
+		SourceName: "mini_parallel_sample_livetraindata",
+		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
+		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
+		Topic: topics.Topic_LIVE_TRAIN_DATA,
+	}
+
+	s.PlannedTrainRplr = &Replayer{
+		SourceName: "mini_parallel_sample_plannedtraindata",
+		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
+			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
+		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
+		Topic: topics.Topic_PLANNED_TRAIN_DATA,
+	}
+
 	s.CheckpointsRplr = &Replayer{
 		SourceName: "checkpoints",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
@@ -99,14 +115,6 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 		Topic: topics.Topic_INFRASTRUCTURE_MANAGER_DATA,
 	}
 
-	s.LiveTrainRplr = &Replayer{
-		SourceName: "mini_parallel_sample_livetraindata",
-		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
-		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
-		Topic: topics.Topic_LIVE_TRAIN_DATA,
-	}
-
 	s.LocationRplr = &Replayer{
 		//SourceName: "locationdata",
 		SourceName: "eletastations",
@@ -114,14 +122,6 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 			return &eventpb.Event{Event: &eventpb.Event_Location{Location: event.(*locationpb.LocationData)}}
 		}, &locationpb.LocationData{}, setSortAndID("id", "id")),
 		Topic: topics.Topic_LOCATION_DATA,
-	}
-
-	s.PlannedTrainRplr = &Replayer{
-		SourceName: "mini_parallel_sample_plannedtraindata",
-		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
-			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
-		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId
-		Topic: topics.Topic_PLANNED_TRAIN_DATA,
 	}
 
 	s.PredictedTrainRplr = &Replayer{

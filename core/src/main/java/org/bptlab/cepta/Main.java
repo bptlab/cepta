@@ -18,28 +18,19 @@
 
 package org.bptlab.cepta;
 
-import java.sql.Timestamp;
-import java.util.Optional;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.state.MapState;
-import org.apache.flink.api.common.state.MapStateDescriptor;
+
+import com.google.protobuf.Timestamp;
+import org.apache.flink.api.common.state.*;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.cep.CEP;
-import org.apache.flink.cep.PatternStream;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
-import org.apache.flink.streaming.api.functions.co.KeyedBroadcastProcessFunction;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
@@ -49,17 +40,7 @@ import org.bptlab.cepta.config.KafkaConfig;
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
-import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEventOuterClass.*;
-import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
-import org.bptlab.cepta.models.events.info.LocationDataOuterClass.LocationData;
-import org.bptlab.cepta.operators.DelayShiftFunction;
-import org.bptlab.cepta.operators.DetectStationArrivalDelay;
-import org.bptlab.cepta.operators.LivePlannedCorrelationFunction;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
-import org.bptlab.cepta.operators.*;
-import org.bptlab.cepta.models.internal.types.ids.Ids;
-import org.bptlab.cepta.patterns.NoMatchingPlannedTrainDataPattern;
-import org.bptlab.cepta.patterns.StaysInStationPattern;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.bptlab.cepta.utils.functions.StreamUtils;
@@ -68,19 +49,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
-import org.bptlab.cepta.operators.CountOfTrainsAtStationFunction;
 import org.bptlab.cepta.models.events.event.EventOuterClass;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
-import org.bptlab.cepta.models.events.weather.WeatherDataOuterClass.WeatherData;
-import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
-import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 @Command(
     name = "cepta core",
@@ -184,20 +156,42 @@ public class Main implements Callable<Integer> {
      * Begin - Gritta BA Kram
      * ------------------------*/
 
+    //liveTrainDataStream.print();
+    //plannedTrainDataStream.print();
+
     DataStream<NotificationOuterClass.DelayNotification> delays = liveTrainDataStream
         .connect(plannedTrainDataStream)
         .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
         .process(new KeyedCoProcessFunction<Long, LiveTrainData, PlannedTrainData, NotificationOuterClass.DelayNotification>(){
 
-          public transient MapState<Long, TrainState> state;
+          public transient MapState<Long, Timestamp> stationsWithTimestampsState;
+          public transient ValueState<TreeSet<StationWithTimestamp>> stationsOrderState; // ordered list representing the stations' order
+          public transient ValueState<Long> delayState;
+          public transient ValueState<Long> currentStationState;
 
           @Override
           public void open(Configuration config){
-            MapStateDescriptor<Long, TrainState> stateDescriptor = new MapStateDescriptor<Long, TrainState>(
-                "TrainsBroadcastState",
-                TypeInformation.of(Long.class),
-                TypeInformation.of(TrainState.class));
-            state = getRuntimeContext().getMapState(stateDescriptor);
+            // set up the states
+
+            ValueStateDescriptor<TreeSet<StationWithTimestamp>> stationsOrderStateDesc = new ValueStateDescriptor<TreeSet<StationWithTimestamp>>(
+                "StationsOrderState",
+                TypeInformation.of(new TypeHint<TreeSet<StationWithTimestamp>>() { }));
+            stationsOrderState = getRuntimeContext().getState(stationsOrderStateDesc);
+
+            ValueStateDescriptor<Long> delayStateDesc = new ValueStateDescriptor<Long>(
+                "DelayState",
+                TypeInformation.of(Long.class));
+            delayState = getRuntimeContext().getState(delayStateDesc);
+
+            ValueStateDescriptor<Long> currentStationStateDesc = new ValueStateDescriptor<Long>(
+                "CurrentStationState",
+                TypeInformation.of(Long.class));
+            currentStationState = getRuntimeContext().getState(currentStationStateDesc);
+
+            MapStateDescriptor<Long, Timestamp> stationsWithTimestampsStateDesc = new MapStateDescriptor<Long, Timestamp>(
+                "StationsWithTimestampsState",
+                TypeInformation.of(Long.class), TypeInformation.of(Timestamp.class));
+            stationsWithTimestampsState = getRuntimeContext().getMapState(stationsWithTimestampsStateDesc);
           }
 
           @Override
@@ -206,14 +200,30 @@ public class Main implements Callable<Integer> {
              * retrieve stuff from state
              * update state
              */
-
+            Long delay = 0L;
+            try{
+              System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
+              delay = stationsWithTimestampsState.get(liveTrainData.getStationId()).getSeconds() - liveTrainData.getEventTime().getSeconds();
+            }catch (NullPointerException e){
+              // there is no corresponding planned data available
+            }
+            delayState.update(delay);
+            currentStationState.update(liveTrainData.getStationId());
           }
           @Override
-          public void processElement2(PlannedTrainData plannedTrainData, Context context, Collector<NotificationOuterClass.DelayNotification> collector) throws Exception {
-            /*
-             * put stuff into state
-             */
-            
+          public void processElement2(PlannedTrainData plannedTrainData,
+                                      Context context,
+                                      Collector<NotificationOuterClass.DelayNotification> collector)
+              throws Exception {
+
+            // add entry to state or update earlier value
+            stationsWithTimestampsState.put(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime());
+            try{
+              stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
+            catch (NullPointerException e){
+              //e.printStackTrace();
+              stationsOrderState.update(new TreeSet<StationWithTimestamp>());
+            }
           }
         });
 
@@ -304,16 +314,47 @@ public class Main implements Callable<Integer> {
     System.exit(exitCode);
   }
 
-  public static class StationWithTimestamp{
-    public Integer stationId;
-    public Timestamp plannedArrival;
+  public static class StationWithTimestamp implements Comparable<StationWithTimestamp>{
+    public Long stationId;
+    public com.google.protobuf.Timestamp plannedArrival;
+    public StationWithTimestamp(Long stationId, com.google.protobuf.Timestamp plannedArrival){
+      this.stationId = stationId;
+      this.plannedArrival = plannedArrival;
+    }
+
+    @Override
+    public int compareTo(StationWithTimestamp o) {
+      return compareProtoTimestamps(this.plannedArrival, o.plannedArrival);
+    }
+
+    @Override
+    public String toString() {
+      return "StationWithTimestamp {" +
+          "stationId: " + stationId.toString() +
+          ", plannedArrival: " + plannedArrival.toString() + "}";
+    }
   }
 
   public static class TrainState{
-    public SortedSet<StationWithTimestamp> stationsWithTimestamp;
+    public TreeSet<StationWithTimestamp> stationsWithTimestamp = new TreeSet<StationWithTimestamp>();
     public Integer delay = 0;
-    public Integer nextStation = null;
-    public Timestamp eta = null;
+    public TrainState(){}
+    public TrainState(TreeSet<StationWithTimestamp> stationsWithTimestamp, Integer delay){
+      this.stationsWithTimestamp = stationsWithTimestamp;
+      this.delay = delay;
+    }
+
+    @Override
+    public String toString() {
+      ArrayList<String> stations = new ArrayList<String>();
+      for (StationWithTimestamp stat : stationsWithTimestamp){
+        stations.add(stat.toString());
+      }
+      return "TrainState {" +
+          "stationsWithTimestamp: " + stations.toString() +
+          ", delay: " + delay.toString() +
+          '}';
+    }
   }
 
   public static class PlannedTrainIdKeySelector implements KeySelector<PlannedTrainData, Long> {
@@ -328,4 +369,13 @@ public class Main implements Callable<Integer> {
       return live.getTrainId();
     }
   }
+
+  private static int compareProtoTimestamps(com.google.protobuf.Timestamp t1, com.google.protobuf.Timestamp t2){
+    //  1 ; t1 > t2 : t1 is after t2
+    // -1 ; t1 < t2 : t1 is before t2
+    //  0 ; t1 = t2 : t1 and t2 are at the same time
+    Long l = t1.getSeconds();
+    return l.compareTo(t2.getSeconds());
+  }
 }
+
