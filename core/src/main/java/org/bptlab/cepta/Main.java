@@ -50,6 +50,7 @@ import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.Mongo.IndexContainer;
 import org.bptlab.cepta.utils.functions.StreamUtils;
+import org.bptlab.cepta.utils.monitor.CepMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -89,15 +90,21 @@ public class Main implements Callable<Integer> {
 
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_plannedTrainDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_liveTrainDataStreamProducer;
+  /*private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_matchedlivePlannedDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_trainDelayNotificationDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_trainDelayNotificationsWithCoordinatesDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_staysInStationEventDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_weatherDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_locationDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_weatherLocationStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_delayFromWeatherStreamProducer;
-  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftStreamProducer;
-  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftenrichedProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftDataStreamProducer;
+  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_notificationFromDelayShiftEnrichedStreamProducer;*/
 
+  private Map<String,DataStream> toMonitorStreams = new HashMap<>();
 
   private void setupMonitoringProducer() {
+
     KafkaConfig monitoringConfig = new KafkaConfig().withClientId("MonitoringProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
     this.monitor_plannedTrainDataStreamProducer =
@@ -106,12 +113,63 @@ public class Main implements Callable<Integer> {
                     new GenericBinaryProtoSerializer<>(),
                     monitoringConfig.getProperties());
     this.monitor_plannedTrainDataStreamProducer.setWriteTimestampToKafka(true);
+
     this.monitor_liveTrainDataStreamProducer =
             new FlinkKafkaProducer011<>(
                     "MONITOR_liveTrainDataStream",
                     new GenericBinaryProtoSerializer<>(),
                     monitoringConfig.getProperties());
     this.monitor_liveTrainDataStreamProducer.setWriteTimestampToKafka(true);
+
+    /*this.monitor_matchedlivePlannedDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_matchedLivePlannedDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_matchedlivePlannedDataStreamProducer.setWriteTimestampToKafka(true);
+
+    this.monitor_trainDelayNotificationDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_trainDelayNotificationDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_trainDelayNotificationDataStreamProducer.setWriteTimestampToKafka(true);
+
+    this.monitor_staysInStationEventDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_staysInStationEventDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_staysInStationEventDataStreamProducer.setWriteTimestampToKafka(true);
+
+    this.monitor_trainDelayNotificationsWithCoordinatesDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_trainDelayNotificationsWithCoordinatesDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_trainDelayNotificationsWithCoordinatesDataStreamProducer.setWriteTimestampToKafka(true);
+
+    this.monitor_notificationFromDelayShiftDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_notificationFromDelayShiftStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_notificationFromDelayShiftDataStreamProducer.setWriteTimestampToKafka(true);
+
+    this.monitor_notificationFromDelayShiftEnrichedStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_notificationFromDelayShiftEnrichedStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_notificationFromDelayShiftEnrichedStreamProducer.setWriteTimestampToKafka(true);*/
+
+//    CepMonitor.initializeMonitoring(monitoringConfig, toMonitorStreams);
   }
 
 
@@ -218,8 +276,9 @@ public class Main implements Callable<Integer> {
     /*-------------------------
      * End - InputStream Setup
      * ++++++++++++++++++++++++
-     * Begin - Monitoring Producer Setup
+     * Begin - Monitoring Producer Setup Sources
      * ------------------------*/
+    this.toMonitorStreams.put("MONITOR_plannedTrainDataStream",plannedTrainDataStream);
     DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( new MonitorMapFunction<>()
             /*new MapFunction<PlannedTrainData, MonitorOuterClass.Monitor>() {
       @Override
@@ -232,6 +291,7 @@ public class Main implements Callable<Integer> {
     monitoredPlannedTrainDataStream.print();
     monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);
 
+    this.toMonitorStreams.put("MONITOR_liveTrainDataStream",liveTrainDataStream);
     DataStream<MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>()
             /*new MapFunction<LiveTrainData, Event>() {
       @Override
@@ -244,7 +304,7 @@ public class Main implements Callable<Integer> {
     monitoredLiveTrainDataStream.addSink(monitor_liveTrainDataStreamProducer);
 
     /*-------------------------
-     * End - Monitoring Producer Setup
+     * End - Monitoring Producer Setup Sources
      * ++++++++++++++++++++++++
      * Begin - Output/Consumer Setup
      * ------------------------*/
@@ -306,16 +366,27 @@ public class Main implements Callable<Integer> {
       .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData",plannedTrainDataIndex, mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
-    DataStream<Notification> notificationFromDelayShift = AsyncDataStream
+    DataStream<Notification> notificationFromDelayShiftDataStream = AsyncDataStream
             .unorderedWait(liveTrainDataStream, new DelayShiftFunctionMongo(mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
+
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredNotificationFromDelayShift = notificationFromDelayShiftDataStream.map(new MonitorMapFunction<>());
+    monitoredNotificationFromDelayShift.addSink(monitor_notificationFromDelayShiftDataStreamProducer);
+    //Monitor <<<*/
 
 //    notificationFromDelayShift.print();
 //    notificationFromDelayShift.addSink(trainDelayNotificationProducer);
 
-    DataStream<Notification> notificationFromDelayShiftenriched = notificationFromDelayShift.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
+    DataStream<Notification> notificationFromDelayShiftEnrichedDataStream = notificationFromDelayShiftDataStream.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig));
     //notificationFromDelayShiftenriched.print();
-    notificationFromDelayShiftenriched.addSink(trainDelayNotificationProducer);
+
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredNotificationFromDelayShiftEnrichedDataStream = notificationFromDelayShiftEnrichedDataStream.map(new MonitorMapFunction<>());
+    monitoredNotificationFromDelayShiftEnrichedDataStream.addSink(monitor_notificationFromDelayShiftEnrichedStreamProducer);
+    //Monitor <<<*/
+
+    notificationFromDelayShiftEnrichedDataStream.addSink(trainDelayNotificationProducer);
     /*-------------------------
      * End - MongoDelayShift
      * ++++++++++++++++++++++++
@@ -325,6 +396,11 @@ public class Main implements Callable<Integer> {
     DataStream<StaysInStationEvent> staysInStationEventDataStream =
             CEP.pattern(liveTrainDataStream, StaysInStationPattern.staysInStationPattern)
             .process(StaysInStationPattern.staysInStationProcessFunction());
+
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredStaysInStationEventDataStream = staysInStationEventDataStream.map(new MonitorMapFunction<>());
+    monitoredStaysInStationEventDataStream.addSink(monitor_staysInStationEventDataStreamProducer);
+    //Monitor <<<*/
 
     staysInStationEventDataStream.addSink(staysInStationProducer);
 
@@ -338,23 +414,33 @@ public class Main implements Callable<Integer> {
 
 //    countOfTrainsAtStationDataStream.print();
 
-//    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream =
-//        AsyncDataStream
-//            .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunction(postgresConfig),
-//                100000, TimeUnit.MILLISECONDS, 1);
 
     // LivePlannedCorrelationFunction Mongo
     DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1);
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredMatchedLivePlannedStream = matchedLivePlannedStream.map(new MonitorMapFunction<Tuple2<LiveTrainData,PlannedTrainData>>());
+    monitoredMatchedLivePlannedStream.addSink(monitor_matchedlivePlannedDataStreamProducer);
+    //Monitor <<<*/
 
     // DetectStationArrivalDelay
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationDataStream = matchedLivePlannedStream
         .process(new DetectStationArrivalDelay()).name("train-delays");
 
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredTrainDelayNotificationDataStream = trainDelayNotificationDataStream.map(new MonitorMapFunction<>());
+    monitoredTrainDelayNotificationDataStream.addSink(monitor_trainDelayNotificationDataStreamProducer);
+    //Monitor <<<*/
 
 //    trainDelayNotificationDataStream.addSink(trainDelayNotificationProducer);
     DataStream<NotificationOuterClass.Notification> trainDelayNotificationsWithCoordinates = trainDelayNotificationDataStream.flatMap(new EnrichDelayWithCoordinatesFunction(mongoConfig) );
+
+    /*//Monitor >>>
+    DataStream<MonitorOuterClass.Monitor> monitoredtrainDelayNotificationsWithCoordinatesDataStream = trainDelayNotificationsWithCoordinates.map(new MonitorMapFunction<>());
+    monitoredtrainDelayNotificationsWithCoordinatesDataStream.addSink(monitor_trainDelayNotificationsWithCoordinatesDataStreamProducer);
+    //Monitor <<<*/
+
     //trainDelayNotificationDataStream.print();
     trainDelayNotificationsWithCoordinates.addSink(trainDelayNotificationProducer);
     trainDelayNotificationsWithCoordinates.print();
@@ -382,6 +468,14 @@ public class Main implements Callable<Integer> {
 //    sumOfDelayAtStationStream.print();
     /*-------------------------
      * End - SumOfDelaysAtStation
+     * ++++++++++++++++++++++++
+     * Begin - Setup Monitoring
+     * ------------------------*/
+
+    CepMonitor.initializeMonitoring(toMonitorStreams);
+
+    /*-------------------------
+     * End - Setup Monitoring
      * ++++++++++++++++++++++++
      * Begin - Execution
      * ------------------------*/

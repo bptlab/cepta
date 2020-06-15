@@ -9,9 +9,11 @@ import "models/events/StaysInStationEvent.proto";
 import "models/internal/notifications/notification.proto";
 
 message Monitor {
-    models.events.Event Event = 1;
-    models.internal.notifications.Notification notification = 2;
-    models.events.CountOfTrainsAtStationEvent countOfTrainsAtStationEvent = 3;
-    models.events.NoMatchingPlannedTrainDataEvent noMatchingPlannedTrainDataEvent = 4;
-    models.events.StaysInStationEvent staysInStationEvent = 5;
+    oneof monitor {
+        models.events.Event Event = 1;
+        models.internal.notifications.Notification notification = 2;
+        models.events.CountOfTrainsAtStationEvent countOfTrainsAtStationEvent = 3;
+        models.events.NoMatchingPlannedTrainDataEvent noMatchingPlannedTrainDataEvent = 4;
+        models.events.StaysInStationEvent staysInStationEvent = 5;
+    }
 }
