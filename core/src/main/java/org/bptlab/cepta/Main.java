@@ -328,7 +328,7 @@ public class Main implements Callable<Integer> {
      * Begin - Execution
      * ------------------------*/
 
-    env.execute("CEPTA CORE");
+    cepta.env.execute("CEPTA CORE");
     return 0;
   }
 
