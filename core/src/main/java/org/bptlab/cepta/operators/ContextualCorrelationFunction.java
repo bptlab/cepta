@@ -51,10 +51,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                     .build();
 
             Point pointLocation = pointOfEvent(uncorrelatedEvent);
-//        System.out.println("pointLocation :" + pointLocation);
+        System.out.println("pointLocation :" + pointLocation);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
-        currentEvents.search(pointLocation, 50, (a, b) -> {
+        currentEvents.search(pointLocation, 200, (a, b) -> {
                     Position positionA = Position.create(a.mbr().y1(),a.mbr().x1());
                     Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
                     return positionA.getDistanceToKm(positionB);
@@ -83,6 +83,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                     .build();
         if (closeEvents.size() == 0) {
             //there were no close events, so we assume that this must be a new train
+            System.out.println("No close events found, creating new ID");
             correlatedEvent =
                     correlatedEvent
                         .toBuilder()

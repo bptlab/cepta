@@ -44,6 +44,7 @@ public class ContextualCorrelationTests{
         StreamExecutionEnvironment env = setupEnv();
 
         DataStream<LiveTrainData> liveTrainDataDataStream = env
+//                .fromCollection(getLiveTrainsOfEuroRailRunId(35770866L))
                 .fromCollection(getLiveTrainsOfEuroRailRunId(40510063L))
                 .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
@@ -73,7 +74,7 @@ public class ContextualCorrelationTests{
         HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
 
         Assert.assertEquals(
-                "There should be as many correlated runs as the input runs",
+                "There should be as many correlated runs as the input runs in " + euroRailRunIds,
                 euroRailRunIds.size(),
                 distinctIds.size());
     }
@@ -124,6 +125,7 @@ public class ContextualCorrelationTests{
         collection.aggregate(Arrays.asList(
                 Aggregates.match(Filters.eq("euroRailRunId", euroRailRunId)),
                 Aggregates.project(Document.parse("{trainSectionId:1}"))
+//                ,Aggregates.sort(Document.parse("{eventTime:1}"))
             )).subscribe(findMultipleSubscriber);
 
         List<Document> trainSectionIdsDocuments = findMultipleSubscriber.get();
