@@ -3,8 +3,7 @@ package org.bptlab.cepta.pyramid;
 import java.util.ArrayList;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Preconditions;
+
 
 public class View {
     
@@ -12,7 +11,7 @@ public class View {
 
     private ArrayList<DataStream<?>> dataStreams  = new ArrayList<DataStream<?>>();
 
-    private  DataStream<?> viewStream; 
+    //private  DataStream<?> viewStream; 
 
     public <T> DataStream<T> add(DataStream<T> dataStream) {
         this.dataStreams.add(dataStream);

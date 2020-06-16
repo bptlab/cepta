@@ -1,21 +1,9 @@
 package org.bptlab.cepta.pyramid;
 
 import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.cep.CEP;
-import org.apache.flink.cep.PatternFlatSelectFunction;
-import org.apache.flink.cep.PatternStream;
-import org.apache.flink.cep.pattern.Pattern;
-import org.apache.flink.cep.pattern.conditions.IterativeCondition;
-import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.IngestionTimeExtractor;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.util.Collector;
-
-import org.bptlab.cepta.pyramid.Transformation;
 import java.util.ArrayList; // import the ArrayList class
+
 
 public class Hierachy {
 
@@ -49,11 +37,7 @@ public class Hierachy {
     return view;
   }
 
-    public void drillDown(){}
-
-    
-
-    public void addEventToLevel(){}
+    //public void drillDown(){}
 
     public JobExecutionResult execute(String jobName) throws Exception{
       return env.execute(jobName);
