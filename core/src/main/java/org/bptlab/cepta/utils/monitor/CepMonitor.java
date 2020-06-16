@@ -26,6 +26,12 @@ public class CepMonitor {
         CreateTopicsResult result = adminClient.createTopics(newTopics);
         System.out.print(result);
         adminClient.close();
+
+
+    }
+
+    public static void createMonitoringProducer(Map.Entry<String,?> incomingStream) {
+
     }
 }
 
