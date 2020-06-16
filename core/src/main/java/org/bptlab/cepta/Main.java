@@ -88,8 +88,8 @@ public class Main implements Callable<Integer> {
    * Begin - Monitoring Producers
    * ------------------------*/
 
-  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_plannedTrainDataStreamProducer;
-  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_liveTrainDataStreamProducer;
+//  private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_plannedTrainDataStreamProducer;
+  private FlinkKafkaProducer011</*Event*/MonitorOuterClass.Monitor> monitor_liveTrainDataStreamProducer;
   /*private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_matchedlivePlannedDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_trainDelayNotificationDataStreamProducer;
   private FlinkKafkaProducer011<MonitorOuterClass.Monitor> monitor_trainDelayNotificationsWithCoordinatesDataStreamProducer;
@@ -107,12 +107,12 @@ public class Main implements Callable<Integer> {
 
     KafkaConfig monitoringConfig = new KafkaConfig().withClientId("MonitoringProducer")
             .withKeySerializer(Optional.of(LongSerializer::new));
-    this.monitor_plannedTrainDataStreamProducer =
+    /*this.monitor_plannedTrainDataStreamProducer =
             new FlinkKafkaProducer011<>(
                     "MONITOR_plannedTrainDataStream",
                     new GenericBinaryProtoSerializer<>(),
                     monitoringConfig.getProperties());
-    this.monitor_plannedTrainDataStreamProducer.setWriteTimestampToKafka(true);
+    this.monitor_plannedTrainDataStreamProducer.setWriteTimestampToKafka(true);*/
 
     this.monitor_liveTrainDataStreamProducer =
             new FlinkKafkaProducer011<>(
@@ -278,21 +278,21 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Monitoring Producer Setup Sources
      * ------------------------*/
-    this.toMonitorStreams.put("MONITOR_plannedTrainDataStream",plannedTrainDataStream);
-    DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( new MonitorMapFunction<>()
-            /*new MapFunction<PlannedTrainData, MonitorOuterClass.Monitor>() {
+   /* this.toMonitorStreams.put("MONITOR_plannedTrainDataStream",plannedTrainDataStream);
+    DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( *//*new MonitorMapFunction<>()*//*
+            new MapFunction<PlannedTrainData, MonitorOuterClass.Monitor>() {
       @Override
       public MonitorOuterClass.Monitor map(PlannedTrainData plannedTrainData) throws Exception {
         Event embeddedEvent = Event.newBuilder().setPlannedTrain(plannedTrainData).build();
         MonitorOuterClass.Monitor monitorEvent = MonitorOuterClass.Monitor.newBuilder().setEvent(embeddedEvent).build();
         return monitorEvent;
       }
-    }*/);
+    });
     monitoredPlannedTrainDataStream.print();
-    monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);
+    monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);*/
 
-    this.toMonitorStreams.put("MONITOR_liveTrainDataStream",liveTrainDataStream);
-    DataStream<MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>()
+//    this.toMonitorStreams.put("MONITOR_liveTrainDataStream",liveTrainDataStream);
+    DataStream</*Event*/MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>()
             /*new MapFunction<LiveTrainData, Event>() {
       @Override
       public Event map(LiveTrainData liveTrainData) throws Exception {
@@ -472,7 +472,7 @@ public class Main implements Callable<Integer> {
      * Begin - Setup Monitoring
      * ------------------------*/
 
-    CepMonitor.initializeMonitoring(toMonitorStreams);
+//    CepMonitor.initializeMonitoring(toMonitorStreams);
 
     /*-------------------------
      * End - Setup Monitoring
