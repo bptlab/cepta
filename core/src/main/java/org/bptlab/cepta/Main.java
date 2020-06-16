@@ -75,8 +75,8 @@ public class Main implements Callable<Integer> {
   Hierachy cepta = new Hierachy();
 
   Level baseLevel = cepta.addNewLevel();
-  Level hilfsLevel = cepta.addNewLevel();
-  Level HighLevel = cepta.addNewLevel();
+  Level helpLevel = cepta.addNewLevel();
+  Level highLevel = cepta.addNewLevel();
 
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class.getName());
@@ -151,10 +151,10 @@ public class Main implements Callable<Integer> {
      * Begin - InputStream Setup
      * ------------------------*/
 
-    DataStream<EventOuterClass.Event> plannedTrainDataEvents = env.addSource(plannedTrainDataConsumer)
-    DataStream<EventOuterClass.Event> liveTrainDataEvents = env.addSource(liveTrainDataConsumer);
-    DataStream<EventOuterClass.Event> weatherDataEvents = env.addSource(weatherDataConsumer);
-    DataStream<EventOuterClass.Event> locationDataEvents = env.addSource(locationDataConsumer);
+    DataStream<EventOuterClass.Event> plannedTrainDataEvents = cepta.env.addSource(plannedTrainDataConsumer);
+    DataStream<EventOuterClass.Event> liveTrainDataEvents = cepta.env.addSource(liveTrainDataConsumer);
+    DataStream<EventOuterClass.Event> weatherDataEvents = cepta.env.addSource(weatherDataConsumer);
+    DataStream<EventOuterClass.Event> locationDataEvents = cepta.env.addSource(locationDataConsumer);
 
     DataStream<PlannedTrainData> plannedTrainDataStream = baseLevel.add(plannedTrainDataEvents.map(new MapFunction<EventOuterClass.Event, PlannedTrainData>(){
       @Override
@@ -286,7 +286,7 @@ public class Main implements Callable<Integer> {
 //                100000, TimeUnit.MILLISECONDS, 1);
 
     // LivePlannedCorrelationFunction Mongo
-    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = hilfsLevel.add(AsyncDataStream
+    DataStream<Tuple2<LiveTrainData, PlannedTrainData>> matchedLivePlannedStream = helpLevel.add(AsyncDataStream
             .unorderedWait(liveTrainDataStream, new LivePlannedCorrelationFunctionMongo( mongoConfig),
                     100000, TimeUnit.MILLISECONDS, 1));
 
@@ -327,7 +327,7 @@ public class Main implements Callable<Integer> {
      * ++++++++++++++++++++++++
      * Begin - Execution
      * ------------------------*/
-
+    highLevel.printLevel();
     cepta.env.execute("CEPTA CORE");
     return 0;
   }

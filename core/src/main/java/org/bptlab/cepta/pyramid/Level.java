@@ -5,7 +5,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.bptlab.cepta.pyramid.Level;
 
 public class Level {
-    public int id = 1;
     
     private ArrayList<DataStream<?>> dataStreams  = new ArrayList<DataStream<?>>();
 
@@ -33,5 +32,4 @@ public class Level {
   
 
 
-}
 }
