@@ -1550,3 +1550,59 @@ go_repository(
     sum = "h1:6Su7aK7lXmJ/U79bYtBjLNaha4Fs1Rg9plHpcH+vvnE=",
     version = "v0.1.6",
 )
+
+go_repository(
+    name = "com_github_jameslmilner_pip_go",
+    importpath = "github.com/JamesLMilner/pip-go",
+    sum = "h1:bjNgq82N34iXnqnnKejMvzBlOPhVZIF/7wW4nN7IZAc=",
+    version = "v0.0.0-20180711171552-99c4cbbc7deb",
+)
+
+go_repository(
+    name = "com_github_paulmach_orb",
+    importpath = "github.com/paulmach/orb",
+    sum = "h1:C8klK4r0mR0MnfSk+GvEFFKLrQVwjQ+FlhtXgpaupjg=",
+    version = "v0.1.6",
+)
+
+go_repository(
+    name = "org_gonum_v1_plot",
+    importpath = "gonum.org/v1/plot",
+    sum = "h1:Otpxyvra6Ie07ft50OX5BrCfS/BWEMvhsCUHwPEJmLI=",
+    version = "v0.7.0",
+)
+
+go_repository(
+    name = "org_golang_x_image",
+    importpath = "golang.org/x/image",
+    sum = "h1:6WW6V3x1P/jokJBpRQYUJnMHRP6isStQwCozxnU7XQw=",
+    version = "v0.0.0-20200430140353-33d19683fad8",
+)
+
+go_repository(
+    name = "com_github_golang_freetype",
+    importpath = "github.com/golang/freetype",
+    sum = "h1:DACJavvAHhabrF08vX0COfcOBJRhZ8lUbR+ZWIs0Y5g=",
+    version = "v0.0.0-20170609003504-e2365dfdc4a0",
+)
+
+go_repository(
+    name = "com_github_ajstarks_svgo",
+    importpath = "github.com/ajstarks/svgo",
+    sum = "h1:kWzLcty5V2rzOqJM7Tp/MfSX0RMSI1x4IOLApEefYxA=",
+    version = "v0.0.0-20200320125537-f189e35d30ca",
+)
+
+go_repository(
+    name = "com_github_jung_kurt_gofpdf",
+    importpath = "github.com/jung-kurt/gofpdf",
+    sum = "h1:jgbatWHfRlPYiK85qgevsZTHviWXKwB1TTiKdz5PtRc=",
+    version = "v1.16.2",
+)
+
+go_repository(
+    name = "com_github_fogleman_gg",
+    importpath = "github.com/fogleman/gg",
+    sum = "h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=",
+    version = "v1.3.0",
+)

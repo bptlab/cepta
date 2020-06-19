@@ -21,3 +21,4 @@ message LiveTrainData {
     int64 message_status = 13; // (1 = created / 2 = modified / 3 = deleted)
     google.protobuf.Timestamp ingestion_time = 14;
 }
+
