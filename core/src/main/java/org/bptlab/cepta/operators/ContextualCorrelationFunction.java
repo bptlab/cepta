@@ -172,6 +172,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 .getSeconds());
         features.add(beelineBetween(eventA, eventB));;
 
+        if (eventB.getCorrelatedEvent() != null) {
+            //if they are in a straight line they dont have much distance
+            features.add(Math.PI - angleBetween(eventA, eventB, eventA.getCorrelatedEvent()));
+        }
         Double sumOfSquared = 0.0;
         for (Double feature : features) {
             sumOfSquared += Math.pow(feature, 2.0);
