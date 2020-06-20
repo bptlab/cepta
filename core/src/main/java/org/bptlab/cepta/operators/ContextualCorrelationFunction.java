@@ -6,7 +6,9 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Geometry;
 import com.github.davidmoten.rtree.geometry.Point;
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.util.Timestamps;
+import org.apache.flink.api.common.aggregators.DoubleZeroConvergence;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.config.MongoConfig;
@@ -16,6 +18,7 @@ import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.javatuples.Pair;
 
+import javax.vecmath.Vector3d;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -144,7 +147,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             }
             }
 
-        currentEvents = currentEvents.add(correlatedEvent, pointOfEvent(uncorrelatedEvent));
+        currentEvents = currentEvents.add(correlatedEvent, pointOfEvent(correlatedEvent));
         collector.collect(correlatedEvent);
     }
 
@@ -166,6 +169,40 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             sumOfSquared += Math.pow(feature, 2.0);
         }
         return Math.sqrt(sumOfSquared);
+    }
+
+    public double angleBetween (CorrelateableEvent a, CorrelateableEvent b, CorrelateableEvent c){
+        /*
+        the approach is to map the coordinates to (x,y,z) coordinates on a unit sphere
+        then we use the https://en.wikipedia.org/wiki/Law_of_cosines to determine the angle
+         */
+        Vector3d vecA = coordinateToXYZ(a.getCoordinate());
+        Vector3d vecB = coordinateToXYZ(a.getCoordinate());
+        Vector3d vecC = coordinateToXYZ(a.getCoordinate());
+
+        Vector3d vecAB = new Vector3d(vecB.x - vecA.x, vecB.y - vecA.y, vecB.z - vecA.z);
+        Vector3d vecBC = new Vector3d(vecC.x - vecB.x, vecC.y - vecB.y, vecC.z - vecB.z);
+
+        return  vecAB.angle(vecBC);
+    }
+
+    public Vector3d coordinateToXYZ(Coordinate coordinate){
+        /*
+        taken after https://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
+
+        z axis is between north and south pole
+        x axis is between (0,0) and the center
+        y axis is between (0,90) and the center
+         */
+
+        double latitudeInRad = Math.PI * coordinate.getLatitude() / 180;
+        double longitudeInRad = Math.PI * coordinate.getLongitude() / 180;
+
+        double xPos = Math.cos(latitudeInRad) * Math.cos(longitudeInRad);
+        double yPos = Math.cos(latitudeInRad) * Math.sin(longitudeInRad);
+        double zPos = Math.sin(latitudeInRad);
+
+        return new Vector3d(xPos, yPos, zPos);
     }
 
     private double beelineBetween(CorrelateableEvent a, CorrelateableEvent b){
