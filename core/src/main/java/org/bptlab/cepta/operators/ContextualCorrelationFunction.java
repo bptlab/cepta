@@ -156,6 +156,14 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
         return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
     }
 
+    private double euclideanDistance(Collection<Number> features){
+        Double sumOfSquared = 0.0;
+        for (Number feature : features) {
+            sumOfSquared += Math.pow(feature.doubleValue(), 2.0);
+        }
+        return Math.sqrt(sumOfSquared);
+    }
+
     private double euclideanDistance(CorrelateableEvent eventA, CorrelateableEvent eventB){
         Vector<Double> features = new Vector<Double>();
         features.add((double) Timestamps.between(
