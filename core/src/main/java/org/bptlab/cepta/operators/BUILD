@@ -25,6 +25,7 @@ java_library(
         "@maven//:com_github_davidmoten_rtree",
         "@maven//:com_github_davidmoten_grumpy_core",
         "@maven//:io_reactivex_rxjava3_rxjava",
+        "@maven//:javax_vecmath_vecmath",
         "@maven//:com_github_jasync_sql_jasync_common",
         "@maven//:com_github_jasync_sql_jasync_postgresql",
         "@maven//:com_google_protobuf_protobuf_java",

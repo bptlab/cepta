@@ -187,6 +187,7 @@ maven_install(
         "com.github.davidmoten:rtree:0.8.7",
         "com.github.davidmoten:grumpy-core:0.2.4",
         "io.reactivex.rxjava3:rxjava:3.0.4",
+        "javax.vecmath:vecmath:1.5.2",
         "joda-time:joda-time:2.9.7",
         "org.apache.kafka:kafka-clients:2.4.0",
         "org.apache.flink:flink-core:%s" % FLINK_VERSION,
