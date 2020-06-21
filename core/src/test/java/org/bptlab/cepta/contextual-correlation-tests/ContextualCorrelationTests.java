@@ -16,6 +16,7 @@ import org.bptlab.cepta.operators.ContextualCorrelationFunction;
 import org.bptlab.cepta.operators.LiveTrainToCorrelateable;
 import org.bptlab.cepta.operators.StationToCoordinateMap;
 import org.bptlab.cepta.utils.database.Mongo;
+import org.bptlab.cepta.utils.database.Util;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.utils.functions.StreamUtils;
 
@@ -127,12 +128,11 @@ public class ContextualCorrelationTests{
 
         int[] testSizes = new int[] {1,5,10, 20, 50 , 100, 250, 500, 1000};
 
-        for (int testSize : testSizes) {
-//            for (int runCount = 0; runCount < 1000/testSize; runCount++){
-//
-//            }
+        //we set the same mapping to all conversions, that way we only have to load the stations once
+        StationToCoordinateMap map = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
 
-            Vector<LiveTrainData> thisRun = new Vector<>();
+        for (int testSize : testSizes) {
+            Vector<LiveTrainData> testData = new Vector<>();
             Collections.shuffle(allTrainruns);
             //add testSize-many trainruns
             int trainRunIndex = 0;
@@ -142,12 +142,19 @@ public class ContextualCorrelationTests{
                     Collections.shuffle(allTrainruns);
                     nextRandomTrainRun = 0;
                 }
-                thisRun.addAll(allTrainruns.get(nextRandomTrainRun));
+                testData.addAll(allTrainruns.get(nextRandomTrainRun));
                 nextRandomTrainRun++;
             }
 
+            testData.sort(Comparator.comparingLong(a -> a.getEventTime().getSeconds()));
+            StreamExecutionEnvironment env = setupEnv();
+            DataStream<CorrelateableEvent> testStream =
+                    env.fromCollection(testData)
+                            .flatMap(new LiveTrainToCorrelateable()
+                                    .setStationToCoordinateMap(map))
+                    .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor())
+                    .flatMap(new ContextualCorrelationFunction());
         }
-
         System.out.println("Hallo :)");
 
     }
