@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
 
@@ -91,6 +92,63 @@ public class ContextualCorrelationTests{
         testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(35770866L));
         testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(40510063L));
         testSameAmountOfCorrelatedTrainrunsAsInputTrainruns(Arrays.asList(40510063L, 35770866L));
+
+    }
+
+    @Test
+    public void testCorrelationAccuracyAcrossDifferentSamples(){
+        //first we need to retrieve our testdata
+        SubscriberHelpers.OperationSubscriber<Document> subscriber = new SubscriberHelpers.OperationSubscriber<>();
+
+        MongoDatabase database = mongoClient.getDatabase("replay");
+        MongoCollection<Document> collection = database.getCollection("testing_data_for_correlation");
+        collection.find().subscribe(subscriber);
+        List<Document> result = subscriber.get();
+        Vector<Vector<LiveTrainData>> allTrainruns= new Vector<>();
+        Hashtable<Long, Long> correctCorrelation = new Hashtable<>();
+
+        /*
+        this is really not nice :<
+        each testSample has a trainrunId (entry.get("_id")), an array of sectionIds
+        and an array of
+         */
+        result.forEach(entry -> {
+            Vector<LiveTrainData> aTrainrun = new Vector<>();
+            //this takes all liveTrains for this run and converts the documents into live-events
+            ((ArrayList<Document>) entry.get("matchedLiveTrains")).forEach(liveTrainDocument-> {
+                aTrainrun.add(Mongo.documentToLiveTrainData(liveTrainDocument));
+            });
+            allTrainruns.add(aTrainrun);
+
+            ((ArrayList<Long>) entry.get("sectionIds")).forEach(sectionId -> {
+                correctCorrelation.put(sectionId, (Long) entry.get("_id"));
+            });
+        });
+
+        int[] testSizes = new int[] {1,5,10, 20, 50 , 100, 250, 500, 1000};
+
+        for (int testSize : testSizes) {
+//            for (int runCount = 0; runCount < 1000/testSize; runCount++){
+//
+//            }
+
+            Vector<LiveTrainData> thisRun = new Vector<>();
+            Collections.shuffle(allTrainruns);
+            //add testSize-many trainruns
+            int trainRunIndex = 0;
+            int nextRandomTrainRun = 0;
+            for (int trainRun = 0; trainRun < testSize; trainRun++){
+                if (nextRandomTrainRun > allTrainruns.size()){
+                    Collections.shuffle(allTrainruns);
+                    nextRandomTrainRun = 0;
+                }
+                thisRun.addAll(allTrainruns.get(nextRandomTrainRun));
+                nextRandomTrainRun++;
+            }
+
+        }
+
+        System.out.println("Hallo :)");
 
     }
 
