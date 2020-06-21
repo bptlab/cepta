@@ -6,13 +6,9 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Geometry;
 import com.github.davidmoten.rtree.geometry.Point;
-import com.google.protobuf.DoubleValue;
 import com.google.protobuf.util.Timestamps;
-import org.apache.flink.api.common.aggregators.DoubleZeroConvergence;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.util.Collector;
-import org.bptlab.cepta.config.MongoConfig;
-import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
@@ -23,40 +19,27 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrainDataOuterClass.LiveTrainData, CorrelateableEvent> {
-
-    private StationToCoordinateMap stationToCoordinateMap;
+public class ContextualCorrelationFunction extends RichFlatMapFunction<CorrelateableEvent, CorrelateableEvent> {
 
     private int k = 1;
 
     private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
-    public ContextualCorrelationFunction(String datebaseName, String tableName, MongoConfig mongoConfig) {
-        this.stationToCoordinateMap = new StationToCoordinateMap(datebaseName, tableName, mongoConfig);
-    }
-
-    public StationToCoordinateMap getMapping(){ return stationToCoordinateMap;}
-
     /**
      * This is the method that gets called for every incoming to-be-correlated Event
-     * @param liveTrainData
+     * @param event
      * @param collector
      * @throws Exception
      */
     @Override
-    public void flatMap(LiveTrainDataOuterClass.LiveTrainData liveTrainData, Collector<CorrelateableEvent> collector) throws Exception {
+    public void flatMap(CorrelateableEvent event, Collector<CorrelateableEvent> collector) throws Exception {
 //        System.out.println("processing " + liveTrainData.getTrainId());
-        CorrelateableEvent uncorrelatedEvent =
-                CorrelateableEvent.newBuilder()
-                        .setCoordinate(stationToCoordinateMap.get(liveTrainData.getStationId()))
-                        .setTimestamp(liveTrainData.getEventTime())
-                        .setLiveTrain(liveTrainData)
-                    .build();
 
-            Point pointLocation = pointOfEvent(uncorrelatedEvent);
+            Point pointLocation = pointOfEvent(event);
         System.out.println("pointLocation :" + pointLocation);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
+        CorrelateableEvent finalEvent = event;
         currentEvents.search(pointLocation, 200, (a, b) -> {
                     Position positionA = Position.create(a.mbr().y1(),a.mbr().x1());
                     Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
@@ -68,32 +51,22 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                 .map(entry ->
                         new Pair<>(
                                 entry,
-                                euclideanDistance(entry.value(), uncorrelatedEvent)
+                                euclideanDistance(entry.value(), finalEvent)
                         )
                 )
                 .toBlocking()
                 .subscribe(closeEvents::add);
 
-        CorrelateableEvent correlatedEvent =
-                uncorrelatedEvent
-                    .toBuilder()
-                    .setCeptaId(
-                            Ids.CeptaTransportID
-                                    .newBuilder()
-                                    .setId("NOT YET SET")
-                                    .build()
-                    )
-                    .build();
         if (closeEvents.size() == 0) {
             //there were no close events, so we assume that this must be a new train
             System.out.println("No close events found, creating new ID");
-            correlatedEvent =
-                    correlatedEvent
+            event =
+                    event
                         .toBuilder()
                             .setCeptaId(
                                     Ids.CeptaTransportID
                                             .newBuilder()
-                                            .setId(uncorrelatedEvent.getLiveTrain().getTrainSectionId() + "@" + uncorrelatedEvent.getTimestamp())
+                                            .setId(event.getLiveTrain().getTrainSectionId() + "@" + event.getTimestamp())
                                             .build()
                             )
                         .build();
@@ -108,12 +81,12 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
             if (k == 1){
                 //we only look at the nearest event, correlate to that and delete the previous one
                 CorrelateableEvent closestEvent = closeEvents.firstElement().getValue0().value();
-                uncorrelatedEvent.toBuilder().setCorrelatedEvent(closestEvent);
+                event.toBuilder().setCorrelatedEvent(closestEvent);
 
                 //delete that event from our RTree
                 currentEvents = currentEvents.delete(closestEvent, pointOfEvent(closestEvent));
-                correlatedEvent =
-                        correlatedEvent
+                event =
+                        event
                                 .toBuilder()
                                 .setCeptaId(closestEvent.getCeptaId())
                                 .build();
@@ -139,16 +112,16 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<LiveTrain
                     e.printStackTrace();
                 }
 
-                correlatedEvent =
-                        uncorrelatedEvent
+                event =
+                        event
                                 .toBuilder()
                                 .setCeptaId(mostCommonID.get())
                                 .build();
             }
             }
 
-        currentEvents = currentEvents.add(correlatedEvent, pointOfEvent(correlatedEvent));
-        collector.collect(correlatedEvent);
+        currentEvents = currentEvents.add(event, pointOfEvent(event));
+        collector.collect(event);
     }
 
     private Point pointOfEvent(CorrelateableEvent event){

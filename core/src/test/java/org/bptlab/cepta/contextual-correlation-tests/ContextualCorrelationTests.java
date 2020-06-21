@@ -1,6 +1,5 @@
 package org.bptlab.cepta;
 
-import com.google.protobuf.util.Timestamps;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
@@ -14,6 +13,8 @@ import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.*;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
 import org.bptlab.cepta.operators.ContextualCorrelationFunction;
+import org.bptlab.cepta.operators.LiveTrainToCorrelateable;
+import org.bptlab.cepta.operators.StationToCoordinateMap;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.utils.functions.StreamUtils;
@@ -48,8 +49,12 @@ public class ContextualCorrelationTests{
                 .fromCollection(getLiveTrainsOfEuroRailRunId(40510063L))
                 .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
 
-        DataStream<CorrelateableEvent> sampleStream = liveTrainDataDataStream
-                        .flatMap(new ContextualCorrelationFunction("replay", "eletastations", this.getMongoConfig()));
+        StationToCoordinateMap stationToCoordinateMap = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
+        LiveTrainToCorrelateable liveTrainToCorrelateable = new LiveTrainToCorrelateable().setStationToCoordinateMap(stationToCoordinateMap);
+
+        DataStream<CorrelateableEvent> enrichedEvents = liveTrainDataDataStream.flatMap(liveTrainToCorrelateable);
+
+        DataStream<CorrelateableEvent> sampleStream = enrichedEvents.flatMap(new ContextualCorrelationFunction());
 
 
         Vector<CorrelateableEvent> sampleStreamElements = StreamUtils.collectStreamToVector(sampleStream);
@@ -68,7 +73,9 @@ public class ContextualCorrelationTests{
         euroRailRunIds.forEach(id -> allInputEvents.addAll(getLiveTrainsOfEuroRailRunId(id)));
         DataStream<LiveTrainData> inputStream = env.fromCollection(allInputEvents).assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor());
         DataStream<CorrelateableEvent> outputStream =
-                inputStream.flatMap(new ContextualCorrelationFunction("replay", "eletastations", this.getMongoConfig()));
+                inputStream
+                        .flatMap(new LiveTrainToCorrelateable().setStationToCoordinateMap(new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig())))
+                        .flatMap(new ContextualCorrelationFunction());
         Vector<Ids.CeptaTransportID> allIds = new Vector<>();
         StreamUtils.collectStreamToVector(outputStream).forEach(event -> allIds.add(event.getCeptaId()));
         HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
