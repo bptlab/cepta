@@ -13,7 +13,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.bptlab.cepta.config.MongoConfig;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.*;
-import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
@@ -21,7 +20,6 @@ import org.bptlab.cepta.operators.ContextualCorrelationFunction;
 import org.bptlab.cepta.operators.LiveTrainToCorrelateable;
 import org.bptlab.cepta.operators.StationToCoordinateMap;
 import org.bptlab.cepta.utils.database.Mongo;
-import org.bptlab.cepta.utils.database.Util;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bptlab.cepta.utils.functions.StreamUtils;
 
@@ -31,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
 
