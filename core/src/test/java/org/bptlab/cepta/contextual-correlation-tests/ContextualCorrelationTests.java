@@ -236,7 +236,7 @@ public class ContextualCorrelationTests{
     }
 
     @Test
-    public void testCorrelationAccuracyAcrossDifferentSamples(){
+    public void testCorrelationAccuracyAcrossDifferentSamples() throws Exception {
         //first we need to retrieve our testdata
         SubscriberHelpers.OperationSubscriber<Document> subscriber = new SubscriberHelpers.OperationSubscriber<>();
 
@@ -265,37 +265,84 @@ public class ContextualCorrelationTests{
             });
         });
 
-        int[] testSizes = new int[] {1,5,10, 20, 50 , 100, 250, 500, 1000};
+        int[] testSizes = new int[] {1,5,10, 20, 50 , 100};
+        Long[] distanceWindows = new Long[] {10L, 25L, 50L, 100L, 250L, 500L};
 
+        //time windows are in minutes
+        int[] timeWindows = new int[] {60, 120 , 360, 720, 1440};
+        int repeatCount = 10;
+
+        final int runsPerSize = 1000;
         //we set the same mapping to all conversions, that way we only have to load the stations once
         StationToCoordinateMap map = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
+        LiveTrainToCorrelateable conversion = new LiveTrainToCorrelateable().setStationToCoordinateMap(map);
 
-        for (int testSize : testSizes) {
-            Vector<LiveTrainData> testData = new Vector<>();
-            Collections.shuffle(allTrainruns);
-            //add testSize-many trainruns
-            int trainRunIndex = 0;
-            int nextRandomTrainRun = 0;
-            for (int trainRun = 0; trainRun < testSize; trainRun++){
-                if (nextRandomTrainRun > allTrainruns.size()){
-                    Collections.shuffle(allTrainruns);
-                    nextRandomTrainRun = 0;
+        for (Long distanceWindow : distanceWindows){
+            for (int timeWindow : timeWindows){
+                for (double timeWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
+                    for (double distanceWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
+                        for (double directionWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
+                            for (int i = 0; i < repeatCount; i++) {
+                                for (int testSize : testSizes) {
+                                    Vector<LiveTrainData> testData = new Vector<>();
+                                    Collections.shuffle(allTrainruns);
+                                    //add testSize-many trainruns
+                                    int nextRandomTrainRun = 0;
+                                    for (int trainRun = 0; trainRun < testSize; trainRun++){
+                                        if (nextRandomTrainRun > allTrainruns.size()){
+                                            Collections.shuffle(allTrainruns);
+                                            nextRandomTrainRun = 0;
+                                        }
+                                        testData.addAll(allTrainruns.get(nextRandomTrainRun));
+                                        nextRandomTrainRun++;
+                                    }
+
+                                    ContextualCorrelationFunction correlationFunctionWithWeights = new ContextualCorrelationFunction()
+                                            .setDirectionWeight(directionWeight)
+                                            .setDistanceWeight(distanceWeight)
+                                            .setTimeWeight(timeWeight)
+                                            .setMaxDistance(distanceWindow)
+                                            .setMaxTimespan(Durations.fromMinutes(timeWindow));
+
+                                    testData.sort(Comparator.comparingLong(a -> a.getEventTime().getSeconds()));
+                                    StreamExecutionEnvironment env = setupEnv();
+                                    DataStream<CorrelateableEvent> testStream =
+                                            env.fromCollection(testData)
+                                                    //this part takes a pretty long time which is fairly unfortunate :(
+                                                    .flatMap(conversion)
+                                                    .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor())
+                                                    .flatMap(correlationFunctionWithWeights);
+
+                                    //now we want to check how accurate the correlation was
+                                    Vector<CorrelateableEvent> correlatedEvents = StreamUtils.collectStreamToVector(testStream);
+
+                                    Integer countOfWronglyCorrelated = 0;
+
+                                    for (CorrelateableEvent correlatedEvent : correlatedEvents) {
+                                        /*
+                                            for our testing purposes, each ID is the trainSectionID "@" the time it occured
+                                            that way we have different IDs when a train start is detected
+                                         */
+                                        Long correlatedTrainRun = correctCorrelation.get(Long.valueOf(correlatedEvent.getCeptaId().getId().split("@")[0]));
+                                        Long actualCorrectTrainRun = correctCorrelation.get(correlatedEvent.getLiveTrain().getTrainSectionId());
+
+                                        if (!correlatedTrainRun.equals(actualCorrectTrainRun)){
+                                            countOfWronglyCorrelated++;
+                                        }
+                                    }
+
+                                    Vector<Ids.CeptaTransportID> allIds = new Vector<>();
+                                    correlatedEvents.forEach(event -> allIds.add(event.getCeptaId()));
+                                    HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
+
+                                    System.out.println("Did size: " + testSize + " with " + testData.size() +" got " + distinctIds.size() + " and " + countOfWronglyCorrelated + " wrongly correlated");
+                                }
+                            }
+                        }
+                    }
                 }
-                testData.addAll(allTrainruns.get(nextRandomTrainRun));
-                nextRandomTrainRun++;
             }
-
-            testData.sort(Comparator.comparingLong(a -> a.getEventTime().getSeconds()));
-            StreamExecutionEnvironment env = setupEnv();
-            DataStream<CorrelateableEvent> testStream =
-                    env.fromCollection(testData)
-                            .flatMap(new LiveTrainToCorrelateable()
-                                    .setStationToCoordinateMap(map))
-                    .assignTimestampsAndWatermarks(StreamUtils.eventTimeExtractor())
-                    .flatMap(new ContextualCorrelationFunction());
         }
-        System.out.println("Hallo :)");
-
     }
 
     private MongoConfig getMongoConfig(){
