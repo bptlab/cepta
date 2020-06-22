@@ -225,4 +225,8 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     public void setMaxTimespan(Duration maxTimespan) {
         this.maxTimespan = maxTimespan;
     }
+    
+    public Duration getMaxTimespan(){
+        return this.maxTimespan;
+    }
 }
