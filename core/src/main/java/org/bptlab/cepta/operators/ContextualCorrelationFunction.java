@@ -146,16 +146,23 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     }
 
     private double euclideanDistance(CorrelateableEvent eventA, CorrelateableEvent eventB){
+        /*
+        we calculate the knn-distance between two events over the timespan,
+        spacial distance and the angle the train would drive
+
+        we also normalize these events according their maximum values, so that they are in [0,1].
+         */
+
         Vector<Double> features = new Vector<Double>();
         features.add((double) Timestamps.between(
                 eventA.getTimestamp(),
                 eventB.getTimestamp())
-                .getSeconds());
-        features.add(beelineBetween(eventA, eventB));;
+                .getSeconds() / this.maxTimespan.getSeconds());
+        features.add(beelineBetween(eventA, eventB)/this.maxDistance);;
 
         if (eventB.getCorrelatedEvent() != null) {
             //if they are in a straight line they dont have much distance
-            features.add(Math.PI - angleBetween(eventA, eventB, eventA.getCorrelatedEvent()));
+            features.add(angleBetween(eventA, eventB, eventA.getCorrelatedEvent()) / Math.PI);
         }
         Double sumOfSquared = 0.0;
         for (Double feature : features) {
