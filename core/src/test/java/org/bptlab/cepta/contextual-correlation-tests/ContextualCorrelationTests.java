@@ -200,6 +200,38 @@ public class ContextualCorrelationTests{
     }
 
     @Test
+    public void testEventsInStraightLineHaveStraightAngle(){
+        CorrelateableEvent start = CorrelateableEvent
+                .newBuilder()
+                .setCoordinate(
+                        CoordinateOuterClass.Coordinate
+                                .newBuilder()
+                                .setLongitude(0)
+                                .setLatitude(0)
+                                .build())
+                .build();
+        CorrelateableEvent middle = CorrelateableEvent
+                .newBuilder()
+                .setCoordinate(
+                        CoordinateOuterClass.Coordinate
+                                .newBuilder()
+                                .setLongitude(0)
+                                .setLatitude(1)
+                                .build())
+                .build();
+        CorrelateableEvent end = CorrelateableEvent
+                .newBuilder()
+                .setCoordinate(
+                        CoordinateOuterClass.Coordinate
+                                .newBuilder()
+                                .setLongitude(0)
+                                .setLatitude(2)
+                                .build())
+                .build();
+        Assert.assertEquals(Math.PI, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+    }
+
+    @Test
     public void testCorrelationAccuracyAcrossDifferentSamples(){
         //first we need to retrieve our testdata
         SubscriberHelpers.OperationSubscriber<Document> subscriber = new SubscriberHelpers.OperationSubscriber<>();
