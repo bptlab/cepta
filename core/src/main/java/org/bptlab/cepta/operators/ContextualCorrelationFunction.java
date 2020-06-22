@@ -214,25 +214,43 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         return k;
     }
 
-    public void setK(int k) {
+    public ContextualCorrelationFunction setK(int k) {
         this.k = Math.max(k, 1);
+        return this;
     }
 
     /**
      * @param maxDistance in km
      */
-    public void setMaxDistance(Long maxDistance) {
+    public ContextualCorrelationFunction setMaxDistance(Long maxDistance) {
         this.maxDistance = Math.max(maxDistance, 0);
+        return this;
     }
 
     /**
      * @param maxTimespan in seconds
      */
-    public void setMaxTimespan(Duration maxTimespan) {
+    public ContextualCorrelationFunction setMaxTimespan(Duration maxTimespan) {
         this.maxTimespan = maxTimespan;
+        return this;
     }
 
     public Duration getMaxTimespan(){
         return this.maxTimespan;
+    }
+
+    public ContextualCorrelationFunction setTimeWeight(double timeWeight) {
+        this.timeWeight = timeWeight;
+        return this;
+    }
+
+    public ContextualCorrelationFunction setDistanceWeight(double distanceWeight) {
+        this.distanceWeight = distanceWeight;
+        return this;
+    }
+
+    public ContextualCorrelationFunction setDirectionWeight(double directionWeight) {
+        this.directionWeight = directionWeight;
+        return this;
     }
 }
