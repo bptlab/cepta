@@ -86,9 +86,9 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
             closeEvents.removeIf(Objects::isNull);
 
             if (k == 1){
-                //we only look at the nearest event, correlate to that and delete the previous one
+                //we only look at the nearest event, correlate to that and delete the previous one from our running trains
                 CorrelateableEvent closestEvent = closeEvents.firstElement().getValue0().value();
-                event.toBuilder().setCorrelatedEvent(closestEvent);
+                event = event.toBuilder().setCorrelatedEvent(closestEvent).build();
 
                 //delete that event from our RTree
                 currentEvents = currentEvents.delete(closestEvent, pointOfEvent(closestEvent));
