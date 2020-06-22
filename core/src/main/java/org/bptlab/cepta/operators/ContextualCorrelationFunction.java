@@ -38,8 +38,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     public void flatMap(CorrelateableEvent event, Collector<CorrelateableEvent> collector) throws Exception {
 //        System.out.println("processing " + liveTrainData.getTrainId());
 
-            Point pointLocation = pointOfEvent(event);
-        System.out.println("pointLocation :" + pointLocation);
+        Point pointLocation = pointOfEvent(event);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
         CorrelateableEvent finalEvent = event;
@@ -67,7 +66,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
 
         if (closeEvents.size() == 0) {
             //there were no close events, so we assume that this must be a new train
-            System.out.println("No close events found, creating new ID");
+//            System.out.println("No close events found, creating new ID");
             event =
                     event
                         .toBuilder()
