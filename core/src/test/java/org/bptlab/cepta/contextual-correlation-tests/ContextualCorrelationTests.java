@@ -102,6 +102,55 @@ public class ContextualCorrelationTests{
     }
 
     @Test
+    public void testDontCorrelateIfNotWithingTimewindow() throws ParseException, IOException {
+        Timestamp timestamp = Timestamps.parse("1972-01-01T10:00:20.021-05:00");
+
+        ContextualCorrelationFunction testFunction = new ContextualCorrelationFunction();
+
+        CorrelateableEvent event1 = CorrelateableEvent
+                .newBuilder()
+                .setCoordinate(
+                        CoordinateOuterClass.Coordinate
+                                .newBuilder()
+                                .setLongitude(0)
+                                .setLatitude(0)
+                                .build())
+                .setTimestamp(timestamp)
+                .setLiveTrain(LiveTrainData.getDefaultInstance())
+                .build();
+
+        // the second event is just a minute before the window closes
+        CorrelateableEvent event2 = CorrelateableEvent
+                .newBuilder()
+                .setCoordinate(
+                        CoordinateOuterClass.Coordinate
+                                .newBuilder()
+                                .setLongitude(0)
+                                .setLatitude(0)
+                                .build())
+                .setTimestamp(Timestamps.add(
+                        timestamp,
+                        Durations.add(
+                                testFunction.getMaxTimespan(),
+                                Durations.fromMinutes(1))))
+                .setLiveTrain(LiveTrainData.getDefaultInstance())
+                .build();
+        StreamExecutionEnvironment env = setupEnv();
+        DataStream<CorrelateableEvent> inputStream =  env.fromElements(event1, event2);
+        DataStream<CorrelateableEvent> outputStream =  inputStream.flatMap(testFunction);
+
+        Vector<Ids.CeptaTransportID> allIds = new Vector<>();
+        StreamUtils.collectStreamToVector(outputStream).forEach(event -> allIds.add(event.getCeptaId()));
+        HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
+
+        Assert.assertEquals(
+                "Two events in the same timewindow should be correlated together",
+                2,
+                distinctIds.size());
+
+    }
+
+    @Test
     public void testCorrelateEventsIfWithinTimeWindow() throws ParseException, IOException {
         Timestamp timestamp = Timestamps.parse("1972-01-01T10:00:20.021-05:00");
 
