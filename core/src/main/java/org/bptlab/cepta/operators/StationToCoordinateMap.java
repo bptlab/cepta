@@ -45,7 +45,7 @@ public class StationToCoordinateMap extends TreeMap<Long, CoordinateOuterClass.C
     }
 
     private boolean readInStationData(){
-        System.out.println(mongoClient.toString() + tableName.toString() + databaseName.toString() + mongoConfig.toString());
+        System.out.println("Initializing StationToCoordinateMap");
         MongoDatabase database = mongoClient.getDatabase(databaseName);
         MongoCollection<Document> stationsCollection = database.getCollection(tableName);
 
