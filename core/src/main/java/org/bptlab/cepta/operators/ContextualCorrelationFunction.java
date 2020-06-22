@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ContextualCorrelationFunction extends RichFlatMapFunction<CorrelateableEvent, CorrelateableEvent> {
 
     private int k = 1;
-
+    private Long maxDistance = 100L;
     private Duration maxTimespan = Duration.newBuilder().setSeconds(7200).build();
     private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
@@ -43,7 +43,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
         CorrelateableEvent finalEvent = event;
-        currentEvents.search(pointLocation, 200, (a, b) -> {
+        currentEvents.search(pointLocation, maxDistance, (a, b) -> {
                     Position positionA = Position.create(a.mbr().y1(),a.mbr().x1());
                     Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
                     return positionA.getDistanceToKm(positionB);
@@ -211,6 +211,14 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     public void setK(int k) {
         this.k = Math.max(k, 1);
     }
+
+    /**
+     * @param maxDistance in km
+     */
+    public void setMaxDistance(Long maxDistance) {
+        this.maxDistance = Math.max(maxDistance, 0);
+    }
+
     /**
      * @param maxTimespan in seconds
      */
