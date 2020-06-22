@@ -200,11 +200,30 @@ public class ContextualCorrelationTests{
     }
 
     @Test
-    public void testEventsInStraightLineHaveStraightAngle(){
+    public void testStraightAngleDirection(){
         CorrelateableEvent start = this.eventWithCoordinates(0,0);
         CorrelateableEvent middle = this.eventWithCoordinates(0,1);
         CorrelateableEvent end = this.eventWithCoordinates(0,2);
-        Assert.assertEquals(Math.PI, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+        Assert.assertEquals("Events on a straight line should have a straight angle",
+                Math.PI, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+    }
+
+    @Test
+    public void testRightAngleDirection(){
+        CorrelateableEvent start = this.eventWithCoordinates(0,0);
+        CorrelateableEvent middle = this.eventWithCoordinates(0,1);
+        CorrelateableEvent end = this.eventWithCoordinates(1,1);
+        Assert.assertEquals("Events around a right-angle corner should have a right angle",
+                Math.PI / 2, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+    }
+
+    @Test
+    public void test0RadiansAngle(){
+        CorrelateableEvent start = this.eventWithCoordinates(0,0);
+        CorrelateableEvent middle = this.eventWithCoordinates(0,1);
+        CorrelateableEvent end = this.eventWithCoordinates(0,0);
+        Assert.assertEquals("Events from A -> B -> A should have an angle of 0 radians",
+                0, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
     }
 
     private CorrelateableEvent eventWithCoordinates(long latitude, long longitude){
