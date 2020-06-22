@@ -6,6 +6,8 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Geometry;
 import com.github.davidmoten.rtree.geometry.Point;
+import com.google.protobuf.Duration;
+import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.util.Collector;
@@ -23,6 +25,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
 
     private int k = 1;
 
+    private Duration maxTimespan = Duration.newBuilder().setSeconds(7200).build();
     private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
     /**
@@ -45,9 +48,14 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
                     Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
                     return positionA.getDistanceToKm(positionB);
                 })
-                //filter out events that are on the same point as the variable
-//                .filter(entry -> entry.geometry().distance(pointLocation) != 0)
-                // map each incoming entry to a pair of the entry and its distance to the uncorrelated event
+                // filter out events that are not within the timewindow specified by maxTimespan
+                .filter(entry -> Durations.compare(
+                        maxTimespan,
+                        Timestamps.between(
+                                entry.value().getTimestamp(),
+                                finalEvent.getTimestamp()))
+                        >= 0)
+                // map each incoming entry to a pair of the entry and its knn-distance to the uncorrelated event
                 .map(entry ->
                         new Pair<>(
                                 entry,
@@ -202,5 +210,11 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
 
     public void setK(int k) {
         this.k = Math.max(k, 1);
+    }
+    /**
+     * @param maxTimespan in seconds
+     */
+    public void setMaxTimespan(Duration maxTimespan) {
+        this.maxTimespan = maxTimespan;
     }
 }
