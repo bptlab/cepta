@@ -170,13 +170,13 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         then we use the https://en.wikipedia.org/wiki/Law_of_cosines to determine the angle
          */
         Vector3d vecA = coordinateToXYZ(a.getCoordinate());
-        Vector3d vecB = coordinateToXYZ(a.getCoordinate());
-        Vector3d vecC = coordinateToXYZ(a.getCoordinate());
+        Vector3d vecB = coordinateToXYZ(b.getCoordinate());
+        Vector3d vecC = coordinateToXYZ(c.getCoordinate());
 
-        Vector3d vecAB = new Vector3d(vecB.x - vecA.x, vecB.y - vecA.y, vecB.z - vecA.z);
+        Vector3d vecBA = new Vector3d(vecA.x - vecB.x, vecA.y - vecB.y, vecA.z - vecB.z);
         Vector3d vecBC = new Vector3d(vecC.x - vecB.x, vecC.y - vecB.y, vecC.z - vecB.z);
 
-        return  vecAB.angle(vecBC);
+        return  vecBA.angle(vecBC);
     }
 
     public Vector3d coordinateToXYZ(Coordinate coordinate){
