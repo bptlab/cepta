@@ -9,10 +9,12 @@ import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
 import org.bson.Document;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.TreeMap;
 
-public class StationToCoordinateMap extends Hashtable<Long, CoordinateOuterClass.Coordinate> {
+public class StationToCoordinateMap extends TreeMap<Long, CoordinateOuterClass.Coordinate> {
     public MongoConfig mongoConfig;
     public transient MongoClient mongoClient;
     public String tableName;
