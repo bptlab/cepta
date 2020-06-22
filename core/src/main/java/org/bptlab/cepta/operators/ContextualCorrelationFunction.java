@@ -28,6 +28,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     private Duration maxTimespan = Duration.newBuilder().setSeconds(7200).build();
     private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
+    private double timeWeight = 1;
+    private double distanceWeight = 1;
+    private double directionWeight = 1;
+
     /**
      * This is the method that gets called for every incoming to-be-correlated Event
      * @param event
@@ -153,15 +157,16 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
          */
 
         Vector<Double> features = new Vector<Double>();
-        features.add((double) Timestamps.between(
+        features.add(this.timeWeight *
+                (double) Timestamps.between(
                 eventA.getTimestamp(),
                 eventB.getTimestamp())
                 .getSeconds() / this.maxTimespan.getSeconds());
-        features.add(beelineBetween(eventA, eventB)/this.maxDistance);;
+        features.add(this.distanceWeight * beelineBetween(eventA, eventB)/this.maxDistance);;
 
         if (eventB.getCorrelatedEvent() != null) {
             //if they are in a straight line they dont have much distance
-            features.add(angleBetween(eventA, eventB, eventA.getCorrelatedEvent()) / Math.PI);
+            features.add(this.directionWeight * angleBetween(eventA, eventB, eventA.getCorrelatedEvent()) / Math.PI);
         }
         Double sumOfSquared = 0.0;
         for (Double feature : features) {
