@@ -17,12 +17,6 @@ public class LiveTrainToCorrelateable extends RichFlatMapFunction<LiveTrainData,
                         .setCoordinate(stationToCoordinateMap.get(liveTrainData.getStationId()))
                         .setTimestamp(liveTrainData.getEventTime())
                         .setLiveTrain(liveTrainData)
-                        .setCeptaId(
-                                Ids.CeptaTransportID
-                                        .newBuilder()
-                                        .setId("NOT YET SET")
-                                        .build()
-                        )
                         .build();
         collector.collect(uncorrelatedEvent);
     }
