@@ -16,6 +16,8 @@ java_test(
         "//models/events:live_train_data_java_proto",
         "//models/internal/types:ids_java_proto",
         "//models/internal:correlateable_event_java_proto",
+        "//models/internal/types:coordinate_java_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_apache_flink_flink_streaming_java_2_11",
         "@maven//:org_apache_flink_flink_connector_kafka_0_11_2_11",
