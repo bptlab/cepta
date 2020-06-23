@@ -27,8 +27,13 @@ import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
 import java.text.ParseException;
 import java.util.*;
 
@@ -277,6 +282,10 @@ public class ContextualCorrelationTests{
         StationToCoordinateMap map = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
         LiveTrainToCorrelateable conversion = new LiveTrainToCorrelateable().setStationToCoordinateMap(map);
 
+        File dataFile = new File("/home/vincent/Documents/Uni/SoSe2020/BP/data.csv");
+//        FileWriter fileWriter = new FileWriter(dataFile);
+        PrintWriter printWriter = new PrintWriter("/tmp/data.csv", "UTF-8");
+
         for (Long distanceWindow : distanceWindows){
             for (int timeWindow : timeWindows){
                 for (double timeWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
@@ -316,7 +325,7 @@ public class ContextualCorrelationTests{
                                     //now we want to check how accurate the correlation was
                                     Vector<CorrelateableEvent> correlatedEvents = StreamUtils.collectStreamToVector(testStream);
 
-                                    Integer countOfWronglyCorrelated = 0;
+                                    int countOfWronglyCorrelated = 0;
 
                                     for (CorrelateableEvent correlatedEvent : correlatedEvents) {
                                         /*
@@ -335,7 +344,11 @@ public class ContextualCorrelationTests{
                                     correlatedEvents.forEach(event -> allIds.add(event.getCeptaId()));
                                     HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
 
-                                    System.out.println("Did size: " + testSize + " with " + testData.size() +" got " + distinctIds.size() + " and " + countOfWronglyCorrelated + " wrongly correlated");
+
+//                                    printWriter.println(String.format("distanceWindow: %d timeWindow: %d timeWeight: %f distanceWeight: %f directionsWeight: %f testSize: %d eventCount: %d ids: %d wrongCorrelations: %d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
+                                    printWriter.println(String.format("%d;%d;%f;%f;%f;%d;%d,%d,%d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
+
+                                    printWriter.flush();
                                 }
                             }
                         }
@@ -343,6 +356,8 @@ public class ContextualCorrelationTests{
                 }
             }
         }
+
+        printWriter.close();
     }
 
     private MongoConfig getMongoConfig(){
