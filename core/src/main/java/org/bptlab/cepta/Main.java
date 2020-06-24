@@ -42,6 +42,7 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.operators.ProcessCorrelation;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
 import org.bptlab.cepta.utils.functions.StreamUtils;
@@ -160,79 +161,27 @@ public class Main implements Callable<Integer> {
     //liveTrainDataStream.print();
     //plannedTrainDataStream.print();
 
-    DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
-        .connect(plannedTrainDataStream)
-        .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
-        .process(new KeyedCoProcessFunction<Long, LiveTrainData, PlannedTrainData, NotificationOuterClass.MyDelayNotification>(){
 
-          public transient MapState<Long, Timestamp> stationsWithTimestampsState;
-          public transient ValueState<TreeSet<StationWithTimestamp>> stationsOrderState; // ordered list representing the stations' order
-          public transient ValueState<Long> delayState;
-          public transient ValueState<Long> currentStationState;
+    boolean state = true;
 
-          @Override
-          public void open(Configuration config){
-            // set up the states
+    if(state) {
+      DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
+          .connect(plannedTrainDataStream)
+          .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
+          .process(new ProcessCorrelation());
+      delays.print();
+    }else {
 
-            ValueStateDescriptor<TreeSet<StationWithTimestamp>> stationsOrderStateDesc = new ValueStateDescriptor<TreeSet<StationWithTimestamp>>(
-                "StationsOrderState",
-                TypeInformation.of(new TypeHint<TreeSet<StationWithTimestamp>>() { }));
-            stationsOrderState = getRuntimeContext().getState(stationsOrderStateDesc);
+      DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
+          .connect(plannedTrainDataStream)
+          .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
+          .process(new ProcessCorrelation());
+      delays.print();
+    }
 
-            ValueStateDescriptor<Long> delayStateDesc = new ValueStateDescriptor<Long>(
-                "DelayState",
-                TypeInformation.of(Long.class));
-            delayState = getRuntimeContext().getState(delayStateDesc);
 
-            ValueStateDescriptor<Long> currentStationStateDesc = new ValueStateDescriptor<Long>(
-                "CurrentStationState",
-                TypeInformation.of(Long.class));
-            currentStationState = getRuntimeContext().getState(currentStationStateDesc);
 
-            MapStateDescriptor<Long, Timestamp> stationsWithTimestampsStateDesc = new MapStateDescriptor<Long, Timestamp>(
-                "StationsWithTimestampsState",
-                TypeInformation.of(Long.class), TypeInformation.of(Timestamp.class));
-            stationsWithTimestampsState = getRuntimeContext().getMapState(stationsWithTimestampsStateDesc);
-          }
 
-          @Override
-          public void processElement1(LiveTrainData liveTrainData, Context context, Collector<NotificationOuterClass.MyDelayNotification> collector) throws Exception {
-            /*
-             * retrieve stuff from state
-             * update state
-             */
-            Long delay = 0L;
-            try{
-              //System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
-              delay = stationsWithTimestampsState.get(liveTrainData.getStationId()).getSeconds() - liveTrainData.getEventTime().getSeconds();
-            }catch (NullPointerException e){
-              // there is no corresponding planned data available
-            }
-            delayState.update(delay);
-            currentStationState.update(liveTrainData.getStationId());
-            collector.collect(
-                NotificationOuterClass.MyDelayNotification.newBuilder()
-                    .setStationId(liveTrainData.getStationId())
-                    .setTrainId(liveTrainData.getTrainId())
-                    .setDelay(delay).build());
-          }
-          @Override
-          public void processElement2(PlannedTrainData plannedTrainData,
-                                      Context context,
-                                      Collector<NotificationOuterClass.MyDelayNotification> collector)
-              throws Exception {
-
-            // add entry to state or update earlier value
-            stationsWithTimestampsState.put(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime());
-            try{
-              stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
-            catch (NullPointerException e){
-              //e.printStackTrace();
-              stationsOrderState.update(new TreeSet<StationWithTimestamp>());
-            }
-          }
-        });
-    delays.print();
     /*-------------------------
      * End - Gritta BA Kram
      * ++++++++++++++++++++++++
