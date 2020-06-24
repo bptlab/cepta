@@ -25,8 +25,8 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
 
     private int k = 1;
     private Long maxDistance = 100L;
-    private Duration maxTimespan = Duration.newBuilder().setSeconds(7200).build();
-    private static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
+    private Duration maxTimespan = Duration.newBuilder().setSeconds(43200).build();
+    public static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
     private double timeWeight = 1;
     private double distanceWeight = 1;
@@ -45,24 +45,31 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         Point pointLocation = pointOfEvent(event);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
-        CorrelateableEvent finalEvent = event;
+        CorrelateableEvent incomingEvent = event;
         currentEvents.search(pointLocation, maxDistance, (a, b) -> {
+                    /*
+                    calculate the distance between two events by converting the minimum bounding
+                    boxes into a point each, and calculate their distance
+                     */
                     Position positionA = Position.create(a.mbr().y1(),a.mbr().x1());
                     Position positionB = Position.create(b.mbr().y1(),b.mbr().x1());
                     return positionA.getDistanceToKm(positionB);
                 })
-                // filter out events that are not within the timewindow specified by maxTimespan
+                /*
+                only pass events that fit inside the timewindow specified by maxTimespan.
+                that window being the time between an event and the incoming event
+                 */
                 .filter(entry -> Durations.compare(
                         maxTimespan,
                         Timestamps.between(
                                 entry.value().getTimestamp(),
-                                finalEvent.getTimestamp()))
+                                incomingEvent.getTimestamp()))
                         >= 0)
                 // map each incoming entry to a pair of the entry and its knn-distance to the uncorrelated event
                 .map(entry ->
                         new Pair<>(
                                 entry,
-                                euclideanDistance(entry.value(), finalEvent)
+                                euclideanDistance(entry.value(), incomingEvent)
                         )
                 )
                 .toBlocking()
@@ -213,6 +220,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         Position positionA = Position.create(a.getCoordinate().getLatitude(),a.getCoordinate().getLongitude());
         Position positionB = Position.create(b.getCoordinate().getLatitude(),b.getCoordinate().getLongitude());
         return positionA.getDistanceToKm(positionB);
+    }
+
+    public void clearData(){
+        currentEvents = RTree.create();
     }
 
     public int getK() {
