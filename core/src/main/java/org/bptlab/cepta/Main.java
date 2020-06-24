@@ -20,6 +20,7 @@ package org.bptlab.cepta;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.Timestamp;
 import org.apache.flink.api.common.state.*;
@@ -42,6 +43,8 @@ import org.bptlab.cepta.config.PostgresConfig;
 import org.bptlab.cepta.models.constants.topic.TopicOuterClass.Topic;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.operators.Correlation;
+import org.bptlab.cepta.operators.DataToMongoDB;
 import org.bptlab.cepta.operators.ProcessCorrelation;
 import org.bptlab.cepta.serialization.GenericBinaryProtoDeserializer;
 import org.bptlab.cepta.serialization.GenericBinaryProtoSerializer;
@@ -171,11 +174,13 @@ public class Main implements Callable<Integer> {
           .process(new ProcessCorrelation());
       delays.print();
     }else {
+      DataStream<PlannedTrainData> dump = AsyncDataStream
+          .unorderedWait(plannedTrainDataStream, new DataToMongoDB<PlannedTrainData>("plannedTrainData", mongoConfig),
+              100000, TimeUnit.MILLISECONDS, 1);
 
-      DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
-          .connect(plannedTrainDataStream)
-          .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
-          .process(new ProcessCorrelation());
+      DataStream<NotificationOuterClass.MyDelayNotification> delays = AsyncDataStream
+          .unorderedWait(liveTrainDataStream, new Correlation(mongoConfig),
+              100000, TimeUnit.MILLISECONDS, 1);
       delays.print();
     }
 

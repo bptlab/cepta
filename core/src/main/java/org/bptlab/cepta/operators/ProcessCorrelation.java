@@ -66,9 +66,9 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
           currentStationState.update(liveTrainData.getStationId());*/
   collector.collect(
   NotificationOuterClass.MyDelayNotification.newBuilder()
-  .setStationId(liveTrainData.getStationId())
-  .setTrainId(liveTrainData.getTrainId())
-  .setDelay(delay).build());
+    .setStationId(liveTrainData.getStationId())
+    .setTrainId(liveTrainData.getTrainId())
+    .setDelay(delay).build());
   }
   @Override
   public void processElement2(PlannedTrainDataOuterClass.PlannedTrainData plannedTrainData,
@@ -78,11 +78,11 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
 
   // add entry to state or update earlier value
   stationsWithTimestampsState.put(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime());
-          /*try{
-            stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
-          catch (NullPointerException e){
-            //e.printStackTrace();
-            stationsOrderState.update(new TreeSet<StationWithTimestamp>());
-          }*/
+  /*try{
+    stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
+  catch (NullPointerException e){
+    //e.printStackTrace();
+    stationsOrderState.update(new TreeSet<StationWithTimestamp>());
+  }*/
   }
 }
