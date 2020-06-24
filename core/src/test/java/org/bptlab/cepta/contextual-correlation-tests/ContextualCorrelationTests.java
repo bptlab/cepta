@@ -26,6 +26,7 @@ import org.bptlab.cepta.utils.functions.StreamUtils;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
@@ -38,6 +39,9 @@ import java.text.ParseException;
 import java.util.*;
 
 public class ContextualCorrelationTests{
+
+    @Rule
+    public Timeout globalTimeout = Timeout.seconds(Long.MAX_VALUE);
 
     private MongoClient mongoClient = this.getMongoClient();
 
@@ -270,27 +274,30 @@ public class ContextualCorrelationTests{
             });
         });
 
-        int[] testSizes = new int[] {1,5,10, 20, 50 , 100};
-        Long[] distanceWindows = new Long[] {10L, 25L, 50L, 100L, 250L, 500L};
+//        int[] testSizes = new int[] {1,5,10, 20, 50 , 100};
+        int[] testSizes = new int[] {50};
+//        Long[] distanceWindows = new Long[] {50};
 
         //time windows are in minutes
-        int[] timeWindows = new int[] {60, 120 , 360, 720, 1440};
-        int repeatCount = 10;
+//        int[] timeWindows = new int[] {720};
+        int repeatCount = 25;
 
-        final int runsPerSize = 1000;
         //we set the same mapping to all conversions, that way we only have to load the stations once
         StationToCoordinateMap map = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
         LiveTrainToCorrelateable conversion = new LiveTrainToCorrelateable().setStationToCoordinateMap(map);
 
-        File dataFile = new File("/home/vincent/Documents/Uni/SoSe2020/BP/data.csv");
-//        FileWriter fileWriter = new FileWriter(dataFile);
-        PrintWriter printWriter = new PrintWriter("/tmp/data.csv", "UTF-8");
+        File dataFile = new File("/tmp/dataFile.csv");
+        System.out.println(dataFile.getAbsolutePath());
+        dataFile.createNewFile();
+        System.out.println(dataFile.exists());
+        System.out.println(dataFile.canWrite());
+        PrintWriter printWriter = new PrintWriter(dataFile, "UTF-8");
 
-        for (Long distanceWindow : distanceWindows){
-            for (int timeWindow : timeWindows){
+//        for (Long distanceWindow : distanceWindows){
+//            for (int timeWindow : timeWindows){
                 for (double timeWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
-                    for (double distanceWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
-                        for (double directionWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
+                    for (double distanceWeight = 0; distanceWeight <= 1; distanceWeight += 0.25) {
+                        for (double directionWeight = 0; directionWeight <= 1; directionWeight += 0.25) {
                             for (int i = 0; i < repeatCount; i++) {
                                 for (int testSize : testSizes) {
                                     Vector<LiveTrainData> testData = new Vector<>();
@@ -309,9 +316,15 @@ public class ContextualCorrelationTests{
                                     ContextualCorrelationFunction correlationFunctionWithWeights = new ContextualCorrelationFunction()
                                             .setDirectionWeight(directionWeight)
                                             .setDistanceWeight(distanceWeight)
-                                            .setTimeWeight(timeWeight)
-                                            .setMaxDistance(distanceWindow)
-                                            .setMaxTimespan(Durations.fromMinutes(timeWindow));
+                                            .setTimeWeight(timeWeight);
+//                                            .setMaxDistance(distanceWindow)
+//                                            .setMaxTimespan(Durations.fromMinutes(timeWindow));
+
+                                    /*
+                                    this is a workaround for the currentEvents being stored in a class variable,
+                                    we just clear the variable before every run. kinda sucks but eh
+                                     */
+                                    correlationFunctionWithWeights.clearData();
 
                                     testData.sort(Comparator.comparingLong(a -> a.getEventTime().getSeconds()));
                                     StreamExecutionEnvironment env = setupEnv();
@@ -346,18 +359,19 @@ public class ContextualCorrelationTests{
 
 
 //                                    printWriter.println(String.format("distanceWindow: %d timeWindow: %d timeWeight: %f distanceWeight: %f directionsWeight: %f testSize: %d eventCount: %d ids: %d wrongCorrelations: %d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
-                                    printWriter.println(String.format("%d;%d;%f;%f;%f;%d;%d,%d,%d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
-
-                                    printWriter.flush();
+//                                    printWriter.println(String.format("%d;%d;%f;%f;%f;%d;%d,%d,%d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
+                                    printWriter.println(String.format("%f;%f;%f;%d;%d,%d,%d", timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
+                                    System.out.println(String.format("%f;%f;%f;%d;%d,%d,%d", timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
                                 }
+                                printWriter.flush();
                             }
                         }
                     }
                 }
-            }
-        }
+//            }
+//        }
 
-        printWriter.close();
+//        printWriter.close();
     }
 
     private MongoConfig getMongoConfig(){
