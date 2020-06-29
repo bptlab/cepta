@@ -44,7 +44,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	s.mongo = new(libdb.MongoDB)
 
 	s.LiveTrainRplr = &Replayer{
-		SourceName: "mini_parallel_sample_livetraindata",
+		SourceName: "different_trainIds_live",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_LiveTrain{LiveTrain: event.(*livetrainpb.LiveTrainData)}}
 		}, &livetrainpb.LiveTrainData{}, setSortAndID("eventTime", "trainId")), // id is mostly nil so we choose trainId
@@ -52,7 +52,7 @@ func (s *ReplayerServer) Setup(ctx context.Context) error {
 	}
 
 	s.PlannedTrainRplr = &Replayer{
-		SourceName: "mini_parallel_sample_plannedtraindata",
+		SourceName: "different_trainIds_planned",
 		Extractor: extractors.NewMongoExtractor(s.mongo, func(event proto.Message) *eventpb.Event {
 			return &eventpb.Event{Event: &eventpb.Event_PlannedTrain{PlannedTrain: event.(*plannedtrainpb.PlannedTrainData)}}
 		}, &plannedtrainpb.PlannedTrainData{}, setSortAndID("ingestionTime", "trainId")), // id is mostly nil so we choose trainId

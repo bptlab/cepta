@@ -36,6 +36,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
     private String collection_name;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
+    public long start;
 
     public DataToMongoDB(String collection_name, MongoConfig mongoConfig){
         this.collection_name = collection_name;
@@ -44,6 +45,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
 
     @Override
     public void open(org.apache.flink.configuration.Configuration parameters) throws Exception{
+        start = System.currentTimeMillis();
         super.open(parameters);
         this.mongoClient = Mongo.getMongoClient(mongoConfig);
     }
@@ -80,6 +82,7 @@ public class DataToMongoDB<T extends Message> extends RichAsyncFunction<T, T> {
             return acknowledged;
         });
         if (ackFuture.get()){
+            System.out.println(System.currentTimeMillis() - start);
             // System.out.println("Success");
         } else {
             System.out.println("Failed");

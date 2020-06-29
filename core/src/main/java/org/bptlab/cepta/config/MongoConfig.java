@@ -13,7 +13,7 @@ public class MongoConfig implements Serializable,Cloneable {
     @Option(
             names = {"--mongodb-port"},
             description = "Specifies the port where the Database is running.")
-    static int port = 27017;
+    static int port = 8071;
 
     @Option(
             names = {"-mongodb", "--mongodb-database"},

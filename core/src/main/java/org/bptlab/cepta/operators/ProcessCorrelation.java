@@ -22,9 +22,11 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
   /*public transient ValueState<TreeSet<StationWithTimestamp>> stationsOrderState; // ordered list representing the stations' order
   public transient ValueState<Long> delayState;
   public transient ValueState<Long> currentStationState;*/
+  long start;
 
   @Override
   public void open(Configuration config){
+    start = System.currentTimeMillis();
     // set up the states
 /*
             ValueStateDescriptor<TreeSet<StationWithTimestamp>> stationsOrderStateDesc = new ValueStateDescriptor<TreeSet<StationWithTimestamp>>(
@@ -54,7 +56,7 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
    * retrieve stuff from state
    * update state
    */
-
+  long start = System.currentTimeMillis();
   Long delay = 0L;
   try{
   //System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
@@ -69,6 +71,7 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
     .setStationId(liveTrainData.getStationId())
     .setTrainId(liveTrainData.getTrainId())
     .setDelay(delay).build());
+  System.out.println(System.currentTimeMillis() - start);
   }
   @Override
   public void processElement2(PlannedTrainDataOuterClass.PlannedTrainData plannedTrainData,
@@ -78,6 +81,7 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
 
   // add entry to state or update earlier value
   stationsWithTimestampsState.put(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime());
+  System.out.println(System.currentTimeMillis() - start);
   /*try{
     stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
   catch (NullPointerException e){

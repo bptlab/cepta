@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import com.google.protobuf.Timestamp;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.state.*;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -32,6 +33,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
@@ -165,23 +167,24 @@ public class Main implements Callable<Integer> {
     //plannedTrainDataStream.print();
 
 
-    boolean state = true;
+    int state = 0;
 
-    if(state) {
+    if(state == 1) {
       DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream
           .connect(plannedTrainDataStream)
           .keyBy(new LiveTrainIdKeySelector(), new PlannedTrainIdKeySelector(), TypeInformation.of(Long.class))
           .process(new ProcessCorrelation());
-      delays.print();
+      //delays.print();
     }else {
       DataStream<PlannedTrainData> dump = AsyncDataStream
           .unorderedWait(plannedTrainDataStream, new DataToMongoDB<PlannedTrainData>("plannedTrainData", mongoConfig),
               100000, TimeUnit.MILLISECONDS, 1);
 
+      //liveTrainDataStream.print();
       DataStream<NotificationOuterClass.MyDelayNotification> delays = AsyncDataStream
           .unorderedWait(liveTrainDataStream, new Correlation(mongoConfig),
               100000, TimeUnit.MILLISECONDS, 1);
-      delays.print();
+      //delays.print();
     }
 
 

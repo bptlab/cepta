@@ -31,10 +31,10 @@ import static com.mongodb.client.model.Sorts.ascending;
      and the live event Time, for all upcoming stations. */
 public class Correlation extends
     RichAsyncFunction<LiveTrainData, NotificationOuterClass.MyDelayNotification> {
-
+    long start;
     private MongoConfig mongoConfig = new MongoConfig();
     private transient MongoClient mongoClient;
-    private long delayThreshold = 60;
+    private long delayThreshold = 0;
 
     public Correlation(MongoConfig mongoConfig) {
         this.mongoConfig = mongoConfig;    }
@@ -62,6 +62,7 @@ public class Correlation extends
         asyncInvoke will be called for each incoming element
         the resultFuture is where the outgoing element(s) will be
         */
+        start = System.currentTimeMillis();
         MongoDatabase database = mongoClient.getDatabase(mongoConfig.getName());
         MongoCollection<Document> plannedTrainDataCollection = database.getCollection("plannedTrainData");
 
@@ -69,11 +70,7 @@ public class Correlation extends
         //https://github.com/reactive-streams/reactive-streams-jvm/tree/v1.0.3#2-subscriber-code
         SubscriberHelpers.OperationSubscriber<Document> findMultipleSubscriber = new SubscriberHelpers.OperationSubscriber<>();
         plannedTrainDataCollection.find(
-                and(
-                        eq("train_section_id",dataset.getTrainSectionId()),
-                        eq("end_station_id",dataset.getEndStationId()),
-                        eq("planned_arrival_time_end_station",dataset.getPlannedArrivalTimeEndStation())
-                )
+                        eq("train_id", dataset.getTrainId())
         ).sort(ascending("planned_event_time")).subscribe(findMultipleSubscriber);
 
         CompletableFuture<Void> queryFuture = CompletableFuture.supplyAsync(new Supplier<List<Document>>() {
@@ -85,8 +82,10 @@ public class Correlation extends
             //only generate Notifications if there is Data about the Train in the DB
             if (!result.isEmpty()) {
                 resultFuture.complete(generateDelayEvents(dataset, Mongo.getUpcomingPlannedTrainDataStartingFromStation(dataset.getStationId(), result)));
+                System.out.println(System.currentTimeMillis() - start);
             } else {
                 resultFuture.complete(new ArrayList<NotificationOuterClass.MyDelayNotification>());
+                System.out.println(System.currentTimeMillis() - start);
             }
         });
         queryFuture.get();
