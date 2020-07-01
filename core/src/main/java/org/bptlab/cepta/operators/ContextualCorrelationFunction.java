@@ -20,7 +20,6 @@ import org.javatuples.Pair;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.ToDoubleBiFunction;
 
 public class ContextualCorrelationFunction extends RichFlatMapFunction<CorrelateableEvent, CorrelateableEvent> {
 

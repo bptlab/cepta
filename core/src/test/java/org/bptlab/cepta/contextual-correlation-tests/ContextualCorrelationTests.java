@@ -361,9 +361,6 @@ public class ContextualCorrelationTests{
                                     correlatedEvents.forEach(event -> allIds.add(event.getCeptaId()));
                                     HashSet<Ids.CeptaTransportID> distinctIds = new HashSet<>(allIds);
 
-
-//                                    printWriter.println(String.format("distanceWindow: %d timeWindow: %d timeWeight: %f distanceWeight: %f directionsWeight: %f testSize: %d eventCount: %d ids: %d wrongCorrelations: %d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
-//                                    printWriter.println(String.format("%d;%d;%f;%f;%f;%d;%d,%d,%d", distanceWindow, timeWindow, timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
                                     printWriter.println(String.format("%f;%f;%f;%d;%d,%d,%d", timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
                                     System.out.println(String.format("%f;%f;%f;%d;%d,%d,%d", timeWeight, distanceWeight, directionWeight, testSize, testData.size(), distinctIds.size(), countOfWronglyCorrelated));
                                 }
