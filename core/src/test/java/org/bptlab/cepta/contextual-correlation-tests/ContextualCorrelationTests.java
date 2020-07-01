@@ -21,6 +21,7 @@ import org.bptlab.cepta.operators.LiveTrainToCorrelateable;
 import org.bptlab.cepta.operators.StationToCoordinateMap;
 import org.bptlab.cepta.utils.database.Mongo;
 import org.bptlab.cepta.utils.database.mongohelper.SubscriberHelpers;
+import org.bptlab.cepta.utils.functions.EuclideanDistanceFunction;
 import org.bptlab.cepta.utils.functions.StreamUtils;
 
 import com.mongodb.client.model.Filters;
@@ -211,7 +212,7 @@ public class ContextualCorrelationTests{
         CorrelateableEvent middle = this.eventWithCoordinates(0,1);
         CorrelateableEvent end = this.eventWithCoordinates(0,2);
         Assert.assertEquals("Events on a straight line should have a straight angle",
-                Math.PI, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+                Math.PI, new EuclideanDistanceFunction().angleBetween(start,middle,end), 0.1);
     }
 
     @Test
@@ -220,7 +221,7 @@ public class ContextualCorrelationTests{
         CorrelateableEvent middle = this.eventWithCoordinates(0,1);
         CorrelateableEvent end = this.eventWithCoordinates(1,1);
         Assert.assertEquals("Events around a right-angle corner should have a right angle",
-                Math.PI / 2, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+                Math.PI / 2, new EuclideanDistanceFunction().angleBetween(start,middle,end), 0.1);
     }
 
     @Test
@@ -229,7 +230,7 @@ public class ContextualCorrelationTests{
         CorrelateableEvent middle = this.eventWithCoordinates(0,1);
         CorrelateableEvent end = this.eventWithCoordinates(0,0);
         Assert.assertEquals("Events from A -> B -> A should have an angle of 0 radians",
-                0, new ContextualCorrelationFunction().angleBetween(start,middle,end), 0.1);
+                0, new EuclideanDistanceFunction().angleBetween(start,middle,end), 0.1);
     }
 
     private CorrelateableEvent eventWithCoordinates(long latitude, long longitude){
@@ -313,10 +314,13 @@ public class ContextualCorrelationTests{
                                         nextRandomTrainRun++;
                                     }
 
-                                    ContextualCorrelationFunction correlationFunctionWithWeights = new ContextualCorrelationFunction()
+                                    EuclideanDistanceFunction distanceFunction = new EuclideanDistanceFunction()
                                             .setDirectionWeight(directionWeight)
                                             .setDistanceWeight(distanceWeight)
                                             .setTimeWeight(timeWeight);
+
+                                    ContextualCorrelationFunction correlationFunctionWithWeights = new ContextualCorrelationFunction()
+                                            .setDistanceFunction(distanceFunction);
 //                                            .setMaxDistance(distanceWindow)
 //                                            .setMaxTimespan(Durations.fromMinutes(timeWindow));
 
