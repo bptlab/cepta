@@ -275,12 +275,12 @@ public class ContextualCorrelationTests{
         });
 
 //        int[] testSizes = new int[] {1,5,10, 20, 50 , 100};
-        int[] testSizes = new int[] {50};
+        int[] testSizes = new int[] {500};
 //        Long[] distanceWindows = new Long[] {50};
 
         //time windows are in minutes
 //        int[] timeWindows = new int[] {720};
-        int repeatCount = 25;
+        int repeatCount = 1;
 
         //we set the same mapping to all conversions, that way we only have to load the stations once
         StationToCoordinateMap map = new StationToCoordinateMap("replay", "eletastations", this.getMongoConfig());
@@ -296,8 +296,8 @@ public class ContextualCorrelationTests{
 //        for (Long distanceWindow : distanceWindows){
 //            for (int timeWindow : timeWindows){
                 for (double timeWeight = 0; timeWeight <= 1; timeWeight += 0.25) {
-                    for (double distanceWeight = 0; distanceWeight <= 1; distanceWeight += 0.25) {
-                        for (double directionWeight = 0; directionWeight <= 1; directionWeight += 0.25) {
+                    for (double distanceWeight = 0.0; distanceWeight <= 1; distanceWeight += 0.25) {
+                        for (double directionWeight = 0.0; directionWeight <= 1; directionWeight += 0.25) {
                             for (int i = 0; i < repeatCount; i++) {
                                 for (int testSize : testSizes) {
                                     Vector<LiveTrainData> testData = new Vector<>();

@@ -14,12 +14,13 @@ import org.apache.flink.util.Collector;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
 import org.bptlab.cepta.models.internal.types.ids.Ids;
+import org.bptlab.cepta.utils.functions.DistanceFunction;
+import org.bptlab.cepta.utils.functions.EuclideanDistanceFunction;
 import org.javatuples.Pair;
-
-import javax.vecmath.Vector3d;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.ToDoubleBiFunction;
 
 public class ContextualCorrelationFunction extends RichFlatMapFunction<CorrelateableEvent, CorrelateableEvent> {
 
@@ -28,9 +29,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     private Duration maxTimespan = Duration.newBuilder().setSeconds(43200).build();
     public static RTree<CorrelateableEvent, Geometry> currentEvents = RTree.create();
 
-    private double timeWeight = 1;
-    private double distanceWeight = 1;
-    private double directionWeight = 1;
+    private DistanceFunction distanceFunction = new EuclideanDistanceFunction();
 
     /**
      * This is the method that gets called for every incoming to-be-correlated Event
@@ -40,8 +39,6 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
      */
     @Override
     public void flatMap(CorrelateableEvent event, Collector<CorrelateableEvent> collector) throws Exception {
-//        System.out.println("processing " + liveTrainData.getTrainId());
-
         Point pointLocation = pointOfEvent(event);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
@@ -69,7 +66,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
                 .map(entry ->
                         new Pair<>(
                                 entry,
-                                euclideanDistance(entry.value(), incomingEvent)
+                                distanceFunction.distanceBetween(entry.value(), incomingEvent)
                         )
                 )
                 .toBlocking()
@@ -147,81 +144,6 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         return Geometries.pointGeographic(coordinate.getLongitude(), coordinate.getLatitude());
     }
 
-    private double euclideanDistance(Collection<Number> features){
-        Double sumOfSquared = 0.0;
-        for (Number feature : features) {
-            sumOfSquared += Math.pow(feature.doubleValue(), 2.0);
-        }
-        return Math.sqrt(sumOfSquared);
-    }
-
-    private double euclideanDistance(CorrelateableEvent eventA, CorrelateableEvent eventB){
-        /*
-        we calculate the knn-distance between two events over the timespan,
-        spacial distance and the angle the train would drive
-
-        we also normalize these events according their maximum values, so that they are in [0,1].
-         */
-
-        Vector<Double> features = new Vector<Double>();
-        features.add(this.timeWeight *
-                (double) Timestamps.between(
-                eventA.getTimestamp(),
-                eventB.getTimestamp())
-                .getSeconds() / this.maxTimespan.getSeconds());
-        features.add(this.distanceWeight * beelineBetween(eventA, eventB)/this.maxDistance);;
-
-        if (eventB.getCorrelatedEvent() != null) {
-            //if they are in a straight line they dont have much distance
-            features.add(this.directionWeight * angleBetween(eventA, eventB, eventA.getCorrelatedEvent()) / Math.PI);
-        }
-        Double sumOfSquared = 0.0;
-        for (Double feature : features) {
-            sumOfSquared += Math.pow(feature, 2.0);
-        }
-        return Math.sqrt(sumOfSquared);
-    }
-
-    public double angleBetween (CorrelateableEvent a, CorrelateableEvent b, CorrelateableEvent c){
-        /*
-        the approach is to map the coordinates to (x,y,z) coordinates on a unit sphere
-        then we use the https://en.wikipedia.org/wiki/Law_of_cosines to determine the angle
-         */
-        Vector3d vecA = coordinateToXYZ(a.getCoordinate());
-        Vector3d vecB = coordinateToXYZ(b.getCoordinate());
-        Vector3d vecC = coordinateToXYZ(c.getCoordinate());
-
-        Vector3d vecBA = new Vector3d(vecA.x - vecB.x, vecA.y - vecB.y, vecA.z - vecB.z);
-        Vector3d vecBC = new Vector3d(vecC.x - vecB.x, vecC.y - vecB.y, vecC.z - vecB.z);
-
-        return  vecBA.angle(vecBC);
-    }
-
-    public Vector3d coordinateToXYZ(Coordinate coordinate){
-        /*
-        taken after https://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
-
-        z axis is between north and south pole
-        x axis is between (0,0) and the center
-        y axis is between (0,90) and the center
-         */
-
-        double latitudeInRad = Math.PI * coordinate.getLatitude() / 180;
-        double longitudeInRad = Math.PI * coordinate.getLongitude() / 180;
-
-        double xPos = Math.cos(latitudeInRad) * Math.cos(longitudeInRad);
-        double yPos = Math.cos(latitudeInRad) * Math.sin(longitudeInRad);
-        double zPos = Math.sin(latitudeInRad);
-
-        return new Vector3d(xPos, yPos, zPos);
-    }
-
-    private double beelineBetween(CorrelateableEvent a, CorrelateableEvent b){
-        Position positionA = Position.create(a.getCoordinate().getLatitude(),a.getCoordinate().getLongitude());
-        Position positionB = Position.create(b.getCoordinate().getLatitude(),b.getCoordinate().getLongitude());
-        return positionA.getDistanceToKm(positionB);
-    }
-
     public void clearData(){
         currentEvents = RTree.create();
     }
@@ -235,11 +157,17 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
         return this;
     }
 
+    public ContextualCorrelationFunction setDistanceFunction(DistanceFunction distanceFunction){
+        this.distanceFunction = distanceFunction;
+        return this;
+    }
+
     /**
      * @param maxDistance in km
      */
     public ContextualCorrelationFunction setMaxDistance(Long maxDistance) {
         this.maxDistance = Math.max(maxDistance, 0);
+        this.distanceFunction.setMaxDistance(maxDistance);
         return this;
     }
 
@@ -248,25 +176,11 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
      */
     public ContextualCorrelationFunction setMaxTimespan(Duration maxTimespan) {
         this.maxTimespan = maxTimespan;
+        this.distanceFunction.setMaxTimespan(maxTimespan);
         return this;
     }
 
     public Duration getMaxTimespan(){
         return this.maxTimespan;
-    }
-
-    public ContextualCorrelationFunction setTimeWeight(double timeWeight) {
-        this.timeWeight = timeWeight;
-        return this;
-    }
-
-    public ContextualCorrelationFunction setDistanceWeight(double distanceWeight) {
-        this.distanceWeight = distanceWeight;
-        return this;
-    }
-
-    public ContextualCorrelationFunction setDirectionWeight(double directionWeight) {
-        this.directionWeight = directionWeight;
-        return this;
     }
 }
