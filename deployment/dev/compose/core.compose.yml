@@ -144,7 +144,7 @@ services:
       - mongodb
 
   cepmodemon:
-    image: cepmodemon/prepro:v0.1.6
+    image: cepmodemon/prepro:v0.1.7
     command:
       - --broker=kafka:9092
     depends_on:
