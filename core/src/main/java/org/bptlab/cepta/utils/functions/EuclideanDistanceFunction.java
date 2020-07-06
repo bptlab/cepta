@@ -7,9 +7,10 @@ import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOu
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass;
 
 import javax.vecmath.Vector3d;
+import java.io.Serializable;
 import java.util.Vector;
 
-public class EuclideanDistanceFunction implements DistanceFunction {
+public class EuclideanDistanceFunction implements DistanceFunction, Serializable {
 
     private double timeWeight = 1;
     private double distanceWeight = 1;
