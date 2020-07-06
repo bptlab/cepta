@@ -9,7 +9,7 @@ import com.github.davidmoten.rtree.geometry.Point;
 import com.google.protobuf.Duration;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.util.Collector;
 import org.bptlab.cepta.models.internal.correlateable_event.CorrelateableEventOuterClass.*;
 import org.bptlab.cepta.models.internal.types.coordinate.CoordinateOuterClass.*;
@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ContextualCorrelationFunction extends RichFlatMapFunction<CorrelateableEvent, CorrelateableEvent> {
+public class ContextualCorrelationFunction extends RichMapFunction<CorrelateableEvent, CorrelateableEvent> {
 
     private int k = 1;
     private Long maxDistance = 100L;
@@ -33,11 +33,10 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
     /**
      * This is the method that gets called for every incoming to-be-correlated Event
      * @param event
-     * @param collector
      * @throws Exception
      */
     @Override
-    public void flatMap(CorrelateableEvent event, Collector<CorrelateableEvent> collector) throws Exception {
+    public CorrelateableEvent map(CorrelateableEvent event) throws Exception {
         Point pointLocation = pointOfEvent(event);
 
         Vector<Pair<Entry<CorrelateableEvent, Geometry>, Double>> closeEvents = new Vector<>();
@@ -135,7 +134,7 @@ public class ContextualCorrelationFunction extends RichFlatMapFunction<Correlate
             }
 
         currentEvents = currentEvents.add(event, pointOfEvent(event));
-        collector.collect(event);
+        return event;
     }
 
     private Point pointOfEvent(CorrelateableEvent event){
