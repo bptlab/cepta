@@ -167,7 +167,7 @@ public class Main implements Callable<Integer> {
     //plannedTrainDataStream.print();
 
 
-    int state = 0;
+    int state = 1;
 
     if(state == 1) {
       DataStream<NotificationOuterClass.MyDelayNotification> delays = liveTrainDataStream

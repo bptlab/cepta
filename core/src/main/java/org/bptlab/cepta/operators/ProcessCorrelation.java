@@ -56,12 +56,13 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
    * retrieve stuff from state
    * update state
    */
-  long start = System.currentTimeMillis();
-  Long delay = 0L;
+  long start = System.nanoTime();
+  Long delay = 0l;
   try{
   //System.out.println(stationsWithTimestampsState.get(liveTrainData.getStationId()));
   delay = stationsWithTimestampsState.get(liveTrainData.getStationId()).getSeconds() - liveTrainData.getEventTime().getSeconds();
   }catch (NullPointerException e){
+    delay = 666l;
   // there is no corresponding planned data available
   }
           /*delayState.update(delay);
@@ -71,7 +72,7 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
     .setStationId(liveTrainData.getStationId())
     .setTrainId(liveTrainData.getTrainId())
     .setDelay(delay).build());
-  System.out.println(System.currentTimeMillis() - start);
+  System.out.println(System.nanoTime() - start);
   }
   @Override
   public void processElement2(PlannedTrainDataOuterClass.PlannedTrainData plannedTrainData,
@@ -81,7 +82,7 @@ public class ProcessCorrelation extends KeyedCoProcessFunction<Long, LiveTrainDa
 
   // add entry to state or update earlier value
   stationsWithTimestampsState.put(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime());
-  System.out.println(System.currentTimeMillis() - start);
+  //System.out.println(System.currentTimeMillis() - start);
   /*try{
     stationsOrderState.value().add(new StationWithTimestamp(plannedTrainData.getStationId(), plannedTrainData.getPlannedEventTime()));}
   catch (NullPointerException e){
