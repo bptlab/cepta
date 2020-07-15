@@ -50,9 +50,15 @@ bazel test //core:core-tests  # Only test core
 The project uses `docker` and `docker-compose` for deployment.
 For instructions see `docs/deployment/dev.md` or `docs/deployment/prod.md` respectively.
 
-Summary: To run the latest version, run 
+Summary: 
+To run the latest production version, run 
 ```bash
 CEPTA_VERSION="v0.5.0" docker-compose -f deployment/prod/docker-compose.yml up
+```
+
+To build and run the latest development version, run 
+```bash
+BUILD=1 ./deployment/dev/devenv.sh up
 ```
 
 To run specific containers (single or multiple) run:
