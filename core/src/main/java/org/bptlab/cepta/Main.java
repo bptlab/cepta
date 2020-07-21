@@ -169,6 +169,14 @@ public class Main implements Callable<Integer> {
             );
     this.monitor_notificationFromDelayShiftEnrichedStreamProducer.setWriteTimestampToKafka(true);
 
+    this.monitor_locationDataStreamProducer =
+            new FlinkKafkaProducer011<>(
+                    "MONITOR_locationDataStream",
+                    new GenericBinaryProtoSerializer<>(),
+                    monitoringConfig.getProperties()
+            );
+    this.monitor_locationDataStreamProducer.setWriteTimestampToKafka(true);
+
 //    CepMonitor.initializeMonitoring(monitoringConfig, toMonitorStreams);
   }
 
@@ -279,30 +287,19 @@ public class Main implements Callable<Integer> {
      * Begin - Monitoring Producer Setup Sources
      * ------------------------*/
     this.toMonitorStreams.put("MONITOR_plannedTrainDataStream",plannedTrainDataStream);
-    DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( new MonitorMapFunction<>()
-    /*        new MapFunction<PlannedTrainData, MonitorOuterClass.Monitor>() {
-      @Override
-      public MonitorOuterClass.Monitor map(PlannedTrainData plannedTrainData) throws Exception {
-        Event embeddedEvent = Event.newBuilder().setPlannedTrain(plannedTrainData).build();
-        MonitorOuterClass.Monitor monitorEvent = MonitorOuterClass.Monitor.newBuilder().setEvent(embeddedEvent).build();
-        return monitorEvent;
-      }
-    }*/);
+    DataStream<MonitorOuterClass.Monitor> monitoredPlannedTrainDataStream = plannedTrainDataStream.map( new MonitorMapFunction<>());
     monitoredPlannedTrainDataStream.print();
     monitoredPlannedTrainDataStream.addSink(monitor_plannedTrainDataStreamProducer);
 
     this.toMonitorStreams.put("MONITOR_liveTrainDataStream",liveTrainDataStream);
-    DataStream</*Event*/MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>()
-            /*new MapFunction<LiveTrainData, Event>() {
-      @Override
-      public Event map(LiveTrainData liveTrainData) throws Exception {
-        Event embeddedEvent = Event.newBuilder().setLiveTrain(liveTrainData).build();
-        return embeddedEvent;
-      }
-    }*/);
+    DataStream<MonitorOuterClass.Monitor> monitoredLiveTrainDataStream = liveTrainDataStream.map( new MonitorMapFunction<LiveTrainData>());
     monitoredLiveTrainDataStream.print();
     monitoredLiveTrainDataStream.addSink(monitor_liveTrainDataStreamProducer);
 
+    this.toMonitorStreams.put("MONITOR_locationDataStream",locationDataStream);
+    DataStream<MonitorOuterClass.Monitor> monitoredLocationDataStream = locationDataStream.map( new MonitorMapFunction<LocationData>());
+    monitoredLocationDataStream.print();
+    monitoredLocationDataStream.addSink(monitor_locationDataStreamProducer);
     /*-------------------------
      * End - Monitoring Producer Setup Sources
      * ++++++++++++++++++++++++
@@ -363,7 +360,7 @@ public class Main implements Callable<Integer> {
     List<IndexContainer> plannedTrainDataIndex = Mongo.makeIndexContainerList(Arrays.asList("trainSectionId","endStationId","plannedArrivalTimeEndStation","plannedEventTime"));
     //The Stream is not necessary it passes through all events independent from a successful upload
     DataStream<PlannedTrainData> plannedTrainDataStreamUploaded = AsyncDataStream
-      .unorderedWait(plannedTrainDataStream, new DataToMongoDB("plannedTrainData",plannedTrainDataIndex, mongoConfig),
+      .unorderedWait(plannedTrainDataStream, new DataToMongoDB<PlannedTrainData>("plannedTrainData",plannedTrainDataIndex, mongoConfig),
         100000, TimeUnit.MILLISECONDS, 1);
 
     DataStream<Notification> notificationFromDelayShiftDataStream = AsyncDataStream

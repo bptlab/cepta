@@ -7,6 +7,7 @@ import org.bptlab.cepta.models.events.correlatedEvents.CountOfTrainsAtStationEve
 import org.bptlab.cepta.models.events.correlatedEvents.NoMatchingPlannedTrainDataEventOuterClass.NoMatchingPlannedTrainDataEvent;
 import org.bptlab.cepta.models.events.correlatedEvents.StaysInStationEventOuterClass.StaysInStationEvent;
 import org.bptlab.cepta.models.events.event.EventOuterClass.Event;
+import org.bptlab.cepta.models.events.info.LocationDataOuterClass.LocationData;
 import org.bptlab.cepta.models.events.train.LiveTrainDataOuterClass.LiveTrainData;
 import org.bptlab.cepta.models.events.train.PlannedTrainDataOuterClass.PlannedTrainData;
 import org.bptlab.cepta.models.internal.notifications.notification.NotificationOuterClass.Notification;
@@ -27,6 +28,8 @@ public class MonitorMapFunction<T /*extends Message*/> implements MapFunction<T,
             embeddedEvent = Event.newBuilder().setLiveTrain((LiveTrainData) t).build();
         } else if (t instanceof PlannedTrainData) {
             embeddedEvent = Event.newBuilder().setPlannedTrain((PlannedTrainData) t).build();
+        } else if (t instanceof LocationData) {
+            embeddedEvent = Event.newBuilder().setLocation((LocationData) t).build();
         } else if (t instanceof Tuple2) {
             if (((Tuple2) t).f0 instanceof LiveTrainData && ((Tuple2) t).f1 instanceof PlannedTrainData) {
                 embeddedEvent = Event.newBuilder()
