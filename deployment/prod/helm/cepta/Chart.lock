@@ -1,0 +1,21 @@
+dependencies:
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.1.1
+- name: prometheus-operator
+  repository: https://charts.bitnami.com/bitnami
+  version: 0.15.1
+- name: grafana
+  repository: https://charts.bitnami.com/bitnami
+  version: 1.4.1
+- name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 7.10.10
+- name: envoy
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 1.9.0
+- name: postgresql-ha
+  repository: https://charts.bitnami.com/bitnami
+  version: 2.3.1
+digest: sha256:00bbda3dc8b4bf0b46ac8b8bd76bbabe7df54613e6af06f9c6bf71a2566bfdc9
+generated: "2020-04-12T18:49:58.533398346+02:00"
